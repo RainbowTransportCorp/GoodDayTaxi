@@ -1,13 +1,12 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.5.8'
-    id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.springframework.boot' version '3.2.7'
+    id 'io.spring.dependency-management' version '1.1.5'
 }
 
-group = 'com.gooddaytaxi.eureka.client'
+group = 'com.gooddaytaxi.payment'
 version = '0.0.1-SNAPSHOT'
-description = 'payment'
-
+description = 'payment-service'
 
 java {
     toolchain {
@@ -15,37 +14,34 @@ java {
     }
 }
 
-configurations {
-    compileOnly {
-        extendsFrom annotationProcessor
-    }
-}
-
 repositories {
+    mavenLocal()
     mavenCentral()
 }
 
-ext {
-    set('springCloudVersion', "2025.0.0")
-}
-
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    // Web + Controller
     implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    // JPA
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    runtimeOnly 'org.postgresql:postgresql'
+
+    // Eureka Client
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+
+    // Common module
+    implementation 'com.gooddaytaxi:common-core:0.0.1-SNAPSHOT'
+    implementation 'com.gooddaytaxi:common-jpa:0.0.1-SNAPSHOT'
+
+    // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+
+    // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    runtimeOnly 'org.postgresql:postgresql'
 }
 
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-    }
-}
-
-tasks.named('test') {
+tasks.named("test") {
     useJUnitPlatform()
 }

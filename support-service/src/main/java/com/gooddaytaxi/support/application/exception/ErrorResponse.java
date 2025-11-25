@@ -1,6 +1,6 @@
 package com.gooddaytaxi.support.application.exception;
 
-import com.gooddaytaxi.common.exception.ErrorCode;
+import com.gooddaytaxi.common.core.exception.ErrorCode;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

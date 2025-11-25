@@ -1,7 +1,7 @@
 package com.gooddaytaxi.account.application.exception;
 
-import com.gooddaytax.common.exception.BusinessException;
-import com.gooddaytax.common.exception.ErrorLevel;
+import com.gooddaytaxi.common.core.exception.BusinessException;
+import com.gooddaytaxi.common.core.exception.ErrorLevel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;

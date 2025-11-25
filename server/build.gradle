@@ -1,10 +1,10 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.5.8'
-    id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.springframework.boot' version '3.2.7'
+    id 'io.spring.dependency-management' version '1.1.5'
 }
 
-group = 'com.gooddaytaxi.eureka.client'
+group = 'com.gooddaytaxi.server'
 version = '0.0.1-SNAPSHOT'
 description = 'server'
 
@@ -14,25 +14,29 @@ java {
     }
 }
 
-configurations {
-    compileOnly {
-        extendsFrom annotationProcessor
-    }
-}
-
 repositories {
+    mavenLocal()
     mavenCentral()
 }
 
+// Spring Cloud BOM 버전 (Eureka 쓰니까 필요)
 ext {
-    set('springCloudVersion', "2025.0.0")
+    set('springCloudVersion', "2023.0.3")
 }
+
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    // Eureka Server
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-server'
+
+    //common - jpa 제외
+    implementation 'com.gooddaytaxi:common-core:0.0.1-SNAPSHOT'
+
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }

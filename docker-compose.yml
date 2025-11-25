@@ -1,0 +1,212 @@
+version: "3.8"
+
+services:
+
+  # ============================
+  # POSTGRES — 서비스별 DB
+  # ============================
+
+  account-db:
+    image: postgres:15
+    container_name: gd_account_db
+    environment:
+      POSTGRES_USER: ${ACCOUNT_DB_USER}
+      POSTGRES_PASSWORD: ${ACCOUNT_DB_PASS}
+      POSTGRES_DB: ${ACCOUNT_DB_NAME}
+    ports:
+      - "5433:5432"
+    volumes:
+      - account_pgdata:/var/lib/postgresql/data
+    networks:
+      - gd-network
+
+  dispatch-db:
+    image: postgres:15
+    container_name: gd_dispatch_db
+    environment:
+      POSTGRES_USER: ${DISPATCH_DB_USER}
+      POSTGRES_PASSWORD: ${DISPATCH_DB_PASS}
+      POSTGRES_DB: ${DISPATCH_DB_NAME}
+    ports:
+      - "5434:5432"
+    volumes:
+      - dispatch_pgdata:/var/lib/postgresql/data
+    networks:
+      - gd-network
+
+  trip-db:
+    image: postgres:15
+    container_name: gd_trip_db
+    environment:
+      POSTGRES_USER: ${TRIP_DB_USER}
+      POSTGRES_PASSWORD: ${TRIP_DB_PASS}
+      POSTGRES_DB: ${TRIP_DB_NAME}
+    ports:
+      - "5435:5432"
+    volumes:
+      - trip_pgdata:/var/lib/postgresql/data
+    networks:
+      - gd-network
+
+  payment-db:
+    image: postgres:15
+    container_name: gd_payment_db
+    environment:
+      POSTGRES_USER: ${PAYMENT_DB_USER}
+      POSTGRES_PASSWORD: ${PAYMENT_DB_PASS}
+      POSTGRES_DB: ${PAYMENT_DB_NAME}
+    ports:
+      - "5436:5432"
+    volumes:
+      - payment_pgdata:/var/lib/postgresql/data
+    networks:
+      - gd-network
+
+  support-db:
+    image: postgres:15
+    container_name: gd_support_db
+    environment:
+      POSTGRES_USER: ${SUPPORT_DB_USER}
+      POSTGRES_PASSWORD: ${SUPPORT_DB_PASS}
+      POSTGRES_DB: ${SUPPORT_DB_NAME}
+    ports:
+      - "5437:5432"
+    volumes:
+      - support_pgdata:/var/lib/postgresql/data
+    networks:
+      - gd-network
+
+
+  # ============================
+  # REDIS
+  # ============================
+
+  redis:
+    image: redis:7
+    container_name: gd_redis
+    ports:
+      - "${REDIS_PORT}:6379"
+    networks:
+      - gd-network
+
+
+  # ============================
+  # KAFKA
+  # ============================
+
+  kafka:
+    image: bitnami/kafka:3.6
+    container_name: gd_kafka
+    environment:
+      KAFKA_ENABLE_KRAFT: "yes"
+      KAFKA_CFG_PROCESS_ROLES: controller,broker
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CFG_NODE_ID: 1
+    ports:
+      - "${KAFKA_PORT}:9092"
+    networks:
+      - gd-network
+
+
+  # ============================
+  # CORE SERVICES
+  # ============================
+
+  server:
+    build: ./server
+    container_name: gd_eureka
+    ports:
+      - "${EUREKA_PORT}:8761"
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+    networks:
+      - gd-network
+
+  gateway:
+    build: ./gateway
+    container_name: gd_gateway
+    ports:
+      - "${GATEWAY_PORT}:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      ZIPKIN_BASE_URL: http://zipkin:9411
+    depends_on:
+      - server
+    networks:
+      - gd-network
+
+
+  # ============================
+  # DOMAIN SERVICES
+  # ============================
+
+  account-service:
+    build: ./account-service
+    container_name: gd_account_service
+    ports:
+      - "${ACCOUNT_SERVICE_PORT}:8080"
+    depends_on:
+      - account-db
+      - server
+    networks:
+      - gd-network
+
+  dispatch-service:
+    build: ./dispatch-service
+    container_name: gd_dispatch_service
+    ports:
+      - "${DISPATCH_SERVICE_PORT}:8080"
+    depends_on:
+      - dispatch-db
+      - kafka
+      - server
+    networks:
+      - gd-network
+
+  trip-service:
+    build: ./trip-service
+    container_name: gd_trip_service
+    ports:
+      - "${TRIP_SERVICE_PORT}:8080"
+    depends_on:
+      - trip-db
+      - server
+    networks:
+      - gd-network
+
+  payment-service:
+    build: ./payment-service
+    container_name: gd_payment_service
+    ports:
+      - "${PAYMENT_SERVICE_PORT}:8080"
+    depends_on:
+      - payment-db
+      - kafka
+      - server
+    networks:
+      - gd-network
+
+  support-service:
+    build: ./support-service
+    container_name: gd_support_service
+    ports:
+      - "${SUPPORT_SERVICE_PORT}:8080"
+    depends_on:
+      - support-db
+      - server
+    networks:
+      - gd-network
+
+
+volumes:
+  account_pgdata:
+  dispatch_pgdata:
+  trip_pgdata:
+  payment_pgdata:
+  support_pgdata:
+
+networks:
+  gd-network:
