@@ -2,18 +2,20 @@ name: Smart Service Build
 
 # =====================================================================
 # 📌 Trigger 조건
-#   - PR 생성/수정 시 (main 또는 dev)
-#   - main/dev 브랜치에 push 시
+#   - PR 생성/수정 시 (dev 또는 main 대상으로)
+#   - dev / main 브랜치에 직접 push 발생 시
 # =====================================================================
 on:
   pull_request:
-    branches: [main, dev]
+    branches: [dev, main]
   push:
-    branches: [main, dev]
+    branches: [dev, main]
 
 
 # =====================================================================
-# 🔍 변경된 서비스 자동 감지 Job
+# 🔍 1. 변경된 서비스 자동 감지 Job
+#   - 어떤 서비스가 수정됐는지 판단해서 빌드 범위를 최소화
+#   - 공통 모듈(common-core / common-jpa) 변경 시 → 전체 서비스 빌드
 # =====================================================================
 jobs:
   detect-changes:
@@ -28,9 +30,9 @@ jobs:
         uses: actions/checkout@v3
 
       # --------------------------------------------------------------
-      # 2) 비교 기준 Branch 결정
-      #    - PR   → base_ref
-      #    - push → 현재 ref_name
+      # 2) 비교 기준(base) 브랜치 결정
+      #    - PR  : base_ref (예: dev, main)
+      #    - push: 현재 ref_name
       # --------------------------------------------------------------
       - name: Determine Base Branch
         id: base
@@ -43,23 +45,24 @@ jobs:
 
       # --------------------------------------------------------------
       # 3) 변경된 파일 목록 추출
-      #    - base branch fetch
-      #    - merge-base 없으면 전체 변경(ALL)
+      #    - origin/<base> 와 HEAD 를 비교
+      #    - merge-base 없으면(히스토리 끊김) → 전체 변경(ALL) 로 처리
       # --------------------------------------------------------------
       - name: Get Changed Files
         id: changes
         run: |
           BASE=${{ steps.base.outputs.base_branch }}
-
           echo "📌 Base branch: $BASE"
 
+          # base 브랜치 fetch (없어도 에러로 죽지 않도록 허용)
           git fetch origin $BASE || true
 
+          # 공통 조상(merge-base) 존재 여부 체크
           if git merge-base origin/$BASE HEAD >/dev/null 2>&1; then
-            echo "🔍 merge-base found → 정상 diff"
+            echo "🔍 merge-base found → 일반 diff 수행"
             CHANGED=$(git diff --name-only origin/$BASE...HEAD)
           else
-            echo "⚠ merge-base 없음 → 전체 변경 처리 (ALL)"
+            echo "⚠ merge-base 없음 → 전체 변경으로 간주 (ALL)"
             CHANGED="ALL"
           fi
 
@@ -68,13 +71,16 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       # --------------------------------------------------------------
-      # 4) 변경된 파일 목록을 기반으로 변경된 서비스 탐지
+      # 4) 변경된 파일 목록을 기반으로 서비스 단위 변경 사항 감지
+      #    - account-service, dispatch-service 등 디렉토리 기준
+      #    - 공통 모듈(common-core / common-jpa) 변경 → services=ALL
       # --------------------------------------------------------------
       - name: Detect Changed Services
         id: detect
         run: |
           FILES="${{ steps.changes.outputs.changed_files }}"
 
+          # 전체 변경(ALL) 플래그가 이미 설정된 경우
           if [ "$FILES" = "ALL" ]; then
             echo "services=ALL" >> $GITHUB_OUTPUT
             exit 0
@@ -84,20 +90,28 @@ jobs:
 
           for FILE in $FILES; do
             case $FILE in
-              account-service/*) SERVICES="$SERVICES account-service" ;;
-              dispatch-service/*) SERVICES="$SERVICES dispatch-service" ;;
-              trip-service/*) SERVICES="$SERVICES trip-service" ;;
-              payment-service/*) SERVICES="$SERVICES payment-service" ;;
-              support-service/*) SERVICES="$SERVICES support-service" ;;
-              gateway/*) SERVICES="$SERVICES gateway" ;;
-              server/*) SERVICES="$SERVICES server" ;;
+              account-service/*)   SERVICES="$SERVICES account-service" ;;
+              dispatch-service/*)  SERVICES="$SERVICES dispatch-service" ;;
+              trip-service/*)      SERVICES="$SERVICES trip-service" ;;
+              payment-service/*)   SERVICES="$SERVICES payment-service" ;;
+              support-service/*)   SERVICES="$SERVICES support-service" ;;
+              gateway/*)           SERVICES="$SERVICES gateway" ;;
+              server/*)            SERVICES="$SERVICES server" ;;
+              common-core/*)       SERVICES="ALL" ;;  # 공통 모듈은 전체 영향
+              common-jpa/*)        SERVICES="ALL" ;;
             esac
           done
 
-          # 중복 제거
+          # 공통 모듈 변경 → 전체 서비스 빌드
+          if [ "$SERVICES" = "ALL" ]; then
+            echo "services=ALL" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # 공백/중복 제거
           SERVICES=$(echo "$SERVICES" | xargs -n1 | sort -u | xargs)
 
-          # 아무 서비스도 변경되지 않았다면 NONE
+          # 진짜로 아무 서비스도 안 바뀌었으면 NONE
           if [ -z "$SERVICES" ]; then
             SERVICES="NONE"
           fi
@@ -105,12 +119,16 @@ jobs:
           echo "services=$SERVICES" >> $GITHUB_OUTPUT
           echo "🔍 Changed services: $SERVICES"
 
+    # detect-changes Job 결과를 build Job 으로 넘김
     outputs:
       services: ${{ steps.detect.outputs.services }}
 
 
   # =====================================================================
-  # 🔧 서비스 빌드 Job
+  # 🔧 2. 서비스 빌드 Job
+  #   - 공통 모듈 먼저 빌드 및 Maven Local 에 배포
+  #   - 변경된 서비스만 선택적으로 빌드 (Smart CI)
+  #   - 공통 모듈/대규모 변경 시 전체 서비스 빌드
   # =====================================================================
   build:
     name: Build Services
@@ -118,41 +136,105 @@ jobs:
     needs: detect-changes
 
     steps:
+      # --------------------------------------------------------------
+      # 1) 코드 체크아웃
+      # --------------------------------------------------------------
       - name: Checkout Repository
         uses: actions/checkout@v3
 
       # --------------------------------------------------------------
-      # 🔥 변경된 서비스만 빌드
+      # 2) JDK 17 설정 (Gradle & Spring Boot 빌드를 위한 기본 런타임)
+      # --------------------------------------------------------------
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # --------------------------------------------------------------
+      # 3) Gradle & Maven 캐시 설정
+      #    - Gradle wrapper / dependency / Maven Local 캐싱
+      #    - 빌드 속도 개선 효과 큼
+      # --------------------------------------------------------------
+      - name: Setup Gradle & Maven Cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.m2
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+
+      # --------------------------------------------------------------
+      # 4) 공통 모듈(common-core) 빌드 및 Maven Local 배포
+      #    - 각 서비스에서 com.gooddaytaxi:common-core:0.0.1-SNAPSHOT
+      #      의존성을 찾을 수 있도록 선행 작업
+      # --------------------------------------------------------------
+      - name: Build common-core
+        run: |
+          if [ -d "common-core" ]; then
+            echo "🔧 Building common-core..."
+            chmod +x common-core/gradlew || true
+            (cd common-core && ./gradlew clean build publishToMavenLocal --no-daemon)
+          else
+            echo "ℹ common-core module not found. Skipping."
+          fi
+
+      # --------------------------------------------------------------
+      # 5) 공통 모듈(common-jpa) 빌드 및 Maven Local 배포
+      # --------------------------------------------------------------
+      - name: Build common-jpa
+        run: |
+          if [ -d "common-jpa" ]; then
+            echo "🔧 Building common-jpa..."
+            chmod +x common-jpa/gradlew || true
+            (cd common-jpa && ./gradlew clean build publishToMavenLocal --no-daemon)
+          else
+            echo "ℹ common-jpa module not found. Skipping."
+          fi
+
+      # --------------------------------------------------------------
+      # 6) 변경된 서비스만 빌드 (Smart Build)
+      #    - detect-changes Job 결과가
+      #      - 'ALL'  이 아니고
+      #      - 'NONE' 도 아닐 때
       # --------------------------------------------------------------
       - name: Build Changed Services
         if: needs.detect-changes.outputs.services != 'ALL' && needs.detect-changes.outputs.services != 'NONE'
         run: |
-          for SERVICE in ${{ needs.detect-changes.outputs.services }}; do
-            echo "🔧 Building $SERVICE ..."
+          SERVICES="${{ needs.detect-changes.outputs.services }}"
+          echo "🚀 Building changed services: $SERVICES"
 
-            # gradlew 실행 권한 부여
-            chmod +x $SERVICE/gradlew
-
-            # 서비스 내부 gradlew 실행
+          for SERVICE in $SERVICES; do
+            echo "🔨 Building $SERVICE ..."
+            # 각 서비스의 gradlew 에 실행 권한 부여 후 빌드
+            chmod +x $SERVICE/gradlew || true
             (cd $SERVICE && ./gradlew clean build --no-daemon)
           done
 
       # --------------------------------------------------------------
-      # 🔥 전체 변경인 경우 → 모든 서비스 빌드
+      # 7) 전체 서비스 빌드
+      #    - 공통 모듈 변경 또는 merge-base 없음으로 ALL 처리된 경우
       # --------------------------------------------------------------
       - name: Build ALL Services
         if: needs.detect-changes.outputs.services == 'ALL'
         run: |
-          for SERVICE in account-service dispatch-service trip-service payment-service support-service gateway server; do
-            echo "🔨 Building $SERVICE ..."
+          SERVICES="account-service dispatch-service trip-service payment-service support-service gateway server"
+          echo "🚀 Building ALL services: $SERVICES"
 
-            chmod +x $SERVICE/gradlew
-            (cd $SERVICE && ./gradlew clean build --no-daemon)
+          for SERVICE in $SERVICES; do
+            if [ -d "$SERVICE" ]; then
+              echo "🔨 Building $SERVICE ..."
+              chmod +x $SERVICE/gradlew || true
+              (cd $SERVICE && ./gradlew clean build --no-daemon)
+            else
+              echo "ℹ $SERVICE 디렉토리가 없어 빌드 스킵."
+            fi
           done
 
       # --------------------------------------------------------------
-      # 🔥 변경 없으면 스킵
+      # 8) 변경된 서비스가 전혀 없는 경우 (문서만 바뀐 경우 등)
       # --------------------------------------------------------------
-      - name: No Services Changed
+      - name: No Backend Changes
         if: needs.detect-changes.outputs.services == 'NONE'
-        run: echo "🟡 No backend changes detected — Build skipped."
+        run: echo "🟡 No backend service changes detected — Build skipped."
