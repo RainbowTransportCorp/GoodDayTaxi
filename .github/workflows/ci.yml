@@ -1,0 +1,106 @@
+name: Smart-CI
+
+on:
+  pull_request:
+    branches: [ "main", "dev" ]
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.detect.outputs.changed }}
+      services: ${{ steps.detect.outputs.services }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # 🔎 변경된 디렉토리 탐지
+      - name: Detect changed modules
+        id: detect
+        run: |
+          echo "🔍 Checking changed files..."
+
+          # 변경된 경로 추출
+          CHANGED=$(git diff --name-only origin/${{ github.base_ref }} HEAD)
+          echo "Changed files:"
+          echo "$CHANGED"
+
+          # 플래그 초기화
+          NEED_FULL_BUILD=false
+          SERVICES=""
+
+          for FILE in $CHANGED; do
+            if [[ "$FILE" == common-core/* ]] || [[ "$FILE" == common-jpa/* ]]; then
+              NEED_FULL_BUILD=true
+            fi
+
+            if [[ "$FILE" == account-service/* ]]; then
+              SERVICES="$SERVICES account-service"
+            fi
+            if [[ "$FILE" == dispatch-service/* ]]; then
+              SERVICES="$SERVICES dispatch-service"
+            fi
+            if [[ "$FILE" == trip-service/* ]]; then
+              SERVICES="$SERVICES trip-service"
+            fi
+            if [[ "$FILE" == payment-service/* ]]; then
+              SERVICES="$SERVICES payment-service"
+            fi
+            if [[ "$FILE" == support-service/* ]]; then
+              SERVICES="$SERVICES support-service"
+            fi
+            if [[ "$FILE" == gateway/* ]]; then
+              SERVICES="$SERVICES gateway"
+            fi
+          done
+
+          # 공통 모듈 변경 → 전체 서비스 빌드
+          if [ "$NEED_FULL_BUILD" = true ]; then
+            echo "changed=ALL" >> $GITHUB_OUTPUT
+            echo "services=ALL" >> $GITHUB_OUTPUT
+          else
+            echo "changed=SOME" >> $GITHUB_OUTPUT
+            echo "services=$SERVICES" >> $GITHUB_OUTPUT
+          fi
+
+  build:
+    needs: detect-changes
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Print detected changes
+        run: |
+          echo "Changed type: ${{ needs.detect-changes.outputs.changed }}"
+          echo "Services: ${{ needs.detect-changes.outputs.services }}"
+
+      # -------------------------------
+      # 🟢 공통 모듈 변경 → 전체 빌드
+      # -------------------------------
+      - name: Build entire repository
+        if: needs.detect-changes.outputs.changed == 'ALL'
+        run: |
+          echo "🚀 Full build triggered due to common module changes."
+          ./gradlew clean build --no-daemon
+
+      # -------------------------------
+      # 🟡 개별 서비스만 빌드
+      # -------------------------------
+      - name: Build only changed services
+        if: needs.detect-changes.outputs.changed != 'ALL'
+        run: |
+          for SERVICE in ${{ needs.detect-changes.outputs.services }}; do
+            echo "🔧 Building $SERVICE ... "
+            (cd $SERVICE && ../gradlew clean build --no-daemon)
+          done
+
+      - name: Skip build
+        if: needs.detect-changes.outputs.services == ''
+        run: echo "⏭ No services modified. Build skipped."
