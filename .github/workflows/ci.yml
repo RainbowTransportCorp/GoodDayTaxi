@@ -2,8 +2,8 @@ name: Smart Service Build
 
 # =====================================================================
 # 📌 Trigger 조건
-#   - PR 생성/수정: main, dev 대상일 때 실행
-#   - main, dev 브랜치에 push 발생 시 실행
+#   - PR 생성/수정 시 (main 또는 dev)
+#   - main/dev 브랜치에 push 시
 # =====================================================================
 on:
   pull_request:
@@ -13,9 +13,7 @@ on:
 
 
 # =====================================================================
-# 📌 변경된 서비스 자동 감지 Job
-#   - Git diff 로 변경된 파일을 분석하여 어떤 서비스가 수정됐는지 탐지
-#   - merge-base가 없는 경우 → 전체 변경으로 판단(ALL)
+# 🔍 변경된 서비스 자동 감지 Job
 # =====================================================================
 jobs:
   detect-changes:
@@ -30,9 +28,9 @@ jobs:
         uses: actions/checkout@v3
 
       # --------------------------------------------------------------
-      # 2) 비교 기준(base branch) 결정
-      #    - PR: base_ref (예: dev)
-      #    - Push: 현재 ref_name
+      # 2) 비교 기준 Branch 결정
+      #    - PR   → base_ref
+      #    - push → 현재 ref_name
       # --------------------------------------------------------------
       - name: Determine Base Branch
         id: base
@@ -45,24 +43,23 @@ jobs:
 
       # --------------------------------------------------------------
       # 3) 변경된 파일 목록 추출
-      #    - base 브랜치 fetch
-      #    - merge-base 확인 실패 → 전체 변경으로 간주(ALL)
+      #    - base branch fetch
+      #    - merge-base 없으면 전체 변경(ALL)
       # --------------------------------------------------------------
       - name: Get Changed Files
         id: changes
         run: |
           BASE=${{ steps.base.outputs.base_branch }}
+
           echo "📌 Base branch: $BASE"
 
-          # base 브랜치 가져오기 (존재하지 않아도 넘어감)
           git fetch origin $BASE || true
 
-          # merge-base 확인 (히스토리 연결 여부)
           if git merge-base origin/$BASE HEAD >/dev/null 2>&1; then
-            echo "🔍 merge-base found → normal diff"
+            echo "🔍 merge-base found → 정상 diff"
             CHANGED=$(git diff --name-only origin/$BASE...HEAD)
           else
-            echo "⚠️ merge-base 없음 → 전체 변경(ALL) 처리"
+            echo "⚠ merge-base 없음 → 전체 변경 처리 (ALL)"
             CHANGED="ALL"
           fi
 
@@ -71,23 +68,20 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       # --------------------------------------------------------------
-      # 4) 변경된 파일 경로 기반으로 어느 서비스가 변경되었는지 탐지
-      #    - 서비스별 폴더 이름 패턴 매칭
-      #    - 변경 없음 → NONE
-      #    - 전체 변경 → ALL
+      # 4) 변경된 파일 목록을 기반으로 변경된 서비스 탐지
       # --------------------------------------------------------------
       - name: Detect Changed Services
         id: detect
         run: |
           FILES="${{ steps.changes.outputs.changed_files }}"
 
-          # 전체 변경 처리
           if [ "$FILES" = "ALL" ]; then
             echo "services=ALL" >> $GITHUB_OUTPUT
             exit 0
           fi
 
           SERVICES=""
+
           for FILE in $FILES; do
             case $FILE in
               account-service/*) SERVICES="$SERVICES account-service" ;;
@@ -103,7 +97,7 @@ jobs:
           # 중복 제거
           SERVICES=$(echo "$SERVICES" | xargs -n1 | sort -u | xargs)
 
-          # 감지된 서비스가 없으면 NONE
+          # 아무 서비스도 변경되지 않았다면 NONE
           if [ -z "$SERVICES" ]; then
             SERVICES="NONE"
           fi
@@ -111,17 +105,12 @@ jobs:
           echo "services=$SERVICES" >> $GITHUB_OUTPUT
           echo "🔍 Changed services: $SERVICES"
 
-    # detect job output → build job에서 사용
     outputs:
       services: ${{ steps.detect.outputs.services }}
 
 
   # =====================================================================
-  # 📌 서비스 빌드 Job
-  #   - detect-changes Job 결과에 따라 빌드 범위 결정
-  #   - 변경된 서비스만 빌드
-  #   - 전체 변경 → 모든 서비스 빌드
-  #   - 변경 없음 → 스킵
+  # 🔧 서비스 빌드 Job
   # =====================================================================
   build:
     name: Build Services
@@ -133,31 +122,37 @@ jobs:
         uses: actions/checkout@v3
 
       # --------------------------------------------------------------
-      # 🔥 변경된 서비스만 개별 gradlew 로 빌드
+      # 🔥 변경된 서비스만 빌드
       # --------------------------------------------------------------
       - name: Build Changed Services
         if: needs.detect-changes.outputs.services != 'ALL' && needs.detect-changes.outputs.services != 'NONE'
         run: |
           for SERVICE in ${{ needs.detect-changes.outputs.services }}; do
             echo "🔧 Building $SERVICE ..."
-            (cd $SERVICE && ../gradlew clean build --no-daemon)
+
+            # gradlew 실행 권한 부여
+            chmod +x $SERVICE/gradlew
+
+            # 서비스 내부 gradlew 실행
+            (cd $SERVICE && ./gradlew clean build --no-daemon)
           done
 
       # --------------------------------------------------------------
-      # 🔥 전체 서비스 빌드 (ALL)
-      #     root gradlew 없음 → 서비스별 gradlew 반복 빌드
+      # 🔥 전체 변경인 경우 → 모든 서비스 빌드
       # --------------------------------------------------------------
       - name: Build ALL Services
         if: needs.detect-changes.outputs.services == 'ALL'
         run: |
           for SERVICE in account-service dispatch-service trip-service payment-service support-service gateway server; do
             echo "🔨 Building $SERVICE ..."
-            (cd $SERVICE && ../gradlew clean build --no-daemon)
+
+            chmod +x $SERVICE/gradlew
+            (cd $SERVICE && ./gradlew clean build --no-daemon)
           done
 
       # --------------------------------------------------------------
-      # 🔥 변경 없는 경우
+      # 🔥 변경 없으면 스킵
       # --------------------------------------------------------------
       - name: No Services Changed
         if: needs.detect-changes.outputs.services == 'NONE'
-        run: echo "🟡 No backend service changes detected — Build skipped."
+        run: echo "🟡 No backend changes detected — Build skipped."
