@@ -19,7 +19,6 @@ public class GlobalExceptionHandler {
                 .status(status)
                 .body(ErrorResponse.from(e.getErrorCode())); // ← of 대신 from
     }
-
     private HttpStatus mapErrorLevelToHttpStatus(ErrorLevel level) {
         return switch (level) {
             case BAD_REQUEST -> HttpStatus.BAD_REQUEST;
