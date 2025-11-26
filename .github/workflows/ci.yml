@@ -11,7 +11,6 @@ on:
   push:
     branches: [dev, main]
 
-
 # =====================================================================
 # 🔍 1. 변경된 서비스 자동 감지 Job
 #   - 어떤 서비스가 수정됐는지 판단해서 빌드 범위를 최소화
@@ -48,16 +47,15 @@ jobs:
       #    - origin/<base> 와 HEAD 를 비교
       #    - merge-base 없으면(히스토리 끊김) → 전체 변경(ALL) 로 처리
       # --------------------------------------------------------------
+
       - name: Get Changed Files
         id: changes
         run: |
           BASE=${{ steps.base.outputs.base_branch }}
           echo "📌 Base branch: $BASE"
 
-          # base 브랜치 fetch (없어도 에러로 죽지 않도록 허용)
           git fetch origin $BASE || true
 
-          # 공통 조상(merge-base) 존재 여부 체크
           if git merge-base origin/$BASE HEAD >/dev/null 2>&1; then
             echo "🔍 merge-base found → 일반 diff 수행"
             CHANGED=$(git diff --name-only origin/$BASE...HEAD)
@@ -66,8 +64,32 @@ jobs:
             CHANGED="ALL"
           fi
 
+          echo "📄 Raw changed files:"
+          echo "$CHANGED"
+
+          # ----------------------------------------------------------
+          #  🔥 문서/CI 템플릿 변경은 서비스 영향 없음 → 필터링 추가
+          # ----------------------------------------------------------
+          FILTERED=""
+          for FILE in $CHANGED; do
+            case $FILE in
+              *.md) continue ;;
+              README.md) continue ;;
+              .github/*) continue ;;
+              docs/*) continue ;;
+            esac
+            FILTERED="$FILTERED $FILE"
+          done
+
+          # 아무 서비스에도 영향이 없으면 changed_files=NONE
+          if [ -z "$FILTERED" ]; then
+            echo "changed_files=NONE" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # 필터링된 파일만 출력
           echo "changed_files<<EOF" >> $GITHUB_OUTPUT
-          echo "$CHANGED" >> $GITHUB_OUTPUT
+          echo "$FILTERED" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       # --------------------------------------------------------------
@@ -123,7 +145,6 @@ jobs:
     outputs:
       services: ${{ steps.detect.outputs.services }}
 
-
   # =====================================================================
   # 🔧 2. 서비스 빌드 Job
   #   - 공통 모듈 먼저 빌드 및 Maven Local 에 배포
@@ -148,8 +169,8 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: "temurin"
+          java-version: "17"
 
       # --------------------------------------------------------------
       # 3) Gradle & Maven 캐시 설정
