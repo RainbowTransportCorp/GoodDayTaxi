@@ -1,16 +1,4 @@
-rootProject.name = 'GoodDayTaxi'
+rootProject.name = "GoodDayTaxi"
 
-rootProject.name = 'GoodDayTaxi'
-
-// 공통 모듈 (멀티모듈로 관리)
-include 'common-core'
-include 'common-jpa'
-
-// 서비스들 (MSA)
-include 'account-service'
-include 'dispatch-service'
-include 'trip-service'
-include 'payment-service'
-include 'support-service'
-include 'gateway'
-include 'server'
+include("common-core")
+include("common-jpa")
