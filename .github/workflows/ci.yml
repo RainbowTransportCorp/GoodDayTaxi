@@ -1,41 +1,40 @@
 name: Smart Service Build
 
-# ------------------------------------------------------------
-# 📌 CI Trigger 조건
-#  - PR 생성/업데이트 시 (main 또는 dev 대상으로)
-#  - main 또는 dev 브랜치에 push 발생 시
-# ------------------------------------------------------------
+# =====================================================================
+# 📌 Trigger 조건
+#   - PR 생성/수정: main, dev 대상일 때 실행
+#   - main, dev 브랜치에 push 발생 시 실행
+# =====================================================================
 on:
   pull_request:
-    branches:
-      - main
-      - dev
+    branches: [main, dev]
   push:
-    branches:
-      - main
-      - dev
+    branches: [main, dev]
 
+
+# =====================================================================
+# 📌 변경된 서비스 자동 감지 Job
+#   - Git diff 로 변경된 파일을 분석하여 어떤 서비스가 수정됐는지 탐지
+#   - merge-base가 없는 경우 → 전체 변경으로 판단(ALL)
+# =====================================================================
 jobs:
-  # ----------------------------------------------------------
-  # 🔍 변경된 서비스 자동 감지 Job
-  # ----------------------------------------------------------
   detect-changes:
     name: Detect Changed Services
     runs-on: ubuntu-latest
 
     steps:
-      # --------------------------------------------------------
-      # 코드를 Checkout
-      # --------------------------------------------------------
-      - name: Checkout
+      # --------------------------------------------------------------
+      # 1) 코드 체크아웃
+      # --------------------------------------------------------------
+      - name: Checkout Repository
         uses: actions/checkout@v3
 
-      # --------------------------------------------------------
-      # 비교 대상 브랜치(Base branch) 결정
-      #   - PR이면 base_ref 사용
-      #   - push면 현재 ref
-      # --------------------------------------------------------
-      - name: Determine base branch
+      # --------------------------------------------------------------
+      # 2) 비교 기준(base branch) 결정
+      #    - PR: base_ref (예: dev)
+      #    - Push: 현재 ref_name
+      # --------------------------------------------------------------
+      - name: Determine Base Branch
         id: base
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
@@ -44,28 +43,26 @@ jobs:
             echo "base_branch=${{ github.ref_name }}" >> $GITHUB_OUTPUT
           fi
 
-      # --------------------------------------------------------
-      # 변경된 파일 목록 조회
-      # 1) origin/BASE 브랜치 fetch
-      # 2) merge-base 확인
-      #   - merge-base 없음 → 전체 변경으로 간주 (ALL)
-      # 3) diff 성공 → 변경된 파일 목록 출력
-      # --------------------------------------------------------
-      - name: Get changed files
+      # --------------------------------------------------------------
+      # 3) 변경된 파일 목록 추출
+      #    - base 브랜치 fetch
+      #    - merge-base 확인 실패 → 전체 변경으로 간주(ALL)
+      # --------------------------------------------------------------
+      - name: Get Changed Files
         id: changes
         run: |
           BASE=${{ steps.base.outputs.base_branch }}
-          echo "🔍 Checking diff from origin/$BASE..."
+          echo "📌 Base branch: $BASE"
 
-          # base 브랜치 가져오기 (없어도 넘어감)
+          # base 브랜치 가져오기 (존재하지 않아도 넘어감)
           git fetch origin $BASE || true
 
-          # merge-base 존재 여부 확인
+          # merge-base 확인 (히스토리 연결 여부)
           if git merge-base origin/$BASE HEAD >/dev/null 2>&1; then
-            echo "🔍 merge-base found. Running git diff..."
+            echo "🔍 merge-base found → normal diff"
             CHANGED=$(git diff --name-only origin/$BASE...HEAD)
           else
-            echo "⚠️ No merge base found — fallback to ALL"
+            echo "⚠️ merge-base 없음 → 전체 변경(ALL) 처리"
             CHANGED="ALL"
           fi
 
@@ -73,22 +70,18 @@ jobs:
           echo "$CHANGED" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      # --------------------------------------------------------
-      # 🔍 변경된 경로에서 MSA 서비스 디렉토리 감지
-      #   - account-service
-      #   - dispatch-service
-      #   - trip-service
-      #   - payment-service
-      #   - support-service
-      #   - gateway
-      #   - server
-      # --------------------------------------------------------
-      - name: Detect changed services
+      # --------------------------------------------------------------
+      # 4) 변경된 파일 경로 기반으로 어느 서비스가 변경되었는지 탐지
+      #    - 서비스별 폴더 이름 패턴 매칭
+      #    - 변경 없음 → NONE
+      #    - 전체 변경 → ALL
+      # --------------------------------------------------------------
+      - name: Detect Changed Services
         id: detect
         run: |
           FILES="${{ steps.changes.outputs.changed_files }}"
 
-          # 전체 변경 시 ALL 반환
+          # 전체 변경 처리
           if [ "$FILES" = "ALL" ]; then
             echo "services=ALL" >> $GITHUB_OUTPUT
             exit 0
@@ -110,7 +103,7 @@ jobs:
           # 중복 제거
           SERVICES=$(echo "$SERVICES" | xargs -n1 | sort -u | xargs)
 
-          # 감지된 서비스 없으면 NONE
+          # 감지된 서비스가 없으면 NONE
           if [ -z "$SERVICES" ]; then
             SERVICES="NONE"
           fi
@@ -118,48 +111,53 @@ jobs:
           echo "services=$SERVICES" >> $GITHUB_OUTPUT
           echo "🔍 Changed services: $SERVICES"
 
+    # detect job output → build job에서 사용
     outputs:
       services: ${{ steps.detect.outputs.services }}
 
-  # ----------------------------------------------------------
-  # 🔧 선택 빌드 Job
-  # ----------------------------------------------------------
+
+  # =====================================================================
+  # 📌 서비스 빌드 Job
+  #   - detect-changes Job 결과에 따라 빌드 범위 결정
+  #   - 변경된 서비스만 빌드
+  #   - 전체 변경 → 모든 서비스 빌드
+  #   - 변경 없음 → 스킵
+  # =====================================================================
   build:
     name: Build Services
     runs-on: ubuntu-latest
     needs: detect-changes
 
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v3
 
-      # --------------------------------------------------------
-      # gradlew 실행 가능하도록 권한 부여
-      # --------------------------------------------------------
-      - name: Grant permission to gradlew
-        run: chmod +x gradlew
-
-      # --------------------------------------------------------
-      # 🔥 변경된 서비스만 개별 빌드
-      # --------------------------------------------------------
+      # --------------------------------------------------------------
+      # 🔥 변경된 서비스만 개별 gradlew 로 빌드
+      # --------------------------------------------------------------
       - name: Build Changed Services
         if: needs.detect-changes.outputs.services != 'ALL' && needs.detect-changes.outputs.services != 'NONE'
         run: |
           for SERVICE in ${{ needs.detect-changes.outputs.services }}; do
-            echo "🔧 Building $SERVICE..."
+            echo "🔧 Building $SERVICE ..."
             (cd $SERVICE && ../gradlew clean build --no-daemon)
           done
 
-      # --------------------------------------------------------
+      # --------------------------------------------------------------
       # 🔥 전체 서비스 빌드 (ALL)
-      # --------------------------------------------------------
+      #     root gradlew 없음 → 서비스별 gradlew 반복 빌드
+      # --------------------------------------------------------------
       - name: Build ALL Services
         if: needs.detect-changes.outputs.services == 'ALL'
-        run: ./gradlew clean build --no-daemon
+        run: |
+          for SERVICE in account-service dispatch-service trip-service payment-service support-service gateway server; do
+            echo "🔨 Building $SERVICE ..."
+            (cd $SERVICE && ../gradlew clean build --no-daemon)
+          done
 
-      # --------------------------------------------------------
-      # 🔥 서비스 변경이 없는 경우 (NONE)
-      # --------------------------------------------------------
+      # --------------------------------------------------------------
+      # 🔥 변경 없는 경우
+      # --------------------------------------------------------------
       - name: No Services Changed
         if: needs.detect-changes.outputs.services == 'NONE'
         run: echo "🟡 No backend service changes detected — Build skipped."
