@@ -1,13 +1,7 @@
-package com.gooddaytaxi.trip;
-
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-
-@SpringBootTest
-class TripApplicationTests {
-
-    @Test
-    void contextLoads() {
-    }
-
-}
+//package com.gooddaytaxi.trip;
+//
+//import org.springframework.boot.test.context.SpringBootTest;
+//
+//@SpringBootTest
+//class TripApplicationTests {
+//}

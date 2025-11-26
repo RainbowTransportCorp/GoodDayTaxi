@@ -14,9 +14,17 @@ java {
     }
 }
 
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:2023.0.3"
+    }
+}
+
+
 repositories {
     mavenLocal()
     mavenCentral()
+    maven { url "https://repo.spring.io/release" }
 }
 
 dependencies {
@@ -29,6 +37,10 @@ dependencies {
 
     // Validation (@Valid, @NotNull 등)
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // Eureka Client (Spring Cloud Starter)
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+
 
     // Security + JWT (게이트웨이 & 유저서비스만 사용)
     implementation 'org.springframework.boot:spring-boot-starter-security'
