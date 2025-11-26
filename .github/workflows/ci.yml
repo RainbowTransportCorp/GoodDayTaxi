@@ -15,28 +15,25 @@ on:
       - main
       - dev
 
-# ------------------------------------------------------------
-# 📌 변경된 서비스 감지 Job
-#   - PR 또는 push 기준으로 변경된 파일 목록 조회
-#   - MSA 서비스 폴더(account/dispatch/...) 기준으로 변경 감지
-#   - 감지 실패 시 전체 빌드(ALL) fallback
-# ------------------------------------------------------------
 jobs:
+  # ----------------------------------------------------------
+  # 🔍 변경된 서비스 자동 감지 Job
+  # ----------------------------------------------------------
   detect-changes:
     name: Detect Changed Services
     runs-on: ubuntu-latest
 
     steps:
       # --------------------------------------------------------
-      # 코드 체크아웃
+      # 코드를 Checkout
       # --------------------------------------------------------
       - name: Checkout
         uses: actions/checkout@v3
 
       # --------------------------------------------------------
-      # 🔍 비교 대상(base branch) 결정
-      #   - PR: base_ref 사용
-      #   - PUSH: 현재 브랜치 기준
+      # 비교 대상 브랜치(Base branch) 결정
+      #   - PR이면 base_ref 사용
+      #   - push면 현재 ref
       # --------------------------------------------------------
       - name: Determine base branch
         id: base
@@ -44,27 +41,31 @@ jobs:
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             echo "base_branch=${{ github.base_ref }}" >> $GITHUB_OUTPUT
           else
-            # push일 때는 ref_name 사용
             echo "base_branch=${{ github.ref_name }}" >> $GITHUB_OUTPUT
           fi
 
       # --------------------------------------------------------
-      # 🔍 변경된 파일 목록 조회
-      #   - base branch가 존재하지 않을 경우 전체 빌드로 fallback
+      # 변경된 파일 목록 조회
+      # 1) origin/BASE 브랜치 fetch
+      # 2) merge-base 확인
+      #   - merge-base 없음 → 전체 변경으로 간주 (ALL)
+      # 3) diff 성공 → 변경된 파일 목록 출력
       # --------------------------------------------------------
       - name: Get changed files
         id: changes
         run: |
           BASE=${{ steps.base.outputs.base_branch }}
-
           echo "🔍 Checking diff from origin/$BASE..."
 
-          # 없는 브랜치 대비 (예: 첫 CI)
-          git fetch origin $BASE || echo "⚠️ Base branch not found, fallback to ALL"
+          # base 브랜치 가져오기 (없어도 넘어감)
+          git fetch origin $BASE || true
 
-          if git rev-parse origin/$BASE >/dev/null 2>&1; then
+          # merge-base 존재 여부 확인
+          if git merge-base origin/$BASE HEAD >/dev/null 2>&1; then
+            echo "🔍 merge-base found. Running git diff..."
             CHANGED=$(git diff --name-only origin/$BASE...HEAD)
           else
+            echo "⚠️ No merge base found — fallback to ALL"
             CHANGED="ALL"
           fi
 
@@ -87,7 +88,7 @@ jobs:
         run: |
           FILES="${{ steps.changes.outputs.changed_files }}"
 
-          # 전체 변경으로 판단된 경우
+          # 전체 변경 시 ALL 반환
           if [ "$FILES" = "ALL" ]; then
             echo "services=ALL" >> $GITHUB_OUTPUT
             exit 0
@@ -120,12 +121,9 @@ jobs:
     outputs:
       services: ${{ steps.detect.outputs.services }}
 
-  # ------------------------------------------------------------
-  # 📌 빌드 Job
-  #   - 변경된 서비스만 타겟 빌드
-  #   - 전체 변경 시 전체 빌드
-  #   - 변경 없음(NONE)은 스킵 처리
-  # ------------------------------------------------------------
+  # ----------------------------------------------------------
+  # 🔧 선택 빌드 Job
+  # ----------------------------------------------------------
   build:
     name: Build Services
     runs-on: ubuntu-latest
@@ -136,13 +134,13 @@ jobs:
         uses: actions/checkout@v3
 
       # --------------------------------------------------------
-      # gradlew 실행 권한 부여 (필수)
+      # gradlew 실행 가능하도록 권한 부여
       # --------------------------------------------------------
       - name: Grant permission to gradlew
         run: chmod +x gradlew
 
       # --------------------------------------------------------
-      # 🔥 변경된 서비스만 선택 빌드
+      # 🔥 변경된 서비스만 개별 빌드
       # --------------------------------------------------------
       - name: Build Changed Services
         if: needs.detect-changes.outputs.services != 'ALL' && needs.detect-changes.outputs.services != 'NONE'
@@ -153,14 +151,14 @@ jobs:
           done
 
       # --------------------------------------------------------
-      # 🔥 전체 서비스 빌드 (fallback or core 변경 시)
+      # 🔥 전체 서비스 빌드 (ALL)
       # --------------------------------------------------------
       - name: Build ALL Services
         if: needs.detect-changes.outputs.services == 'ALL'
         run: ./gradlew clean build --no-daemon
 
       # --------------------------------------------------------
-      # 🔥 변경된 서비스 없는 경우
+      # 🔥 서비스 변경이 없는 경우 (NONE)
       # --------------------------------------------------------
       - name: No Services Changed
         if: needs.detect-changes.outputs.services == 'NONE'
