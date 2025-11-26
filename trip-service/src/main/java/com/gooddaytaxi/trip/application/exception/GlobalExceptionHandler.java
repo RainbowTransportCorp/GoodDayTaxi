@@ -1,7 +1,7 @@
 package com.gooddaytaxi.trip.application.exception;
 
-import com.gooddaytaxi.common.exception.BusinessException;
-import com.gooddaytaxi.common.exception.ErrorLevel;
+import com.gooddaytaxi.common.core.exception.BusinessException;
+import com.gooddaytaxi.common.core.exception.ErrorLevel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
