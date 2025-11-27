@@ -41,7 +41,6 @@ dependencies {
     // Eureka Client (Spring Cloud Starter)
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 
-
     // Security + JWT (게이트웨이 & 유저서비스만 사용)
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
@@ -55,6 +54,13 @@ dependencies {
     // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+
+    //Zipkin
+    implementation 'io.micrometer:micrometer-tracing-bridge-brave'
+    implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
+
+    //Kafka
+    implementation 'org.springframework.kafka:spring-kafka'
 
     // 테스트
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

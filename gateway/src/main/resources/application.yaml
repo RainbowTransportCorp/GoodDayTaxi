@@ -1,128 +1,47 @@
 server:
-  port: ${GATEWAY_PORT:8080}
+  port: ${service.port}
 
 spring:
-  main:
-    web-application-type: reactive
+  config:
+    import:
+      - secrets.yaml
   application:
     name: gateway
-  config:
-    import: optional:configserver:http://config:${CONFIG_PORT}
+
+  main:
+    web-application-type: reactive
 
   cloud:
     gateway:
-      server:
-        webflux:
-          discovery:
-            locator:
-              enabled: true
-          routes:
-            - id: trip-service
-              uri: lb://trip-service
-#              predicates:
-#                - Path=/open-api/v1/trips/**,/api/v1/trips/**
+      discovery:
+        locator:
+          enabled: true
 
-            - id: trip-docs
-              uri: lb://trip-service
-              predicates:
-                - Path=/trips/v3/api-docs
-              filters:
-                - name: RewritePath
-                  args:
-                    regexp: /trips/(?<segment>.*)
-                    replacement: /${segment}
+      routes:
+        - id: trip-service
+          uri: lb://${routes.trip}
+          predicates:
+            - Path=/trips/**
 
+        - id: dispatch-service
+          uri: lb://${routes.dispatch}
+          predicates:
+            - Path=/dispatch/**
 
-            - id: dispatch-service
-              uri: lb://dispatch-service
-#              predicates:
-#                - Path=/open-api/v1/dispatchs/**,/api/v1/dispatchs/**
+        - id: payment-service
+          uri: lb://${routes.payment}
+          predicates:
+            - Path=/payment/**
 
-            - id: dispatch-docs
-              uri: lb://dispatch-service
-              predicates:
-                - Path=/dispatchs/v3/api-docs
-              filters:
-                - name: RewritePath
-                  args:
-                    regexp: /dispatchs/(?<segment>.*)
-                    replacement: /${segment}
+        - id: account-service
+          uri: lb://${routes.account}
+          predicates:
+            - Path=/account/**
 
-
-            - id: user-service
-              uri: lb://user-service
-#              predicates:
-#                - Path=/open-api/v1/users/**,/open-api/v1/auth/**,/api/v1/users/**
-
-            - id: user-docs
-              uri: lb://user-service
-              predicates:
-                - Path=/users/v3/api-docs
-              filters:
-                - name: RewritePath
-                  args:
-                    regexp: /users/(?<segment>.*)
-                    replacement: /${segment}
-
-
-            - id: payment-service
-              uri: lb://payment-service
-#              predicates:
-#                - Path=/open-api/v1/payments/**, /api/v1/payments/**
-
-            - id: payment-docs
-              uri: lb://payment-service
-              predicates:
-                - Path=/payments/v3/api-docs
-              filters:
-                - name: RewritePath
-                  args:
-                    regexp: /payments/(?<segment>.*)
-                    replacement: /${segment}
-
-
-            - id: support-service
-              uri: lb://support-service
-#              predicates:
-#                - Path=/open-api/v1/supports/**,/api/v1/supports/**
-
-            - id: support-docs
-              uri: lb://support-service
-              predicates:
-                - Path=/supports/v3/api-docs
-              filters:
-                - name: RewritePath
-                  args:
-                    regexp: /supports/(?<segment>.*)
-                    replacement: /${segment}
-
-            # 추후 도전 기능 구현 시
-#            - id: external-service
-#              uri: lb://external-service
-#              predicates:
-#                - Path=/open-api/v1/externals/**,/api/v1/externals/**
-#
-#            - id: external-docs
-#              uri: lb://hub-service
-#              predicates:
-#                - Path=/externals/v3/api-docs
-#              filters:
-#                - name: RewritePath
-#                  args:
-#                    regexp: /externals/(?<segment>.*)
-#                    replacement: /${segment}
-
-
-
-
-
-eureka:
-  client:
-    register-with-eureka: true
-    fetch-registry: true
-    service-url:
-      defaultZone: http://localhost:${EUREKA_PORT}/eureka/
-
+        - id: support-service
+          uri: lb://${routes.support}
+          predicates:
+            - Path=/support/**
 
 springdoc:
   swagger-ui:
@@ -131,12 +50,25 @@ springdoc:
       - name: trip-service
         url: /trips/v3/api-docs
       - name: dispatch-service
-        url: /dispatchs/v3/api-docs
+        url: /dispatch/v3/api-docs
       - name: payment-service
-        url: /payments/v3/api-docs
-      - name: user-service
-        url: /users/v3/api-docs
+        url: /payment/v3/api-docs
+      - name: account-service
+        url: /account/v3/api-docs
       - name: support-service
-        url: /supports/v3/api-docs
-#      - name: external-service
-#        url: /externals/v3/api-docs
+        url: /support/v3/api-docs
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:${eureka.port}/eureka/
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: http://zipkin:${zipkin.port}/api/v2/spans

@@ -1,9 +1,12 @@
 spring:
+  config:
+    import:
+      - secrets.yaml
   application:
     name: server
 
 server:
-  port: ${EUREKA_PORT:8761}
+  port: ${service.port}
 
 eureka:
   client:
