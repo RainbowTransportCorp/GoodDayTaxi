@@ -23,8 +23,14 @@
 hs_err_pid*
 replay_pid*
 
-# 불필요한 파일
+# 캐시파일
 .idea
+.iml
+.gradle/
+build/
+out/
 
 # 환경변수 파일
 .env
+*.env
+**/*.env
