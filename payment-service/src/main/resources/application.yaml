@@ -1,17 +1,19 @@
 server:
-  port: ${PAYMENT_SERVICE_PORT:8084}
+  port: ${service.port}
 
 spring:
-  #  profiles:
-  #    active: ${SPRING_PROFILES_ACTIVE:docker}
+#  profiles:
+#    active: ${SPRING_PROFILES.ACTIVE:docker}
+  config:
+    import: secrets.yaml
   application:
     name: payment-service
 
   datasource:
-    url: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+    url: jdbc:postgresql://localhost:5436/${postgres.db}
     driver-class-name: org.postgresql.Driver
-    username: ${POSTGRES_USER}
-    password: ${POSTGRES_PASSWORD}
+    username: ${postgres.user}
+    password: ${postgres.password}
 
   jpa:
     hibernate:
@@ -25,7 +27,7 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:${EUREKA_PORT}/eureka/
+      defaultZone: http://localhost:${eureka.port}/eureka/
 
 
 management:
@@ -34,4 +36,4 @@ management:
       probability: 1.0
   zipkin:
     tracing:
-      endpoint: "http://localhost:${ZIPKIN_PORT}/api/v2/spans"
+      endpoint: "http://localhost:${zipkin.port}/api/v2/spans"

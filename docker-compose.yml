@@ -89,116 +89,127 @@ services:
     networks:
       - gd-network
 
-
   # ============================
-  # KAFKA
-  # ============================
-
-  kafka:
-    image: bitnami/kafka:3.6
-    container_name: gd_kafka
-    environment:
-      KAFKA_ENABLE_KRAFT: "yes"
-      KAFKA_CFG_PROCESS_ROLES: controller,broker
-      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
-      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
-      KAFKA_CFG_NODE_ID: 1
-    ports:
-      - "${KAFKA_PORT}:9092"
-    networks:
-      - gd-network
-
-
-  # ============================
-  # CORE SERVICES
+  # ZIPKIN
   # ============================
 
-  server:
-    build: ./server
-    container_name: gd_eureka
+  zipkin:
+    image: openzipkin/zipkin:latest
+    container_name: gd_zipkin
     ports:
-      - "${EUREKA_PORT}:8761"
-    environment:
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      - "${ZIPKIN_PORT}:9411"
     networks:
       - gd-network
 
-  gateway:
-    build: ./gateway
-    container_name: gd_gateway
-    ports:
-      - "${GATEWAY_PORT}:8080"
-    environment:
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
-      ZIPKIN_BASE_URL: http://zipkin:9411
-    depends_on:
-      - server
-    networks:
-      - gd-network
+  # # ============================
+  # # KAFKA - 안 돌아가서 주석
+  # # ============================
+
+  # kafka:
+  #   image: confluentinc/cp-kafka:7.5.0
+  #   container_name: gd_kafka
+  #   environment:
+  #     KAFKA_NODE_ID: 1
+  #     KAFKA_PROCESS_ROLES: "broker,controller"
+  #     KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
+  #     KAFKA_LISTENERS: "PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
+  #     KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT"
+  #     KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+  #     CLUSTER_ID: "JVMbAsqwSx2MihgJqz0Y0g=="
+  #   ports:
+  #     - "9092:9092"
+  #   networks:
+  #     - gd-network
 
 
-  # ============================
-  # DOMAIN SERVICES
-  # ============================
+  # # ============================
+  # # CORE SERVICES - 게이트웨이와 서버 완성 후 주석 해제
+  # # ============================
 
-  account-service:
-    build: ./account-service
-    container_name: gd_account_service
-    ports:
-      - "${ACCOUNT_SERVICE_PORT}:8080"
-    depends_on:
-      - account-db
-      - server
-    networks:
-      - gd-network
+  # server:
+  #   build: ./server
+  #   container_name: gd_eureka
+  #   ports:
+  #     - "${EUREKA_PORT}:8761"
+  #   environment:
+  #     SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+  #   networks:
+  #     - gd-network
 
-  dispatch-service:
-    build: ./dispatch-service
-    container_name: gd_dispatch_service
-    ports:
-      - "${DISPATCH_SERVICE_PORT}:8080"
-    depends_on:
-      - dispatch-db
-      - kafka
-      - server
-    networks:
-      - gd-network
+  # gateway:
+  #   build: ./gateway
+  #   container_name: gd_gateway
+  #   ports:
+  #     - "${GATEWAY_PORT}:8080"
+  #   environment:
+  #     SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+  #     ZIPKIN_BASE_URL: http://zipkin:9411
+  #   depends_on:
+  #     - server
+  #   networks:
+  #     - gd-network
 
-  trip-service:
-    build: ./trip-service
-    container_name: gd_trip_service
-    ports:
-      - "${TRIP_SERVICE_PORT}:8080"
-    depends_on:
-      - trip-db
-      - server
-    networks:
-      - gd-network
 
-  payment-service:
-    build: ./payment-service
-    container_name: gd_payment_service
-    ports:
-      - "${PAYMENT_SERVICE_PORT}:8080"
-    depends_on:
-      - payment-db
-      - kafka
-      - server
-    networks:
-      - gd-network
+  # # ============================
+  # # DOMAIN SERVICES
+  # # ============================
 
-  support-service:
-    build: ./support-service
-    container_name: gd_support_service
-    ports:
-      - "${SUPPORT_SERVICE_PORT}:8080"
-    depends_on:
-      - support-db
-      - server
-    networks:
-      - gd-network
+  # account-service:
+  #   build: ./account-service
+  #   container_name: gd_account_service
+  #   ports:
+  #     - "${ACCOUNT_SERVICE_PORT}:8080"
+  #   depends_on:
+  #     - account-db
+  #     - server
+  #   networks:
+  #     - gd-network
+
+  # dispatch-service:
+  #   build: ./dispatch-service
+  #   container_name: gd_dispatch_service
+  #   ports:
+  #     - "${DISPATCH_SERVICE_PORT}:8080"
+  #   depends_on:
+  #     - dispatch-db
+  #     - kafka
+  #     - server
+  #   networks:
+  #     - gd-network
+
+  # trip-service:
+  #   build: ./trip-service
+  #   container_name: gd_trip_service
+  #   ports:
+  #     - "${TRIP_SERVICE_PORT}:8080"
+  #   depends_on:
+  #     - trip-db
+  #     - server
+  #   networks:
+  #     - gd-network
+
+  # payment-service:
+  #   build: ./payment-service
+  #   container_name: gd_payment_service
+  #   ports:
+  #     - "${PAYMENT_SERVICE_PORT}:8080"
+  #   depends_on:
+  #     - payment-db
+  #     - kafka
+  #     - server
+  #   networks:
+  #     - gd-network
+
+  # support-service:
+  #   build: ./support-service
+  #   container_name: gd_support_service
+  #   ports:
+  #     - "${SUPPORT_SERVICE_PORT}:8080"
+  #   depends_on:
+  #     - support-db
+  #     - server
+  #   networks:
+  #     - gd-network
 
 
 volumes:
