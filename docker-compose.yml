@@ -139,7 +139,7 @@ services:
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
-    container_name: kafka-ui-container
+    container_name: gd_kafka-ui
     volumes:
       - kafka-ui-data:/var/lib/kafka-ui
     depends_on:
@@ -154,32 +154,35 @@ services:
       SERVER_PORT: 9999
 
 
-  # # ============================
-  # # CORE SERVICES - 게이트웨이와 서버 완성 후 주석 해제
-  # # ============================
+  # ============================
+  # CORE SERVICES - 게이트웨이와 서버 완성 후 주석 해제
+  # ============================
+  server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    container_name: gd_eureka
+    ports:
+      - "${EUREKA_PORT}:8761"
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+    networks:
+      - gd-network
 
-  # server:
-  #   build: ./server
-  #   container_name: gd_eureka
-  #   ports:
-  #     - "${EUREKA_PORT}:8761"
-  #   environment:
-  #     SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
-  #   networks:
-  #     - gd-network
-
-  # gateway:
-  #   build: ./gateway
-  #   container_name: gd_gateway
-  #   ports:
-  #     - "${GATEWAY_PORT}:8080"
-  #   environment:
-  #     SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
-  #     ZIPKIN_BASE_URL: http://zipkin:9411
-  #   depends_on:
-  #     - server
-  #   networks:
-  #     - gd-network
+  gateway:
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
+    container_name: gd_gateway
+    ports:
+      - "${GATEWAY_PORT}:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      ZIPKIN_BASE_URL: http://zipkin:9411
+    depends_on:
+      - server
+    networks:
+      - gd-network
 
 
   # # ============================
