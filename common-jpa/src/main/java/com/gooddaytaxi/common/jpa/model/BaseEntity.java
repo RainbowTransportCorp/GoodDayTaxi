@@ -1,4 +1,4 @@
-package com.gooddaytaxi.common.model;
+package com.gooddaytaxi.common.jpa.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
