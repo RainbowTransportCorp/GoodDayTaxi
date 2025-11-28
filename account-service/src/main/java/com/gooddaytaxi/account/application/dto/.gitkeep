@@ -1,0 +1,2 @@
+# Application DTOs - 유스케이스 간 데이터 전달용 DTO
+# 예: UserCommand.java, UserQuery.java
