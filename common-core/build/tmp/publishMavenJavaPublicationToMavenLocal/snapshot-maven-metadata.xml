@@ -3,7 +3,7 @@
   <groupId>com.gooddaytaxi</groupId>
   <artifactId>common-core</artifactId>
   <versioning>
-    <lastUpdated>20251128031142</lastUpdated>
+    <lastUpdated>20251128064229</lastUpdated>
     <snapshot>
       <localCopy>true</localCopy>
     </snapshot>
@@ -11,17 +11,17 @@
       <snapshotVersion>
         <extension>pom</extension>
         <value>0.0.1-SNAPSHOT</value>
-        <updated>20251128031142</updated>
+        <updated>20251128064229</updated>
       </snapshotVersion>
       <snapshotVersion>
         <extension>module</extension>
         <value>0.0.1-SNAPSHOT</value>
-        <updated>20251128031142</updated>
+        <updated>20251128064229</updated>
       </snapshotVersion>
       <snapshotVersion>
         <extension>jar</extension>
         <value>0.0.1-SNAPSHOT</value>
-        <updated>20251128031142</updated>
+        <updated>20251128064229</updated>
       </snapshotVersion>
     </snapshotVersions>
   </versioning>

@@ -10,10 +10,10 @@ spring:
     name: support-service
 
   datasource:
-    url: jdbc:postgresql://localhost:5437/${postgresql.db}
+    url: jdbc:postgresql://localhost:5437/${postgres.db}
     driver-class-name: org.postgresql.Driver
-    username: ${postgresql.user}
-    password: ${postgresql.password}
+    username: ${postgres.user}
+    password: ${postgres.password}
 
   jpa:
     hibernate:
