@@ -35,13 +35,16 @@ dependencies {
     // Eureka Client
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 
-    // Common module
-    implementation 'com.gooddaytaxi:common-core:0.0.1-SNAPSHOT'
-
     // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
+    // JJWT - Java JWT (Boot 3.x 호환)
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.3'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.3'
+
+    //test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'io.projectreactor:reactor-test'
 }
