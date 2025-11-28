@@ -31,9 +31,6 @@ dependencies {
     // Eureka Server
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-server'
 
-    //common - jpa 제외
-    implementation 'com.gooddaytaxi:common-core:0.0.1-SNAPSHOT'
-
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
