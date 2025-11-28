@@ -5,13 +5,11 @@ import com.gooddaytaxi.payment.presentation.external.dto.request.PaymentCreateRe
 
 public class PaymentCreateMapper {
     public static PaymentCreateCommand toCommand(PaymentCreateRequestDto requestDto) {
-        return PaymentCreateCommand
-                .builder()
-                .amount(requestDto.getAmount())
-                .method(requestDto.getMethod())
-                .passengerId(requestDto.getPassengerId())
-                .driverId(requestDto.getDriverId())
-                .tripId(requestDto.getTripId())
-                .build();
+        return new PaymentCreateCommand(
+                requestDto.amount(),
+                requestDto.method(),
+                requestDto.passengerId(),
+                requestDto.driverId(),
+                requestDto.tripId());
     }
 }

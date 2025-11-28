@@ -21,15 +21,15 @@ public class PaymentService {
         //todo : 승객아이디, 운전자아이디, 탑승아이디 검증
 
         // 금액 검증
-        Fare amount = Fare.of(command.getAmount());
+        Fare amount = Fare.of(command.amount());
         //결제 수단 검증
-        PaymentMethod method = PaymentMethod.of(command.getMethod());
+        PaymentMethod method = PaymentMethod.of(command.method());
 
         //결제 청구서 생성
-        Payment payment = new Payment(amount,  method, command.getPassengerId(), command.getDriverId(), command.getTripId());
+        Payment payment = new Payment(amount,  method, command.passengerId(), command.driverId(), command.tripId());
 
         paymentCommandPort.save(payment);
 
-        return new PaymentCreateResult(payment.getId(), payment.getMethod().name(), payment.getAmount().value(), payment.getPassengerId(), payment.getDriverId(), payment.getTripId());
+        return new PaymentCreateResult(payment.getId(), payment.getMethod().name(), payment.getAmount().value());
     }
 }
