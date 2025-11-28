@@ -3,7 +3,7 @@ server:
 
 spring:
 #  profiles:
-#   active: ${SPRING_PROFILES.ACTIVE:docker}
+#   active: ${SPRING_PROFILES.ACTIVE:docker} - 서비스 자체를 띄울 때 사용
   config:
     import:
       - secrets.yaml
@@ -11,7 +11,8 @@ spring:
     name: dispatch-service
 
   datasource:
-    url: jdbc:postgresql://localhost:5434/${postgres.db}
+    url: jdbc:postgresql://localhost:5434/${postgres.db} #local
+#    url: jdbc:postgresql://gd_dispatch_db:5432/${postgres.db} #docker - 서비스 자체를 띄울 때 사용
     driver-class-name: org.postgresql.Driver
     username: ${postgres.user}
     password: ${postgres.password}
@@ -27,7 +28,8 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:${eureka.port}/eureka/
+      defaultZone: http://localhost:${eureka.port}/eureka/ #local
+#      defaultZone: http://gd_eureka:${eureka.port}/eureka/ # docker - 서비스 자체를 띄울 때 사용
 
 
 management:

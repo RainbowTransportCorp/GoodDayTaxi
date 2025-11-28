@@ -13,33 +13,29 @@ spring:
 
   cloud:
     gateway:
-      discovery:
-        locator:
-          enabled: true
-
       routes:
         - id: trip-service
-          uri: lb://${routes.trip}
+          uri: http://host.docker.internal:8205
           predicates:
             - Path=/trips/**
 
         - id: dispatch-service
-          uri: lb://${routes.dispatch}
+          uri: http://host.docker.internal:8202
           predicates:
             - Path=/dispatch/**
 
         - id: payment-service
-          uri: lb://${routes.payment}
+          uri: http://host.docker.internal:8204
           predicates:
             - Path=/payment/**
 
         - id: account-service
-          uri: lb://${routes.account}
+          uri: http://host.docker.internal:8201
           predicates:
             - Path=/account/**
 
         - id: support-service
-          uri: lb://${routes.support}
+          uri: http://host.docker.internal:8203
           predicates:
             - Path=/support/**
 
@@ -63,12 +59,13 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
     service-url:
-      defaultZone: http://localhost:${eureka.port}/eureka/
+      defaultZone: http://gd_eureka:${eureka.port}/eureka/
 
 management:
   tracing:
     sampling:
       probability: 1.0
+
   zipkin:
     tracing:
-      endpoint: http://zipkin:${zipkin.port}/api/v2/spans
+      endpoint: http://gd_zipkin:${zipkin.port}/api/v2/spans
