@@ -46,6 +46,9 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
+    //예외처리용
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
