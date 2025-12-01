@@ -16,5 +16,6 @@ public class Trip extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "trips_id")
-    private UUID id;
+    private UUID TripId;
+
 }
