@@ -41,7 +41,7 @@ public class PaymentController {
 
     //tosspay 결제 준비 API
     @GetMapping("/tosspay/ready")
-    public ResponseEntity<Void> readyPayment(@RequestParam Long userId,
+    public ResponseEntity<Void> readyPayment(@RequestParam UUID userId,
                                              @RequestParam String role,
                                              @RequestParam UUID tripId) {
 

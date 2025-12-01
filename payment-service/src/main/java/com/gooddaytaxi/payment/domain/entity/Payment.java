@@ -35,10 +35,10 @@ public class Payment extends BaseEntity {
     private PaymentMethod method;
 
     @Column(nullable = false)
-    private Long passengerId;
+    private UUID passengerId;
 
     @Column(nullable = false)
-    private Long driverId;
+    private UUID driverId;
 
     @Column(nullable = false)
     private UUID tripId;
@@ -58,7 +58,7 @@ public class Payment extends BaseEntity {
     private String failReason; //결제 실패 사유
 
 
-    public Payment(Fare amount, PaymentMethod method, Long passengerId, Long driverId, UUID tripId) {
+    public Payment(Fare amount, PaymentMethod method, UUID passengerId, UUID driverId, UUID tripId) {
         this.amount = amount;
         this.status = PaymentStatus.PENDING;
         this.method = method;

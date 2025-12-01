@@ -53,7 +53,7 @@ public class PaymentService {
 
     //토스페이 결제 준비
     @Transactional
-    public Long tosspayReady(Long userId, String role, UUID tripId) {
+    public Long tosspayReady(UUID userId, String role, UUID tripId) {
         log.info("TossPay Ready called: userId={}, role={}, tripId={}", userId, role, tripId);
         //유저의 역할이 승객인지 확인
         if(UserRole.of(role) != UserRole.PASSENGER) {
@@ -101,7 +101,7 @@ public class PaymentService {
             LocalDateTime approvedAt = LocalDateTime.parse(result.approvedAt(), formatter);
             //성공시 결제 청구서 상태를 '결제 완료'로 변경
             payment.registerConfirmTosspay(requestAt, approvedAt, result.method());
-            if(result.method().equals("EASY_PAY")) {
+            if(result.method().equals("간편결제")) {
                 payment.registerProvider(result.easyPay().provider());
             }
             log.info("TossPay Payment confirmed successfully for orderId={}, requestedAt={}, approveAt={}", command.orderId(), requestAt, approvedAt);

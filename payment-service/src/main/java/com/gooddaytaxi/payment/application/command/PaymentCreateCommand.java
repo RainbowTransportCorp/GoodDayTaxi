@@ -4,7 +4,7 @@ import java.util.UUID;
 
 public record PaymentCreateCommand(Long amount,
                                    String method,
-                                   Long passengerId,
-                                   Long driverId,
+                                   UUID passengerId,
+                                   UUID driverId,
                                    UUID tripId) {
 }
