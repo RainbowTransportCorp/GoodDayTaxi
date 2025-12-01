@@ -48,6 +48,8 @@ dependencies {
     // Validation
     implementation 'org.springframework.boot:spring-boot-starter-validation'
 
+    //Feign Client
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
