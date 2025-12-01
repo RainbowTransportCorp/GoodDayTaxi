@@ -3,6 +3,7 @@ package com.gooddaytaxi.dispatch.application.service;
 import com.gooddaytaxi.dispatch.application.commend.DispatchCreateCommand;
 import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchCommandPort;
 import com.gooddaytaxi.dispatch.application.result.DispatchCreateResult;
+import com.gooddaytaxi.dispatch.application.result.DispatchListResult;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +23,7 @@ public class DispatchService {
 
     public DispatchCreateResult create(Long passengerId, DispatchCreateCommand command) {
 
-        log.info("🚕 DispatchService.create() 호출됨 - passengerId={}, pickup={}, destination={}",
+        log.info("DispatchService.create() 호출됨 - passengerId={}, pickup={}, destination={}",
                 passengerId, command.getPickupAddress(), command.getDestinationAddress());
 
         Dispatch entity = Dispatch.builder()
@@ -33,11 +34,11 @@ public class DispatchService {
                 .dispatchStatus(DispatchStatus.REQUESTED)
                 .build();
 
-        log.info("📌 생성된 엔티티: {}", entity);
+        log.info("생성된 엔티티: {}", entity);
 
         Dispatch saved = commandPort.save(entity);
 
-        log.info("💾 저장 완료: dispatchId={} / status={}",
+        log.info("저장 완료: dispatchId={} / status={}",
                 saved.getDispatch_id(), saved.getDispatchStatus());
 
         return DispatchCreateResult.builder()
