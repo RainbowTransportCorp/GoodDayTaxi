@@ -26,10 +26,13 @@ import java.util.List;
 @Component
 public class AuthenticationFilter implements GlobalFilter, Ordered {
 
-    //내부 통신할 때는 internal로, swagger에서는 /v3/api-docs로 예외처리하여 필터를 동작하지 않게합니다.
-    private static final List<String> PUBLIC_API_PREFIXES = List.of("/internal/", "/v3/api-docs", "/swagger-ui");
+    private static final List<String> PUBLIC_API_PREFIXES =
+            List.of("/internal/", "/v3/api-docs", "/swagger-ui");
+
     private static final String BEARER = "Bearer ";
-    private static final String USER_HEADER = "x-user-id";
+
+    private static final String USER_UUID_HEADER = "x-user-UUID";
+    private static final String ROLE_HEADER = "X-User-Role";
 
     @Value("${jwt.secret-key}")
     private String secretKey;
@@ -39,58 +42,68 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
 
         String path = exchange.getRequest().getURI().getPath();
 
-        boolean isPublic = PUBLIC_API_PREFIXES.stream()
-                .anyMatch(path::startsWith);
-
-        //내부 통신일 경우에는 필터를 적용하지 않아야 합니다. (이중 인증 방지)
-        if (isPublic) {
+        // Swagger·Internal API에 인증 강제하면 시스템 내부 흐름이 막히므로 인증 제외
+        if (isPublicPath(path)) {
+            log.debug("[Gateway] Public Path 접근 → 인증 생략 (path={})", path);
             return chain.filter(exchange);
         }
 
-        /*
-        Gateway는 전체 외부 요청에 관문역할을 합니다.
-        이 시점에서 인증 여부를 단일하게 판단해야 각 서비스에서는 로그인이 되었는지 신경 쓰지 않아도 됩니다.
-        인증 실패를 즉시 차단함으로써 downstream 서비스의 보안 위험을 줄입니다.
-        */
-        String authHeader = extractAuthHeader(exchange);
-
-        /*
-          JWT는 반드시 Authorization: Bearer <token> 형태여야 합니다.
-          형식이 맞지 않다는 것은 토큰이 아예 없거나 변조되었다는 뜻이므로 즉시 오류가 발생합니다.
-         */
+        String authHeader = extractAuthorizationHeader(exchange);
         if (authHeader == null || !authHeader.startsWith(BEARER)) {
+            log.warn("[Gateway] Authorization 헤더 누락 또는 Bearer 포맷 불일치 → (path={})", path);
             throw new TokenMissingException(TokenErrorCode.TOKEN_MISSING);
         }
 
         String token = authHeader.substring(BEARER.length());
 
-        /*
-          토큰 검증은 반드시 Gateway가 중앙에서 수행해야 합니다.
-          각 서비스가 개별적으로 검증하면 중복 코드가 생기고 보안 정책도 서비스별로 달라져 위험하기 때문
-         */
         Claims claims = parseClaims(token);
-        String userId = claims.get("user_id", String.class);
+
+        String userUUID = claims.get("userId", String.class);
+
+        if (userUUID == null || userUUID.isBlank()) {
+            log.warn("[Gateway] JWT Claims에 userId(UUID) 없음 → (path={})", path);
+            throw new EmptyClaimsException(TokenErrorCode.INVALID_CLAIMS);
+        }
 
         /*
-          Downstream 서비스는 JWT 원문을 알 필요 없음.
-          Gateway가 인증을 통과시킨 사용자 ID만 전달해주면,
-          각 서비스는 인증이 완료된 사용자 기준으로 처리할 수 있습니다.
+          역할(role)도 함께 각 서비스에 헤더로 보냄
+            - 인증(Gateway)와 인가(Service)의 관심사를 분리하기 위해
+            - 서비스는 DB 조회 없이 헤더 기반으로 권한(RBAC) 판단이 가능해짐
          */
-        ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
-                .header(USER_HEADER, userId)
-                .build();
+        String role = claims.get("role", String.class);
 
-        return chain.filter(exchange.mutate().request(mutatedRequest).build());
+        log.info("[Gateway] 인증 성공 → userUUID={}, role={}, path={}", userUUID, role, path);
+
+        /*
+          Downstream 요청에 사용자 정보(UUID/Role)를 주입한다.
+            - 내부 서비스는 오직 "신뢰된 사용자 데이터"만 사용하도록 하기 위함
+            - JWT 원문은 더 이상 서비스에 노출할 필요 없음 (보안상 안전)
+         */
+        ServerHttpRequest.Builder mutatedRequest = exchange.getRequest().mutate()
+                .header(USER_UUID_HEADER, userUUID);
+
+        if (role != null && !role.isBlank()) {
+            mutatedRequest.header(ROLE_HEADER, role);
+        }
+
+        return chain.filter(exchange.mutate().request(mutatedRequest.build()).build());
     }
 
-    private String extractAuthHeader(ServerWebExchange exchange) {
-        /*
-          헤더 추출 로직을 메서드로 분리하면 인증 로직 가독성이 높아지고,
-          향후 OAuth2 / 다른 인증 방식과 결합되더라도 확장하기 쉬운 구조가 됩니다.
-         */
+    private boolean isPublicPath(String path) {
+        //정규식 대신 startsWith로 빠른 비교 수행
+        return PUBLIC_API_PREFIXES.stream().anyMatch(path::startsWith);
+    }
+
+    private String extractAuthorizationHeader(ServerWebExchange exchange) {
+        //인증 구조(OAuth → JWT 등)가 변경되면 이 지점만 수정하면 됨
         return exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
     }
 
+    /*
+      JWT Claims 파싱 및 검증 담당
+        - 인증 실패는 필터 단계에서 전부 처리하여 서비스까지 전달되지 않도록 하기 위해
+        - 게이트웨이는 시스템 보안의 최전선이기 때문에 이곳에서 모든 토큰 유효성 책임을 갖는다
+     */
     private Claims parseClaims(String token) {
 
         SecretKey key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey));
@@ -103,18 +116,23 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
                     .getPayload();
 
         } catch (ExpiredJwtException e) {
+            log.warn("[Gateway] 만료된 JWT → {}", e.getMessage());
             throw new ExpiredException(TokenErrorCode.EXPIRED);
 
         } catch (MalformedJwtException e) {
+            log.warn("[Gateway] 잘못된 JWT 구조 → {}", e.getMessage());
             throw new MalFormedException(TokenErrorCode.MALFORMED);
 
         } catch (UnsupportedJwtException e) {
+            log.warn("[Gateway] 지원하지 않는 JWT → {}", e.getMessage());
             throw new UnsupportedException(TokenErrorCode.UNSUPPORTED);
 
         } catch (io.jsonwebtoken.security.SignatureException | SecurityException e) {
+            log.warn("[Gateway] JWT 서명 불일치 → {}", e.getMessage());
             throw new InvalidSignatureException(TokenErrorCode.INVALID_SIGNATURE);
 
         } catch (IllegalArgumentException e) {
+            log.warn("[Gateway] JWT Claims 비정상 → {}", e.getMessage());
             throw new EmptyClaimsException(TokenErrorCode.INVALID_CLAIMS);
         }
     }
@@ -122,9 +140,9 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
     @Override
     public int getOrder() {
         /*
-          Gateway 필터는 순서가 중요합니다.
-          인증은 가장 앞에서 처리되어야 하므로 order = -1로 설정합니다.
-          (숫자가 낮을수록 우선순위 높기 때문에)
+          인증은 항상 라우팅보다 먼저 처리되어야 한다.
+            - 인증되지 않은 요청이 라우팅까지 내려가면 보안 위협이 증가함
+            - 우선순위 -1은 Gateway에서 “가장 먼저 실행되는 필터”를 의미함
          */
         return -1;
     }

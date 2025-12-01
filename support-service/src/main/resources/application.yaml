@@ -2,8 +2,8 @@ server:
   port: ${service.port}
 
 spring:
-#  profiles:
-#    active: ${SPRING_PROFILES.ACTIVE:docker}
+  profiles:
+    active: ${profiles.active}
   config:
     import: secrets.yaml
   application:
