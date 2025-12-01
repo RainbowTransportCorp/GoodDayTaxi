@@ -1,5 +1,6 @@
 package com.gooddaytaxi.payment.presentation.external.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.gooddaytaxi.common.core.dto.ApiResponse;
 import com.gooddaytaxi.payment.application.command.PaymentCreateCommand;
 import com.gooddaytaxi.payment.application.result.PaymentCreateResult;
@@ -69,9 +70,9 @@ public class PaymentController {
 
     //tosspay 결제 승인 API
     @PostMapping("/tosspay/confirm")
-    public ResponseEntity<ApiResponse<PaymentTossPayResponseDto>> requestTossPayPayment(@RequestBody @Valid PaymentTossPayRequestDto requestDto) {
+    public ResponseEntity<ApiResponse<PaymentTossPayResponseDto>> requestTossPayPayment(@RequestBody @Valid PaymentTossPayRequestDto requestDto) throws JsonProcessingException {
         PaymentTossPayCommand command = PaymentTossPayMapper.toCommand(requestDto);
-        PaymentTossPayResult result = paymentService.ConfirmTossPayment(command);
+        PaymentTossPayResult result = paymentService.confirmTossPayment(command);
         PaymentTossPayResponseDto responseDto = PaymentTossPayResponseMapper.toResponse(result);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
         // Implementation goes here

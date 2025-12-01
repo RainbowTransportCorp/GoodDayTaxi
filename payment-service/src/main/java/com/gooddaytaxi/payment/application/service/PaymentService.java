@@ -1,5 +1,7 @@
 package com.gooddaytaxi.payment.application.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gooddaytaxi.common.core.exception.BusinessException;
 import com.gooddaytaxi.common.core.exception.ErrorCode;
 import com.gooddaytaxi.payment.application.command.PaymentCreateCommand;
@@ -12,6 +14,7 @@ import com.gooddaytaxi.payment.domain.vo.Fare;
 import com.gooddaytaxi.payment.domain.vo.PaymentMethod;
 import com.gooddaytaxi.payment.domain.vo.UserRole;
 import com.gooddaytaxi.payment.infrastructure.client.TosspayClient;
+import com.gooddaytaxi.payment.infrastructure.client.dto.TossErrorResponse;
 import com.gooddaytaxi.payment.infrastructure.client.dto.TossPayConfirmResponseDto;
 import com.gooddaytaxi.payment.presentation.external.dto.request.PaymentTossPayRequestDto;
 import com.gooddaytaxi.payment.presentation.external.mapper.response.PaymentTossPayCommand;
@@ -33,6 +36,7 @@ public class PaymentService {
     private final PaymentCommandPort paymentCommandPort;
     private final PaymentQueryPort paymentQueryPort;
     private final TosspayClient tosspayClient;
+    private final ObjectMapper objectMapper;
 
 
     @Transactional
@@ -78,7 +82,7 @@ public class PaymentService {
 
     //토스페이 결제 승인
     @Transactional
-    public PaymentTossPayResult ConfirmTossPayment(PaymentTossPayCommand command) {
+    public PaymentTossPayResult confirmTossPayment(PaymentTossPayCommand command) throws JsonProcessingException {
         log.info("TossPay Confirm Payment called: paymentKey={}, orderId={}, amount={}",
                 command.paymentKey(), command.orderId(), command.amount());
 
@@ -111,13 +115,16 @@ public class PaymentService {
             payment.updateStatusToFailed();
             int status = e.status();
             String statusMessage = e.contentUTF8();
+            TossErrorResponse err = objectMapper.readValue(statusMessage, TossErrorResponse.class);
             log.warn("TossPay confirm Failed for orderId={}: status={}, message={}",
                     command.orderId(), status, statusMessage);
             //실패 이유가 네트워크 오류인 경우 Network error로 저장
             if(status == -1) payment.registerFailReason("Network error");
             //실패 이유가 tosspay 오류인 경우 해당 메시지로 저장
-            else payment.registerFailReason(statusMessage);
-            throw new BusinessException(ErrorCode.EXTERNAL_API_ERROR);
+            else {
+                String detailReason = findFailReason(payment, command);
+                payment.registerFailReason(err.message(), detailReason);
+            }
         }
         return new PaymentTossPayResult(
                 payment.getId(),
@@ -125,6 +132,22 @@ public class PaymentService {
                 payment.getStatus().name(),
                 payment.getMethod().name()
         );
+    }
+
+    private String findFailReason(Payment payment, PaymentTossPayCommand command) {
+        //금액 불일치
+        if(!Objects.equals(payment.getAmount().value(), command.amount())) {
+            return "금액 불일치";
+        }
+        if(!Objects.equals(payment.getTripId(), UUID.fromString(command.orderId().substring(6)))) {
+            return "운행 정보 불일치";
+        }
+        //이미 승인된 결제
+        if(payment.getStatus().name().equals("COMPLETED")) {
+            return "이미 승인된 결제";
+        }
+        //기타 사유
+        return "알 수 없음";
     }
 
 }

@@ -55,7 +55,9 @@ public class Payment extends BaseEntity {
 
     private String pgProvider; //결제 승인된 PG사  //토스페이, 카카오페이, 네이버페이 등
 
-    private String failReason; //결제 실패 사유
+    private String pgFailReason; //결제 실패 사유
+
+    private String failDetail; //서버에서 찾아낸 결제 실패 상세 사유
 
 
     public Payment(Fare amount, PaymentMethod method, UUID passengerId, UUID driverId, UUID tripId) {
@@ -89,7 +91,11 @@ public class Payment extends BaseEntity {
     }
 
     public void registerFailReason(String failReason) {
-        this.failReason = failReason;
+        this.pgFailReason = failReason;
+    }
+    public void registerFailReason(String failReason, String detailReason) {
+        this.pgFailReason = failReason;
+        this.failDetail = detailReason;
     }
 
     public void registerProvider(String provider) {
