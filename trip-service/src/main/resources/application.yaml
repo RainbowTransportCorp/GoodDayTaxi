@@ -2,12 +2,12 @@ server:
   port: ${service.port}
 
 spring:
-#  profiles:
-#    active: ${SPRING_PROFILES.ACTIVE:docker}
+  profiles:
+    active: ${profiles.active}
   config:
     import: secrets.yaml
   application:
-    name: support-service
+    name: trip-service
 
   datasource:
     url: jdbc:postgresql://localhost:5435/${postgres.db}
