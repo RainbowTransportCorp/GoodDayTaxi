@@ -13,7 +13,11 @@ public class TokenExceptionHandler {
 
     @ExceptionHandler(EmptyClaimsException.class)
     public ResponseEntity<ApiResponse<ErrorResponse>> handleEmptyClaimsException(EmptyClaimsException e) {
-        log.warn("토큰 클레임 오류 - 메시지: {}", e.getMessage());
+
+        log.warn("[Gateway][Token] 잘못된 클레임 - code={}, message={}",
+                e.getErrorCode().getCode(),
+                e.getErrorCode().getMessage()
+        );
 
         ErrorResponse errorResponse = new ErrorResponse(
                 e.getErrorCode().getCode(),
@@ -26,7 +30,11 @@ public class TokenExceptionHandler {
 
     @ExceptionHandler(ExpiredException.class)
     public ResponseEntity<ApiResponse<ErrorResponse>> handleExpiredException(ExpiredException e) {
-        log.warn("토큰 만료 - 메시지: {}", e.getMessage());
+
+        log.warn("[Gateway][Token] 만료된 토큰 - code={}, message={}",
+                e.getErrorCode().getCode(),
+                e.getErrorCode().getMessage()
+        );
 
         ErrorResponse errorResponse = new ErrorResponse(
                 e.getErrorCode().getCode(),
@@ -39,7 +47,11 @@ public class TokenExceptionHandler {
 
     @ExceptionHandler(InvalidSignatureException.class)
     public ResponseEntity<ApiResponse<ErrorResponse>> handleInvalidSignatureException(InvalidSignatureException e) {
-        log.warn("토큰 서명 오류 - 메시지: {}", e.getMessage());
+
+        log.warn("[Gateway][Token] 서명 검증 실패 - code={}, message={}",
+                e.getErrorCode().getCode(),
+                e.getErrorCode().getMessage()
+        );
 
         ErrorResponse errorResponse = new ErrorResponse(
                 e.getErrorCode().getCode(),
@@ -51,7 +63,11 @@ public class TokenExceptionHandler {
 
     @ExceptionHandler(MalFormedException.class)
     public ResponseEntity<ApiResponse<ErrorResponse>> handleMalFormedException(MalFormedException e) {
-        log.warn("토큰 형식 오류 - 메시지: {}", e.getMessage());
+
+        log.warn("[Gateway][Token] 형식 오류 - code={}, message={}",
+                e.getErrorCode().getCode(),
+                e.getErrorCode().getMessage()
+        );
 
         ErrorResponse errorResponse = new ErrorResponse(
                 e.getErrorCode().getCode(),
@@ -63,7 +79,11 @@ public class TokenExceptionHandler {
 
     @ExceptionHandler(UnsupportedException.class)
     public ResponseEntity<ApiResponse<ErrorResponse>> handleUnsupportedException(UnsupportedException e) {
-        log.warn("지원하지 않는 토큰 - 메시지: {}", e.getMessage());
+
+        log.warn("[Gateway][Token] 지원하지 않는 토큰 - code={}, message={}",
+                e.getErrorCode().getCode(),
+                e.getErrorCode().getMessage()
+        );
 
         ErrorResponse errorResponse = new ErrorResponse(
                 e.getErrorCode().getCode(),

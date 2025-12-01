@@ -21,6 +21,9 @@ RUN ./gradlew bootJar --no-daemon
 FROM eclipse-temurin:17-jre
 WORKDIR /app
 
+# copy secrets.yaml (필수)
+COPY server/src/main/resources/secrets.yaml ./secrets.yaml
+
 COPY --from=builder /app/build/libs/*.jar app.jar
 
 EXPOSE 8761
