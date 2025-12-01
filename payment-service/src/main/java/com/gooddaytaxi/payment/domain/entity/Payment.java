@@ -70,6 +70,7 @@ public class Payment extends BaseEntity {
 
     public void addAttempt (PaymentAttempt attempt) {
         this.attempts.add(attempt);
+        attempt.registerPayment(this);
     }
 
 }

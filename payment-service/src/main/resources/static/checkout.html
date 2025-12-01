@@ -79,7 +79,7 @@
             await widgets.requestPayment({
                 orderId: orderId,
                 orderName: "운수좋은 날 운행",
-                successUrl: window.location.origin + "/success.html",
+                successUrl: window.location.origin + "/processing.html?customerKey=" + customerKey,
                 failUrl: window.location.origin + "/fail.html"
             });
         });

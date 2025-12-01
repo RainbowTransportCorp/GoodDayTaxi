@@ -1,12 +1,11 @@
 package com.gooddaytaxi.payment.application.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gooddaytaxi.common.core.exception.BusinessException;
 import com.gooddaytaxi.common.core.exception.ErrorCode;
 import com.gooddaytaxi.payment.application.command.PaymentCreateCommand;
-import com.gooddaytaxi.payment.application.port.out.PaymentQueryPort;
 import com.gooddaytaxi.payment.application.port.out.PaymentCommandPort;
+import com.gooddaytaxi.payment.application.port.out.PaymentQueryPort;
 import com.gooddaytaxi.payment.application.result.PaymentCreateResult;
 import com.gooddaytaxi.payment.application.result.PaymentTossPayResult;
 import com.gooddaytaxi.payment.domain.entity.Payment;
@@ -15,7 +14,6 @@ import com.gooddaytaxi.payment.domain.vo.Fare;
 import com.gooddaytaxi.payment.domain.vo.PaymentMethod;
 import com.gooddaytaxi.payment.domain.vo.UserRole;
 import com.gooddaytaxi.payment.infrastructure.client.TosspayClient;
-import com.gooddaytaxi.payment.infrastructure.client.dto.TossErrorResponse;
 import com.gooddaytaxi.payment.infrastructure.client.dto.TossPayConfirmResponseDto;
 import com.gooddaytaxi.payment.presentation.external.dto.request.PaymentTossPayRequestDto;
 import com.gooddaytaxi.payment.presentation.external.mapper.response.PaymentTossPayCommand;
@@ -37,7 +35,7 @@ public class PaymentService {
     private final PaymentCommandPort paymentCommandPort;
     private final PaymentQueryPort paymentQueryPort;
     private final TosspayClient tosspayClient;
-    private final ObjectMapper objectMapper;
+    private final PaymentFailureRecorder failureRecorder;
 
 
     @Transactional
@@ -96,7 +94,7 @@ public class PaymentService {
 
         //시도 횟수 계산
         int attemptNo = payment.getAttempts().size()+1;
-        PaymentAttempt attempt = new PaymentAttempt(command.paymentKey(), idempotencyKey, payment, attemptNo);
+        PaymentAttempt attempt = new PaymentAttempt(command.paymentKey(), idempotencyKey, attemptNo);
 
         try {
             //tosspay 결제 승인 요청
@@ -113,30 +111,22 @@ public class PaymentService {
             payment.updateStatusToComplete();  //처리중에서 완료로 변경
             log.info("TossPay Payment confirmed successfully for orderId={}, requestedAt={}, approveAt={}", command.orderId(), requestedAt, approvedAt);
 
+            return new PaymentTossPayResult(
+                    payment.getId(),
+                    payment.getAmount().value(),
+                    payment.getStatus().name(),
+                    payment.getMethod().name()
+            );
+
         }catch (feign.FeignException e) {
-            //실패시 결제 청구서 상태를 '결제 실패'로 변경
-            payment.updateStatusToFailed();
-            int status = e.status();
-            String statusMessage = e.contentUTF8();
-            TossErrorResponse err = objectMapper.readValue(statusMessage, TossErrorResponse.class);
-            log.warn("TossPay confirm Failed for orderId={}: status={}, message={}",
-                    command.orderId(), status, statusMessage);
-            //실패 이유가 네트워크 오류인 경우 Network error로 저장
-            if(status == -1) attempt.registerFailReason("Network error");
-            //실패 이유가 tosspay 오류인 경우 해당 메시지로 저장
-            else {
-                String detailReason = findFailReason(payment, command);
-                attempt.registerFailReason(err.message(), detailReason);
-            }
-            payment.addAttempt(attempt);
-            payment.updateStatusToFailed();
+
+            // 🔥 실패 기록은 별도 트랜잭션으로 먼저 확정
+            failureRecorder.recordFailure(payment, attempt, e, command);
+
+            //최종적으로 비즈니스 예외 던지기
+            throw new BusinessException(ErrorCode.EXTERNAL_API_ERROR);
         }
-        return new PaymentTossPayResult(
-                payment.getId(),
-                payment.getAmount().value(),
-                payment.getStatus().name(),
-                payment.getMethod().name()
-        );
+
     }
 
     private LocalDateTime parseTosspayTime(String time) {
@@ -144,20 +134,6 @@ public class PaymentService {
         return LocalDateTime.parse(time, formatter);
     }
 
-    private String findFailReason(Payment payment, PaymentTossPayCommand command) {
-        //금액 불일치
-        if(!Objects.equals(payment.getAmount().value(), command.amount())) {
-            return "금액 불일치";
-        }
-        if(!Objects.equals(payment.getTripId(), UUID.fromString(command.orderId().substring(6)))) {
-            return "운행 정보 불일치";
-        }
-        //이미 승인된 결제
-        if(payment.getStatus().name().equals("COMPLETED")) {
-            return "이미 승인된 결제";
-        }
-        //기타 사유
-        return "알 수 없음";
-    }
+
 
 }

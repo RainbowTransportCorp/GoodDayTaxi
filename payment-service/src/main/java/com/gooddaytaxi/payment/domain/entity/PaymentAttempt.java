@@ -47,11 +47,10 @@ public class PaymentAttempt {
     private Payment payment;
 
 
-    public PaymentAttempt(String paymentKey, UUID idempotencyKey, Payment payment, int attemptNo) {
+    public PaymentAttempt(String paymentKey, UUID idempotencyKey, int attemptNo) {
         this.paymentKey = paymentKey;
         this.IdempotencyKey = idempotencyKey;
         this.attemptNo = attemptNo;
-        this.payment = payment;
     }
 
     public void registerConfirmTosspay(LocalDateTime requestedAt, LocalDateTime approvedAt, String pgMethod) {
@@ -67,10 +66,14 @@ public class PaymentAttempt {
     public void registerFailReason(String failReason, String detailReason) {
         this.pgFailReason = failReason;
         this.failDetail = detailReason;
+        this.status = PaymentAttemptStatus.FAILED;
     }
 
     public void registerProvider(String provider) {
         this.pgProvider = provider;
     }
 
+    public void registerPayment(Payment payment) {
+        this.payment = payment;
+    }
 }
