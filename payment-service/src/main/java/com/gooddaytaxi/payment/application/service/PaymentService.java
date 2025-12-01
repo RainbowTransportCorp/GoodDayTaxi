@@ -10,6 +10,7 @@ import com.gooddaytaxi.payment.application.port.out.PaymentCommandPort;
 import com.gooddaytaxi.payment.application.result.PaymentCreateResult;
 import com.gooddaytaxi.payment.application.result.PaymentTossPayResult;
 import com.gooddaytaxi.payment.domain.entity.Payment;
+import com.gooddaytaxi.payment.domain.entity.PaymentAttempt;
 import com.gooddaytaxi.payment.domain.vo.Fare;
 import com.gooddaytaxi.payment.domain.vo.PaymentMethod;
 import com.gooddaytaxi.payment.domain.vo.UserRole;
@@ -90,25 +91,27 @@ public class PaymentService {
         Payment payment = paymentQueryPort.findByTripId(UUID.fromString(command.orderId().substring(6)))
                 .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_INPUT_VALUE));
 
-        //paymentKey 저장
-        payment.registerPaymentKey(command.paymentKey());
-
-        //멱등성 키 만들고 저장
+        //멱등성 키 만들고 새 결제 시도 기록
         UUID idempotencyKey = UUID.randomUUID();
-        payment.registerIdentompencyKey(idempotencyKey);
+
+        //시도 횟수 계산
+        int attemptNo = payment.getAttempts().size()+1;
+        PaymentAttempt attempt = new PaymentAttempt(command.paymentKey(), idempotencyKey, payment, attemptNo);
 
         try {
             //tosspay 결제 승인 요청
             TossPayConfirmResponseDto result = tosspayClient.confirmPayment(idempotencyKey.toString(), new PaymentTossPayRequestDto(command.paymentKey(), command.orderId(), command.amount()));
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX");
-            LocalDateTime requestAt = LocalDateTime.parse(result.requestedAt(), formatter);
-            LocalDateTime approvedAt = LocalDateTime.parse(result.approvedAt(), formatter);
+
+            LocalDateTime requestedAt = parseTosspayTime(result.requestedAt());
+            LocalDateTime approvedAt = parseTosspayTime(result.approvedAt());
             //성공시 결제 청구서 상태를 '결제 완료'로 변경
-            payment.registerConfirmTosspay(requestAt, approvedAt, result.method());
+            attempt.registerConfirmTosspay(requestedAt, approvedAt, result.method());
             if(result.method().equals("간편결제")) {
-                payment.registerProvider(result.easyPay().provider());
+                attempt.registerProvider(result.easyPay().provider());
             }
-            log.info("TossPay Payment confirmed successfully for orderId={}, requestedAt={}, approveAt={}", command.orderId(), requestAt, approvedAt);
+            payment.addAttempt(attempt);
+            payment.updateStatusToComplete();  //처리중에서 완료로 변경
+            log.info("TossPay Payment confirmed successfully for orderId={}, requestedAt={}, approveAt={}", command.orderId(), requestedAt, approvedAt);
 
         }catch (feign.FeignException e) {
             //실패시 결제 청구서 상태를 '결제 실패'로 변경
@@ -119,12 +122,14 @@ public class PaymentService {
             log.warn("TossPay confirm Failed for orderId={}: status={}, message={}",
                     command.orderId(), status, statusMessage);
             //실패 이유가 네트워크 오류인 경우 Network error로 저장
-            if(status == -1) payment.registerFailReason("Network error");
+            if(status == -1) attempt.registerFailReason("Network error");
             //실패 이유가 tosspay 오류인 경우 해당 메시지로 저장
             else {
                 String detailReason = findFailReason(payment, command);
-                payment.registerFailReason(err.message(), detailReason);
+                attempt.registerFailReason(err.message(), detailReason);
             }
+            payment.addAttempt(attempt);
+            payment.updateStatusToFailed();
         }
         return new PaymentTossPayResult(
                 payment.getId(),
@@ -132,6 +137,11 @@ public class PaymentService {
                 payment.getStatus().name(),
                 payment.getMethod().name()
         );
+    }
+
+    private LocalDateTime parseTosspayTime(String time) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX");
+        return LocalDateTime.parse(time, formatter);
     }
 
     private String findFailReason(Payment payment, PaymentTossPayCommand command) {

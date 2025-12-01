@@ -75,7 +75,6 @@ public class PaymentController {
         PaymentTossPayResult result = paymentService.confirmTossPayment(command);
         PaymentTossPayResponseDto responseDto = PaymentTossPayResponseMapper.toResponse(result);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
-        // Implementation goes here
     }
 
 }

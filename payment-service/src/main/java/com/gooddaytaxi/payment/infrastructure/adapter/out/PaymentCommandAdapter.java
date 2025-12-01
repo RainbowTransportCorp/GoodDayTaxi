@@ -13,7 +13,7 @@ public class PaymentCommandAdapter implements PaymentCommandPort {
     private final PaymentRepository paymentRepository;
 
     @Override
-    public Payment save(Payment payment) {
-        return paymentRepository.save(payment);
+    public void save(Payment payment) {
+        paymentRepository.save(payment);
     }
 }

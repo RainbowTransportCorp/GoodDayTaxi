@@ -9,7 +9,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -43,21 +44,8 @@ public class Payment extends BaseEntity {
     @Column(nullable = false)
     private UUID tripId;
 
-    private UUID IdempotencyKey;  //toss 결제에서 중복 방지를 위한 멱등성 키
-
-    private String paymentKey;  //toss 결제에서 결제 고유 키
-
-    private LocalDateTime requestedAt; //toss 결제 요청 시간
-
-    private LocalDateTime approvedAt;  //toss 결제 승인 시간
-
-    private String pgMethod; //결제 승인된 결제 수단  //CARD, EASE_PAY, VIRTUAL_ACCOUNT
-
-    private String pgProvider; //결제 승인된 PG사  //토스페이, 카카오페이, 네이버페이 등
-
-    private String pgFailReason; //결제 실패 사유
-
-    private String failDetail; //서버에서 찾아낸 결제 실패 상세 사유
+    @OneToMany(mappedBy = "payment", cascade = CascadeType.ALL)
+    private List<PaymentAttempt> attempts = new ArrayList<>();
 
 
     public Payment(Fare amount, PaymentMethod method, UUID passengerId, UUID driverId, UUID tripId) {
@@ -69,36 +57,19 @@ public class Payment extends BaseEntity {
         this.tripId = tripId;
     }
 
+    //진행 상태로 변경
     public void updateStatusToProcessing() {
         this.status = PaymentStatus.IN_PROCESS;
     }
 
+    //결제 청구서의 최종 완료 상태
+    public void updateStatusToComplete() { this.status = PaymentStatus.COMPLETED;}
+
+    //결제 청구서의 현재 실패 상태
     public void updateStatusToFailed() {this.status = PaymentStatus.FAILED;}
 
-    public void registerIdentompencyKey(UUID idempotencyKey) {
-        this.IdempotencyKey = idempotencyKey;
+    public void addAttempt (PaymentAttempt attempt) {
+        this.attempts.add(attempt);
     }
 
-    public void registerPaymentKey(String paymentKey) {
-        this.paymentKey = paymentKey;
-    }
-
-    public void registerConfirmTosspay(LocalDateTime requestedAt, LocalDateTime approvedAt, String pgMethod) {
-        this.status = PaymentStatus.COMPLETED;
-        this.requestedAt = requestedAt;
-        this.approvedAt = approvedAt;
-        this.pgMethod = pgMethod;
-    }
-
-    public void registerFailReason(String failReason) {
-        this.pgFailReason = failReason;
-    }
-    public void registerFailReason(String failReason, String detailReason) {
-        this.pgFailReason = failReason;
-        this.failDetail = detailReason;
-    }
-
-    public void registerProvider(String provider) {
-        this.pgProvider = provider;
-    }
 }
