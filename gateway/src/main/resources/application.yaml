@@ -59,7 +59,7 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
     service-url:
-      defaultZone: http://gd_eureka:${eureka.port}/eureka/
+      defaultZone: http://server:${eureka.port}/eureka/
 
 management:
   tracing:
