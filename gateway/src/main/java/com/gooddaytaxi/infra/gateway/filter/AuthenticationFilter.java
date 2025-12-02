@@ -27,7 +27,7 @@ import java.util.List;
 public class AuthenticationFilter implements GlobalFilter, Ordered {
 
     private static final List<String> PUBLIC_API_PREFIXES =
-            List.of("/internal/", "/v3/api-docs", "/swagger-ui");
+            List.of("/internal/", "/v3/api-docs", "/swagger-ui", "/api/v1/auth/");
 
     private static final String BEARER = "Bearer ";
 
