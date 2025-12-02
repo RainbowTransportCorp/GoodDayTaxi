@@ -1,6 +1,6 @@
 package com.gooddaytaxi.payment.domain.entity;
 
-import com.gooddaytaxi.common.model.BaseEntity;
+import com.gooddaytaxi.common.jpa.model.BaseEntity;
 import com.gooddaytaxi.payment.domain.vo.Fare;
 import com.gooddaytaxi.payment.domain.vo.PaymentMethod;
 import com.gooddaytaxi.payment.domain.vo.PaymentStatus;
