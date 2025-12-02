@@ -2,12 +2,14 @@ package com.gooddaytaxi.dispatch.application.service;
 
 import com.gooddaytaxi.dispatch.application.commend.DispatchCreateCommand;
 import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchCommandPort;
+import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchEventCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
 import com.gooddaytaxi.dispatch.application.result.DispatchCreateResult;
 import com.gooddaytaxi.dispatch.application.result.DispatchDetailResult;
 import com.gooddaytaxi.dispatch.application.result.DispatchListResult;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
-import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
+import com.gooddaytaxi.dispatch.domain.model.entity.DispatchEvent;
+import com.gooddaytaxi.dispatch.domain.model.enums.EventType;
 import jakarta.ws.rs.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,13 +20,17 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import static com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus.REQUESTED;
+
 @Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
 public class DispatchService {
 
-    private final DispatchCommandPort dispatchcommandPort;
+    private final DispatchCommandPort dispatchCommandPort;
+    private final DispatchEventCommandPort dispatchEventCommandPort;
+
     private final DispatchQueryPort dispatchQueryPort;
 
     /**
@@ -43,12 +49,20 @@ public class DispatchService {
                 .pickupAddress(command.getPickupAddress())
                 .destinationAddress(command.getDestinationAddress())
                 .requestCreatedAt(LocalDateTime.now())
-                .dispatchStatus(DispatchStatus.REQUESTED)
+                .dispatchStatus(REQUESTED)
                 .build();
 
         log.info("생성된 엔티티: {}", entity);
+        Dispatch saved = dispatchCommandPort.save(entity);
 
-        Dispatch saved = dispatchcommandPort.save(entity);
+        // 승객용 이벤트 기록 (“배차 요청이 접수되었습니다”)
+        dispatchEventCommandPort.save(
+                DispatchEvent.create(
+                        saved.getDispatch_id(),
+                        EventType.DISPATCH_ACCEPTED,
+                        "{ \"message\": \"배차 요청이 접수되었습니다.\" }"
+                )
+        );
 
         log.info("저장 완료: dispatchId={} / status={}",
                 saved.getDispatch_id(), saved.getDispatchStatus());
