@@ -11,7 +11,7 @@ import java.util.UUID;
 @Builder
 public class DispatchCreateResult {
     private UUID dispatchId;
-    private Long passengerId;
+    private UUID passengerId;
     private String pickupAddress;
     private String destinationAddress;
     private DispatchStatus dispatchStatus;
