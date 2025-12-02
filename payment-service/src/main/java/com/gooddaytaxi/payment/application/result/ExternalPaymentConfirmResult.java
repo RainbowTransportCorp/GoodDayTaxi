@@ -2,7 +2,7 @@ package com.gooddaytaxi.payment.application.result;
 
 import java.time.LocalDateTime;
 
-public record PaymentConfirmResult(
+public record ExternalPaymentConfirmResult(
         boolean success,
         LocalDateTime requestedAt,
         LocalDateTime approvedAt,
