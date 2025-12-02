@@ -53,7 +53,9 @@ public class PaymentAttempt {
         this.attemptNo = attemptNo;
     }
 
-    public void registerConfirmTosspay(LocalDateTime requestedAt, LocalDateTime approvedAt, String pgMethod, String provider) {
+    //tosspay 결제 승인시 정보 등록 및 성공 처리
+    //간편결제시 구체적인 카드사는 토스페이밖에 없으므로 tosspay 승인 결제에만 사용
+    public void registerApproveTosspay(LocalDateTime requestedAt, LocalDateTime approvedAt, String pgMethod, String provider) {
         this.status = PaymentAttemptStatus.SUCCESS;
         this.requestedAt = requestedAt;
         this.approvedAt = approvedAt;

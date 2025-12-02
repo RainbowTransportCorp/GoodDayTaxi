@@ -4,16 +4,16 @@ import com.gooddaytaxi.common.core.dto.ApiResponse;
 import com.gooddaytaxi.payment.application.command.PaymentCreateCommand;
 import com.gooddaytaxi.payment.application.command.PaymentTossPayCommand;
 import com.gooddaytaxi.payment.application.result.PaymentCreateResult;
-import com.gooddaytaxi.payment.application.result.PaymentTossPayResult;
+import com.gooddaytaxi.payment.application.result.PaymentApproveResult;
 import com.gooddaytaxi.payment.application.service.PaymentService;
 import com.gooddaytaxi.payment.presentation.external.dto.request.PaymentCreateRequestDto;
 import com.gooddaytaxi.payment.presentation.external.dto.request.PaymentTossPayRequestDto;
 import com.gooddaytaxi.payment.presentation.external.dto.response.PaymentCreateResponseDto;
-import com.gooddaytaxi.payment.presentation.external.dto.response.PaymentTossPayResponseDto;
+import com.gooddaytaxi.payment.presentation.external.dto.response.PaymentApproveResponseDto;
 import com.gooddaytaxi.payment.presentation.external.mapper.command.PaymentCreateMapper;
 import com.gooddaytaxi.payment.presentation.external.mapper.command.PaymentTossPayMapper;
 import com.gooddaytaxi.payment.presentation.external.mapper.response.PaymentCreateResponseMapper;
-import com.gooddaytaxi.payment.presentation.external.mapper.response.PaymentTossPayResponseMapper;
+import com.gooddaytaxi.payment.presentation.external.mapper.response.PaymentApproveResponseMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -68,11 +68,23 @@ public class PaymentController {
     }
 
     //tosspay 결제 승인 API
+    //외부에서 보기엔 toss결제 승인이므로 confirm으로 명명
     @PostMapping("/tosspay/confirm")
-    public ResponseEntity<ApiResponse<PaymentTossPayResponseDto>> requestTossPayPayment(@RequestBody @Valid PaymentTossPayRequestDto requestDto) {
+    public ResponseEntity<ApiResponse<PaymentApproveResponseDto>> confirmTossPayPayment(@RequestBody @Valid PaymentTossPayRequestDto requestDto) {
         PaymentTossPayCommand command = PaymentTossPayMapper.toCommand(requestDto);
-        PaymentTossPayResult result = paymentService.confirmTossPayment(command);
-        PaymentTossPayResponseDto responseDto = PaymentTossPayResponseMapper.toResponse(result);
+        PaymentApproveResult result = paymentService.approveTossPayment(command);
+        PaymentApproveResponseDto responseDto = PaymentApproveResponseMapper.toResponse(result);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
+    }
+
+    //기사가 직접 결제후 완료 처리
+    @PutMapping("/driver/{tripId}/confirm")
+    public ResponseEntity<ApiResponse<PaymentApproveResponseDto>> confirmDriverPayment(@PathVariable UUID tripId,
+                                                                                       @RequestParam UUID userId,
+                                                                                       @RequestParam String role) {
+
+        PaymentApproveResult result = paymentService.approveDriverPayment(tripId, userId, role);
+        PaymentApproveResponseDto responseDto = PaymentApproveResponseMapper.toResponse(result);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
     }
 

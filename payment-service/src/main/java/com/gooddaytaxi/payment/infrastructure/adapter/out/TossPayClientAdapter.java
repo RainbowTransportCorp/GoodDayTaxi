@@ -1,10 +1,10 @@
 package com.gooddaytaxi.payment.infrastructure.adapter.out;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gooddaytaxi.payment.application.command.PaymentTossPayCommand;
-import com.gooddaytaxi.payment.application.port.out.TosspayClient;
+import com.gooddaytaxi.payment.application.command.ExternalPaymentConfirmCommand;
+import com.gooddaytaxi.payment.application.port.out.ExternalPaymentPort;
+import com.gooddaytaxi.payment.application.result.ExternalPaymentConfirmResult;
 import com.gooddaytaxi.payment.application.result.ExternalPaymentError;
-import com.gooddaytaxi.payment.application.result.PaymentConfirmResult;
 import com.gooddaytaxi.payment.infrastructure.client.TosspayFeignClient;
 import com.gooddaytaxi.payment.infrastructure.client.dto.TossErrorResponse;
 import com.gooddaytaxi.payment.infrastructure.client.dto.TossPayConfirmRequestDto;
@@ -18,23 +18,23 @@ import java.time.format.DateTimeFormatter;
 
 @Component
 @RequiredArgsConstructor
-public class TossPayClientAdapter implements TosspayClient {
+public class TossPayClientAdapter implements ExternalPaymentPort {
 
-    private final TosspayFeignClient feignClient;
+    private final TosspayFeignClient tosspayClient;
     private final ObjectMapper objectMapper;
 
 
     @Override
-    public PaymentConfirmResult confirmPayment(String idempotencyKey, PaymentTossPayCommand command) {
+    public ExternalPaymentConfirmResult confirm(String idempotencyKey, ExternalPaymentConfirmCommand command) {
         TossPayConfirmRequestDto request = new TossPayConfirmRequestDto(
-                command.paymentKey(),
+                command.externalPaymentKey(),
                 command.orderId(),
                 command.amount()
         );
         try {
-            TossPayConfirmResponseDto response = feignClient.confirmPayment(idempotencyKey, request);
+            TossPayConfirmResponseDto response = tosspayClient.confirmPayment(idempotencyKey, request);
 
-            return new PaymentConfirmResult(
+            return new ExternalPaymentConfirmResult(
                     true,
                     parseTosspayTime(response.requestedAt()),
                     parseTosspayTime(response.approvedAt()),
@@ -45,7 +45,7 @@ public class TossPayClientAdapter implements TosspayClient {
             );
         } catch (FeignException e) {
             ExternalPaymentError error = toExternalPaymentError(e);
-            return new PaymentConfirmResult(false, null,null,null,null,0, error);
+            return new ExternalPaymentConfirmResult(false, null,null,null,null,0, error);
         }
     }
 
