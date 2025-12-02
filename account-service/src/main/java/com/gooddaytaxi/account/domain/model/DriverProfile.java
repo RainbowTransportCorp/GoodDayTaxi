@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 /**
  * 기사 프로필 엔티티 - 기사 전용 정보 (차량 정보 등)
  */
@@ -18,7 +20,7 @@ public class DriverProfile extends BaseEntity {
 
     @Id
     @Column(name = "user_id")
-    private String userId;
+    private UUID userId;
 
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId
@@ -48,7 +50,7 @@ public class DriverProfile extends BaseEntity {
     @Builder
     public DriverProfile(User user, String vehicleNumber, String vehicleType, String vehicleColor) {
         this.user = user;
-        this.userId = user.getUserId();
+        this.userId = user.getUserUuid();
         this.vehicleNumber = vehicleNumber;
         this.vehicleType = vehicleType;
         this.vehicleColor = vehicleColor;

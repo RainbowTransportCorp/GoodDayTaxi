@@ -52,7 +52,7 @@ public class LoginUserUseCase {
         String accessToken = jwtTokenProvider.generateAccessToken(user);
         String refreshToken = jwtTokenProvider.generateRefreshToken(user);
         
-        log.info("로그인 성공: userUuid={}, email={}, role={}", user.getUserId(), command.getEmail(), user.getRole());
-        return new LoginResult(accessToken, refreshToken, user.getUserId(), user.getRole().name());
+        log.info("로그인 성공: userUuid={}, email={}, role={}", user.getUserUuid(), command.getEmail(), user.getRole());
+        return new LoginResult(accessToken, refreshToken, user.getUserUuid().toString(), user.getRole().name());
     }
 }
