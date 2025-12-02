@@ -3,6 +3,7 @@ package com.gooddaytaxi.payment.application.service;
 import com.gooddaytaxi.common.core.exception.BusinessException;
 import com.gooddaytaxi.common.core.exception.ErrorCode;
 
+import com.gooddaytaxi.payment.application.command.ExternalPaymentConfirmCommand;
 import com.gooddaytaxi.payment.application.command.PaymentCreateCommand;
 import com.gooddaytaxi.payment.application.command.PaymentTossPayCommand;
 import com.gooddaytaxi.payment.application.port.out.PaymentCommandPort;
@@ -105,7 +106,8 @@ public class PaymentService {
 
 
         //tosspay 결제 승인 요청
-        ExternalPaymentConfirmResult result = externalPaymentClient.confirmTossPayPayment(idempotencyKey.toString(), command);
+        ExternalPaymentConfirmResult result = externalPaymentClient.confirm(idempotencyKey.toString(),
+                new ExternalPaymentConfirmCommand(command.paymentKey(), command.orderId(), command.amount()));
 
         //실패시 실패 기록 및 예외 던지기
         if (!result.success()) {

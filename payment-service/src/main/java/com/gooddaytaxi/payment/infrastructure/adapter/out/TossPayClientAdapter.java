@@ -1,10 +1,10 @@
 package com.gooddaytaxi.payment.infrastructure.adapter.out;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gooddaytaxi.payment.application.command.PaymentTossPayCommand;
+import com.gooddaytaxi.payment.application.command.ExternalPaymentConfirmCommand;
 import com.gooddaytaxi.payment.application.port.out.ExternalPaymentClient;
-import com.gooddaytaxi.payment.application.result.ExternalPaymentError;
 import com.gooddaytaxi.payment.application.result.ExternalPaymentConfirmResult;
+import com.gooddaytaxi.payment.application.result.ExternalPaymentError;
 import com.gooddaytaxi.payment.infrastructure.client.TosspayFeignClient;
 import com.gooddaytaxi.payment.infrastructure.client.dto.TossErrorResponse;
 import com.gooddaytaxi.payment.infrastructure.client.dto.TossPayConfirmRequestDto;
@@ -25,9 +25,9 @@ public class TossPayClientAdapter implements ExternalPaymentClient {
 
 
     @Override
-    public ExternalPaymentConfirmResult confirmTossPayPayment(String idempotencyKey, PaymentTossPayCommand command) {
+    public ExternalPaymentConfirmResult confirm(String idempotencyKey, ExternalPaymentConfirmCommand command) {
         TossPayConfirmRequestDto request = new TossPayConfirmRequestDto(
-                command.paymentKey(),
+                command.externalPaymentKey(),
                 command.orderId(),
                 command.amount()
         );
