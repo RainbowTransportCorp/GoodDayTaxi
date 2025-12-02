@@ -45,6 +45,7 @@ public class Payment extends BaseEntity {
     private UUID tripId;
 
     @OneToMany(mappedBy = "payment", cascade = CascadeType.ALL)
+    @OrderBy("attemptNo DESC")
     private List<PaymentAttempt> attempts = new ArrayList<>();
 
 
