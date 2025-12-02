@@ -40,6 +40,7 @@
             // 결제 실패 비즈니스 로직을 구현하세요.
             console.log(json);
             window.location.href = `/fail.html?message=${json.message}&code=${json.code}&orderId=${orderId}&amount=${amount}&customerKey=${customerKey}`;
+            return;
         }
 
         // 결제 성공 비즈니스 로직을 구현하세요.

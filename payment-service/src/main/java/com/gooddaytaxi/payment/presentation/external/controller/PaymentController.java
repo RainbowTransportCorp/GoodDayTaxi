@@ -1,8 +1,8 @@
 package com.gooddaytaxi.payment.presentation.external.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.gooddaytaxi.common.core.dto.ApiResponse;
 import com.gooddaytaxi.payment.application.command.PaymentCreateCommand;
+import com.gooddaytaxi.payment.application.command.PaymentTossPayCommand;
 import com.gooddaytaxi.payment.application.result.PaymentCreateResult;
 import com.gooddaytaxi.payment.application.result.PaymentTossPayResult;
 import com.gooddaytaxi.payment.application.service.PaymentService;
@@ -10,9 +10,8 @@ import com.gooddaytaxi.payment.presentation.external.dto.request.PaymentCreateRe
 import com.gooddaytaxi.payment.presentation.external.dto.request.PaymentTossPayRequestDto;
 import com.gooddaytaxi.payment.presentation.external.dto.response.PaymentCreateResponseDto;
 import com.gooddaytaxi.payment.presentation.external.dto.response.PaymentTossPayResponseDto;
-import com.gooddaytaxi.payment.presentation.external.mapper.response.PaymentTossPayCommand;
-import com.gooddaytaxi.payment.presentation.external.mapper.command.PaymentTossPayMapper;
 import com.gooddaytaxi.payment.presentation.external.mapper.command.PaymentCreateMapper;
+import com.gooddaytaxi.payment.presentation.external.mapper.command.PaymentTossPayMapper;
 import com.gooddaytaxi.payment.presentation.external.mapper.response.PaymentCreateResponseMapper;
 import com.gooddaytaxi.payment.presentation.external.mapper.response.PaymentTossPayResponseMapper;
 import jakarta.validation.Valid;
@@ -70,13 +69,11 @@ public class PaymentController {
 
     //tosspay 결제 승인 API
     @PostMapping("/tosspay/confirm")
-    public ResponseEntity<ApiResponse<PaymentTossPayResponseDto>> requestTossPayPayment(@RequestBody @Valid PaymentTossPayRequestDto requestDto) throws JsonProcessingException {
+    public ResponseEntity<ApiResponse<PaymentTossPayResponseDto>> requestTossPayPayment(@RequestBody @Valid PaymentTossPayRequestDto requestDto) {
         PaymentTossPayCommand command = PaymentTossPayMapper.toCommand(requestDto);
         PaymentTossPayResult result = paymentService.confirmTossPayment(command);
         PaymentTossPayResponseDto responseDto = PaymentTossPayResponseMapper.toResponse(result);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
     }
-
-    //
 
 }

@@ -1,11 +1,14 @@
 package com.gooddaytaxi.payment.application.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.gooddaytaxi.common.core.exception.BusinessException;
 import com.gooddaytaxi.common.core.exception.ErrorCode;
+
 import com.gooddaytaxi.payment.application.command.PaymentCreateCommand;
+import com.gooddaytaxi.payment.application.command.PaymentTossPayCommand;
 import com.gooddaytaxi.payment.application.port.out.PaymentCommandPort;
 import com.gooddaytaxi.payment.application.port.out.PaymentQueryPort;
+import com.gooddaytaxi.payment.application.port.out.TosspayClient;
+import com.gooddaytaxi.payment.application.result.PaymentConfirmResult;
 import com.gooddaytaxi.payment.application.result.PaymentCreateResult;
 import com.gooddaytaxi.payment.application.result.PaymentTossPayResult;
 import com.gooddaytaxi.payment.domain.entity.Payment;
@@ -13,17 +16,12 @@ import com.gooddaytaxi.payment.domain.entity.PaymentAttempt;
 import com.gooddaytaxi.payment.domain.vo.Fare;
 import com.gooddaytaxi.payment.domain.vo.PaymentMethod;
 import com.gooddaytaxi.payment.domain.vo.UserRole;
-import com.gooddaytaxi.payment.infrastructure.client.TosspayClient;
-import com.gooddaytaxi.payment.infrastructure.client.dto.TossPayConfirmResponseDto;
-import com.gooddaytaxi.payment.presentation.external.dto.request.PaymentTossPayRequestDto;
-import com.gooddaytaxi.payment.presentation.external.mapper.response.PaymentTossPayCommand;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -81,7 +79,7 @@ public class PaymentService {
 
     //토스페이 결제 승인
     @Transactional
-    public PaymentTossPayResult confirmTossPayment(PaymentTossPayCommand command) throws JsonProcessingException {
+    public PaymentTossPayResult confirmTossPayment(PaymentTossPayCommand command) {
         log.info("TossPay Confirm Payment called: paymentKey={}, orderId={}, amount={}",
                 command.paymentKey(), command.orderId(), command.amount());
 
@@ -89,50 +87,44 @@ public class PaymentService {
         Payment payment = paymentQueryPort.findByTripId(UUID.fromString(command.orderId().substring(6)))
                 .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_INPUT_VALUE));
 
-        //멱등성 키 만들고 새 결제 시도 기록
+        //멱등성 키 생성
         UUID idempotencyKey = UUID.randomUUID();
 
         //시도 횟수 계산
         int attemptNo = payment.getAttempts().size()+1;
         PaymentAttempt attempt = new PaymentAttempt(command.paymentKey(), idempotencyKey, attemptNo);
 
-        try {
-            //tosspay 결제 승인 요청
-            TossPayConfirmResponseDto result = tosspayClient.confirmPayment(idempotencyKey.toString(), new PaymentTossPayRequestDto(command.paymentKey(), command.orderId(), command.amount()));
 
-            LocalDateTime requestedAt = parseTosspayTime(result.requestedAt());
-            LocalDateTime approvedAt = parseTosspayTime(result.approvedAt());
-            //성공시 결제 청구서 상태를 '결제 완료'로 변경
-            attempt.registerConfirmTosspay(requestedAt, approvedAt, result.method());
-            if(result.method().equals("간편결제")) {
-                attempt.registerProvider(result.easyPay().provider());
-            }
-            payment.addAttempt(attempt);
-            payment.updateStatusToComplete();  //처리중에서 완료로 변경
-            log.info("TossPay Payment confirmed successfully for orderId={}, requestedAt={}, approveAt={}", command.orderId(), requestedAt, approvedAt);
+        //tosspay 결제 승인 요청
+        PaymentConfirmResult result = tosspayClient.confirmPayment(idempotencyKey.toString(), command);
 
-            return new PaymentTossPayResult(
-                    payment.getId(),
-                    payment.getAmount().value(),
-                    payment.getStatus().name(),
-                    payment.getMethod().name()
-            );
-
-        }catch (feign.FeignException e) {
-
-            // 🔥 실패 기록은 별도 트랜잭션으로 먼저 확정
-            failureRecorder.recordFailure(payment, attempt, e, command);
+        //실패시 실패 기록 및 예외 던지기
+        if (!result.success()) {
+            // 실패 기록은 별도 트랜잭션으로 먼저 확정
+            failureRecorder.recordFailure(payment, attempt,result.error() , command);
 
             //최종적으로 비즈니스 예외 던지기
             throw new BusinessException(ErrorCode.EXTERNAL_API_ERROR);
         }
 
+        //성공시 결제 청구서 상태를 '결제 완료'로 변경
+        attempt.registerConfirmTosspay(result.requestedAt(), result.approvedAt(), result.method(), result.provider());
+
+        //데이터 저장
+        payment.addAttempt(attempt);
+        payment.updateStatusToComplete();  //처리중에서 완료로 변경
+
+        log.info("TossPay Payment confirmed successfully for orderId={}, requestedAt={}, approveAt={}", command.orderId(), result.requestedAt(), result.approvedAt());
+
+        return new PaymentTossPayResult(
+                payment.getId(),
+                payment.getAmount().value(),
+                payment.getStatus().name(),
+                payment.getMethod().name()
+        );
     }
 
-    private LocalDateTime parseTosspayTime(String time) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX");
-        return LocalDateTime.parse(time, formatter);
-    }
+
 
 
 

@@ -36,7 +36,7 @@ public class PaymentAttempt {
 
     private String pgMethod; //결제 승인된 결제 수단  //CARD, EASE_PAY, VIRTUAL_ACCOUNT
 
-    private String pgProvider; //결제 승인된 PG사  //토스페이, 카카오페이, 네이버페이 등
+    private String pgProvider; //간편 결제시 결제 승인한 PG사  //토스페이, 카카오페이, 네이버페이 등
 
     private String pgFailReason; //결제 실패 사유
 
@@ -53,11 +53,12 @@ public class PaymentAttempt {
         this.attemptNo = attemptNo;
     }
 
-    public void registerConfirmTosspay(LocalDateTime requestedAt, LocalDateTime approvedAt, String pgMethod) {
+    public void registerConfirmTosspay(LocalDateTime requestedAt, LocalDateTime approvedAt, String pgMethod, String provider) {
         this.status = PaymentAttemptStatus.SUCCESS;
         this.requestedAt = requestedAt;
         this.approvedAt = approvedAt;
         this.pgMethod = pgMethod;
+        this.pgProvider = provider;
     }
 
     public void registerFailReason(String failReason) {
@@ -67,10 +68,6 @@ public class PaymentAttempt {
         this.pgFailReason = failReason;
         this.failDetail = detailReason;
         this.status = PaymentAttemptStatus.FAILED;
-    }
-
-    public void registerProvider(String provider) {
-        this.pgProvider = provider;
     }
 
     public void registerPayment(Payment payment) {
