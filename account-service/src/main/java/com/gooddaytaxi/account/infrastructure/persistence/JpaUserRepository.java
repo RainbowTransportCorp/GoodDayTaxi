@@ -44,6 +44,11 @@ public class JpaUserRepository implements UserReadRepository, UserWriteRepositor
         return userJpaRepository.existsByEmailAndStatus(email, status);
     }
 
+    @Override
+    public Optional<User> findByEmailAndDeletedAtIsNull(String email) {
+        return userJpaRepository.findByEmailAndDeletedAtIsNull(email);
+    }
+
     // UserWriteRepository 구현
     @Override
     public User save(User user) {

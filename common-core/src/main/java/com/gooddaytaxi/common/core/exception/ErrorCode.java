@@ -149,7 +149,12 @@ public enum ErrorCode {
     /**
      * 차량번호 중복 에러
      */
-    DUPLICATE_VEHICLE_NUMBER(ErrorLevel.CONFLICT, "U003", "이미 등록된 차량번호입니다.");
+    DUPLICATE_VEHICLE_NUMBER(ErrorLevel.CONFLICT, "U003", "이미 등록된 차량번호입니다."),
+
+    /**
+     * 로그인 실패 (이메일/비밀번호 불일치)
+     */
+    INVALID_CREDENTIALS(ErrorLevel.UNAUTHORIZED, "U004", "이메일 또는 비밀번호가 올바르지 않습니다.");
 
     // =========================================================
     // 필드 정의

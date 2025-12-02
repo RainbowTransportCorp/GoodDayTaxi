@@ -1,7 +1,12 @@
 package com.gooddaytaxi.account.presentation.controller;
 
+import com.gooddaytaxi.account.application.dto.LoginResult;
+import com.gooddaytaxi.account.application.dto.UserLoginCommand;
 import com.gooddaytaxi.account.application.dto.UserSignupCommand;
+import com.gooddaytaxi.account.application.usecase.LoginUserUseCase;
 import com.gooddaytaxi.account.application.usecase.RegisterUserUseCase;
+import com.gooddaytaxi.account.presentation.dto.LoginRequest;
+import com.gooddaytaxi.account.presentation.dto.LoginResponse;
 import com.gooddaytaxi.account.presentation.dto.SignupRequest;
 import com.gooddaytaxi.account.presentation.dto.SignupResponse;
 import com.gooddaytaxi.common.core.dto.ApiResponse;
@@ -23,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final RegisterUserUseCase registerUserUseCase;
+    private final LoginUserUseCase loginUserUseCase;
 
     /**
      * 사용자 회원가입 API
@@ -49,5 +55,22 @@ public class AuthController {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(response, "회원가입이 완료되었습니다."));
+    }
+
+    /**
+     * 사용자 로그인 API
+     *
+     * @param request 로그인 요청 데이터 (이메일, 비밀번호)
+     * @return 200 OK - JWT 토큰과 사용자 정보 포함 응답
+     * @throws BusinessException 인증 실패 시 발생
+     */
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
+        UserLoginCommand command = new UserLoginCommand(request.getEmail(), request.getPassword());
+        
+        LoginResult result = loginUserUseCase.execute(command);
+        LoginResponse response = LoginResponse.of(result.getAccessToken(), result.getRefreshToken(), result.getUserUuid(), result.getRole());
+        
+        return ResponseEntity.ok(ApiResponse.success(response, "로그인이 완료되었습니다."));
     }
 }
