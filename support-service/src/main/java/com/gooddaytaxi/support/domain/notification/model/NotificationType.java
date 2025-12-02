@@ -1,7 +1,5 @@
 package com.gooddaytaxi.support.domain.notification.model;
 
-import java.util.UUID;
-
 /**
  * 알림 타입 - 배차 할당과 수락, 운행 시작과 종료, 결제 완료, 장애 발생에 대한 알림
  */
