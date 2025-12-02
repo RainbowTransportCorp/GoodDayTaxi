@@ -1,6 +1,7 @@
 package com.gooddaytaxi.dispatch.domain.model.entity;
 
 import com.gooddaytaxi.common.jpa.model.BaseEntity;
+import com.gooddaytaxi.dispatch.domain.exception.InvalidDispatchStateException;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -51,5 +52,20 @@ public class Dispatch extends BaseEntity {
 
     @Column(name = "timeout_at")
     private LocalDateTime timeoutAt;
+
+    public void cancel() {
+        if (!isCancelableStatus()) {
+            throw new InvalidDispatchStateException();
+        }
+
+        this.dispatchStatus = DispatchStatus.CANCELLED;
+        this.cancelledAt = LocalDateTime.now();
+    }
+
+    private boolean isCancelableStatus() {
+        return this.dispatchStatus == DispatchStatus.REQUESTED
+                || this.dispatchStatus == DispatchStatus.ASSIGNING
+                || this.dispatchStatus == DispatchStatus.ASSIGNED;
+    }
 
 }

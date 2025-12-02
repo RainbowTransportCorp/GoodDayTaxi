@@ -1,5 +1,6 @@
 package com.gooddaytaxi.dispatch.infrastructure.adapter;
 
+import com.gooddaytaxi.dispatch.application.exception.DispatchNotFoundException;
 import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
 import com.gooddaytaxi.dispatch.domain.repository.DispatchRepository;
@@ -7,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -21,8 +21,9 @@ public class DispatchQueryAdapter implements DispatchQueryPort {
         return dispatchRepository.findAllByCondition();
     }
 
-    @Override //(단건조회 할 때 수정 必)
-    public Optional<Dispatch> findById(UUID dispatchId) {
-        return Optional.empty();
+    @Override
+    public Dispatch findById(UUID dispatchId) {
+        return dispatchRepository.findById(dispatchId)
+                .orElseThrow(()-> new DispatchNotFoundException(dispatchId));
     }
 }
