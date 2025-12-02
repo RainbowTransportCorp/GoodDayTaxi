@@ -16,7 +16,7 @@ public class DispatchCreateResponseDto {
     private UUID passengerId;
     private String pickupAddress;
     private String destinationAddress;
-    private DispatchStatus dispatchStatus;
+    private String dispatchStatus;
     private LocalDateTime requestCreatedAt;
     private LocalDateTime createdAt;
     private LocalDateTime updateAt;
