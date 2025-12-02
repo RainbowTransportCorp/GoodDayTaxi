@@ -4,6 +4,7 @@ import com.gooddaytaxi.account.domain.model.User;
 import com.gooddaytaxi.account.domain.model.UserStatus;
 
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * 사용자 조회 전용 리포지토리
@@ -11,12 +12,20 @@ import java.util.Optional;
 public interface UserReadRepository {
     
     /**
+     * 사용자 UUID로 사용자 조회
+     *
+     * @param userUuid 조회할 사용자 UUID
+     * @return 사용자 정보, 존재하지 않으면 empty Optional
+     */
+    Optional<User> findByUserUuid(UUID userUuid);
+    
+    /**
      * 사용자 ID로 사용자 조회
      *
      * @param userId 조회할 사용자 ID
      * @return 사용자 정보, 존재하지 않으면 empty Optional
      */
-    Optional<User> findById(String userId);
+    Optional<User> findById(UUID userId);
     
     /**
      * 이메일로 사용자 조회

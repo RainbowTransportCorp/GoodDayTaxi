@@ -31,7 +31,7 @@ public class RegisterUserUseCase {
      * 사용자 회원가입 처리
      *
      * @param command 회원가입 명령 객체 (이메일, 비밀번호, 이름, 전화번호, 역할, 차량정보 등)
-     * @return 생성된 사용자 ID
+     * @return 생성된 사용자 UUID
      * @throws BusinessException 이메일 중복, 차량정보 누락, 차량번호 중복 시 발생
      */
     public String execute(UserSignupCommand command) {
@@ -52,12 +52,12 @@ public class RegisterUserUseCase {
 
         // 기사인 경우 DriverProfile 정보 저장
         if (command.getRole() == UserRole.DRIVER) {
-            log.debug("기사 프로필 생성 시작: userId={}", savedUser.getUserId());
+            log.debug("기사 프로필 생성 시작: userId={}", savedUser.getUserUuid());
             createDriverProfile(savedUser, command);
         }
 
-        log.info("회원가입 성공: userId={}, email={}, role={}", savedUser.getUserId(), command.getEmail(), command.getRole());
-        return savedUser.getUserId();
+        log.info("회원가입 성공: userId={}, email={}, role={}", savedUser.getUserUuid(), command.getEmail(), command.getRole());
+        return savedUser.getUserUuid().toString();
     }
 
     /**

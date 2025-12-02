@@ -8,6 +8,8 @@ import com.gooddaytaxi.account.domain.service.JwtTokenProvider;
 import com.gooddaytaxi.common.core.exception.BusinessException;
 import com.gooddaytaxi.common.core.exception.ErrorCode;
 import io.jsonwebtoken.Claims;
+
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -53,7 +55,8 @@ public class RefreshTokenUseCase {
         }
         
         // 3. 사용자 존재 여부 및 활성 상태 확인
-        User user = userReadRepository.findById(userId)
+        UUID userUuid = UUID.fromString(userId);
+        User user = userReadRepository.findById(userUuid)
                 .orElseThrow(() -> {
                     log.warn("리프레시 토큰에 포함된 사용자가 존재하지 않음: userId={}", userId);
                     return new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN);

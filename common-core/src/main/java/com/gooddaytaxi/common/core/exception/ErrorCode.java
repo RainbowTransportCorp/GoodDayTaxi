@@ -164,7 +164,12 @@ public enum ErrorCode {
     /**
      * 만료된 리프레시 토큰
      */
-    EXPIRED_REFRESH_TOKEN(ErrorLevel.UNAUTHORIZED, "U006", "만료된 리프레시 토큰입니다.");
+    EXPIRED_REFRESH_TOKEN(ErrorLevel.UNAUTHORIZED, "U006", "만료된 리프레시 토큰입니다."),
+
+    /**
+     * 사용자를 찾을 수 없음
+     */
+    USER_NOT_FOUND(ErrorLevel.NOT_FOUND, "U007", "사용자를 찾을 수 없습니다.");
 
     // =========================================================
     // 필드 정의
