@@ -1,14 +1,15 @@
 package com.gooddaytaxi.account.adapter.web;
 
+import com.gooddaytaxi.account.application.dto.UpdateUserProfileCommand;
+import com.gooddaytaxi.account.application.dto.UpdateUserProfileResponse;
 import com.gooddaytaxi.account.application.dto.UserProfileResponse;
 import com.gooddaytaxi.account.application.usecase.GetUserProfileUseCase;
+import com.gooddaytaxi.account.application.usecase.UpdateUserProfileUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.UUID;
 
@@ -19,6 +20,7 @@ import java.util.UUID;
 public class UserController {
     
     private final GetUserProfileUseCase getUserProfileUseCase;
+    private final UpdateUserProfileUseCase updateUserProfileUseCase;
     
     @GetMapping("/me")
     public ResponseEntity<UserProfileResponse> getMyProfile(
@@ -30,6 +32,21 @@ public class UserController {
         UserProfileResponse response = getUserProfileUseCase.execute(userUuid);
         
         log.debug("내 정보 조회 완료: userUuid={}", userUuid);
+        
+        return ResponseEntity.ok(response);
+    }
+    
+    @PatchMapping("/me")
+    public ResponseEntity<UpdateUserProfileResponse> updateMyProfile(
+            @RequestHeader("X-User-UUID") String userUuidHeader,
+            @Valid @RequestBody UpdateUserProfileCommand command) {
+        
+        log.debug("내 정보 수정 요청: userUuid={}, name={}", userUuidHeader, command.getName());
+        
+        UUID userUuid = UUID.fromString(userUuidHeader);
+        UpdateUserProfileResponse response = updateUserProfileUseCase.execute(userUuid, command);
+        
+        log.debug("내 정보 수정 완료: userUuid={}", userUuid);
         
         return ResponseEntity.ok(response);
     }
