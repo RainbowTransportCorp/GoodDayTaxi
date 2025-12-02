@@ -2,7 +2,9 @@ package com.gooddaytaxi.account.infrastructure.config;
 
 import com.gooddaytaxi.account.domain.model.User;
 import com.gooddaytaxi.account.domain.service.JwtTokenProvider;
-import io.jsonwebtoken.Jwts;
+import com.gooddaytaxi.common.core.exception.BusinessException;
+import com.gooddaytaxi.common.core.exception.ErrorCode;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
@@ -73,5 +75,45 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
         
         log.debug("JWT 리프레시 토큰 생성 완료: userId={}", user.getUserId());
         return token;
+    }
+    
+    @Override
+    public Claims parseToken(String token) {
+        try {
+            SecretKey key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey));
+            
+            return Jwts.parser()
+                    .setSigningKey(key)
+                    .parseClaimsJws(token)
+                    .getBody();
+                    
+        } catch (ExpiredJwtException e) {
+            log.warn("만료된 JWT 토큰: {}", e.getMessage());
+            throw new BusinessException(ErrorCode.EXPIRED_REFRESH_TOKEN);
+        } catch (MalformedJwtException | UnsupportedJwtException | IllegalArgumentException e) {
+            log.warn("잘못된 JWT 토큰: {}", e.getMessage());
+            throw new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN);
+        } catch (io.jsonwebtoken.security.SignatureException e) {
+            log.warn("JWT 서명 불일치: {}", e.getMessage());
+            throw new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN);
+        }
+    }
+    
+    @Override
+    public boolean isValidRefreshToken(String token) {
+        try {
+            Claims claims = parseToken(token);
+            
+            // 토큰 타입 검증 - refresh 토큰인지 확인
+            String tokenType = claims.get("tokenType", String.class);
+            if (!"refresh".equals(tokenType)) {
+                log.warn("리프레시 토큰이 아닌 토큰으로 재발급 시도");
+                return false;
+            }
+            
+            return true;
+        } catch (BusinessException e) {
+            return false;
+        }
     }
 }

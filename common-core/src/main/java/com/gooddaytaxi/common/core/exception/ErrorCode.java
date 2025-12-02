@@ -154,7 +154,17 @@ public enum ErrorCode {
     /**
      * 로그인 실패 (이메일/비밀번호 불일치)
      */
-    INVALID_CREDENTIALS(ErrorLevel.UNAUTHORIZED, "U004", "이메일 또는 비밀번호가 올바르지 않습니다.");
+    INVALID_CREDENTIALS(ErrorLevel.UNAUTHORIZED, "U004", "이메일 또는 비밀번호가 올바르지 않습니다."),
+
+    /**
+     * 유효하지 않은 리프레시 토큰
+     */
+    INVALID_REFRESH_TOKEN(ErrorLevel.UNAUTHORIZED, "U005", "유효하지 않은 리프레시 토큰입니다."),
+
+    /**
+     * 만료된 리프레시 토큰
+     */
+    EXPIRED_REFRESH_TOKEN(ErrorLevel.UNAUTHORIZED, "U006", "만료된 리프레시 토큰입니다.");
 
     // =========================================================
     // 필드 정의
