@@ -25,7 +25,7 @@ public class DispatchAssignment extends BaseEntity {
     private UUID dispatchId;
 
     @Column(name = "candidate_driver_id", nullable = false)
-    private Long candidateDriverId;
+    private UUID candidateDriverId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "assignment_status", nullable = false)

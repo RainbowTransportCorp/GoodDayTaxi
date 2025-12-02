@@ -22,10 +22,10 @@ public class Dispatch extends BaseEntity {
     private UUID dispatch_id;
 
     @Column(name = "passenger_id", nullable = false)
-    private Long passengerId;
+    private UUID passengerId;
 
     @Column(name = "driver_id")
-    private Long driverId;
+    private UUID driverId;
 
     @Column(name = "pickup_address", nullable = false, length = 255)
     private String pickupAddress;
