@@ -1,4 +1,4 @@
-package com.gooddaytaxi.payment.domain.vo;
+package com.gooddaytaxi.payment.domain.enums;
 
 import com.gooddaytaxi.common.core.exception.BusinessException;
 import com.gooddaytaxi.common.core.exception.ErrorCode;

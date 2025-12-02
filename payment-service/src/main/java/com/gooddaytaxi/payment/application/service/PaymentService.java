@@ -13,9 +13,9 @@ import com.gooddaytaxi.payment.application.result.*;
 import com.gooddaytaxi.payment.domain.entity.Payment;
 import com.gooddaytaxi.payment.domain.entity.PaymentAttempt;
 import com.gooddaytaxi.payment.domain.vo.Fare;
-import com.gooddaytaxi.payment.domain.vo.PaymentMethod;
-import com.gooddaytaxi.payment.domain.vo.PaymentStatus;
-import com.gooddaytaxi.payment.domain.vo.UserRole;
+import com.gooddaytaxi.payment.domain.enums.PaymentMethod;
+import com.gooddaytaxi.payment.domain.enums.PaymentStatus;
+import com.gooddaytaxi.payment.domain.enums.UserRole;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

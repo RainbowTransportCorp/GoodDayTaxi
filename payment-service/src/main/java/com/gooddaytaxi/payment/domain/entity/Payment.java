@@ -2,8 +2,8 @@ package com.gooddaytaxi.payment.domain.entity;
 
 import com.gooddaytaxi.common.jpa.model.BaseEntity;
 import com.gooddaytaxi.payment.domain.vo.Fare;
-import com.gooddaytaxi.payment.domain.vo.PaymentMethod;
-import com.gooddaytaxi.payment.domain.vo.PaymentStatus;
+import com.gooddaytaxi.payment.domain.enums.PaymentMethod;
+import com.gooddaytaxi.payment.domain.enums.PaymentStatus;
 import com.gooddaytaxi.payment.infrastructure.converter.FareConverter;
 import jakarta.persistence.*;
 import lombok.Getter;
