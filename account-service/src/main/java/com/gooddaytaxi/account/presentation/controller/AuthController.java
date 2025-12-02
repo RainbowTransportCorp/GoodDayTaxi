@@ -17,6 +17,7 @@ import com.gooddaytaxi.account.presentation.dto.SignupResponse;
 import com.gooddaytaxi.common.core.dto.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * 인증 관련 REST API 컨트롤러
  */
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
