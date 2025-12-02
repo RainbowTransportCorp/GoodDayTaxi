@@ -2,7 +2,7 @@ package com.gooddaytaxi.payment.infrastructure.adapter.out;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gooddaytaxi.payment.application.command.ExternalPaymentConfirmCommand;
-import com.gooddaytaxi.payment.application.port.out.ExternalPaymentClient;
+import com.gooddaytaxi.payment.application.port.out.ExternalPaymentPort;
 import com.gooddaytaxi.payment.application.result.ExternalPaymentConfirmResult;
 import com.gooddaytaxi.payment.application.result.ExternalPaymentError;
 import com.gooddaytaxi.payment.infrastructure.client.TosspayFeignClient;
@@ -18,7 +18,7 @@ import java.time.format.DateTimeFormatter;
 
 @Component
 @RequiredArgsConstructor
-public class TossPayClientAdapter implements ExternalPaymentClient {
+public class TossPayClientAdapter implements ExternalPaymentPort {
 
     private final TosspayFeignClient tosspayClient;
     private final ObjectMapper objectMapper;
