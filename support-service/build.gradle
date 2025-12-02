@@ -44,6 +44,7 @@ dependencies {
 
     // Kafka
     implementation 'org.springframework.kafka:spring-kafka'
+    testImplementation 'org.springframework.kafka:spring-kafka-test'
 
     // Common module
     implementation 'com.gooddaytaxi:common-core:0.0.1-SNAPSHOT'

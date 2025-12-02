@@ -13,7 +13,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class DispatchCreateResponseDto {
     private UUID dispatchId;
-    private Long passengerId;
+    private UUID passengerId;
     private String pickupAddress;
     private String destinationAddress;
     private DispatchStatus dispatchStatus;

@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * JPA 기반 사용자 리포지토리 구현체
@@ -20,7 +21,12 @@ public class JpaUserRepository implements UserReadRepository, UserWriteRepositor
 
     // UserReadRepository 구현
     @Override
-    public Optional<User> findById(String userId) {
+    public Optional<User> findByUserUuid(UUID userUuid) {
+        return userJpaRepository.findById(userUuid);
+    }
+    
+    @Override
+    public Optional<User> findById(UUID userId) {
         return userJpaRepository.findById(userId);
     }
 
@@ -44,6 +50,11 @@ public class JpaUserRepository implements UserReadRepository, UserWriteRepositor
         return userJpaRepository.existsByEmailAndStatus(email, status);
     }
 
+    @Override
+    public Optional<User> findByEmailAndDeletedAtIsNull(String email) {
+        return userJpaRepository.findByEmailAndDeletedAtIsNull(email);
+    }
+
     // UserWriteRepository 구현
     @Override
     public User save(User user) {
@@ -53,5 +64,10 @@ public class JpaUserRepository implements UserReadRepository, UserWriteRepositor
     @Override
     public void delete(User user) {
         userJpaRepository.delete(user);
+    }
+    
+    @Override
+    public void deleteById(UUID userId) {
+        userJpaRepository.deleteById(userId);
     }
 }
