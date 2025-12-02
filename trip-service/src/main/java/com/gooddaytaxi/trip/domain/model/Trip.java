@@ -13,6 +13,7 @@ import java.util.UUID;
 @Table(name="p_trips")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Trip extends BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "trips_id")
