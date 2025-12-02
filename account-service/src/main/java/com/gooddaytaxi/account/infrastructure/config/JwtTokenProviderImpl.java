@@ -45,15 +45,15 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
         SecretKey key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey));
         
         String token = Jwts.builder()
-                .setSubject(user.getUserId())
-                .claim("userId", user.getUserId())
+                .setSubject(user.getUserUuid().toString())
+                .claim("userId", user.getUserUuid().toString())
                 .claim("role", user.getRole().name())
                 .setIssuedAt(now)
                 .setExpiration(validity)
                 .signWith(key)
                 .compact();
         
-        log.debug("JWT 액세스 토큰 생성 완료: userId={}, role={}", user.getUserId(), user.getRole());
+        log.debug("JWT 액세스 토큰 생성 완료: userId={}, role={}", user.getUserUuid(), user.getRole());
         return token;
     }
     
@@ -65,15 +65,15 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
         SecretKey key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey));
         
         String token = Jwts.builder()
-                .setSubject(user.getUserId())
-                .claim("userId", user.getUserId())
+                .setSubject(user.getUserUuid().toString())
+                .claim("userId", user.getUserUuid().toString())
                 .claim("tokenType", "refresh")
                 .setIssuedAt(now)
                 .setExpiration(validity)
                 .signWith(key)
                 .compact();
         
-        log.debug("JWT 리프레시 토큰 생성 완료: userId={}", user.getUserId());
+        log.debug("JWT 리프레시 토큰 생성 완료: userId={}", user.getUserUuid());
         return token;
     }
     
