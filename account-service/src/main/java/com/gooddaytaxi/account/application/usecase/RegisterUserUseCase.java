@@ -9,12 +9,14 @@ import com.gooddaytaxi.account.domain.repository.UserWriteRepository;
 import com.gooddaytaxi.account.domain.service.PasswordEncoder;
 import com.gooddaytaxi.account.domain.service.UserValidationService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 사용자 회원가입 처리 유스케이스
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -33,6 +35,8 @@ public class RegisterUserUseCase {
      * @throws BusinessException 이메일 중복, 차량정보 누락, 차량번호 중복 시 발생
      */
     public String execute(UserSignupCommand command) {
+        log.debug("사용자 회원가입 시도: email={}, role={}", command.getEmail(), command.getRole());
+        
         userValidationService.validateSignupRequest(command);
 
         // 사용자 생성
@@ -48,9 +52,11 @@ public class RegisterUserUseCase {
 
         // 기사인 경우 DriverProfile 정보 저장
         if (command.getRole() == UserRole.DRIVER) {
+            log.debug("기사 프로필 생성 시작: userId={}", savedUser.getUserId());
             createDriverProfile(savedUser, command);
         }
 
+        log.info("회원가입 성공: userId={}, email={}, role={}", savedUser.getUserId(), command.getEmail(), command.getRole());
         return savedUser.getUserId();
     }
 

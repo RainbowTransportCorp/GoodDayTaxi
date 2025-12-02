@@ -34,6 +34,11 @@ eureka:
     service-url:
       defaultZone: http://localhost:${eureka.port}/eureka/
 
+jwt:
+  secret-key: ${jwt.secret-key}
+  access-token-validity-in-seconds: 3600
+  refresh-token-validity-in-seconds: 604800
+
 management:
   tracing:
     sampling:

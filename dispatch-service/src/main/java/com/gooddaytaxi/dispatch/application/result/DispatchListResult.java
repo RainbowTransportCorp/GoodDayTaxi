@@ -1,7 +1,6 @@
-package com.gooddaytaxi.dispatch.presentation.external.dto.response;
+package com.gooddaytaxi.dispatch.application.result;
 
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -10,14 +9,11 @@ import java.util.UUID;
 
 @Getter
 @Builder
-@AllArgsConstructor
-public class DispatchCreateResponseDto {
+public class DispatchListResult {
     private UUID dispatchId;
-    private UUID passengerId;
     private String pickupAddress;
     private String destinationAddress;
     private DispatchStatus dispatchStatus;
-    private LocalDateTime requestCreatedAt;
-    private LocalDateTime createdAt;
-    private LocalDateTime updateAt;
+    private UUID driverId;
+    private LocalDateTime CreatedAt;
 }

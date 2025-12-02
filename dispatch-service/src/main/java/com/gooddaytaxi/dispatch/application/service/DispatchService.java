@@ -2,6 +2,7 @@ package com.gooddaytaxi.dispatch.application.service;
 
 import com.gooddaytaxi.dispatch.application.commend.DispatchCreateCommand;
 import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchCommandPort;
+import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
 import com.gooddaytaxi.dispatch.application.result.DispatchCreateResult;
 import com.gooddaytaxi.dispatch.application.result.DispatchListResult;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -20,8 +22,9 @@ import java.time.LocalDateTime;
 public class DispatchService {
 
     private final DispatchCommandPort commandPort;
+    private final DispatchQueryPort dispatchQueryPort;
 
-    public DispatchCreateResult create(Long passengerId, DispatchCreateCommand command) {
+    public DispatchCreateResult create(UUID passengerId, DispatchCreateCommand command) {
 
         log.info("DispatchService.create() 호출됨 - passengerId={}, pickup={}, destination={}",
                 passengerId, command.getPickupAddress(), command.getDestinationAddress());
@@ -53,4 +56,9 @@ public class DispatchService {
                 .build();
     }
 
+    public DispatchListResult getDispatchList (UUID userId) {
+
+        return DispatchListResult.builder()
+                .build();
+    }
 }
