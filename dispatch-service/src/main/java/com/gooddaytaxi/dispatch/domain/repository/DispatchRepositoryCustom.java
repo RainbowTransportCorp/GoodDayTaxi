@@ -9,5 +9,5 @@ import java.util.UUID;
 public interface DispatchRepositoryCustom {
     List<Dispatch> findAllByCondition();
 
-    Optional<Dispatch> findById(UUID id);
+    Optional<Dispatch> findByDispatchId(UUID id);
 }

@@ -3,18 +3,20 @@ package com.gooddaytaxi.payment.application.service;
 import com.gooddaytaxi.common.core.exception.BusinessException;
 import com.gooddaytaxi.common.core.exception.ErrorCode;
 
+import com.gooddaytaxi.payment.application.command.ExternalPaymentConfirmCommand;
 import com.gooddaytaxi.payment.application.command.PaymentCreateCommand;
 import com.gooddaytaxi.payment.application.command.PaymentTossPayCommand;
 import com.gooddaytaxi.payment.application.port.out.PaymentCommandPort;
 import com.gooddaytaxi.payment.application.port.out.PaymentQueryPort;
-import com.gooddaytaxi.payment.application.port.out.TosspayClient;
-import com.gooddaytaxi.payment.application.result.PaymentConfirmResult;
+import com.gooddaytaxi.payment.application.port.out.ExternalPaymentPort;
+import com.gooddaytaxi.payment.application.result.ExternalPaymentConfirmResult;
 import com.gooddaytaxi.payment.application.result.PaymentCreateResult;
-import com.gooddaytaxi.payment.application.result.PaymentTossPayResult;
+import com.gooddaytaxi.payment.application.result.PaymentApproveResult;
 import com.gooddaytaxi.payment.domain.entity.Payment;
 import com.gooddaytaxi.payment.domain.entity.PaymentAttempt;
 import com.gooddaytaxi.payment.domain.vo.Fare;
 import com.gooddaytaxi.payment.domain.vo.PaymentMethod;
+import com.gooddaytaxi.payment.domain.vo.PaymentStatus;
 import com.gooddaytaxi.payment.domain.vo.UserRole;
 
 import lombok.RequiredArgsConstructor;
@@ -32,7 +34,7 @@ public class PaymentService {
 
     private final PaymentCommandPort paymentCommandPort;
     private final PaymentQueryPort paymentQueryPort;
-    private final TosspayClient tosspayClient;
+    private final ExternalPaymentPort externalPaymentPort;
     private final PaymentFailureRecorder failureRecorder;
 
 
@@ -79,13 +81,21 @@ public class PaymentService {
 
     //토스페이 결제 승인
     @Transactional
-    public PaymentTossPayResult confirmTossPayment(PaymentTossPayCommand command) {
-        log.info("TossPay Confirm Payment called: paymentKey={}, orderId={}, amount={}",
+    public PaymentApproveResult approveTossPayment(PaymentTossPayCommand command) {
+        log.info("TossPay External Confirm Payment requested: paymentKey={}, orderId={}, amount={}",
                 command.paymentKey(), command.orderId(), command.amount());
 
         //해당 결제 청구서 조회
         Payment payment = paymentQueryPort.findByTripId(UUID.fromString(command.orderId().substring(6)))
                 .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_INPUT_VALUE));
+
+        //결제 수단이 토스페이인지 확인
+        if(!(payment.getMethod() == PaymentMethod.TOSS_PAY))
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+
+
+        //결제 청구서 상태가 '결제 진행 중'인지 확인
+        if(!(payment.getStatus() == PaymentStatus.IN_PROCESS)) throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
 
         //멱등성 키 생성
         UUID idempotencyKey = UUID.randomUUID();
@@ -96,7 +106,8 @@ public class PaymentService {
 
 
         //tosspay 결제 승인 요청
-        PaymentConfirmResult result = tosspayClient.confirmPayment(idempotencyKey.toString(), command);
+        ExternalPaymentConfirmResult result = externalPaymentPort.confirm(idempotencyKey.toString(),
+                new ExternalPaymentConfirmCommand(command.paymentKey(), command.orderId(), command.amount()));
 
         //실패시 실패 기록 및 예외 던지기
         if (!result.success()) {
@@ -108,15 +119,15 @@ public class PaymentService {
         }
 
         //성공시 결제 청구서 상태를 '결제 완료'로 변경
-        attempt.registerConfirmTosspay(result.requestedAt(), result.approvedAt(), result.method(), result.provider());
+        attempt.registerApproveTosspay(result.requestedAt(), result.approvedAt(), result.method(), result.provider());
 
         //데이터 저장
         payment.addAttempt(attempt);
         payment.updateStatusToComplete();  //처리중에서 완료로 변경
 
-        log.info("TossPay Payment confirmed successfully for orderId={}, requestedAt={}, approveAt={}", command.orderId(), result.requestedAt(), result.approvedAt());
+        log.info("TossPay Payment approved successfully for orderId={}, requestedAt={}, approveAt={}", command.orderId(), result.requestedAt(), result.approvedAt());
 
-        return new PaymentTossPayResult(
+        return new PaymentApproveResult(
                 payment.getId(),
                 payment.getAmount().value(),
                 payment.getStatus().name(),
@@ -124,8 +135,36 @@ public class PaymentService {
         );
     }
 
+    //기사가 탑승자에게 현금, 카드로 직접 결제 후 완료 처리
+    @Transactional
+    public PaymentApproveResult approveDriverPayment(UUID tripId, UUID userId, String role) {
+        log.info("Driver Pay Payment called: tripId={}", tripId);
 
+        //유저의 역할이 기사인지 확인
+        if(UserRole.of(role) != UserRole.DRIVER) {
+            throw new BusinessException(ErrorCode.AUTH_FORBIDDEN_ROLE);
+        }
 
+        //운행 아이디로 결제 청구서 조회
+        Payment payment = paymentQueryPort.findByTripId(tripId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_INPUT_VALUE));
 
+        //해당 기사가 맞는지 확인
+        if(!Objects.equals(payment.getDriverId(), userId)) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+        }
 
+        if(!(payment.getMethod() == PaymentMethod.CARD || payment.getMethod() == PaymentMethod.CASH)) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+
+        //해당 결제 청구서의 상태를 결제 완료로 변경
+        payment.updateStatusToComplete();
+        return new PaymentApproveResult(
+                payment.getId(),
+                payment.getAmount().value(),
+                payment.getStatus().name(),
+                payment.getMethod().name()
+        );
+    }
 }

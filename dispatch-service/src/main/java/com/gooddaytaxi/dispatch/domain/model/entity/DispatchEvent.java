@@ -6,6 +6,7 @@ import com.gooddaytaxi.dispatch.domain.model.enums.EventType;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
@@ -35,4 +36,12 @@ public class DispatchEvent extends BaseEntity {
     @Column(name = "payload", nullable = false, columnDefinition = "jsonb")
     private String payload;
 
+    public static DispatchEvent create(UUID dispatchId, EventType type, String payload) {
+        DispatchEvent e = new DispatchEvent();
+        e.dispatchId = dispatchId;
+        e.eventType = type;
+        e.eventStatus = EventStatus.PENDING;
+        e.payload = payload;
+        return e;
+    }
 }
