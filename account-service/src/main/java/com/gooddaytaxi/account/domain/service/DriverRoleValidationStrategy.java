@@ -1,6 +1,5 @@
 package com.gooddaytaxi.account.domain.service;
 
-import com.gooddaytaxi.account.application.dto.UserSignupCommand;
 import com.gooddaytaxi.account.domain.model.UserRole;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,8 +21,8 @@ public class DriverRoleValidationStrategy implements RoleValidationStrategy {
     }
     
     @Override
-    public void validate(UserSignupCommand command) {
-        log.debug("기사 역할 검증 실행: email={}", command.getEmail());
-        driverValidator.validateDriverInfo(command);
+    public void validate(UserRole userRole, String vehicleNumber, String vehicleType, String vehicleColor) {
+        log.debug("기사 역할 검증 실행: vehicleNumber={}", vehicleNumber);
+        driverValidator.validateDriverInfo(vehicleNumber, vehicleType, vehicleColor);
     }
 }

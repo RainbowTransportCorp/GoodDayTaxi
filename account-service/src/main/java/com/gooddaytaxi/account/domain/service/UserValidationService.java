@@ -43,6 +43,11 @@ public class UserValidationService {
     private void validateRoleSpecificInfo(UserSignupCommand command) {
         roleValidationStrategies.stream()
                 .filter(strategy -> strategy.supports(command.getRole()))
-                .forEach(strategy -> strategy.validate(command));
+                .forEach(strategy -> strategy.validate(
+                    command.getRole(),
+                    command.getVehicleNumber(),
+                    command.getVehicleType(), 
+                    command.getVehicleColor()
+                ));
     }
 }

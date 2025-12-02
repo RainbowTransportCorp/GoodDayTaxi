@@ -1,6 +1,5 @@
 package com.gooddaytaxi.account.domain.service;
 
-import com.gooddaytaxi.account.application.dto.UserSignupCommand;
 import com.gooddaytaxi.account.domain.model.UserRole;
 
 /**
@@ -19,8 +18,11 @@ public interface RoleValidationStrategy {
     /**
      * 역할별 검증 수행
      *
-     * @param command 회원가입 명령 객체
+     * @param userRole 사용자 역할
+     * @param vehicleNumber 차량번호 (기사인 경우 필수)
+     * @param vehicleType 차량종류 (기사인 경우 필수)
+     * @param vehicleColor 차량색상 (기사인 경우 필수)
      * @throws BusinessException 검증 실패 시
      */
-    void validate(UserSignupCommand command);
+    void validate(UserRole userRole, String vehicleNumber, String vehicleType, String vehicleColor);
 }

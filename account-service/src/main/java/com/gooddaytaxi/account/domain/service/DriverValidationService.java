@@ -1,6 +1,5 @@
 package com.gooddaytaxi.account.domain.service;
 
-import com.gooddaytaxi.account.application.dto.UserSignupCommand;
 import com.gooddaytaxi.account.domain.repository.DriverProfileRepository;
 import com.gooddaytaxi.common.core.exception.BusinessException;
 import com.gooddaytaxi.common.core.exception.ErrorCode;
@@ -21,28 +20,33 @@ public class DriverValidationService implements DriverValidator {
     /**
      * 기사 정보 검증 (차량 정보 필수 + 차량번호 중복 체크)
      *
-     * @param command 회원가입 명령 객체 (차량정보 포함)
+     * @param vehicleNumber 차량번호
+     * @param vehicleType 차량종류
+     * @param vehicleColor 차량색상
      * @throws BusinessException 차량정보 누락 또는 차량번호 중복 시 발생
      */
-    public void validateDriverInfo(UserSignupCommand command) {
-        log.debug("기사 정보 검증 시작: vehicleNumber={}", command.getVehicleNumber());
+    @Override
+    public void validateDriverInfo(String vehicleNumber, String vehicleType, String vehicleColor) {
+        log.debug("기사 정보 검증 시작: vehicleNumber={}", vehicleNumber);
         
-        validateVehicleInfoRequired(command);
-        validateVehicleNumberNotDuplicated(command.getVehicleNumber());
+        validateVehicleInfoRequired(vehicleNumber, vehicleType, vehicleColor);
+        validateVehicleNumberNotDuplicated(vehicleNumber);
         
-        log.debug("기사 정보 검증 통과: vehicleNumber={}", command.getVehicleNumber());
+        log.debug("기사 정보 검증 통과: vehicleNumber={}", vehicleNumber);
     }
     
     /**
      * 차량 정보 필수값 검증
      *
-     * @param command 회원가입 명령 객체
+     * @param vehicleNumber 차량번호
+     * @param vehicleType 차량종류
+     * @param vehicleColor 차량색상
      * @throws BusinessException 차량 정보가 누락된 경우 발생
      */
-    private void validateVehicleInfoRequired(UserSignupCommand command) {
-        if (isVehicleInfoMissing(command)) {
+    private void validateVehicleInfoRequired(String vehicleNumber, String vehicleType, String vehicleColor) {
+        if (isVehicleInfoMissing(vehicleNumber, vehicleType, vehicleColor)) {
             log.warn("차량 정보 누락: vehicleNumber={}, vehicleType={}, vehicleColor={}", 
-                    command.getVehicleNumber(), command.getVehicleType(), command.getVehicleColor());
+                    vehicleNumber, vehicleType, vehicleColor);
             throw new BusinessException(ErrorCode.MISSING_VEHICLE_INFO);
         }
     }
@@ -63,12 +67,14 @@ public class DriverValidationService implements DriverValidator {
     /**
      * 차량 정보 누락 여부 확인
      *
-     * @param command 회원가입 명령 객체
+     * @param vehicleNumber 차량번호
+     * @param vehicleType 차량종류
+     * @param vehicleColor 차량색상
      * @return 차량 정보가 누락된 경우 true, 모두 있으면 false
      */
-    private boolean isVehicleInfoMissing(UserSignupCommand command) {
-        return command.getVehicleNumber() == null || command.getVehicleNumber().trim().isEmpty() ||
-               command.getVehicleType() == null || command.getVehicleType().trim().isEmpty() ||
-               command.getVehicleColor() == null || command.getVehicleColor().trim().isEmpty();
+    private boolean isVehicleInfoMissing(String vehicleNumber, String vehicleType, String vehicleColor) {
+        return vehicleNumber == null || vehicleNumber.trim().isEmpty() ||
+               vehicleType == null || vehicleType.trim().isEmpty() ||
+               vehicleColor == null || vehicleColor.trim().isEmpty();
     }
 }
