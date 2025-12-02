@@ -24,7 +24,7 @@ spring:
         show_sql: true
 
   kafka:
-    bootstrap-servers: localhost:${KAFKA_PORT:9092}
+    bootstrap-servers: localhost:${KAFKA_PORT}
 
 
 eureka:
