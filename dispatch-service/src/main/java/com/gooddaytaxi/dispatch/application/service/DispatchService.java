@@ -84,6 +84,7 @@ public class DispatchService {
      * @param
      * @return
      */
+    @Transactional(readOnly = true)
     public DispatchListResult getDispatchList (UUID userId) {
         List<Dispatch> dispatches = dispatchQueryPort.findAllByFilter();
         return DispatchListResult.builder().build();
@@ -94,6 +95,7 @@ public class DispatchService {
      * @param dispatchId
      * @return
      */
+    @Transactional(readOnly = true)
     public DispatchDetailResult getDispatchDetail(UUID dispatchId) {
 
         Dispatch dispatch = dispatchQueryPort.findById(dispatchId)
