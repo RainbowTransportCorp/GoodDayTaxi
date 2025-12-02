@@ -76,4 +76,15 @@ public class PaymentController {
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
     }
 
+    //기사가 직접 결제후 완료 처리
+    @PutMapping("/driverpay/{tripId}/confirm")
+    public ResponseEntity<ApiResponse<PaymentTossPayResponseDto>> requestDriverPayPayment(@PathVariable UUID tripId,
+                                                                                          @RequestParam UUID userId,
+                                                                                          @RequestParam String role) {
+
+        PaymentTossPayResult result = paymentService.requestDriverPayPayment(tripId, userId, role);
+        PaymentTossPayResponseDto responseDto = PaymentTossPayResponseMapper.toResponse(result);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
+    }
+
 }

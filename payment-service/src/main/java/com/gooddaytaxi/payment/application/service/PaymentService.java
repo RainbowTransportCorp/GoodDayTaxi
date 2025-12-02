@@ -124,8 +124,36 @@ public class PaymentService {
         );
     }
 
+    //기사가 탑승자에게 현금, 카드로 직접 결제 후 완료 처리
+    @Transactional
+    public PaymentTossPayResult requestDriverPayPayment(UUID tripId, UUID userId, String role) {
+        log.info("Driver Pay Payment called: tripId={}", tripId);
 
+        //유저의 역할이 기사인지 확인
+        if(UserRole.of(role) != UserRole.DRIVER) {
+            throw new BusinessException(ErrorCode.AUTH_FORBIDDEN_ROLE);
+        }
 
+        //운행 아이디로 결제 청구서 조회
+        Payment payment = paymentQueryPort.findByTripId(tripId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_INPUT_VALUE));
 
+        //해당 기사가 맞는지 확인
+        if(!Objects.equals(payment.getDriverId(), userId)) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+        }
 
+        if(!(payment.getMethod() == PaymentMethod.CARD || payment.getMethod() == PaymentMethod.CASH)) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+
+        //해당 결제 청구서의 상태를 결제 완료로 변경
+        payment.updateStatusToComplete();
+        return new PaymentTossPayResult(
+                payment.getId(),
+                payment.getAmount().value(),
+                payment.getStatus().name(),
+                payment.getMethod().name()
+        );
+    }
 }
