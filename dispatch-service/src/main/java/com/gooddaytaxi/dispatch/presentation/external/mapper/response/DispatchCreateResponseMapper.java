@@ -11,7 +11,7 @@ public class DispatchCreateResponseMapper {
                 .passengerId(result.getPassengerId())
                 .pickupAddress(result.getPickupAddress())
                 .destinationAddress(result.getDestinationAddress())
-                .dispatchStatus(result.getDispatchStatus())
+                .dispatchStatus(result.getDispatchStatus().name())
                 .requestCreatedAt(result.getRequestCreatedAt())
                 .createdAt(result.getCreatedAt())
                 .updateAt(result.getUpdatedAt())
