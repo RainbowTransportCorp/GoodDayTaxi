@@ -26,14 +26,44 @@ dependencies {
     // 공통 core 모듈
     implementation 'com.gooddaytaxi:common-core:0.0.1-SNAPSHOT'
 
-    // BaseEntity, Auditing 등 공통 JPA
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa:3.3.4'
+    // JPA 어노테이션 제공
+    implementation 'jakarta.persistence:jakarta.persistence-api:3.1.0'
+
+    // Hibernate @Comment 지원
+    implementation 'org.hibernate.orm:hibernate-core:6.5.2.Final'
+
+    // Spring Data Auditing & 엔티티 리스너
+    implementation 'org.springframework.data:spring-data-jpa:3.3.4'
+    implementation 'org.springframework.data:spring-data-commons:3.3.4'
+
+    // Spring Context (메타 어노테이션 처리, 리스너 등에 필요)
+    implementation 'org.springframework:spring-context:6.1.4'
 
     // JsonInclude 등
     implementation 'com.fasterxml.jackson.core:jackson-annotations:2.17.1'
 
+    // QueryDSL (QClass 생성)
+    implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
+
+    // Lombok
     compileOnly 'org.projectlombok:lombok:1.18.30'
     annotationProcessor 'org.projectlombok:lombok:1.18.30'
+
+    // --- QueryDSL Q 클래스 생성 및 JPA 어노테이션 인식용 ---
+    annotationProcessor 'jakarta.persistence:jakarta.persistence-api:3.1.0'
+    annotationProcessor 'org.hibernate.orm:hibernate-core:6.5.2.Final'
+    annotationProcessor 'com.querydsl:querydsl-apt:5.0.0:jakarta'
+}
+
+
+def querydslDir = "$buildDir/generated/querydsl"
+
+sourceSets {
+    main.java.srcDirs += querydslDir
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.annotationProcessorPath = configurations.annotationProcessor
 }
 
 publishing {
