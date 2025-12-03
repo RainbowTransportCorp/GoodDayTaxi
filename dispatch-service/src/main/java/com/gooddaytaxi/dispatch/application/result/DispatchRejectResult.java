@@ -13,7 +13,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class DispatchRejectResult {
     private final UUID dispatchId;
-    private final Long driverId;
+    private final UUID driverId;
     private final DispatchStatus dispatchStatus;   // REJECTED
     private final LocalDateTime rejectedAt;
 }
