@@ -44,6 +44,9 @@ public class Payment extends BaseEntity {
     @Column(nullable = false)
     private UUID tripId;
 
+    @Column(length = 200)
+    private String cancelReason;
+
     @OneToMany(mappedBy = "payment", cascade = CascadeType.ALL)
     @OrderBy("attemptNo DESC")
     private List<PaymentAttempt> attempts = new ArrayList<>();
@@ -74,4 +77,8 @@ public class Payment extends BaseEntity {
         attempt.registerPayment(this);
     }
 
+    public void cancelPayment(String cancelReason) {
+        this.status = PaymentStatus.CANCELED;
+        this.cancelReason = cancelReason;
+    }
 }
