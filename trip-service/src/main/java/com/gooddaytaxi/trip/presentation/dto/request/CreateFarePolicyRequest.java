@@ -4,9 +4,9 @@ import com.gooddaytaxi.trip.domain.model.enums.PolicyType;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
-public record FarePolicyRequest(
+public record CreateFarePolicyRequest(
         @NotNull(message = "정책 타입은 필수입니다.")
-        PolicyType policyType,
+        String policyType,
 
         @NotNull(message = "기본 거리는 필수입니다.")
         @Min(value = 0, message = "기본 거리는 0보다 크거나 같아야 합니다.")
