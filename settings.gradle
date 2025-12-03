@@ -1,4 +1,0 @@
-rootProject.name = "GoodDayTaxi"
-
-include("common-core")
-include("common-jpa")

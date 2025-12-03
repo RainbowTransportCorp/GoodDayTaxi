@@ -10,13 +10,9 @@ import java.util.UUID;
 @Getter
 @Builder
 @AllArgsConstructor
-public class DispatchCreateResponseDto {
+public class DispatchCancelResponseDto {
     private UUID dispatchId;
-    private UUID passengerId;
-    private String pickupAddress;
-    private String destinationAddress;
     private String dispatchStatus;
-    private LocalDateTime requestCreatedAt;
-    private LocalDateTime createdAt;
-    private LocalDateTime updateAt;
+    private LocalDateTime cancelledAt;
 }
+
