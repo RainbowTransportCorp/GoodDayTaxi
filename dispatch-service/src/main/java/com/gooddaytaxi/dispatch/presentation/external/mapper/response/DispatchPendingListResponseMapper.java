@@ -3,6 +3,8 @@ package com.gooddaytaxi.dispatch.presentation.external.mapper.response;
 import com.gooddaytaxi.dispatch.application.result.DispatchPendingListResult;
 import com.gooddaytaxi.dispatch.presentation.external.dto.response.DispatchPendingListResponseDto;
 
+import java.util.List;
+
 public class DispatchPendingListResponseMapper {
 
     public static DispatchPendingListResponseDto toDispatchPendingResponse(DispatchPendingListResult result) {
@@ -13,5 +15,11 @@ public class DispatchPendingListResponseMapper {
                 .dispatchStatus(result.getDispatchStatus().name())
                 .requestCreatedAt(result.getRequestCreatedAt())
                 .build();
+    }
+
+    public static List<DispatchPendingListResponseDto> toDtoList(List<DispatchPendingListResult> results) {
+        return results.stream()
+                .map(DispatchPendingListResponseMapper::toDispatchPendingResponse)
+                .toList();
     }
 }
