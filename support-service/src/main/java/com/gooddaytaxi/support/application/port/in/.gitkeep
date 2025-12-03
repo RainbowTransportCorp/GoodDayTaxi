@@ -1,0 +1,2 @@
+# Application Command Inbound Port - 외부 > 내부로 향함.
+                                   - Usecase : 입력 받기 / 비즈니스 규칙 검증 / Model 상태 조작 / 출력 반환

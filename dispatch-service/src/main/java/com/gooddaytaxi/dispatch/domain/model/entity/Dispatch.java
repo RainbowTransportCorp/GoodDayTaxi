@@ -20,7 +20,7 @@ public class Dispatch extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "dispatch_id", nullable = false)
-    private UUID dispatch_id;
+    private UUID dispatchId;
 
     @Column(name = "passenger_id", nullable = false)
     private UUID passengerId;
@@ -68,4 +68,19 @@ public class Dispatch extends BaseEntity {
                 || this.dispatchStatus == DispatchStatus.ASSIGNED;
     }
 
+    public void accept() {
+        this.dispatchStatus = DispatchStatus.ACCEPTED;
+        this.acceptedAt = LocalDateTime.now();
+    }
+
+    public void assignTo(UUID driverId) {
+        this.driverId = driverId;
+        this.dispatchStatus = DispatchStatus.ASSIGNED;
+        this.assignedAt = LocalDateTime.now();
+    }
+
+    public void timeout() {
+        this.dispatchStatus = DispatchStatus.TIMEOUT;
+        this.timeoutAt = LocalDateTime.now();
+    }
 }
