@@ -1,6 +1,7 @@
 package com.gooddaytaxi.trip.application.service;
 
 import com.gooddaytaxi.trip.application.command.FarePolicyCreateCommand;
+import com.gooddaytaxi.trip.application.command.FarePolicyUpdateCommand;
 import com.gooddaytaxi.trip.application.port.out.CreateFarePolicyPort;
 import com.gooddaytaxi.trip.application.port.out.LoadFarePoliciesPort;
 import com.gooddaytaxi.trip.application.result.FarePolicyCreateResult;
@@ -57,6 +58,23 @@ public class FarePolicyService {
                 ));
 
         return FarePolicyItem.from(farePolicy);
+    }
+
+    @Transactional
+    public FarePolicyItem updatePolicy(UUID policyId, FarePolicyUpdateCommand command) {
+        FarePolicy farePolicy = loadFarePoliciesPort.findById(policyId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 요금 정책입니다. id=" + policyId));
+
+        farePolicy.update(
+                command.policyType(),
+                command.baseDistance(),
+                command.baseFare(),
+                command.distRateKm(),
+                command.timeRate()
+        );
+
+        return FarePolicyItem.from(farePolicy);
+
     }
 
 }
