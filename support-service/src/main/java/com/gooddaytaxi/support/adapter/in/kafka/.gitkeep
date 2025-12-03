@@ -1,2 +1,2 @@
-# Adapter Inbound Messaging - Event Consumer
+# Adapter Inbound Kafka - Event Consumer
                             - Event Driven Spec 내용 (Controller와는 구분되는 Endpoint)
