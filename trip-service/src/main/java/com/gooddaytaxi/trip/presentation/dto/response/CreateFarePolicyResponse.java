@@ -1,0 +1,12 @@
+package com.gooddaytaxi.trip.presentation.dto.response;
+
+import java.util.UUID;
+
+public record CreateFarePolicyResponse(
+        UUID policyId,
+        String policyType,
+        String message
+) {}
+
+
+

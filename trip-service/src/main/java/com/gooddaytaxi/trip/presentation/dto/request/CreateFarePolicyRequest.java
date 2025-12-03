@@ -4,7 +4,7 @@ import com.gooddaytaxi.trip.domain.model.enums.PolicyType;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
-public record FarePolicyRequest(
+public record CreateFarePolicyRequest(
         @NotNull(message = "정책 타입은 필수입니다.")
         PolicyType policyType,
 

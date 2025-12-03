@@ -2,7 +2,7 @@ package com.gooddaytaxi.trip.presentation.dto.response;
 
 import java.util.UUID;
 
-public record FarePolicyResponse(
+public record FarePolicyListResponse(
         UUID policyId,
         String policyType,
         double baseDistance,
