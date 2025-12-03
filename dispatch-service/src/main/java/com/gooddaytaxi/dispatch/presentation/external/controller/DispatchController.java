@@ -53,7 +53,7 @@ public class DispatchController {
      * @return
      */
     @GetMapping
-    public ResponseEntity<ApiResponse<DispatchListResponseDto>> getDispatchs (
+    public ResponseEntity<ApiResponse<DispatchListResponseDto>> getDispatches (
             //            ,@RequestHeader(value = "x-user-uuid", required = false) UUID userId
     ) {
         UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000001");
