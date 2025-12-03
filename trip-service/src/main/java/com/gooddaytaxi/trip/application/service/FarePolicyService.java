@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -43,17 +44,19 @@ public class FarePolicyService {
         List<FarePolicy> policies = loadFarePoliciesPort.findAll();
 
         List<FarePolicyItem> items = policies.stream()
-                .map(p -> new FarePolicyItem(
-                        p.getPolicyId(),
-                        p.getPolicyType(),
-                        p.getBaseDistance(),
-                        p.getBaseFare(),
-                        p.getDistRateKm(),
-                        p.getTimeRate()
-                ))
+                .map(FarePolicyItem::from)
                 .toList();
 
         return new FarePolicyListResult(items);
+    }
+
+    public FarePolicyItem getPolicy(UUID policyId) {
+        FarePolicy farePolicy = loadFarePoliciesPort.findById(policyId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "존재하지 않는 요금 정책입니다. id=" + policyId
+                ));
+
+        return FarePolicyItem.from(farePolicy);
     }
 
 }

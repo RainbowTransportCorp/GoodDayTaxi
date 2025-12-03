@@ -7,7 +7,6 @@ import com.gooddaytaxi.trip.application.result.FarePolicyListResult;
 import com.gooddaytaxi.trip.application.service.FarePolicyService;
 import com.gooddaytaxi.trip.presentation.dto.request.CreateFarePolicyRequest;
 import com.gooddaytaxi.trip.presentation.dto.response.CreateFarePolicyResponse;
-import com.gooddaytaxi.trip.presentation.dto.response.FarePolicyListResponse;
 import com.gooddaytaxi.trip.presentation.dto.response.FarePolicyResponse;
 import com.gooddaytaxi.trip.presentation.mapper.command.FarePolicyRequestMapper;
 import com.gooddaytaxi.trip.presentation.mapper.result.FarePolicyListResponseMapper;
@@ -23,7 +22,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/policies")
 @RequiredArgsConstructor
-public class TripController {
+public class FarePolicyController {
 
     private final FarePolicyService farePolicyService;
     private final FarePolicyRequestMapper requestMapper;
@@ -53,4 +52,5 @@ public class TripController {
              .ok(ApiResponse.success(responses));
  }
 
-}
+ @GetMapping("/{policyId}"
+ public ResponseEntity<ApiResponse<>>

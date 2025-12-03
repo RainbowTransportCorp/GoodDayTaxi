@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -18,4 +20,8 @@ public class FarePolicyQueryAdapter implements LoadFarePoliciesPort {
         return farePolicyJpaRepository.findAll();
     }
 
+    @Override
+    public Optional<FarePolicy> findById(UUID policyId) {
+        return farePolicyJpaRepository.findById(policyId);
+    }
 }
