@@ -3,7 +3,6 @@ package com.gooddaytaxi.payment.infrastructure.repository;
 import com.gooddaytaxi.payment.domain.entity.Payment;
 import com.gooddaytaxi.payment.domain.enums.PaymentMethod;
 import com.gooddaytaxi.payment.domain.enums.PaymentStatus;
-import com.gooddaytaxi.payment.domain.enums.UserRole;
 import com.gooddaytaxi.payment.domain.repository.PaymentRepositoryCustom;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;

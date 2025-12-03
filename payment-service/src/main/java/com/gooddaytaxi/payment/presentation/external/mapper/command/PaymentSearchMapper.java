@@ -5,12 +5,10 @@ import com.gooddaytaxi.common.core.exception.ErrorCode;
 import com.gooddaytaxi.payment.application.command.PaymentSearchCommand;
 import com.gooddaytaxi.payment.domain.vo.SearchPeriod;
 import com.gooddaytaxi.payment.presentation.external.dto.request.PaymentSearchRequestDto;
-import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Objects;
 
 
 public class PaymentSearchMapper {
