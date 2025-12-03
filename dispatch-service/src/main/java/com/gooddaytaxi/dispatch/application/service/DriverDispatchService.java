@@ -1,6 +1,7 @@
 package com.gooddaytaxi.dispatch.application.service;
 
 import com.gooddaytaxi.dispatch.application.commend.DispatchAcceptCommand;
+import com.gooddaytaxi.dispatch.application.commend.DispatchRejectCommand;
 import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
 import com.gooddaytaxi.dispatch.application.result.*;
@@ -58,6 +59,11 @@ public class DriverDispatchService {
     }
 
 
+    /**
+     * 콜 수락
+     * @param command
+     * @return
+     */
     public DispatchAcceptResult accept(DispatchAcceptCommand command) {
 
         log.info("[Accept] 콜 수락 요청 수신 - driverId={}, dispatchId={}",
@@ -86,6 +92,43 @@ public class DriverDispatchService {
 
         log.info("[Accept] 콜 수락 처리 완료 - dispatchId={}, acceptedAt={}",
                 result.getDispatchId(), result.getAcceptedAt());
+
+        return result;
+    }
+
+    /**
+     * 콜 거절
+     * @param command
+     * @return
+     */
+    public DispatchRejectResult reject(DispatchRejectCommand command) {
+
+        log.info("[Reject] 콜 거절 요청 수신 - driverId={}, dispatchId={}",
+                command.getDriverId(), command.getDispatchId());
+
+        Dispatch dispatch = dispatchQueryPort.findById(command.getDispatchId());
+        log.debug("[Reject] 조회된 Dispatch 엔티티 - id={}, status={}",
+                dispatch.getDispatchId(), dispatch.getDispatchStatus());
+
+        // 상태 전이
+        dispatch.cancel();
+        log.info("[Reject] Dispatch 상태 전이 완료 - id={}, newStatus={}",
+                dispatch.getDispatchId(), dispatch.getDispatchStatus());
+
+        dispatchCommandPort.save(dispatch);
+        log.info("[Reject] Dispatch 저장 완료 - id={}", dispatch.getDispatchId());
+
+        LocalDateTime rejectedAt = LocalDateTime.now();
+
+        DispatchRejectResult result = DispatchRejectResult.builder()
+                .dispatchId(command.getDispatchId())
+                .driverId(command.getDriverId())
+                .dispatchStatus(DispatchStatus.CANCELLED)
+                .rejectedAt(rejectedAt)
+                .build();
+
+        log.info("[Reject] 콜 거절 처리 완료 - dispatchId={}, rejectedAt={}",
+                result.getDispatchId(), result.getRejectedAt());
 
         return result;
     }
