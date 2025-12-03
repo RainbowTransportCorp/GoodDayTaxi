@@ -16,4 +16,15 @@ public enum PolicyType {
         return description;
     }
 
+    public static PolicyType from(String value) {
+        for (PolicyType type : values()) {
+            if (type.name().equalsIgnoreCase(value)) { // 대소문자 무시
+                return type;
+            }
+        }
+        throw new IllegalArgumentException("유효하지 않은 정책 타입입니다: " + value);
     }
+
+
+
+}
