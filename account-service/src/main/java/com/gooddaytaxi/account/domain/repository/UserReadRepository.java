@@ -1,6 +1,7 @@
 package com.gooddaytaxi.account.domain.repository;
 
 import com.gooddaytaxi.account.domain.model.User;
+import com.gooddaytaxi.account.domain.model.UserRole;
 import com.gooddaytaxi.account.domain.model.UserStatus;
 
 import java.util.Optional;
@@ -68,4 +69,13 @@ public interface UserReadRepository {
      * @return 삭제되지 않은 사용자 정보, 존재하지 않으면 empty Optional
      */
     Optional<User> findByEmailAndDeletedAtIsNull(String email);
+    
+    /**
+     * 특정 역할이며 삭제되지 않은 사용자를 UUID로 조회
+     *
+     * @param userUuid 조회할 사용자 UUID
+     * @param role 사용자 역할
+     * @return 해당 역할의 사용자 정보, 존재하지 않으면 empty Optional
+     */
+    Optional<User> findByUserUuidAndRoleAndDeletedAtIsNull(UUID userUuid, UserRole role);
 }
