@@ -4,20 +4,14 @@ import com.gooddaytaxi.support.application.dto.CreateCallCommand;
 import com.gooddaytaxi.support.application.dto.DispatchAcceptCommand;
 import com.gooddaytaxi.support.application.port.in.dispatch.AcceptDispatchUsecase;
 import com.gooddaytaxi.support.application.port.in.dispatch.RequestCallUsecase;
-import com.gooddaytaxi.support.application.port.out.messaging.NotificationPushMessagingPort;
-import com.gooddaytaxi.support.application.port.out.persistence.NotificationQueryPersistencePort;
 import com.gooddaytaxi.support.application.port.out.persistence.NotificationCommandPersistencePort;
+import com.gooddaytaxi.support.application.port.out.persistence.NotificationQueryPersistencePort;
 import com.gooddaytaxi.support.domain.notification.model.Notification;
 import com.gooddaytaxi.support.domain.notification.model.NotificationType;
-
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 
 /**
  * Dispatch 알림 서비스

@@ -1,10 +1,6 @@
 package com.gooddaytaxi.support.application.dto;
 
-import com.gooddaytaxi.support.domain.notification.model.NotificationType;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 

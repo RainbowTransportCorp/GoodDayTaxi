@@ -2,9 +2,10 @@ package com.gooddaytaxi.support.domain.notification.model;
 
 import com.gooddaytaxi.common.jpa.model.BaseEntity;
 import com.gooddaytaxi.support.application.dto.Command;
-import com.gooddaytaxi.support.application.dto.CreateCallCommand;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 
 import java.time.LocalDateTime;
@@ -117,11 +118,11 @@ public class Notification extends BaseEntity {
      *  - PAYMENT_XXX : dispatchId, passengerId, driverId, tripId, paymentId 필요
      *  - ERROR_DETECTED : 상황에 따라 필요
      *
-     * @param dispatchId
-     * @param passengerId
-     * @param driverId
-     * @param tripId
-     * @param paymentId
+     * @param dispatchId  배차 ID
+     * @param passengerId 승객 ID
+     * @param driverId    기사 ID
+     * @param tripId      운행 ID
+     * @param paymentId   결제 ID
      */
     public void assignIds (UUID dispatchId, UUID driverId, UUID passengerId, UUID tripId, UUID paymentId) {
         this.dispatchId = dispatchId;

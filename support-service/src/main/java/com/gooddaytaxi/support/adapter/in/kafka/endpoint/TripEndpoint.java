@@ -14,13 +14,13 @@ public class TripEndpoint {
 
     private final TripNotificationService service;
 
-    @KafkaListener(topics = "trip.started", groupId = "support-service")
-    public void onTripStarted(String message) {
-        service.handleTripStartedEvent(message);
-    }
-
-    @KafkaListener(topics = "trip.completed", groupId = "support-service")
-    public void onTripCompleted(String message) {
-        service.handleTripCompletedEvent(message);
-    }
+//    @KafkaListener(topics = "trip.started", groupId = "support-service")
+//    public void onTripStarted(String message) {
+//        service.handleTripStartedEvent(message);
+//    }
+//
+//    @KafkaListener(topics = "trip.completed", groupId = "support-service")
+//    public void onTripCompleted(String message) {
+//        service.handleTripCompletedEvent(message);
+//    }
 }

@@ -3,12 +3,9 @@ package com.gooddaytaxi.support.adapter.in.kafka.endpoint;
 import com.gooddaytaxi.support.adapter.in.kafka.dto.DispatchCallRequestReq;
 import com.gooddaytaxi.support.application.dto.CreateCallCommand;
 import com.gooddaytaxi.support.application.port.in.dispatch.RequestCallUsecase;
-
+import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
-
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 
 /**
  * Dispatch 엔드포인트 - Dispatch로부터 발생하는 이벤트에 대한 리스너
