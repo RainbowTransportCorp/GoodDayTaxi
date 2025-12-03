@@ -13,4 +13,3 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> , Paymen
     Optional<Payment> findByTripId(UUID tripId);
     Page<Payment> searchPayments(String method, String status, UUID passeangerId, UUID driverId, UUID tripId, LocalDateTime startDay, LocalDateTime endDay, Pageable pageable);
 }
-;
