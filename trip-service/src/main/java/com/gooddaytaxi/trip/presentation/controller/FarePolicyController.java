@@ -3,6 +3,7 @@ package com.gooddaytaxi.trip.presentation.controller;
 import com.gooddaytaxi.common.core.dto.ApiResponse;
 import com.gooddaytaxi.trip.application.command.FarePolicyCreateCommand;
 import com.gooddaytaxi.trip.application.result.FarePolicyCreateResult;
+import com.gooddaytaxi.trip.application.result.FarePolicyItem;
 import com.gooddaytaxi.trip.application.result.FarePolicyListResult;
 import com.gooddaytaxi.trip.application.service.FarePolicyService;
 import com.gooddaytaxi.trip.presentation.dto.request.CreateFarePolicyRequest;
@@ -18,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/policies")
@@ -52,5 +54,13 @@ public class FarePolicyController {
              .ok(ApiResponse.success(responses));
  }
 
- @GetMapping("/{policyId}"
- public ResponseEntity<ApiResponse<>>
+ @GetMapping("/{policyId}")
+ public ResponseEntity<ApiResponse<FarePolicyResponse>> getPolicy(@PathVariable UUID policyId){
+
+     FarePolicyItem result = farePolicyService.getPolicy(policyId);
+     FarePolicyResponse response = responseMapper.toResponse(result);
+
+     return ResponseEntity.ok(ApiResponse.success(response));
+ }
+}
+
