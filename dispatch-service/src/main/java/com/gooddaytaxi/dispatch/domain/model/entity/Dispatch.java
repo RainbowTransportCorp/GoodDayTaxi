@@ -2,7 +2,6 @@ package com.gooddaytaxi.dispatch.domain.model.entity;
 
 import com.gooddaytaxi.common.jpa.model.BaseEntity;
 import com.gooddaytaxi.dispatch.domain.exception.InvalidDispatchStateException;
-import com.gooddaytaxi.dispatch.domain.model.enums.AssignmentStatus;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
 import jakarta.persistence.*;
 import lombok.*;
