@@ -3,10 +3,7 @@ package com.gooddaytaxi.payment.application.service;
 import com.gooddaytaxi.common.core.exception.BusinessException;
 import com.gooddaytaxi.common.core.exception.ErrorCode;
 
-import com.gooddaytaxi.payment.application.command.ExternalPaymentConfirmCommand;
-import com.gooddaytaxi.payment.application.command.PaymentCreateCommand;
-import com.gooddaytaxi.payment.application.command.PaymentSearchCommand;
-import com.gooddaytaxi.payment.application.command.PaymentTossPayCommand;
+import com.gooddaytaxi.payment.application.command.*;
 import com.gooddaytaxi.payment.application.port.out.PaymentCommandPort;
 import com.gooddaytaxi.payment.application.port.out.PaymentQueryPort;
 import com.gooddaytaxi.payment.application.port.out.ExternalPaymentPort;
@@ -262,5 +259,31 @@ public class PaymentService {
             );
         });
 
+    }
+
+    @Transactional
+    public PaymentCancelResult cancelPayment(PaymentCancelCommand command, UUID userId, String role) {
+        //승객은 무조건 붊가
+        if(UserRole.of(role) == UserRole.PASSENGER) throw new BusinessException(ErrorCode.AUTH_FORBIDDEN_ROLE);
+
+        Payment payment = paymentQueryPort.findById(command.paymentId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_INPUT_VALUE));
+
+        //기사는 해당 청구서의 기사만 가능
+        if(UserRole.of(role) == UserRole.DRIVER) {
+            if(!Objects.equals(payment.getDriverId(), userId)) throw new BusinessException(ErrorCode.AUTH_FORBIDDEN_ROLE);
+        }
+
+        //이미 완료되었거나 취소된 결제는 불가
+        if(payment.getStatus().equals(PaymentStatus.COMPLETED)) throw new BusinessException(ErrorCode.INVALID_STATE);
+        else if (payment.getStatus().equals(PaymentStatus.CANCELED)) throw new BusinessException(ErrorCode.INVALID_STATE);
+
+        //결제 취소 처리
+        payment.cancelPayment(command.cancelReason());
+
+        return new PaymentCancelResult(
+                payment.getId(),
+                payment.getStatus().name()
+        );
     }
 }
