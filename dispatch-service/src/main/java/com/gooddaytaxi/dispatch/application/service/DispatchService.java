@@ -1,16 +1,17 @@
 package com.gooddaytaxi.dispatch.application.service;
 
+import com.gooddaytaxi.dispatch.application.commend.DispatchCancelCommand;
 import com.gooddaytaxi.dispatch.application.commend.DispatchCreateCommand;
 import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchEventCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
+import com.gooddaytaxi.dispatch.application.result.DispatchCancelResult;
 import com.gooddaytaxi.dispatch.application.result.DispatchCreateResult;
 import com.gooddaytaxi.dispatch.application.result.DispatchDetailResult;
 import com.gooddaytaxi.dispatch.application.result.DispatchListResult;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
 import com.gooddaytaxi.dispatch.domain.model.entity.DispatchEvent;
 import com.gooddaytaxi.dispatch.domain.model.enums.EventType;
-import jakarta.ws.rs.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -84,6 +85,7 @@ public class DispatchService {
      * @param
      * @return
      */
+    @Transactional(readOnly = true)
     public DispatchListResult getDispatchList (UUID userId) {
         List<Dispatch> dispatches = dispatchQueryPort.findAllByFilter();
         return DispatchListResult.builder().build();
@@ -94,10 +96,10 @@ public class DispatchService {
      * @param dispatchId
      * @return
      */
+    @Transactional(readOnly = true)
     public DispatchDetailResult getDispatchDetail(UUID dispatchId) {
 
-        Dispatch dispatch = dispatchQueryPort.findById(dispatchId)
-                .orElseThrow(NotFoundException::new);
+        Dispatch dispatch = dispatchQueryPort.findById(dispatchId);
 
         return DispatchDetailResult.builder()
                 .dispatchId(dispatch.getDispatch_id())
@@ -115,4 +117,21 @@ public class DispatchService {
                 .updatedAt(dispatch.getUpdatedAt())
                 .build();
     }
+
+    @Transactional
+    public DispatchCancelResult cancel(DispatchCancelCommand command) {
+
+        Dispatch dispatch = dispatchQueryPort.findById(command.getDispatchId());
+
+        dispatch.cancel();
+
+        dispatchCommandPort.save(dispatch);
+
+        return DispatchCancelResult.builder()
+                .dispatchId(dispatch.getDispatch_id())
+                .dispatchStatus(dispatch.getDispatchStatus())
+                .cancelledAt(dispatch.getCancelledAt())
+                .build();
+    }
+
 }
