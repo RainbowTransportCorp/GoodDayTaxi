@@ -1,6 +1,6 @@
 package com.gooddaytaxi.payment.domain.entity;
 
-import com.gooddaytaxi.payment.domain.vo.PaymentAttemptStatus;
+import com.gooddaytaxi.payment.domain.enums.PaymentAttemptStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

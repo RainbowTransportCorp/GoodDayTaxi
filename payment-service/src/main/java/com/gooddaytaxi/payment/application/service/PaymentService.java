@@ -9,15 +9,13 @@ import com.gooddaytaxi.payment.application.command.PaymentTossPayCommand;
 import com.gooddaytaxi.payment.application.port.out.PaymentCommandPort;
 import com.gooddaytaxi.payment.application.port.out.PaymentQueryPort;
 import com.gooddaytaxi.payment.application.port.out.ExternalPaymentPort;
-import com.gooddaytaxi.payment.application.result.ExternalPaymentConfirmResult;
-import com.gooddaytaxi.payment.application.result.PaymentCreateResult;
-import com.gooddaytaxi.payment.application.result.PaymentApproveResult;
+import com.gooddaytaxi.payment.application.result.*;
 import com.gooddaytaxi.payment.domain.entity.Payment;
 import com.gooddaytaxi.payment.domain.entity.PaymentAttempt;
 import com.gooddaytaxi.payment.domain.vo.Fare;
-import com.gooddaytaxi.payment.domain.vo.PaymentMethod;
-import com.gooddaytaxi.payment.domain.vo.PaymentStatus;
-import com.gooddaytaxi.payment.domain.vo.UserRole;
+import com.gooddaytaxi.payment.domain.enums.PaymentMethod;
+import com.gooddaytaxi.payment.domain.enums.PaymentStatus;
+import com.gooddaytaxi.payment.domain.enums.UserRole;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -137,8 +135,8 @@ public class PaymentService {
 
     //기사가 탑승자에게 현금, 카드로 직접 결제 후 완료 처리
     @Transactional
-    public PaymentApproveResult approveDriverPayment(UUID tripId, UUID userId, String role) {
-        log.info("Driver Pay Payment called: tripId={}", tripId);
+    public PaymentApproveResult approveDriverPayment(UUID paymentId, UUID userId, String role) {
+        log.info("Driver Pay Payment called: paymentId={}", paymentId);
 
         //유저의 역할이 기사인지 확인
         if(UserRole.of(role) != UserRole.DRIVER) {
@@ -146,7 +144,7 @@ public class PaymentService {
         }
 
         //운행 아이디로 결제 청구서 조회
-        Payment payment = paymentQueryPort.findByTripId(tripId)
+        Payment payment = paymentQueryPort.findById(paymentId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_INPUT_VALUE));
 
         //해당 기사가 맞는지 확인
@@ -165,6 +163,45 @@ public class PaymentService {
                 payment.getAmount().value(),
                 payment.getStatus().name(),
                 payment.getMethod().name()
+        );
+    }
+
+    public PaymentReadResult getPayment(UUID paymentId) {
+        Payment payment = paymentQueryPort.findById(paymentId).orElseThrow(()-> new BusinessException(ErrorCode.INVALID_INPUT_VALUE));
+        PaymentAttempt lastAttempt;
+        //결제 수단이 토스페이인경우 마지막 결제 내용도 포함
+        if(payment.getMethod() == PaymentMethod.TOSS_PAY) {
+            lastAttempt = payment.getAttempts().get(0);
+            AttemptReadResult attemptResult = new AttemptReadResult(
+                    lastAttempt.getStatus().toString(),
+                    lastAttempt.getPgMethod(),
+                    lastAttempt.getPgProvider(),
+                    lastAttempt.getApprovedAt(),
+                    lastAttempt.getFailDetail()
+            );
+
+            return new PaymentReadResult(
+                    payment.getId(),
+                    payment.getAmount().value(),
+                    payment.getStatus().name(),
+                    payment.getMethod().name(),
+                    payment.getPassengerId(),
+                    payment.getDriverId(),
+                    payment.getTripId(),
+                    attemptResult
+
+            );
+        }
+        return new PaymentReadResult(
+                payment.getId(),
+                payment.getAmount().value(),
+                payment.getStatus().name(),
+                payment.getMethod().name(),
+                payment.getPassengerId(),
+                payment.getDriverId(),
+                payment.getTripId(),
+                null
+
         );
     }
 }

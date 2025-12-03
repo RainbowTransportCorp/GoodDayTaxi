@@ -1,6 +1,7 @@
 package com.gooddaytaxi.account.infrastructure.persistence;
 
 import com.gooddaytaxi.account.domain.model.User;
+import com.gooddaytaxi.account.domain.model.UserRole;
 import com.gooddaytaxi.account.domain.model.UserStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -22,4 +23,6 @@ public interface UserJpaRepository extends JpaRepository<User, UUID> {
     boolean existsByEmailAndStatus(String email, UserStatus status);
     
     Optional<User> findByEmailAndDeletedAtIsNull(String email);
+    
+    Optional<User> findByUserIdAndRoleAndDeletedAtIsNull(UUID userId, UserRole role);
 }

@@ -5,11 +5,14 @@ import com.gooddaytaxi.payment.application.command.PaymentCreateCommand;
 import com.gooddaytaxi.payment.application.command.PaymentTossPayCommand;
 import com.gooddaytaxi.payment.application.result.PaymentCreateResult;
 import com.gooddaytaxi.payment.application.result.PaymentApproveResult;
+import com.gooddaytaxi.payment.application.result.PaymentReadResult;
 import com.gooddaytaxi.payment.application.service.PaymentService;
 import com.gooddaytaxi.payment.presentation.external.dto.request.PaymentCreateRequestDto;
 import com.gooddaytaxi.payment.presentation.external.dto.request.PaymentTossPayRequestDto;
 import com.gooddaytaxi.payment.presentation.external.dto.response.PaymentCreateResponseDto;
 import com.gooddaytaxi.payment.presentation.external.dto.response.PaymentApproveResponseDto;
+import com.gooddaytaxi.payment.presentation.external.dto.response.PaymentReadResponseDto;
+import com.gooddaytaxi.payment.presentation.external.mapper.response.PaymentReadResponseMapper;
 import com.gooddaytaxi.payment.presentation.external.mapper.command.PaymentCreateMapper;
 import com.gooddaytaxi.payment.presentation.external.mapper.command.PaymentTossPayMapper;
 import com.gooddaytaxi.payment.presentation.external.mapper.response.PaymentCreateResponseMapper;
@@ -78,13 +81,20 @@ public class PaymentController {
     }
 
     //기사가 직접 결제후 완료 처리
-    @PutMapping("/driver/{tripId}/confirm")
-    public ResponseEntity<ApiResponse<PaymentApproveResponseDto>> confirmDriverPayment(@PathVariable UUID tripId,
+    @PutMapping("/driver/{paymentId}/confirm")
+    public ResponseEntity<ApiResponse<PaymentApproveResponseDto>> confirmDriverPayment(@PathVariable UUID paymentId,
                                                                                        @RequestParam UUID userId,
                                                                                        @RequestParam String role) {
 
-        PaymentApproveResult result = paymentService.approveDriverPayment(tripId, userId, role);
+        PaymentApproveResult result = paymentService.approveDriverPayment(paymentId, userId, role);
         PaymentApproveResponseDto responseDto = PaymentApproveResponseMapper.toResponse(result);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
+    }
+
+    @GetMapping("/{paymentId}")
+    public ResponseEntity<ApiResponse<PaymentReadResponseDto>> getPayment(@PathVariable UUID paymentId) {
+        PaymentReadResult result = paymentService.getPayment(paymentId);
+        PaymentReadResponseDto responseDto = PaymentReadResponseMapper.toResponse(result);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
     }
 
