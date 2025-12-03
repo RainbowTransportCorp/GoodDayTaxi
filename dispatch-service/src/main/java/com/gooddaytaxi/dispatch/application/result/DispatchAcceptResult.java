@@ -11,9 +11,9 @@ import java.util.UUID;
 @Getter
 @Builder
 @AllArgsConstructor
-public class DispatchCancelResult {
+public class DispatchAcceptResult {
     private final UUID dispatchId;
-    private final DispatchStatus dispatchStatus;
-    private final LocalDateTime cancelledAt;
+    private final UUID driverId;
+    private final DispatchStatus dispatchStatus;   // ACCEPTED
+    private final LocalDateTime acceptedAt;
 }
-
