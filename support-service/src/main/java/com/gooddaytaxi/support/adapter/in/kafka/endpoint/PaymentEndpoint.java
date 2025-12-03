@@ -15,8 +15,8 @@ public class PaymentEndpoint {
 
     private final PaymentNotificationService service;
 
-    @KafkaListener(topics = "payment.completed", groupId = "support-service")
-    public void onPaymentCompleted(String message) {
-        service.handlePaymentCompletedEvent(message);
-    }
+//    @KafkaListener(topics = "payment.completed", groupId = "support-service")
+//    public void onPaymentCompleted(String message) {
+//        service.handlePaymentCompletedEvent(message);
+//    }
 }
