@@ -1,14 +1,15 @@
 package com.gooddaytaxi.account.adapter.web;
 
 import com.gooddaytaxi.account.application.dto.DriverProfileResponse;
+import com.gooddaytaxi.account.application.dto.UpdateDriverProfileCommand;
+import com.gooddaytaxi.account.application.dto.UpdateDriverProfileResponse;
 import com.gooddaytaxi.account.application.usecase.GetDriverProfileUseCase;
+import com.gooddaytaxi.account.application.usecase.UpdateDriverProfileUseCase;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
@@ -19,6 +20,7 @@ import java.util.UUID;
 public class DriverController {
     
     private final GetDriverProfileUseCase getDriverProfileUseCase;
+    private final UpdateDriverProfileUseCase updateDriverProfileUseCase;
     
     @GetMapping("/{driverId}")
     public ResponseEntity<DriverProfileResponse> getDriverProfile(
@@ -30,6 +32,24 @@ public class DriverController {
         DriverProfileResponse response = getDriverProfileUseCase.execute(driverUuid);
         
         log.debug("기사 프로필 조회 완료: driverId={}", driverId);
+        
+        return ResponseEntity.ok(response);
+    }
+    
+    @PatchMapping("/{driverId}")
+    public ResponseEntity<UpdateDriverProfileResponse> updateDriverProfile(
+            @RequestHeader("X-User-UUID") String requestUserUuid,
+            @PathVariable("driverId") String driverId,
+            @Valid @RequestBody UpdateDriverProfileCommand command) {
+        
+        log.debug("기사 프로필 수정 요청: requestUser={}, driverId={}", requestUserUuid, driverId);
+        
+        UUID requestUuid = UUID.fromString(requestUserUuid);
+        UUID driverUuid = UUID.fromString(driverId);
+        
+        UpdateDriverProfileResponse response = updateDriverProfileUseCase.execute(requestUuid, driverUuid, command);
+        
+        log.debug("기사 프로필 수정 완료: driverId={}", driverId);
         
         return ResponseEntity.ok(response);
     }
