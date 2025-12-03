@@ -57,7 +57,6 @@ public class Dispatch extends BaseEntity {
         if (!isCancelableStatus()) {
             throw new InvalidDispatchStateException();
         }
-
         this.dispatchStatus = DispatchStatus.CANCELLED;
         this.cancelledAt = LocalDateTime.now();
     }
