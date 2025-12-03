@@ -1,6 +1,7 @@
 package com.gooddaytaxi.account.infrastructure.persistence;
 
 import com.gooddaytaxi.account.domain.model.User;
+import com.gooddaytaxi.account.domain.model.UserRole;
 import com.gooddaytaxi.account.domain.model.UserStatus;
 import com.gooddaytaxi.account.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -48,6 +49,11 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public Optional<User> findByEmailAndDeletedAtIsNull(String email) {
         return userJpaRepository.findByEmailAndDeletedAtIsNull(email);
+    }
+    
+    @Override
+    public Optional<User> findByUserUuidAndRoleAndDeletedAtIsNull(UUID userUuid, UserRole role) {
+        return userJpaRepository.findByUserIdAndRoleAndDeletedAtIsNull(userUuid, role);
     }
     
     @Override
