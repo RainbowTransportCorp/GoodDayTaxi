@@ -2,23 +2,27 @@ package com.gooddaytaxi.payment.presentation.external.controller;
 
 import com.gooddaytaxi.common.core.dto.ApiResponse;
 import com.gooddaytaxi.payment.application.command.PaymentCreateCommand;
+import com.gooddaytaxi.payment.application.command.PaymentSearchCommand;
 import com.gooddaytaxi.payment.application.command.PaymentTossPayCommand;
 import com.gooddaytaxi.payment.application.result.PaymentCreateResult;
 import com.gooddaytaxi.payment.application.result.PaymentApproveResult;
 import com.gooddaytaxi.payment.application.result.PaymentReadResult;
 import com.gooddaytaxi.payment.application.service.PaymentService;
 import com.gooddaytaxi.payment.presentation.external.dto.request.PaymentCreateRequestDto;
+import com.gooddaytaxi.payment.presentation.external.dto.request.PaymentSearchRequestDto;
 import com.gooddaytaxi.payment.presentation.external.dto.request.PaymentTossPayRequestDto;
 import com.gooddaytaxi.payment.presentation.external.dto.response.PaymentCreateResponseDto;
 import com.gooddaytaxi.payment.presentation.external.dto.response.PaymentApproveResponseDto;
 import com.gooddaytaxi.payment.presentation.external.dto.response.PaymentReadResponseDto;
 import com.gooddaytaxi.payment.presentation.external.mapper.response.PaymentReadResponseMapper;
+import com.gooddaytaxi.payment.presentation.external.mapper.command.PaymentSearchMapper;
 import com.gooddaytaxi.payment.presentation.external.mapper.command.PaymentCreateMapper;
 import com.gooddaytaxi.payment.presentation.external.mapper.command.PaymentTossPayMapper;
 import com.gooddaytaxi.payment.presentation.external.mapper.response.PaymentCreateResponseMapper;
 import com.gooddaytaxi.payment.presentation.external.mapper.response.PaymentApproveResponseMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -95,6 +99,17 @@ public class PaymentController {
     public ResponseEntity<ApiResponse<PaymentReadResponseDto>> getPayment(@PathVariable UUID paymentId) {
         PaymentReadResult result = paymentService.getPayment(paymentId);
         PaymentReadResponseDto responseDto = PaymentReadResponseMapper.toResponse(result);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
+    }
+
+    //결제 검색 기능
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<Page<PaymentReadResponseDto>>> searchPayment(@RequestBody @Valid PaymentSearchRequestDto requestDto,
+                                                                                   @RequestParam(required = false) UUID userId,
+                                                                                   @RequestParam(required = false) String role) {
+        PaymentSearchCommand command = PaymentSearchMapper.toCommand(requestDto);
+        Page<PaymentReadResult> result = paymentService.searchPayment(command, userId, role);
+        Page<PaymentReadResponseDto> responseDto = PaymentReadResponseMapper.toPageResponse(result);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
     }
 

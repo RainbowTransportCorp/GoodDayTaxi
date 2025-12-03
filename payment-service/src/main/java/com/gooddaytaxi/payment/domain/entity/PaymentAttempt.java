@@ -1,6 +1,7 @@
 package com.gooddaytaxi.payment.domain.entity;
 
 import com.gooddaytaxi.payment.domain.enums.PaymentAttemptStatus;
+import com.gooddaytaxi.common.jpa.model.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,7 +13,7 @@ import java.util.UUID;
 @Entity
 @Table(name="p_payment_attempts")
 @NoArgsConstructor
-public class PaymentAttempt {
+public class PaymentAttempt extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name="payment_attempt_id")
@@ -34,8 +35,10 @@ public class PaymentAttempt {
 
     private LocalDateTime approvedAt;  //toss 결제 승인 시간
 
+    @Column(length = 50)
     private String pgMethod; //결제 승인된 결제 수단  //CARD, EASE_PAY, VIRTUAL_ACCOUNT
 
+    @Column(length = 50)
     private String pgProvider; //간편 결제시 결제 승인한 PG사  //토스페이, 카카오페이, 네이버페이 등
 
     private String pgFailReason; //결제 실패 사유
