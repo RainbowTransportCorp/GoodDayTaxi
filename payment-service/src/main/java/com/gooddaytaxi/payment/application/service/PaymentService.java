@@ -274,6 +274,10 @@ public class PaymentService {
             if(!Objects.equals(payment.getDriverId(), userId)) throw new BusinessException(ErrorCode.AUTH_FORBIDDEN_ROLE);
         }
 
+        //이미 완료되었거나 취소된 결제는 불가
+        if(payment.getStatus().equals(PaymentStatus.COMPLETED)) throw new BusinessException(ErrorCode.INVALID_STATE);
+        else if (payment.getStatus().equals(PaymentStatus.CANCELED)) throw new BusinessException(ErrorCode.INVALID_STATE);
+
         //결제 취소 처리
         payment.cancelPayment(command.cancelReason());
 
