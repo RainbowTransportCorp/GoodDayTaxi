@@ -4,9 +4,11 @@ import com.gooddaytaxi.dispatch.application.commend.DispatchCancelCommand;
 import com.gooddaytaxi.dispatch.application.commend.DispatchCreateCommand;
 import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
-import com.gooddaytaxi.dispatch.application.result.*;
+import com.gooddaytaxi.dispatch.application.result.DispatchCancelResult;
+import com.gooddaytaxi.dispatch.application.result.DispatchCreateResult;
+import com.gooddaytaxi.dispatch.application.result.DispatchDetailResult;
+import com.gooddaytaxi.dispatch.application.result.DispatchListResult;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
-import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,7 +24,7 @@ import static com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus.REQUEST
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class DispatchService {
+public class PassengerDispatchService {
 
     private final DispatchCommandPort dispatchCommandPort;
 
@@ -125,36 +127,4 @@ public class DispatchService {
                 .cancelledAt(dispatch.getCancelledAt())
                 .build();
     }
-
-    /**
-     * 배차 대기 (ASSIGNING) 상태 콜 조회 (기사)
-     * @param userID
-     * @return
-     */
-    @Transactional(readOnly = true)
-    public List<DispatchPendingListResult> getDriverPendingDispatch(UUID userID) {
-
-        log.info("[Driver Pending Dispatch] 조회 시작 - driverId={}", userID);
-
-        List<Dispatch> dispatches = dispatchQueryPort.findByStatus(DispatchStatus.ASSIGNING);
-
-        log.info("[Driver Pending Dispatch] 조회 완료 - driverId={}, count={}",
-                userID, dispatches.size());
-
-        dispatches.stream()
-                .limit(5)
-                .forEach(d -> log.debug("[PendingDispatch] id={}", d.getDispatchId()));
-
-        return dispatches.stream()
-                .map(dispatch -> DispatchPendingListResult.builder()
-                        .dispatchId(dispatch.getDispatchId())
-                        .pickupAddress(dispatch.getPickupAddress())
-                        .destinationAddress(dispatch.getDestinationAddress())
-                        .dispatchStatus(dispatch.getDispatchStatus())
-                        .requestCreatedAt(dispatch.getRequestCreatedAt())
-                        .build()
-                )
-                .toList();
-    }
-
 }
