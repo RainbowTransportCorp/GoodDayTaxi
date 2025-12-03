@@ -112,3 +112,12 @@ management:
   zipkin:
     tracing:
       endpoint: http://gd_zipkin:${zipkin.port}/api/v2/spans
+
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+
+  metrics:
+    tags:
+      application: gateway
