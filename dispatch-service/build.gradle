@@ -55,6 +55,10 @@ dependencies {
     //예외처리용
     implementation 'org.springframework.boot:spring-boot-starter-validation'
 
+    //Prometheus
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
