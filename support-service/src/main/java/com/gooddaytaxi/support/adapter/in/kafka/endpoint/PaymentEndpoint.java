@@ -3,7 +3,6 @@ package com.gooddaytaxi.support.adapter.in.kafka.endpoint;
 
 import com.gooddaytaxi.support.application.service.PaymentNotificationService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 /**
