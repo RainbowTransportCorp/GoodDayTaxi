@@ -22,7 +22,7 @@ public class User extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "user_id")
-    private String userId;
+    private UUID userId;
 
     @Column(name = "email", nullable = false, unique = true, length = 255)
     private String email;
@@ -99,6 +99,15 @@ public class User extends BaseEntity {
         this.status = UserStatus.DELETED;
         this.deletedAt = LocalDateTime.now();
         this.deletedBy = deletedBy;
+    }
+
+    /**
+     * 사용자 UUID 조회
+     *
+     * @return 사용자 UUID
+     */
+    public UUID getUserUuid() {
+        return this.userId;
     }
 
     /**

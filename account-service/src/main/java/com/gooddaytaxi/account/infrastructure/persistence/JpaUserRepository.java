@@ -1,6 +1,7 @@
 package com.gooddaytaxi.account.infrastructure.persistence;
 
 import com.gooddaytaxi.account.domain.model.User;
+import com.gooddaytaxi.account.domain.model.UserRole;
 import com.gooddaytaxi.account.domain.model.UserStatus;
 import com.gooddaytaxi.account.domain.repository.UserReadRepository;
 import com.gooddaytaxi.account.domain.repository.UserWriteRepository;
@@ -8,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * JPA 기반 사용자 리포지토리 구현체
@@ -20,7 +22,12 @@ public class JpaUserRepository implements UserReadRepository, UserWriteRepositor
 
     // UserReadRepository 구현
     @Override
-    public Optional<User> findById(String userId) {
+    public Optional<User> findByUserUuid(UUID userUuid) {
+        return userJpaRepository.findById(userUuid);
+    }
+    
+    @Override
+    public Optional<User> findById(UUID userId) {
         return userJpaRepository.findById(userId);
     }
 
@@ -48,6 +55,11 @@ public class JpaUserRepository implements UserReadRepository, UserWriteRepositor
     public Optional<User> findByEmailAndDeletedAtIsNull(String email) {
         return userJpaRepository.findByEmailAndDeletedAtIsNull(email);
     }
+    
+    @Override
+    public Optional<User> findByUserUuidAndRoleAndDeletedAtIsNull(UUID userUuid, UserRole role) {
+        return userJpaRepository.findByUserIdAndRoleAndDeletedAtIsNull(userUuid, role);
+    }
 
     // UserWriteRepository 구현
     @Override
@@ -58,5 +70,10 @@ public class JpaUserRepository implements UserReadRepository, UserWriteRepositor
     @Override
     public void delete(User user) {
         userJpaRepository.delete(user);
+    }
+    
+    @Override
+    public void deleteById(UUID userId) {
+        userJpaRepository.deleteById(userId);
     }
 }

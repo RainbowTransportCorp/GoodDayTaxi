@@ -35,4 +35,12 @@ public class DispatchEvent extends BaseEntity {
     @Column(name = "payload", nullable = false, columnDefinition = "jsonb")
     private String payload;
 
+    public static DispatchEvent create(UUID dispatchId, EventType type, String payload) {
+        DispatchEvent e = new DispatchEvent();
+        e.dispatchId = dispatchId;
+        e.eventType = type;
+        e.eventStatus = EventStatus.PENDING;
+        e.payload = payload;
+        return e;
+    }
 }

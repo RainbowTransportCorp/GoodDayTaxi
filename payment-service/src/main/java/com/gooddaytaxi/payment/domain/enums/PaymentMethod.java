@@ -1,4 +1,4 @@
-package com.gooddaytaxi.payment.domain.vo;
+package com.gooddaytaxi.payment.domain.enums;
 
 import com.gooddaytaxi.common.core.exception.BusinessException;
 import com.gooddaytaxi.common.core.exception.ErrorCode;
@@ -7,7 +7,7 @@ import com.gooddaytaxi.common.core.exception.ErrorCode;
 public enum PaymentMethod {
     CASH,       // 현금
     CARD,       // 카드
-    TOSS_APY;   // 토스페이
+    TOSS_PAY;   // 토스페이
 
     public static PaymentMethod of(String method) {
         for (PaymentMethod paymentMethod : values()) {
