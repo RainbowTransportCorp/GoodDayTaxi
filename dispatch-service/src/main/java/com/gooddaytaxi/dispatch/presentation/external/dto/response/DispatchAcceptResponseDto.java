@@ -10,11 +10,9 @@ import java.util.UUID;
 @Getter
 @Builder
 @AllArgsConstructor
-public class DispatchPendingListResponseDto {
+public class DispatchAcceptResponseDto {
     private final UUID dispatchId;
-    private final String pickupAddress;
-    private final String destinationAddress;
-    private final String dispatchStatus;
-    private final LocalDateTime requestCreatedAt;
+    private final UUID driverId;
+    private final String dispatchStatus;   // ACCEPTED
+    private final LocalDateTime acceptedAt;
 }
-

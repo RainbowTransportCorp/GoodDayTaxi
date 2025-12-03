@@ -7,7 +7,7 @@ import com.gooddaytaxi.dispatch.application.result.DispatchCancelResult;
 import com.gooddaytaxi.dispatch.application.result.DispatchCreateResult;
 import com.gooddaytaxi.dispatch.application.result.DispatchDetailResult;
 import com.gooddaytaxi.dispatch.application.result.DispatchListResult;
-import com.gooddaytaxi.dispatch.application.service.DispatchService;
+import com.gooddaytaxi.dispatch.application.service.PassengerDispatchService;
 import com.gooddaytaxi.dispatch.presentation.external.dto.request.DispatchCreateRequestDto;
 import com.gooddaytaxi.dispatch.presentation.external.dto.response.*;
 import com.gooddaytaxi.dispatch.presentation.external.mapper.command.DispatchCreateCommandMapper;
@@ -27,7 +27,7 @@ import java.util.UUID;
 @RequestMapping("/api/v1/dispatches")
 public class DispatchController {
 
-    private final DispatchService dispatchService;
+    private final PassengerDispatchService passengerDispatchService;
 
     /**
      * 콜 생성 (승객)
@@ -42,7 +42,7 @@ public class DispatchController {
             ) {
         UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000001");
         DispatchCreateCommand createCommand = DispatchCreateCommandMapper.toCommand(requestDto);
-        DispatchCreateResult createResult = dispatchService.create(userId, createCommand);
+        DispatchCreateResult createResult = passengerDispatchService.create(userId, createCommand);
         DispatchCreateResponseDto responseDto = DispatchCreateResponseMapper.toCreateResponse(createResult);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(responseDto));
@@ -57,7 +57,7 @@ public class DispatchController {
             //            ,@RequestHeader(value = "x-user-uuid", required = false) UUID userId
     ) {
         UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000001");
-        DispatchListResult dispatchListResult = dispatchService.getDispatchList(userId);
+        DispatchListResult dispatchListResult = passengerDispatchService.getDispatchList(userId);
         DispatchListResponseDto responseDto = DispatchListResponseMapper.toDispatchListResponse(dispatchListResult);
 
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
@@ -74,7 +74,7 @@ public class DispatchController {
             //            ,@RequestHeader(value = "x-user-uuid", required = false) UUID userId
     ) {
         UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000002");
-        DispatchDetailResult dispatchDetailResult = dispatchService.getDispatchDetail(userId);
+        DispatchDetailResult dispatchDetailResult = passengerDispatchService.getDispatchDetail(userId);
         DispatchDetailResponseDto responseDto = DispatchDetailResponseMapper.toDispatchDetailResponse(dispatchDetailResult);
 
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
@@ -91,7 +91,7 @@ public class DispatchController {
             //            ,@RequestHeader(value = "x-user-uuid", required = false) UUID userId
     ) {
         DispatchCancelCommand command = new DispatchCancelCommand(dispatchId);
-        DispatchCancelResult result = dispatchService.cancel(command);
+        DispatchCancelResult result = passengerDispatchService.cancel(command);
         DispatchCancelResponseDto responseDto = DispatchCancelResponseMapper.toCancelResponse(result);
 
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
