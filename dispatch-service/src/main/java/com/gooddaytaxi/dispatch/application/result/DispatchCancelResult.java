@@ -12,8 +12,8 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 public class DispatchCancelResult {
-    private UUID dispatchId;
-    private DispatchStatus dispatchStatus;
-    private LocalDateTime cancelledAt;
+    private final UUID dispatchId;
+    private final DispatchStatus dispatchStatus;
+    private final LocalDateTime cancelledAt;
 }
 

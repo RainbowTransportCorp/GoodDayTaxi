@@ -1,5 +1,6 @@
 package com.gooddaytaxi.dispatch.presentation.external.dto.response;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -8,6 +9,7 @@ import java.util.UUID;
 
 @Getter
 @Builder
+@AllArgsConstructor
 public class DispatchPendingListResponseDto {
     private final UUID dispatchId;
     private final String pickupAddress;
@@ -15,3 +17,4 @@ public class DispatchPendingListResponseDto {
     private final String dispatchStatus;
     private final LocalDateTime requestCreatedAt;
 }
+
