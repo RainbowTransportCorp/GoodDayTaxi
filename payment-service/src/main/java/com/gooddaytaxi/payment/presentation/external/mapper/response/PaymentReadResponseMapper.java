@@ -4,6 +4,7 @@ import com.gooddaytaxi.payment.application.result.AttemptReadResult;
 import com.gooddaytaxi.payment.application.result.PaymentReadResult;
 import com.gooddaytaxi.payment.presentation.external.dto.response.AttemptReadResponseDto;
 import com.gooddaytaxi.payment.presentation.external.dto.response.PaymentReadResponseDto;
+import org.springframework.data.domain.Page;
 
 import java.util.Objects;
 
@@ -18,7 +19,9 @@ public class PaymentReadResponseMapper {
                     result.passengerId(),
                     result.driverId(),
                     result.tripId(),
-                    null
+                    null,
+                    result.createdAt(),
+                    result.updatedAt()
                     );
         }
         return new PaymentReadResponseDto(
@@ -29,7 +32,9 @@ public class PaymentReadResponseMapper {
                 result.passengerId(),
                 result.driverId(),
                 result.tripId(),
-                toAttemptResponse(result.attemptResult())
+                toAttemptResponse(result.attemptResult()),
+                result.createdAt(),
+                result.updatedAt()
         );
     }
 
@@ -41,5 +46,9 @@ public class PaymentReadResponseMapper {
                 result.approvedAt(),
                 result.failDetail()
         );
+    }
+
+    public static Page<PaymentReadResponseDto> toPageResponse(Page<PaymentReadResult> result) {
+        return result.map(PaymentReadResponseMapper::toResponse);
     }
 }

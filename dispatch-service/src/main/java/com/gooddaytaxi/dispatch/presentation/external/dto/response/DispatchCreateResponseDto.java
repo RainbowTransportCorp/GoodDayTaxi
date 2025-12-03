@@ -11,12 +11,12 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 public class DispatchCreateResponseDto {
-    private UUID dispatchId;
-    private UUID passengerId;
-    private String pickupAddress;
-    private String destinationAddress;
-    private String dispatchStatus;
-    private LocalDateTime requestCreatedAt;
-    private LocalDateTime createdAt;
-    private LocalDateTime updateAt;
+    private final UUID dispatchId;
+    private final UUID passengerId;
+    private final String pickupAddress;
+    private final String destinationAddress;
+    private final String dispatchStatus;
+    private final LocalDateTime requestCreatedAt;
+    private final LocalDateTime createdAt;
+    private final LocalDateTime updateAt;
 }

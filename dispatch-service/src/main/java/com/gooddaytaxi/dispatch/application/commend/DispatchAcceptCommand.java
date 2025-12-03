@@ -9,8 +9,9 @@ import java.util.UUID;
 
 @Getter
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
-public class DispatchCancelCommand {
+@NoArgsConstructor
+public class DispatchAcceptCommand {
     private UUID dispatchId;
+    private UUID driverId;
 }
