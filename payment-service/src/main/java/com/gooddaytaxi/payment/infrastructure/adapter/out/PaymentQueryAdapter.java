@@ -18,4 +18,10 @@ public class PaymentQueryAdapter implements PaymentQueryPort {
     public Optional<Payment> findByTripId(UUID tripId) {
         return paymentRepository.findByTripId(tripId);
     }
+
+    @Override
+    public Optional<Payment> findById(UUID paymentId) {
+        return paymentRepository.findById(paymentId);
+    }
+
 }

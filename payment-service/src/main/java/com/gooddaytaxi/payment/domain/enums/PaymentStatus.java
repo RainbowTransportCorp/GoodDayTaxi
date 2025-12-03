@@ -1,4 +1,4 @@
-package com.gooddaytaxi.payment.domain.vo;
+package com.gooddaytaxi.payment.domain.enums;
 
 public enum PaymentStatus {
     PENDING,    // 결제 대기

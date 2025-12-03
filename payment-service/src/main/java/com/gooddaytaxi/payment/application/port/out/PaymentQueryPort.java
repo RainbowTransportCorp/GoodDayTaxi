@@ -7,4 +7,6 @@ import java.util.UUID;
 
 public interface PaymentQueryPort {
     Optional<Payment> findByTripId(UUID tripId);
+
+    Optional<Payment> findById(UUID paymentId);
 }
