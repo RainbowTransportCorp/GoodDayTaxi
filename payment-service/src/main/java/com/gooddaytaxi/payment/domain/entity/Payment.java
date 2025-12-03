@@ -81,4 +81,8 @@ public class Payment extends BaseEntity {
         this.status = PaymentStatus.CANCELED;
         this.cancelReason = cancelReason;
     }
+
+    public void changeAmount(Fare amount) {
+        this.amount = amount;
+    }
 }

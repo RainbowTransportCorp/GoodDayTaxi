@@ -262,6 +262,32 @@ public class PaymentService {
     }
 
     @Transactional
+    public PaymentUpdateResult changePaymentAmount(PaymentAmountChangeCommand command, UUID userId, String role) {
+        //승객은 무조건 붊가
+        if(UserRole.of(role) == UserRole.PASSENGER) throw new BusinessException(ErrorCode.AUTH_FORBIDDEN_ROLE);
+
+        Payment payment = paymentQueryPort.findById(command.paymentId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_INPUT_VALUE));
+
+        //기사는 해당 청구서의 기사만 가능
+        if(UserRole.of(role) == UserRole.DRIVER) {
+            if(!Objects.equals(payment.getDriverId(), userId)) throw new BusinessException(ErrorCode.AUTH_FORBIDDEN_ROLE);
+        }
+
+        //결제가 대기중이거나 결제 시도 전인 경우에만 금액 변경 가능
+        if(!(payment.getStatus().equals(PaymentStatus.PENDING) || payment.getStatus().equals(PaymentStatus.IN_PROCESS))) throw new BusinessException(ErrorCode.INVALID_STATE);
+
+        //금액 변경 처리
+        payment.changeAmount(Fare.of(command.amount()));
+
+        return new PaymentUpdateResult(
+                payment.getId(),
+                payment.getAmount().value(),
+                payment.getMethod().name()
+        );
+    }
+
+    @Transactional
     public PaymentCancelResult cancelPayment(PaymentCancelCommand command, UUID userId, String role) {
         //승객은 무조건 붊가
         if(UserRole.of(role) == UserRole.PASSENGER) throw new BusinessException(ErrorCode.AUTH_FORBIDDEN_ROLE);
@@ -286,4 +312,5 @@ public class PaymentService {
                 payment.getStatus().name()
         );
     }
+
 }
