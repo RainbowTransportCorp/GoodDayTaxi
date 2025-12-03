@@ -1,3 +1,0 @@
-# Application Query Outbound Port - 내부 > 외부로 향함
-                                  - 외부 의존성 추상화 (ex. QueryRepositoryPort 등)
-

@@ -1,9 +1,9 @@
 package com.gooddaytaxi.support.domain.notification.model;
 
 import com.gooddaytaxi.common.jpa.model.BaseEntity;
+import com.gooddaytaxi.support.application.dto.Command;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -53,7 +53,7 @@ public class Notification extends BaseEntity {
     @Column(name = "payment_id")
     private UUID paymentId;
 
-    @Column(name = "message", nullable = false, length = 500)
+    @Column(name = "message", length = 500)
     @Comment("알림 메시지")
     private String message;
 
@@ -86,14 +86,17 @@ public class Notification extends BaseEntity {
      * @param notificiationType 알림 타입
      * @param message 알림 메시지
      */
-    @Builder
-    public Notification(UUID notifierId, UUID notificationOriginId, NotificationType notificiationType, String message) {
+//    @Builder
+    private Notification(UUID notifierId, UUID notificationOriginId, NotificationType notificiationType, String message) {
         this.notifierId = notifierId;
         this.notificationOriginId = notificationOriginId;
         this.notificiationType = notificiationType;
-        this.message = message;
+        this.message = (message == null || message.isBlank()) ? null : message;
         this.isRead = false;
         this.notifiedAt = LocalDateTime.now();
+    }
+    public static Notification from(Command command, NotificationType notificiationType) {
+        return new Notification(command.getNotifierId(), command.getNotificationOriginId(), notificiationType, command.getMessage());
     }
 
 
@@ -115,15 +118,13 @@ public class Notification extends BaseEntity {
      *  - PAYMENT_XXX : dispatchId, passengerId, driverId, tripId, paymentId 필요
      *  - ERROR_DETECTED : 상황에 따라 필요
      *
-     * @param dispatchId
-     * @param passengerId
-     * @param driverId
-     * @param tripId
-     * @param paymentId
+     * @param dispatchId  배차 ID
+     * @param passengerId 승객 ID
+     * @param driverId    기사 ID
+     * @param tripId      운행 ID
+     * @param paymentId   결제 ID
      */
-    public void setIds (UUID dispatchId, UUID passengerId, UUID driverId,
-                        UUID tripId,
-                        UUID paymentId) {
+    public void assignIds (UUID dispatchId, UUID driverId, UUID passengerId, UUID tripId, UUID paymentId) {
         this.dispatchId = dispatchId;
         this.passengerId = passengerId;
         this.driverId = driverId;

@@ -25,6 +25,19 @@ spring:
 
   kafka:
     bootstrap-servers: localhost:${KAFKA_PORT}
+    consumer:
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      max-poll-records: 1000
+    listener:
+      ack-mode: record
+      concurrency: 3
+      poll-timeout: 3000
+
+
+
 
 
 eureka:
