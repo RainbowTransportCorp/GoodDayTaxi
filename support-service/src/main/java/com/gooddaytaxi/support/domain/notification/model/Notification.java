@@ -1,11 +1,10 @@
 package com.gooddaytaxi.support.domain.notification.model;
 
 import com.gooddaytaxi.common.jpa.model.BaseEntity;
+import com.gooddaytaxi.support.application.dto.Command;
+import com.gooddaytaxi.support.application.dto.CreateCallCommand;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.Comment;
 
 import java.time.LocalDateTime;
@@ -53,7 +52,7 @@ public class Notification extends BaseEntity {
     @Column(name = "payment_id")
     private UUID paymentId;
 
-    @Column(name = "message", nullable = false, length = 500)
+    @Column(name = "message", length = 500)
     @Comment("알림 메시지")
     private String message;
 
@@ -86,14 +85,17 @@ public class Notification extends BaseEntity {
      * @param notificiationType 알림 타입
      * @param message 알림 메시지
      */
-    @Builder
-    public Notification(UUID notifierId, UUID notificationOriginId, NotificationType notificiationType, String message) {
+//    @Builder
+    private Notification(UUID notifierId, UUID notificationOriginId, NotificationType notificiationType, String message) {
         this.notifierId = notifierId;
         this.notificationOriginId = notificationOriginId;
         this.notificiationType = notificiationType;
-        this.message = message;
+        this.message = (message == null || message.isBlank()) ? null : message;
         this.isRead = false;
         this.notifiedAt = LocalDateTime.now();
+    }
+    public static Notification from(Command command, NotificationType notificiationType) {
+        return new Notification(command.getNotifierId(), command.getNotificationOriginId(), notificiationType, command.getMessage());
     }
 
 
@@ -121,9 +123,7 @@ public class Notification extends BaseEntity {
      * @param tripId
      * @param paymentId
      */
-    public void setIds (UUID dispatchId, UUID passengerId, UUID driverId,
-                        UUID tripId,
-                        UUID paymentId) {
+    public void assignIds (UUID dispatchId, UUID driverId, UUID passengerId, UUID tripId, UUID paymentId) {
         this.dispatchId = dispatchId;
         this.passengerId = passengerId;
         this.driverId = driverId;
