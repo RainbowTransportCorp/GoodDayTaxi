@@ -10,8 +10,6 @@ import com.gooddaytaxi.dispatch.application.result.DispatchCreateResult;
 import com.gooddaytaxi.dispatch.application.result.DispatchDetailResult;
 import com.gooddaytaxi.dispatch.application.result.DispatchListResult;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
-import com.gooddaytaxi.dispatch.domain.model.entity.DispatchEvent;
-import com.gooddaytaxi.dispatch.domain.model.enums.EventType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -56,20 +54,14 @@ public class DispatchService {
         log.info("생성된 엔티티: {}", entity);
         Dispatch saved = dispatchCommandPort.save(entity);
 
-        // 승객용 이벤트 기록 (“배차 요청이 접수되었습니다”)
-        dispatchEventCommandPort.save(
-                DispatchEvent.create(
-                        saved.getDispatch_id(),
-                        EventType.DISPATCH_ACCEPTED,
-                        "{ \"message\": \"배차 요청이 접수되었습니다.\" }"
-                )
-        );
+//        // 승객용 이벤트 기록 (“배차 요청이 접수되었습니다”)
+
 
         log.info("저장 완료: dispatchId={} / status={}",
-                saved.getDispatch_id(), saved.getDispatchStatus());
+                saved.getDispatchId(), saved.getDispatchStatus());
 
         return DispatchCreateResult.builder()
-                .dispatchId(saved.getDispatch_id())
+                .dispatchId(saved.getDispatchId())
                 .passengerId(saved.getPassengerId())
                 .pickupAddress(saved.getPickupAddress())
                 .destinationAddress(saved.getDestinationAddress())
@@ -102,7 +94,7 @@ public class DispatchService {
         Dispatch dispatch = dispatchQueryPort.findById(dispatchId);
 
         return DispatchDetailResult.builder()
-                .dispatchId(dispatch.getDispatch_id())
+                .dispatchId(dispatch.getDispatchId())
                 .passengerId(dispatch.getPassengerId())
                 .driverId(dispatch.getDriverId())
                 .pickupAddress(dispatch.getPickupAddress())
@@ -128,7 +120,7 @@ public class DispatchService {
         dispatchCommandPort.save(dispatch);
 
         return DispatchCancelResult.builder()
-                .dispatchId(dispatch.getDispatch_id())
+                .dispatchId(dispatch.getDispatchId())
                 .dispatchStatus(dispatch.getDispatchStatus())
                 .cancelledAt(dispatch.getCancelledAt())
                 .build();

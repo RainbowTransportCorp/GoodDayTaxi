@@ -19,28 +19,46 @@ public class DispatchEvent extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "event_id", nullable = false)
-    private UUID event_id;
+    private UUID eventId;
 
+    // FK는 안 건다
     @Column(name = "dispatch_id", nullable = false)
     private UUID dispatchId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "event_type", nullable = false)
-    private EventType eventType;
+    private EventType eventType; // DISPATCH_CREATED, DISPATCH_ASSIGNED 등
 
     @Enumerated(EnumType.STRING)
     @Column(name = "event_status", nullable = false)
-    private EventStatus eventStatus;
+    private EventStatus eventStatus; // PENDING / SENT / FAILED
 
     @Column(name = "payload", nullable = false, columnDefinition = "jsonb")
     private String payload;
 
-    public static DispatchEvent create(UUID dispatchId, EventType type, String payload) {
-        DispatchEvent e = new DispatchEvent();
-        e.dispatchId = dispatchId;
-        e.eventType = type;
-        e.eventStatus = EventStatus.PENDING;
-        e.payload = payload;
-        return e;
+    @Column(name = "retry_count", nullable = false)
+    private int retryCount;
+
+    @Column(name = "error_message")
+    private String errorMessage;
+
+    public static DispatchEvent pending(UUID dispatchId, EventType type, String payload) {
+        return DispatchEvent.builder()
+                .dispatchId(dispatchId)
+                .eventType(type)
+                .eventStatus(EventStatus.PENDING)
+                .payload(payload)
+                .retryCount(0)
+                .build();
+    }
+
+    public void markSent() {
+        this.eventStatus = EventStatus.SENT;
+    }
+
+    public void markFailed(String message) {
+        this.eventStatus = EventStatus.FAILED;
+        this.errorMessage = message;
+        this.retryCount++;
     }
 }
