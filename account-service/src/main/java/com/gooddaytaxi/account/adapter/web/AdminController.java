@@ -4,6 +4,9 @@ import com.gooddaytaxi.account.application.dto.AdminUserDetailResponse;
 import com.gooddaytaxi.account.application.dto.AdminUserListResponse;
 import com.gooddaytaxi.account.application.dto.ChangeUserStatusCommand;
 import com.gooddaytaxi.account.application.dto.ChangeUserStatusResponse;
+import com.gooddaytaxi.account.application.dto.DeleteUserCommand;
+import com.gooddaytaxi.account.application.dto.DeleteUserResponse;
+import com.gooddaytaxi.account.application.usecase.AdminDeleteUserUseCase;
 import com.gooddaytaxi.account.application.usecase.ChangeUserStatusUseCase;
 import com.gooddaytaxi.account.application.usecase.GetAllUsersUseCase;
 import com.gooddaytaxi.account.application.usecase.GetUserDetailUseCase;
@@ -25,6 +28,7 @@ public class AdminController {
     private final GetAllUsersUseCase getAllUsersUseCase;
     private final GetUserDetailUseCase getUserDetailUseCase;
     private final ChangeUserStatusUseCase changeUserStatusUseCase;
+    private final AdminDeleteUserUseCase adminDeleteUserUseCase;
     
     @GetMapping("/users")
     public ResponseEntity<List<AdminUserListResponse>> getAllUsers(
@@ -67,6 +71,23 @@ public class AdminController {
         ChangeUserStatusResponse response = changeUserStatusUseCase.execute(requestUserRole, userUuid, command);
         
         log.debug("사용자 상태 변경 완료: userId={}, newStatus={}", userId, response.getStatus());
+        
+        return ResponseEntity.ok(response);
+    }
+    
+    @PatchMapping("/users/{userId}/delete")
+    public ResponseEntity<DeleteUserResponse> deleteUser(
+            @RequestHeader("X-User-Role") String requestUserRole,
+            @PathVariable("userId") String userId,
+            @Valid @RequestBody DeleteUserCommand command) {
+        
+        log.debug("관리자 사용자 삭제 요청: requestUserRole={}, userId={}, reason={}", 
+                requestUserRole, userId, command.getReason());
+        
+        UUID userUuid = UUID.fromString(userId);
+        DeleteUserResponse response = adminDeleteUserUseCase.execute(requestUserRole, userUuid, command);
+        
+        log.debug("관리자 사용자 삭제 완료: userId={}, deletedAt={}", userId, response.getDeletedAt());
         
         return ResponseEntity.ok(response);
     }
