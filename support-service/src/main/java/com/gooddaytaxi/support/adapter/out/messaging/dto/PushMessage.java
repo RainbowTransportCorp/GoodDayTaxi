@@ -8,10 +8,11 @@ import java.util.UUID;
 
 /**
  * Push 메시지 DTO
- * RabbitMQ로 Push하는 메시지 내용
+ * RabbitMQ로 Push하는 메시지
  */
 public record PushMessage (
-        List<UUID> receiverIds,
+        List<UUID> receivers,
+        String title,
         String body
 ) {
 
