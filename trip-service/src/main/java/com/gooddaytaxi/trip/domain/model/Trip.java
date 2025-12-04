@@ -4,6 +4,7 @@ import com.gooddaytaxi.common.jpa.model.BaseEntity;
 import com.gooddaytaxi.trip.domain.model.enums.TripStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -19,7 +20,7 @@ public class Trip extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "trip_id")
+    @Column(name = "trip_id", nullable = false)
     private UUID tripId;
 
     // 실제로 INSERT/UPDATE 되는 컬럼
@@ -41,24 +42,77 @@ public class Trip extends BaseEntity {
     @Column(nullable = false)
     private TripStatus status;
 
-    @Column(name = "start_time")
+    @Column(name = "start_time", nullable = false)
     private LocalDateTime startTime;
 
-    @Column(name = "end_time")
+    @Column(name = "end_time", nullable = false)
     private LocalDateTime endTime;
 
-    @Column(name = "pickup_address", length = 255)
+    @Column(name = "pickup_address", length = 255, nullable = false)
     private String pickupAddress;
 
-    @Column(name = "destination_address", length = 255)
+    @Column(name = "destination_address", length = 255, nullable = false)
     private String destinationAddress;
 
-    @Column(name = "total_duration")
+    @Column(name = "total_duration", nullable = false)
     private Long totalDuration; // minutes
 
-    @Column(name = "total_distance", precision = 15, scale = 2)
+    @Column(name = "total_distance", precision = 15, scale = 2, nullable = false)
     private BigDecimal totalDistance; // km
 
-    @Column(name = "final_fare")
+    @Column(name = "final_fare", nullable = false)
     private Long finalFare;
+
+    @Builder
+    private Trip(
+            UUID policyId,
+            UUID passengerId,
+            UUID driverId,
+            TripStatus status,
+            LocalDateTime startTime,
+            LocalDateTime endTime,
+            String pickupAddress,
+            String destinationAddress,
+            Long totalDuration,
+            BigDecimal totalDistance,
+            Long finalFare
+    ) {
+        this.policyId = policyId;
+        this.passengerId = passengerId;
+        this.driverId = driverId;
+        this.status = status;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.pickupAddress = pickupAddress;
+        this.destinationAddress = destinationAddress;
+        this.totalDuration = totalDuration;
+        this.totalDistance = totalDistance;
+        this.finalFare = finalFare;
+    }
+
+    //  운행 생성용 정적 팩토리
+    public static Trip createTrip(
+            UUID policyId,
+            UUID passengerId,
+            UUID driverId,
+            String pickupAddress,
+            String destinationAddress
+    ) {
+        LocalDateTime now = LocalDateTime.now();
+
+        return Trip.builder()
+                .policyId(policyId)
+                .passengerId(passengerId)
+                .driverId(driverId)
+                .status(TripStatus.READY)          // 초기 상태 READY
+                .startTime(now)
+                .endTime(now)                      // NOT NULL 방지용 기본값
+                .pickupAddress(pickupAddress)
+                .destinationAddress(destinationAddress)
+                .totalDuration(0L)                 // 아직 운행 안 해서 0
+                .totalDistance(BigDecimal.ZERO)    // 거리 0
+                .finalFare(0L)                     // 요금 0
+                .build();
+    }
+
 }
