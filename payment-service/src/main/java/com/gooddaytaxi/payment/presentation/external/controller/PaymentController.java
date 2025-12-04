@@ -1,17 +1,17 @@
 package com.gooddaytaxi.payment.presentation.external.controller;
 
 import com.gooddaytaxi.common.core.dto.ApiResponse;
-import com.gooddaytaxi.payment.application.command.*;
-import com.gooddaytaxi.payment.application.result.*;
+import com.gooddaytaxi.payment.application.command.payment.*;
+import com.gooddaytaxi.payment.application.result.payment.*;
 import com.gooddaytaxi.payment.application.service.PaymentService;
-import com.gooddaytaxi.payment.presentation.external.dto.request.*;
-import com.gooddaytaxi.payment.presentation.external.dto.response.*;
-import com.gooddaytaxi.payment.presentation.external.mapper.PaymentUpdateResponseMapper;
-import com.gooddaytaxi.payment.presentation.external.mapper.command.*;
-import com.gooddaytaxi.payment.presentation.external.mapper.response.PaymentCancelResponseMapper;
-import com.gooddaytaxi.payment.presentation.external.mapper.response.PaymentReadResponseMapper;
-import com.gooddaytaxi.payment.presentation.external.mapper.response.PaymentCreateResponseMapper;
-import com.gooddaytaxi.payment.presentation.external.mapper.response.PaymentApproveResponseMapper;
+import com.gooddaytaxi.payment.presentation.external.dto.request.payment.*;
+import com.gooddaytaxi.payment.presentation.external.dto.response.payment.*;
+import com.gooddaytaxi.payment.presentation.external.mapper.response.payment.PaymentUpdateResponseMapper;
+import com.gooddaytaxi.payment.presentation.external.mapper.command.payment.*;
+import com.gooddaytaxi.payment.presentation.external.mapper.response.payment.PaymentCancelResponseMapper;
+import com.gooddaytaxi.payment.presentation.external.mapper.response.payment.PaymentReadResponseMapper;
+import com.gooddaytaxi.payment.presentation.external.mapper.response.payment.PaymentCreateResponseMapper;
+import com.gooddaytaxi.payment.presentation.external.mapper.response.payment.PaymentApproveResponseMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -109,8 +109,8 @@ public class PaymentController {
     //결제 전 금액 변경
     @PutMapping("/amount")
     public ResponseEntity<ApiResponse<PaymentUpdateResponseDto>> changePaymentAmount(@RequestBody @Valid PaymentAmountChangeRequestDto requestDto,
-                                                                                           @RequestParam UUID userId,
-                                                                                          @RequestParam String role) {
+                                                                                     @RequestParam UUID userId,
+                                                                                     @RequestParam String role) {
         PaymentAmountChangeCommand command = PaymentUpdateMapper.toAmountCommand(requestDto);
         PaymentUpdateResult result = paymentService.changePaymentAmount(command, userId, role);
         PaymentUpdateResponseDto responseDto = PaymentUpdateResponseMapper.toResponse(result);
@@ -120,8 +120,8 @@ public class PaymentController {
     //결제 취소
     @DeleteMapping
     public ResponseEntity<ApiResponse<PaymentCancelResponseDto>> cancelPayment(@RequestBody @Valid PaymentCancelRequestDto requestDto,
-                                                                 @RequestParam UUID userId,
-                                                                 @RequestParam String role) {
+                                                                               @RequestParam UUID userId,
+                                                                               @RequestParam String role) {
         PaymentCancelCommand command = PaymentCancelMapper.toCommand(requestDto);
         PaymentCancelResult result = paymentService.cancelPayment(command, userId, role);
         PaymentCancelResponseDto responseDto = PaymentCancelResponseMapper.toResponse(result);
