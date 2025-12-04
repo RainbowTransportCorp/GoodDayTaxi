@@ -1,4 +1,4 @@
-package com.gooddaytaxi.support.adapter.out.config;
+package com.gooddaytaxi.support.adapter.out.messaging.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
