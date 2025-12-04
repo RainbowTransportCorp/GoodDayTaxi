@@ -1,8 +1,10 @@
 package com.gooddaytaxi.trip.presentation.mapper.command;
 
 import com.gooddaytaxi.trip.application.command.FarePolicyCreateCommand;
+import com.gooddaytaxi.trip.application.command.FarePolicyUpdateCommand;
 import com.gooddaytaxi.trip.domain.model.enums.PolicyType;
 import com.gooddaytaxi.trip.presentation.dto.request.CreateFarePolicyRequest;
+import com.gooddaytaxi.trip.presentation.dto.request.UpdateFarePolicyRequest;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -17,6 +19,17 @@ public class FarePolicyRequestMapper {
         return new FarePolicyCreateCommand(
                 // Record의 필드 접근자 메서드 사용
                 policyType,
+                request.baseDistance(),
+                request.baseFare(),
+                request.distRateKm(),
+                request.timeRate()
+        );
+    }
+
+
+    public FarePolicyUpdateCommand toUpdateCommand(UpdateFarePolicyRequest request) {
+        return new FarePolicyUpdateCommand(
+                request.policyType(),
                 request.baseDistance(),
                 request.baseFare(),
                 request.distRateKm(),
