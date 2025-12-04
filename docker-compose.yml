@@ -111,15 +111,17 @@ services:
     volumes:
       - zookeeper-data:/var/lib/zookeeper
     ports:
-      - '2181:2181'
+      - '${ZOOKEEPER_PORT}:2181'
     environment:
       ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - gd-network
 
   kafka:
     image: wurstmeister/kafka:latest
     container_name: gd_kafka
     ports:
-      - '9092:9092'
+      - '${KAFKA_PORT}:9092'
     depends_on:
       - zookeeper
     env_file:
@@ -136,6 +138,8 @@ services:
     volumes:
       - kafka-data:/var/lib/kafka/data
       - ./kafka-init:/docker-entrypoint-init.d:ro
+    networks:
+      - gd-network
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
@@ -145,13 +149,36 @@ services:
     depends_on:
       - kafka
     ports:
-      - "9999:9999"
+      - "${KAFKA_UI_PORT}:9999"
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
       KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
       KAFKA_CLUSTERS_0_READONLY: "false"
       SERVER_PORT: 9999
+    networks:
+      - gd-network
+  # ============================
+  # RabbitMQ
+  # ============================
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: gd_rabbitmq
+    restart: unless-stopped
+    ports:
+      - "${RABBITMQ_PORT}:5672"      # AMQP
+      - "${RABBITMQ_MANAGEMENT_PORT}:15672"    # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+
+      # (옵션) vhost 자동 생성
+      # RABBITMQ_DEFAULT_VHOST: "/"
+
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - gd-network
 
 
   # ============================
@@ -178,7 +205,7 @@ services:
       - "${GATEWAY_PORT}:8080"
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
-      ZIPKIN_BASE_URL: http://zipkin:9411
+      ZIPKIN_BASE_URL: http://zipkin:${ZIPKIN_PORT}
     depends_on:
       - server
     networks:
@@ -273,7 +300,9 @@ services:
   #   networks:
   #     - gd-network
 
-
+# ================
+# VOLUMES
+# ================
 volumes:
   account_pgdata:
   dispatch_pgdata:
@@ -283,6 +312,10 @@ volumes:
   kafka-data:
   zookeeper-data:
   kafka-ui-data:
+  rabbitmq_data:
 
+# ================
+# NETWORKS
+# ================
 networks:
   gd-network:

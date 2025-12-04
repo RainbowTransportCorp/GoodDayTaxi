@@ -8,6 +8,7 @@ import com.gooddaytaxi.account.domain.repository.UserWriteRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -59,6 +60,11 @@ public class JpaUserRepository implements UserReadRepository, UserWriteRepositor
     @Override
     public Optional<User> findByUserUuidAndRoleAndDeletedAtIsNull(UUID userUuid, UserRole role) {
         return userJpaRepository.findByUserIdAndRoleAndDeletedAtIsNull(userUuid, role);
+    }
+    
+    @Override
+    public List<User> findAll() {
+        return userJpaRepository.findAll();
     }
 
     // UserWriteRepository 구현

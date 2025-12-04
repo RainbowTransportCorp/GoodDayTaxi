@@ -37,7 +37,21 @@ spring:
       poll-timeout: 3000
 
 
-
+  rabbitmq:
+    host: gd_rabbitmq                     # RabbitMQ Docker container name
+    port: ${RABBITMQ_PORT}
+    username: ${RABBITMQ_USER}
+    password: ${RABBITMQ_PASSWORD}
+    virtual-host: /
+    publisher-confirm-type: correlated
+    template:
+      mandatory: true
+      retry:
+        enabled: true
+        max-attempts: 3
+        initial-interval: 1000ms
+        multiplier: 2.0
+        max-interval: 5000ms
 
 
 eureka:

@@ -46,6 +46,11 @@ dependencies {
     implementation 'org.springframework.kafka:spring-kafka'
     testImplementation 'org.springframework.kafka:spring-kafka-test'
 
+    // RabbitMQ
+
+    implementation 'org.springframework.boot:spring-boot-starter-amqp'
+    testImplementation 'org.springframework.boot:spring-boot-starter-amqp-test'
+
     // Common module
     implementation 'com.gooddaytaxi:common-core:0.0.1-SNAPSHOT'
     implementation 'com.gooddaytaxi:common-jpa:0.0.1-SNAPSHOT'
