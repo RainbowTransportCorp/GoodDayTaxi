@@ -3,11 +3,11 @@ package com.gooddaytaxi.payment.application.service;
 import com.gooddaytaxi.common.core.exception.BusinessException;
 import com.gooddaytaxi.common.core.exception.ErrorCode;
 
-import com.gooddaytaxi.payment.application.command.*;
+import com.gooddaytaxi.payment.application.command.payment.*;
 import com.gooddaytaxi.payment.application.port.out.PaymentCommandPort;
 import com.gooddaytaxi.payment.application.port.out.PaymentQueryPort;
 import com.gooddaytaxi.payment.application.port.out.ExternalPaymentPort;
-import com.gooddaytaxi.payment.application.result.*;
+import com.gooddaytaxi.payment.application.result.payment.*;
 import com.gooddaytaxi.payment.domain.entity.Payment;
 import com.gooddaytaxi.payment.domain.entity.PaymentAttempt;
 import com.gooddaytaxi.payment.domain.vo.Fare;
