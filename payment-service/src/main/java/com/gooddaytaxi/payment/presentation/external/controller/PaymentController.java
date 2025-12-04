@@ -87,6 +87,7 @@ public class PaymentController {
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
     }
 
+    //결제 단건 조회
     @GetMapping("/{paymentId}")
     public ResponseEntity<ApiResponse<PaymentReadResponseDto>> getPayment(@PathVariable UUID paymentId) {
         PaymentReadResult result = paymentService.getPayment(paymentId);

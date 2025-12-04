@@ -1,7 +1,7 @@
 package com.gooddaytaxi.payment.domain.vo;
 
-import com.gooddaytaxi.common.core.exception.BusinessException;
-import com.gooddaytaxi.common.core.exception.ErrorCode;
+import com.gooddaytaxi.payment.application.exception.PaymentErrorCode;
+import com.gooddaytaxi.payment.application.exception.PaymentException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -20,7 +20,7 @@ public enum SearchPeriod {
                 return period;
             }
         }
-        throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+        throw new PaymentException(PaymentErrorCode.INVALID_SORT_BY);
     }
 
     public static LocalDateTime selectedPreset(String searchPeriod) {

@@ -1,7 +1,7 @@
 package com.gooddaytaxi.payment.presentation.external.mapper.command.payment;
 
-import com.gooddaytaxi.common.core.exception.BusinessException;
-import com.gooddaytaxi.common.core.exception.ErrorCode;
+import com.gooddaytaxi.payment.application.exception.PaymentErrorCode;
+import com.gooddaytaxi.payment.application.exception.PaymentException;
 import com.gooddaytaxi.payment.application.command.payment.PaymentSearchCommand;
 import com.gooddaytaxi.payment.domain.vo.SearchPeriod;
 import com.gooddaytaxi.payment.presentation.external.dto.request.payment.PaymentSearchRequestDto;
@@ -31,7 +31,7 @@ public class PaymentSearchMapper {
     private static LocalDateTime periodMapper(String searchPeriod,String startDay, String endDay,  Boolean isStart) {
         if(searchPeriod.equals("ALL")) return null;
         else if (searchPeriod.equals("ENTER_DIRECTLY")) {
-            if(startDay == null || endDay == null) throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+            if(startDay == null || endDay == null) throw new PaymentException(PaymentErrorCode.PERIOD_REQUIRED_FOR_SEARCH);
             if(isStart) return LocalDateTime.of(LocalDate.parse(startDay), LocalTime.of(0,0,0));
             else return LocalDateTime.of(LocalDate.parse(endDay), LocalTime.of(23,59,59));
         }
