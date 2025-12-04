@@ -2,8 +2,12 @@ package com.gooddaytaxi.account.adapter.web;
 
 import com.gooddaytaxi.account.application.dto.AdminUserDetailResponse;
 import com.gooddaytaxi.account.application.dto.AdminUserListResponse;
+import com.gooddaytaxi.account.application.dto.ChangeUserStatusCommand;
+import com.gooddaytaxi.account.application.dto.ChangeUserStatusResponse;
+import com.gooddaytaxi.account.application.usecase.ChangeUserStatusUseCase;
 import com.gooddaytaxi.account.application.usecase.GetAllUsersUseCase;
 import com.gooddaytaxi.account.application.usecase.GetUserDetailUseCase;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +24,7 @@ public class AdminController {
     
     private final GetAllUsersUseCase getAllUsersUseCase;
     private final GetUserDetailUseCase getUserDetailUseCase;
+    private final ChangeUserStatusUseCase changeUserStatusUseCase;
     
     @GetMapping("/users")
     public ResponseEntity<List<AdminUserListResponse>> getAllUsers(
@@ -45,6 +50,23 @@ public class AdminController {
         AdminUserDetailResponse response = getUserDetailUseCase.execute(requestUserRole, userUuid);
         
         log.debug("사용자 상세 조회 완료: userId={}", userId);
+        
+        return ResponseEntity.ok(response);
+    }
+    
+    @PatchMapping("/users/{userId}/status")
+    public ResponseEntity<ChangeUserStatusResponse> changeUserStatus(
+            @RequestHeader("X-User-Role") String requestUserRole,
+            @PathVariable("userId") String userId,
+            @Valid @RequestBody ChangeUserStatusCommand command) {
+        
+        log.debug("사용자 상태 변경 요청: requestUserRole={}, userId={}, newStatus={}", 
+                requestUserRole, userId, command.getStatus());
+        
+        UUID userUuid = UUID.fromString(userId);
+        ChangeUserStatusResponse response = changeUserStatusUseCase.execute(requestUserRole, userUuid, command);
+        
+        log.debug("사용자 상태 변경 완료: userId={}, newStatus={}", userId, response.getStatus());
         
         return ResponseEntity.ok(response);
     }

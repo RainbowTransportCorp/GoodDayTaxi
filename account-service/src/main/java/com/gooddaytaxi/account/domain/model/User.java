@@ -89,6 +89,15 @@ public class User extends BaseEntity {
     public void deactivate() {
         this.status = UserStatus.INACTIVE;
     }
+    
+    /**
+     * 사용자 상태 변경
+     *
+     * @param status 새로운 상태
+     */
+    public void changeStatus(UserStatus status) {
+        this.status = status;
+    }
 
     /**
      * 사용자 계정 소프트 삭제
