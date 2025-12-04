@@ -6,6 +6,9 @@ import com.gooddaytaxi.payment.domain.repository.RefundRequestRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+import java.util.UUID;
+
 @Component
 @RequiredArgsConstructor
 public class RefundRequestQueryAdapter implements RefundRequestQueryPort {
@@ -14,5 +17,10 @@ public class RefundRequestQueryAdapter implements RefundRequestQueryPort {
     @Override
     public RefundRequest save(RefundRequest request) {
         return requestRepository.save(request);
+    }
+
+    @Override
+    public Optional<RefundRequest> findById(UUID requestId) {
+        return requestRepository.findById(requestId);
     }
 }
