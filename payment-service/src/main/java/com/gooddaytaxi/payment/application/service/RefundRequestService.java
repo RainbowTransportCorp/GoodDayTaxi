@@ -1,8 +1,8 @@
 package com.gooddaytaxi.payment.application.service;
 
-import com.gooddaytaxi.common.core.exception.BusinessException;
-import com.gooddaytaxi.common.core.exception.ErrorCode;
 import com.gooddaytaxi.payment.application.command.refundRequest.RefundRequestCreateCommand;
+import com.gooddaytaxi.payment.application.exception.PaymentErrorCode;
+import com.gooddaytaxi.payment.application.exception.PaymentException;
 import com.gooddaytaxi.payment.application.port.out.PaymentQueryPort;
 import com.gooddaytaxi.payment.application.port.out.RefundRequestQueryPort;
 import com.gooddaytaxi.payment.application.result.refundRequest.RefundRequestCreateResult;
@@ -23,11 +23,11 @@ public class RefundRequestService {
     @Transactional
     public RefundRequestCreateResult createRefundRequest(RefundRequestCreateCommand command, String role) {
         //환불 요청은 승객만 가능
-        if(!UserRole.of(role).equals(UserRole.PASSENGER)) throw new BusinessException(ErrorCode.AUTH_FORBIDDEN_ROLE);
+        if(!UserRole.of(role).equals(UserRole.PASSENGER)) throw new PaymentException(PaymentErrorCode.PASSENGER_ROLE_REQUIRED);
 
         //해당 결제건이 존재하는지와 환불 가능 상태인지 확인
-        Payment payment = paymentQueryPort.findById(command.paymentId()).orElseThrow(()-> new BusinessException(ErrorCode.INVALID_INPUT_VALUE));
-        if(payment.getStatus() != PaymentStatus.COMPLETED) throw new BusinessException(ErrorCode.INVALID_STATE);
+        Payment payment = paymentQueryPort.findById(command.paymentId()).orElseThrow(()-> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+        if(payment.getStatus() != PaymentStatus.COMPLETED) throw new PaymentException(PaymentErrorCode.PAYMENT_STATUS_INVALID);
 
         //환불 생성
         RefundRequest request = new RefundRequest(command.paymentId(), command.reason());
