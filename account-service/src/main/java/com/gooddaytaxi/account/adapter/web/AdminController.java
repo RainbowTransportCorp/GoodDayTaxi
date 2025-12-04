@@ -1,0 +1,51 @@
+package com.gooddaytaxi.account.adapter.web;
+
+import com.gooddaytaxi.account.application.dto.AdminUserDetailResponse;
+import com.gooddaytaxi.account.application.dto.AdminUserListResponse;
+import com.gooddaytaxi.account.application.usecase.GetAllUsersUseCase;
+import com.gooddaytaxi.account.application.usecase.GetUserDetailUseCase;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
+
+@Slf4j
+@RestController
+@RequestMapping("/api/v1/admin")
+@RequiredArgsConstructor
+public class AdminController {
+    
+    private final GetAllUsersUseCase getAllUsersUseCase;
+    private final GetUserDetailUseCase getUserDetailUseCase;
+    
+    @GetMapping("/users")
+    public ResponseEntity<List<AdminUserListResponse>> getAllUsers(
+            @RequestHeader("X-User-Role") String requestUserRole) {
+        
+        log.debug("전체 사용자 조회 요청: requestUserRole={}", requestUserRole);
+        
+        List<AdminUserListResponse> response = getAllUsersUseCase.execute(requestUserRole);
+        
+        log.debug("전체 사용자 조회 완료: userCount={}", response.size());
+        
+        return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/users/{userId}")
+    public ResponseEntity<AdminUserDetailResponse> getUserDetail(
+            @RequestHeader("X-User-Role") String requestUserRole,
+            @PathVariable("userId") String userId) {
+        
+        log.debug("사용자 상세 조회 요청: requestUserRole={}, userId={}", requestUserRole, userId);
+        
+        UUID userUuid = UUID.fromString(userId);
+        AdminUserDetailResponse response = getUserDetailUseCase.execute(requestUserRole, userUuid);
+        
+        log.debug("사용자 상세 조회 완료: userId={}", userId);
+        
+        return ResponseEntity.ok(response);
+    }
+}
