@@ -1,7 +1,6 @@
 package com.gooddaytaxi.support.adapter.out.messaging.dto;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gooddaytaxi.support.adapter.in.kafka.dto.DispatchCallRequestReq;
 
 import java.util.List;
 import java.util.UUID;
