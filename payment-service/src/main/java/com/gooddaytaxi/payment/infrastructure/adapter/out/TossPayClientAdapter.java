@@ -1,10 +1,10 @@
 package com.gooddaytaxi.payment.infrastructure.adapter.out;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gooddaytaxi.payment.application.command.ExternalPaymentConfirmCommand;
+import com.gooddaytaxi.payment.application.command.payment.ExternalPaymentConfirmCommand;
 import com.gooddaytaxi.payment.application.port.out.ExternalPaymentPort;
-import com.gooddaytaxi.payment.application.result.ExternalPaymentConfirmResult;
-import com.gooddaytaxi.payment.application.result.ExternalPaymentError;
+import com.gooddaytaxi.payment.application.result.payment.ExternalPaymentConfirmResult;
+import com.gooddaytaxi.payment.application.result.payment.ExternalPaymentError;
 import com.gooddaytaxi.payment.infrastructure.client.TosspayFeignClient;
 import com.gooddaytaxi.payment.infrastructure.client.dto.TossErrorResponse;
 import com.gooddaytaxi.payment.infrastructure.client.dto.TossPayConfirmRequestDto;

@@ -1,13 +1,13 @@
 package com.gooddaytaxi.payment.presentation.external.controller;
 
 import com.gooddaytaxi.common.core.dto.ApiResponse;
-import com.gooddaytaxi.payment.application.command.RefundRequestCreateCommand;
-import com.gooddaytaxi.payment.application.result.RefundRequestCreateResult;
+import com.gooddaytaxi.payment.application.command.refundRequest.RefundRequestCreateCommand;
+import com.gooddaytaxi.payment.application.result.refundRequest.RefundRequestCreateResult;
 import com.gooddaytaxi.payment.application.service.RefundRequestService;
-import com.gooddaytaxi.payment.presentation.external.dto.request.RefundReqeustCreateResponseDto;
-import com.gooddaytaxi.payment.presentation.external.dto.request.RefundRequestCreateRequestDto;
-import com.gooddaytaxi.payment.presentation.external.mapper.command.RefundRequestCreateMapper;
-import com.gooddaytaxi.payment.presentation.external.mapper.response.RefundRequestCreateResponseMapper;
+import com.gooddaytaxi.payment.presentation.external.dto.response.reqeustRufund.RefundReqeustCreateResponseDto;
+import com.gooddaytaxi.payment.presentation.external.dto.request.requestRefund.RefundRequestCreateRequestDto;
+import com.gooddaytaxi.payment.presentation.external.mapper.command.requestFefund.RefundRequestCreateMapper;
+import com.gooddaytaxi.payment.presentation.external.mapper.response.requestFefund.RefundRequestCreateResponseMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

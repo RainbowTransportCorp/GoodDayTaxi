@@ -2,10 +2,10 @@ package com.gooddaytaxi.payment.application.service;
 
 import com.gooddaytaxi.common.core.exception.BusinessException;
 import com.gooddaytaxi.common.core.exception.ErrorCode;
-import com.gooddaytaxi.payment.application.command.RefundRequestCreateCommand;
+import com.gooddaytaxi.payment.application.command.refundRequest.RefundRequestCreateCommand;
 import com.gooddaytaxi.payment.application.port.out.PaymentQueryPort;
 import com.gooddaytaxi.payment.application.port.out.RefundRequestQueryPort;
-import com.gooddaytaxi.payment.application.result.RefundRequestCreateResult;
+import com.gooddaytaxi.payment.application.result.refundRequest.RefundRequestCreateResult;
 import com.gooddaytaxi.payment.domain.entity.Payment;
 import com.gooddaytaxi.payment.domain.entity.RefundRequest;
 import com.gooddaytaxi.payment.domain.enums.PaymentStatus;
