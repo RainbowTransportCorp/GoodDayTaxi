@@ -8,6 +8,7 @@ import com.gooddaytaxi.dispatch.application.result.DispatchCancelResult;
 import com.gooddaytaxi.dispatch.application.result.DispatchCreateResult;
 import com.gooddaytaxi.dispatch.application.result.DispatchDetailResult;
 import com.gooddaytaxi.dispatch.application.result.DispatchListResult;
+import com.gooddaytaxi.dispatch.application.validator.RoleValidator;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,22 +28,24 @@ import static com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus.REQUEST
 public class PassengerDispatchService {
 
     private final DispatchCommandPort dispatchCommandPort;
-
     private final DispatchQueryPort dispatchQueryPort;
 
+    private final RoleValidator roleValidator;
     /**
      * 콜 생성 (승객)
-     * @param passengerId
      * @param command
      * @return
      */
-    public DispatchCreateResult create(UUID passengerId, DispatchCreateCommand command) {
+    public DispatchCreateResult create(DispatchCreateCommand command) {
+
+        //권한 체크
+        roleValidator.validate(command.getRole());
 
         log.info("DispatchService.create() 호출됨 - passengerId={}, pickup={}, destination={}",
-                passengerId, command.getPickupAddress(), command.getDestinationAddress());
+               command.getPassengerId(), command.getPickupAddress(), command.getDestinationAddress());
 
         Dispatch entity = Dispatch.builder()
-                .passengerId(passengerId)
+                .passengerId(command.getPassengerId())
                 .pickupAddress(command.getPickupAddress())
                 .destinationAddress(command.getDestinationAddress())
                 .requestCreatedAt(LocalDateTime.now())

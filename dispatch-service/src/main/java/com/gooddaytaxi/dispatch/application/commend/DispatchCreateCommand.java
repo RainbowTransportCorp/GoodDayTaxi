@@ -1,16 +1,20 @@
 package com.gooddaytaxi.dispatch.application.commend;
 
+import com.gooddaytaxi.dispatch.application.validator.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.UUID;
 
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class DispatchCreateCommand {
-    private Long passengerId;
+    private UUID passengerId;
+    private UserRole role;
     private String pickupAddress;
     private String destinationAddress;
 }

@@ -14,9 +14,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class DispatchCreateRequestDto {
 
-    @NotNull(message = "승객 ID는 필수입니다.")
-    private Long passengerId;
-
     @NotBlank(message = "출발지 주소는 필수입니다.")
     private String pickupAddress;
 
