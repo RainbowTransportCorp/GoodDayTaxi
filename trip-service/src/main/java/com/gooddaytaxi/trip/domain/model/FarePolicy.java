@@ -54,4 +54,23 @@ public class FarePolicy extends BaseEntity {
                 .build();
     }
 
+    public void update(PolicyType policyType, Double baseDistance, Long baseFare,
+                       Long distRateKm, Long timeRate) {
+
+        if (baseFare < 0) {
+            throw new IllegalArgumentException("기본 요금은 음수일 수 없습니다.");
+        }
+
+        if (distRateKm < 0 || timeRate < 0) {
+            throw new IllegalArgumentException("추가 요금은 음수일 수 없습니다.");
+        }
+
+        this.policyType = policyType;
+        this.baseDistance = baseDistance;
+        this.baseFare = baseFare;
+        this.distRateKm = distRateKm;
+        this.timeRate = timeRate;
+    }
+
+
 }

@@ -2,11 +2,13 @@ package com.gooddaytaxi.trip.presentation.controller;
 
 import com.gooddaytaxi.common.core.dto.ApiResponse;
 import com.gooddaytaxi.trip.application.command.FarePolicyCreateCommand;
+import com.gooddaytaxi.trip.application.command.FarePolicyUpdateCommand;
 import com.gooddaytaxi.trip.application.result.FarePolicyCreateResult;
 import com.gooddaytaxi.trip.application.result.FarePolicyItem;
 import com.gooddaytaxi.trip.application.result.FarePolicyListResult;
 import com.gooddaytaxi.trip.application.service.FarePolicyService;
 import com.gooddaytaxi.trip.presentation.dto.request.CreateFarePolicyRequest;
+import com.gooddaytaxi.trip.presentation.dto.request.UpdateFarePolicyRequest;
 import com.gooddaytaxi.trip.presentation.dto.response.CreateFarePolicyResponse;
 import com.gooddaytaxi.trip.presentation.dto.response.FarePolicyResponse;
 import com.gooddaytaxi.trip.presentation.mapper.command.FarePolicyRequestMapper;
@@ -62,5 +64,17 @@ public class FarePolicyController {
 
      return ResponseEntity.ok(ApiResponse.success(response));
  }
+
+    @PutMapping("/{policyId}")
+    public ResponseEntity<ApiResponse<FarePolicyResponse>> updatePolicy(
+            @PathVariable UUID policyId,
+            @Valid @RequestBody UpdateFarePolicyRequest request
+    ) {
+        FarePolicyUpdateCommand command = requestMapper.toUpdateCommand(request);
+        FarePolicyItem result = farePolicyService.updatePolicy(policyId, command);
+        FarePolicyResponse response = responseMapper.toResponse(result);
+
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
 }
 
