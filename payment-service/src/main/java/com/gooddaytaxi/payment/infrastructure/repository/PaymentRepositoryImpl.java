@@ -108,10 +108,10 @@ public class PaymentRepositoryImpl implements PaymentRepositoryCustom {
 
     // 검색 조건 null 처리
     private BooleanExpression eqMethod(String method) {
-        return StringUtils.hasText(method) ? payment.method.eq(PaymentMethod.valueOf(method)) : null;
+        return StringUtils.hasText(method) ? payment.method.eq(PaymentMethod.of(method)) : null;
     }
     private BooleanExpression eqStatus(String status) {
-        return StringUtils.hasText(status) ? payment.status.eq(PaymentStatus.valueOf(status)) : null;
+        return StringUtils.hasText(status) ? payment.status.eq(PaymentStatus.of(status)) : null;
     }
     private BooleanExpression eqPassengerId(UUID passengerId) {
         return (passengerId!=null) ? payment.passengerId.eq(passengerId) : null;

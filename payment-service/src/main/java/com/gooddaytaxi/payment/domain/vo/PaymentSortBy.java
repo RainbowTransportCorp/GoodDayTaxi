@@ -1,7 +1,7 @@
 package com.gooddaytaxi.payment.domain.vo;
 
-import com.gooddaytaxi.common.core.exception.BusinessException;
-import com.gooddaytaxi.common.core.exception.ErrorCode;
+import com.gooddaytaxi.payment.application.exception.PaymentErrorCode;
+import com.gooddaytaxi.payment.application.exception.PaymentException;
 
 public enum PaymentSortBy {
     method,
@@ -15,6 +15,6 @@ public enum PaymentSortBy {
                 return;
             }
         }
-        throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+        throw new PaymentException(PaymentErrorCode.INVALID_SEARCH_PERIOD);
     }
 }
