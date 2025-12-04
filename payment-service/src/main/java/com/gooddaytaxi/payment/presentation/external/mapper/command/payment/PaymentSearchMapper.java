@@ -1,6 +1,5 @@
 package com.gooddaytaxi.payment.presentation.external.mapper.command.payment;
 
-import com.gooddaytaxi.payment.application.command.PaymentSearchCommand;
 import com.gooddaytaxi.payment.application.exception.PaymentErrorCode;
 import com.gooddaytaxi.payment.application.exception.PaymentException;
 import com.gooddaytaxi.payment.application.command.payment.PaymentSearchCommand;
