@@ -60,7 +60,7 @@ public class PaymentService {
     public Long tosspayReady(UUID userId, String role, UUID tripId) {
         log.info("TossPay Ready called: userId={}, role={}, tripId={}", userId, role, tripId);
         //유저의 역할이 승객인지 확인
-        validator.checkRolePassenger(role);
+        validator.checkRolePassenger(UserRole.of(role));
         //운행 아이디로 결제 청구서 조회
         Payment payment = paymentQueryPort.findByTripId(tripId)
                 .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
@@ -144,7 +144,7 @@ public class PaymentService {
         log.info("Driver Pay Payment called: paymentId={}", paymentId);
 
         //유저의 역할이 기사인지 확인
-        validator.checkRoleDriver(role);
+        validator.checkRoleDriver(UserRole.of(role));
 
         //운행 아이디로 결제 청구서 조회
         Payment payment = paymentQueryPort.findById(paymentId)

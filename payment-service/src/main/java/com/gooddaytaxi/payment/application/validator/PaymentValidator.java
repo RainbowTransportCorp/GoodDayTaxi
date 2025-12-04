@@ -13,8 +13,8 @@ import java.util.UUID;
 public class PaymentValidator {
 
     //유저의 역할이 승객인지 확인
-    public void checkRolePassenger(String role) {
-        if(UserRole.of(role) != UserRole.PASSENGER) {
+    public void checkRolePassenger(UserRole role) {
+        if(role != UserRole.PASSENGER) {
             throw new PaymentException(PaymentErrorCode.PASSENGER_ROLE_REQUIRED);
         }
     }
@@ -26,8 +26,8 @@ public class PaymentValidator {
     }
 
     //유저의 역할이 기사인지 확인
-    public void checkRoleDriver(String role) {
-        if(UserRole.of(role) != UserRole.DRIVER) {
+    public void checkRoleDriver(UserRole role) {
+        if(role != UserRole.DRIVER) {
             throw new PaymentException(PaymentErrorCode.DRIVER_ROLE_REQUIRED);
         }
     }
