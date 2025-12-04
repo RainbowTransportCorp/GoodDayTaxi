@@ -1,7 +1,7 @@
 package com.gooddaytaxi.payment.domain.enums;
 
-import com.gooddaytaxi.common.core.exception.BusinessException;
-import com.gooddaytaxi.common.core.exception.ErrorCode;
+import com.gooddaytaxi.payment.application.exception.PaymentErrorCode;
+import com.gooddaytaxi.payment.application.exception.PaymentException;
 
 public enum UserRole {
     PASSENGER, DRIVER, ADMIN;
@@ -12,7 +12,7 @@ public enum UserRole {
                 return userRole;
             }
         }
-        throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+        throw new PaymentException(PaymentErrorCode.INVALID_USER_ROLE);
     }
 
 }
