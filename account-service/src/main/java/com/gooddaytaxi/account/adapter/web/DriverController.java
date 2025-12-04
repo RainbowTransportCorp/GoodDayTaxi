@@ -3,8 +3,11 @@ package com.gooddaytaxi.account.adapter.web;
 import com.gooddaytaxi.account.application.dto.DriverProfileResponse;
 import com.gooddaytaxi.account.application.dto.UpdateDriverProfileCommand;
 import com.gooddaytaxi.account.application.dto.UpdateDriverProfileResponse;
+import com.gooddaytaxi.account.application.dto.UpdateDriverStatusCommand;
+import com.gooddaytaxi.account.application.dto.UpdateDriverStatusResponse;
 import com.gooddaytaxi.account.application.usecase.GetDriverProfileUseCase;
 import com.gooddaytaxi.account.application.usecase.UpdateDriverProfileUseCase;
+import com.gooddaytaxi.account.application.usecase.UpdateDriverStatusUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +24,7 @@ public class DriverController {
     
     private final GetDriverProfileUseCase getDriverProfileUseCase;
     private final UpdateDriverProfileUseCase updateDriverProfileUseCase;
+    private final UpdateDriverStatusUseCase updateDriverStatusUseCase;
     
     @GetMapping("/{driverId}")
     public ResponseEntity<DriverProfileResponse> getDriverProfile(
@@ -50,6 +54,25 @@ public class DriverController {
         UpdateDriverProfileResponse response = updateDriverProfileUseCase.execute(requestUuid, driverUuid, command);
         
         log.debug("기사 프로필 수정 완료: driverId={}", driverId);
+        
+        return ResponseEntity.ok(response);
+    }
+    
+    @PatchMapping("/{driverId}/status")
+    public ResponseEntity<UpdateDriverStatusResponse> updateDriverStatus(
+            @RequestHeader("X-User-UUID") String requestUserUuid,
+            @PathVariable("driverId") String driverId,
+            @Valid @RequestBody UpdateDriverStatusCommand command) {
+        
+        log.debug("기사 상태 변경 요청: requestUser={}, driverId={}, status={}", 
+                requestUserUuid, driverId, command.getOnlineStatus());
+        
+        UUID requestUuid = UUID.fromString(requestUserUuid);
+        UUID driverUuid = UUID.fromString(driverId);
+        
+        UpdateDriverStatusResponse response = updateDriverStatusUseCase.execute(requestUuid, driverUuid, command);
+        
+        log.debug("기사 상태 변경 완료: driverId={}, newStatus={}", driverId, response.getOnlineStatus());
         
         return ResponseEntity.ok(response);
     }

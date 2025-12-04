@@ -1,7 +1,7 @@
 package com.gooddaytaxi.payment.domain.enums;
 
-import com.gooddaytaxi.common.core.exception.BusinessException;
-import com.gooddaytaxi.common.core.exception.ErrorCode;
+import com.gooddaytaxi.payment.application.exception.PaymentErrorCode;
+import com.gooddaytaxi.payment.application.exception.PaymentException;
 
 // 결제 수단 정의
 public enum PaymentMethod {
@@ -15,6 +15,6 @@ public enum PaymentMethod {
                 return paymentMethod;
             }
         }
-        throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+        throw new PaymentException(PaymentErrorCode.INVALID_PAYMENT_METHOD);
     }
 }

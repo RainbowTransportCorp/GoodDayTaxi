@@ -17,42 +17,85 @@ spring:
         - id: trip-service
           uri: http://host.docker.internal:8205
           predicates:
-            - Path=/trips/**
+            - Path=/api/v*/trips/**
+            - Path=/api/v*/policies/**
 
         - id: dispatch-service
           uri: http://host.docker.internal:8202
           predicates:
-            - Path=/dispatch/**
+            - Path=/api/v*/dispatches/**
 
         - id: payment-service
           uri: http://host.docker.internal:8204
           predicates:
-            - Path=/payment/**
+            - Path=/api/v*/payments/**
 
         - id: account-service
           uri: http://host.docker.internal:8201
           predicates:
-            - Path=/account/**
+            - Path=/api/v*/account/**
+            - Path=/api/v*/auth/**
 
         - id: support-service
           uri: http://host.docker.internal:8203
           predicates:
-            - Path=/support/**
+            - Path=/api/v*/support/**
 
 springdoc:
   swagger-ui:
     path: /docs
     urls:
-      - name: trip-service
-        url: /trips/v3/api-docs
-      - name: dispatch-service
-        url: /dispatch/v3/api-docs
-      - name: payment-service
-        url: /payment/v3/api-docs
-      - name: account-service
-        url: /account/v3/api-docs
-      - name: support-service
-        url: /support/v3/api-docs
+
+      # -----------------------------
+      # Trip-service
+      # -----------------------------
+      - name: trip-service-v1
+        url: /api/v1/trips/api-docs
+      - name: trip-service-v2
+        url: /api/v2/trips/api-docs
+      - name: trip-service-v3
+        url: /api/v3/trips/api-docs
+
+      # -----------------------------
+      # Dispatch-service
+      # -----------------------------
+      - name: dispatch-service-v1
+        url: /api/v1/dispatches/api-docs
+      - name: dispatch-service-v2
+        url: /api/v2/dispatches/api-docs
+      - name: dispatch-service-v3
+        url: /api/v3/dispatches/api-docs
+
+      # -----------------------------
+      # Payment-service
+      # -----------------------------
+      - name: payment-service-v1
+        url: /api/v1/payments/api-docs
+      - name: payment-service-v2
+        url: /api/v2/payments/api-docs
+      - name: payment-service-v3
+        url: /api/v3/payments/api-docs
+
+      # -----------------------------
+      # Account-service
+      # -----------------------------
+      - name: account-service-v1
+        url: /api/v1/accounts/api-docs
+      - name: account-service-v2
+        url: /api/v2/accounts/api-docs
+      - name: account-service-v3
+        url: /api/v3/accounts/api-docs
+
+      # -----------------------------
+      # Support-service
+      # -----------------------------
+      - name: support-service-v1
+        url: /api/v1/support/api-docs
+      - name: support-service-v2
+        url: /api/v2/support/api-docs
+      - name: support-service-v3
+        url: /api/v3/support/api-docs
+
 
 eureka:
   client:
@@ -69,3 +112,12 @@ management:
   zipkin:
     tracing:
       endpoint: http://gd_zipkin:${zipkin.port}/api/v2/spans
+
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+
+  metrics:
+    tags:
+      application: gateway

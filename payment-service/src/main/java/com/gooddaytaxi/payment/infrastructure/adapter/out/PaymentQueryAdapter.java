@@ -4,8 +4,11 @@ import com.gooddaytaxi.payment.application.port.out.PaymentQueryPort;
 import com.gooddaytaxi.payment.domain.entity.Payment;
 import com.gooddaytaxi.payment.domain.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -22,6 +25,11 @@ public class PaymentQueryAdapter implements PaymentQueryPort {
     @Override
     public Optional<Payment> findById(UUID paymentId) {
         return paymentRepository.findById(paymentId);
+    }
+
+    @Override
+    public Page<Payment> searchPayments(String method, String status, UUID passeangerId, UUID driverId, UUID tripId, LocalDateTime startDay, LocalDateTime endDay, Pageable pageable) {
+        return paymentRepository.searchPayments(method, status, passeangerId, driverId, tripId, startDay, endDay, pageable);
     }
 
 }

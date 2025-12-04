@@ -5,8 +5,9 @@ import java.util.UUID;
 public record FarePolicyResponse(
         UUID policyId,
         String policyType,
-        String message
-) {}
-
-
-
+        double baseDistance,
+        long baseFare,
+        long distRateKm,
+        long timeRate
+) {
+}

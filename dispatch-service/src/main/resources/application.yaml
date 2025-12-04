@@ -39,3 +39,19 @@ management:
   zipkin:
     tracing:
       endpoint: "http://localhost:${zipkin.port}/api/v2/spans"
+
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+
+  metrics:
+    tags:
+      application: dispatch-service
+
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui
