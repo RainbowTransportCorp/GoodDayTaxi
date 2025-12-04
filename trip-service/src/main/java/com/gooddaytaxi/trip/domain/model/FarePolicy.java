@@ -17,14 +17,25 @@ import java.util.UUID;
 public class FarePolicy extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "policy_id")
+    @Column(name = "policy_id", nullable = false, updatable = false)
     private UUID policyId;
+
     @Enumerated(EnumType.STRING)
+    @Column(name = "policy_type", nullable = false, length = 50)
     private PolicyType policyType;
-    private Double baseDistance; // 기본 거리 (km)
-    private Long baseFare;      // 기본 요금 (원)
-    private Long distRateKm;    // 거리당 추가 요금 (원/km)
-    private Long timeRate;      // 시간당 추가 요금 (원/분)
+
+    @Column(name = "base_distance", nullable = false)
+    private Double baseDistance; // 기본 거리(km)
+
+    @Column(name = "base_fare", nullable = false)
+    private Long baseFare; // 기본 요금(원)
+
+    @Column(name = "dist_rate_km", nullable = false)
+    private Long distRateKm; // 거리당 요금(원/km)
+
+    @Column(name = "time_rate", nullable = false)
+    private Long timeRate; // 시간당 요금(원/분)
+
 
 
     @Builder
