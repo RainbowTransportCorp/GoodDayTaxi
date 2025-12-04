@@ -306,6 +306,37 @@ public class PaymentService {
                 payment.getMethod().name()
         );
     }
+    //결제 수단 변경
+    @Transactional
+    public PaymentUpdateResult changePaymentMethod(PaymentMethodChangeCommand command, UUID userId, String role) {
+        //승객은 무조건 불가
+        if(UserRole.of(role) == UserRole.PASSENGER) throw new PaymentException(PaymentErrorCode.PASSENGER_ROLE_NOT_ALLOWED);
+
+
+        Payment payment = paymentQueryPort.findById(command.paymentId())
+                .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+
+        PaymentMethod method = PaymentMethod.of(command.method());
+        //결제 수단이 같으면 불가
+        if(payment.getMethod().equals(method)) throw new PaymentException(PaymentErrorCode.PAYMENT_METHOD_SAME);
+
+        //기사는 해당 청구서의 기사만 가능
+        if(UserRole.of(role) == UserRole.DRIVER) {
+            if(!Objects.equals(payment.getDriverId(), userId)) throw new PaymentException(PaymentErrorCode.PAYMENT_DRIVER_MISMATCH);
+        }
+
+        //결제가 대기중이거나 결제 시도 전인 경우에만 금액 변경 가능
+        if(!(payment.getStatus().equals(PaymentStatus.PENDING) || payment.getStatus().equals(PaymentStatus.IN_PROCESS))) throw new PaymentException(PaymentErrorCode.PAYMENT_STATUS_INVALID);
+
+        //금액 변경 처리
+        payment.changeMethod(method);
+
+        return new PaymentUpdateResult(
+                payment.getId(),
+                payment.getAmount().value(),
+                payment.getMethod().name()
+        );
+    }
 
     //결제 취소
     @Transactional
@@ -332,5 +363,5 @@ public class PaymentService {
                 payment.getStatus().name()
         );
     }
-
+    
 }
