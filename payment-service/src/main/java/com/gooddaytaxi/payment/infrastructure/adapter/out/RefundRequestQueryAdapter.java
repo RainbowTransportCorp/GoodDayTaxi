@@ -14,10 +14,7 @@ import java.util.UUID;
 public class RefundRequestQueryAdapter implements RefundRequestQueryPort {
     private final RefundRequestRepository requestRepository;
 
-    @Override
-    public RefundRequest save(RefundRequest request) {
-        return requestRepository.save(request);
-    }
+
 
     @Override
     public Optional<RefundRequest> findById(UUID requestId) {

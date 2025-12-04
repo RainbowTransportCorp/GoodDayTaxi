@@ -6,7 +6,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface RefundRequestQueryPort {
-    RefundRequest save(RefundRequest request);
+
 
     Optional<RefundRequest> findById(UUID requestId);
 }

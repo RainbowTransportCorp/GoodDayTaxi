@@ -28,9 +28,10 @@ public class RefundRequestController {
     //환불 요청 생성
     @PostMapping
     public ResponseEntity<ApiResponse<RefundReqeustCreateResponseDto>> createRefundRequest(@RequestBody @Valid RefundRequestCreateRequestDto requestDto,
-                                                                                     @RequestParam String role) {
+                                                                                           @RequestParam UUID userId,
+                                                                                            @RequestParam String role) {
         RefundRequestCreateCommand command = RefundRequestCreateMapper.toRequestCommand(requestDto);
-        RefundRequestCreateResult result = requestService.createRefundRequest(command, role);
+        RefundRequestCreateResult result = requestService.createRefundRequest(command, userId, role);
         RefundReqeustCreateResponseDto responseDto = RefundRequestCreateResponseMapper.toResponse(result);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
     }
