@@ -48,6 +48,8 @@ public class AccountBusinessException extends BusinessException {
                 case INVALID_CREDENTIALS -> com.gooddaytaxi.common.core.exception.ErrorCode.AUTH_TOKEN_MISSING;
                 case INVALID_REFRESH_TOKEN -> com.gooddaytaxi.common.core.exception.ErrorCode.AUTH_TOKEN_MISSING;
                 case EXPIRED_REFRESH_TOKEN -> com.gooddaytaxi.common.core.exception.ErrorCode.AUTH_TOKEN_MISSING;
+                case ACCESS_DENIED -> com.gooddaytaxi.common.core.exception.ErrorCode.ACCESS_DENIED;
+                case INVALID_INPUT_VALUE -> com.gooddaytaxi.common.core.exception.ErrorCode.INVALID_INPUT_VALUE;
                 case ACCOUNT_LOCKED -> com.gooddaytaxi.common.core.exception.ErrorCode.ACCESS_DENIED;
                 case ACCOUNT_SUSPENDED -> com.gooddaytaxi.common.core.exception.ErrorCode.ACCESS_DENIED;
                 case PROFILE_UPDATE_RESTRICTED -> com.gooddaytaxi.common.core.exception.ErrorCode.ACCESS_DENIED;

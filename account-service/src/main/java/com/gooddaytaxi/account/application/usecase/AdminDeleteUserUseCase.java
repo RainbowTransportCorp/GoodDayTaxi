@@ -6,8 +6,8 @@ import com.gooddaytaxi.account.application.mapper.DeleteUserMapper;
 import com.gooddaytaxi.account.domain.model.User;
 import com.gooddaytaxi.account.domain.model.UserRole;
 import com.gooddaytaxi.account.domain.repository.UserRepository;
-import com.gooddaytaxi.common.core.exception.BusinessException;
-import com.gooddaytaxi.common.core.exception.ErrorCode;
+import com.gooddaytaxi.account.domain.exception.AccountBusinessException;
+import com.gooddaytaxi.account.domain.exception.AccountErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -42,7 +42,7 @@ public class AdminDeleteUserUseCase {
     private void validateAdminPermission(String requestUserRole) {
         if (!UserRole.ADMIN.name().equals(requestUserRole)) {
             log.warn("ADMIN 권한 없이 사용자 삭제 시도: requestRole={}", requestUserRole);
-            throw new BusinessException(ErrorCode.ACCESS_DENIED);
+            throw new AccountBusinessException(AccountErrorCode.ACCESS_DENIED);
         }
     }
     
@@ -50,14 +50,14 @@ public class AdminDeleteUserUseCase {
         return userRepository.findByUserUuid(userId)
                 .orElseThrow(() -> {
                     log.error("사용자를 찾을 수 없음: userId={}", userId);
-                    return new BusinessException(ErrorCode.USER_NOT_FOUND);
+                    return new AccountBusinessException(AccountErrorCode.USER_NOT_FOUND);
                 });
     }
     
     private void validateUserNotAlreadyDeleted(User user) {
         if (user.isDeleted()) {
             log.warn("이미 삭제된 사용자 삭제 시도: userId={}", user.getUserUuid());
-            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+            throw new AccountBusinessException(AccountErrorCode.INVALID_INPUT_VALUE);
         }
     }
     
