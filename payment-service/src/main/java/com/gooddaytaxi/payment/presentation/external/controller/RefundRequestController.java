@@ -3,10 +3,12 @@ package com.gooddaytaxi.payment.presentation.external.controller;
 import com.gooddaytaxi.common.core.dto.ApiResponse;
 import com.gooddaytaxi.payment.application.command.refundRequest.RefundReqeustSearchCommand;
 import com.gooddaytaxi.payment.application.command.refundRequest.RefundRequestCreateCommand;
+import com.gooddaytaxi.payment.application.command.refundRequest.RefundRequestResponseCreateCommand;
 import com.gooddaytaxi.payment.application.result.refundRequest.RefundRequestCreateResult;
 import com.gooddaytaxi.payment.application.result.refundRequest.RefundRequestReadResult;
 import com.gooddaytaxi.payment.application.service.RefundRequestService;
 import com.gooddaytaxi.payment.presentation.external.dto.request.requestRefund.RefundRequestSearchRequestDto;
+import com.gooddaytaxi.payment.presentation.external.dto.request.requestRefund.RefundRequestResponseRequestDto;
 import com.gooddaytaxi.payment.presentation.external.dto.response.reqeustRufund.RefundReqeustCreateResponseDto;
 import com.gooddaytaxi.payment.presentation.external.dto.request.requestRefund.RefundRequestCreateRequestDto;
 import com.gooddaytaxi.payment.presentation.external.dto.response.reqeustRufund.RefundRequestReadResponseDto;
@@ -60,5 +62,15 @@ public class RefundRequestController {
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDtos));
 
 
+    }
+
+    //환불 요청 응답
+    @PostMapping("/response")
+    public ResponseEntity<ApiResponse<RefundReqeustCreateResponseDto>> respondToRefundRequest(@RequestBody @Valid RefundRequestResponseRequestDto requestDto,
+                                                                                              @RequestParam String role) {
+        RefundRequestResponseCreateCommand command = RefundRequestCreateMapper.toResponseCommand(requestDto);
+        RefundRequestCreateResult result = requestService.respondToRefundRequest(command, role);
+        RefundReqeustCreateResponseDto responseDto = RefundRequestCreateResponseMapper.toResponse(result);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
     }
 }
