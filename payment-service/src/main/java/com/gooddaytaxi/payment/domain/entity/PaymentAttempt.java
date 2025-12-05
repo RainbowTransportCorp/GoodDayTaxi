@@ -68,6 +68,7 @@ public class PaymentAttempt extends BaseEntity {
 
     public void registerFailReason(String failReason) {
         this.pgFailReason = failReason;
+        this.status = PaymentAttemptStatus.FAILED;
     }
     public void registerFailReason(String failReason, String detailReason) {
         this.pgFailReason = failReason;
