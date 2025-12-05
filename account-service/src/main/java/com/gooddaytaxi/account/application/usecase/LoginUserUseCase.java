@@ -6,8 +6,8 @@ import com.gooddaytaxi.account.domain.model.User;
 import com.gooddaytaxi.account.domain.repository.UserRepository;
 import com.gooddaytaxi.account.domain.service.JwtTokenProvider;
 import com.gooddaytaxi.account.domain.service.PasswordEncoder;
-import com.gooddaytaxi.common.core.exception.BusinessException;
-import com.gooddaytaxi.common.core.exception.ErrorCode;
+import com.gooddaytaxi.account.domain.exception.AccountBusinessException;
+import com.gooddaytaxi.account.domain.exception.AccountErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -41,12 +41,12 @@ public class LoginUserUseCase {
         User user = userRepository.findByEmailAndDeletedAtIsNull(command.getEmail())
                 .orElseThrow(() -> {
                     log.warn("존재하지 않는 이메일로 로그인 시도: {}", command.getEmail());
-                    return new BusinessException(ErrorCode.INVALID_CREDENTIALS);
+                    return new AccountBusinessException(AccountErrorCode.INVALID_CREDENTIALS);
                 });
         
         if (!passwordEncoder.matches(command.getPassword(), user.getPassword())) {
             log.warn("비밀번호 불일치로 로그인 실패: email={}", command.getEmail());
-            throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
+            throw new AccountBusinessException(AccountErrorCode.INVALID_CREDENTIALS);
         }
         
         String accessToken = jwtTokenProvider.generateAccessToken(user);

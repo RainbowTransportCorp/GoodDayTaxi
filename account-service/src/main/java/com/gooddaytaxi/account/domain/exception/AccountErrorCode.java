@@ -19,6 +19,8 @@ public enum AccountErrorCode implements ErrorCode {
     INVALID_REFRESH_TOKEN(ErrorLevel.UNAUTHORIZED, "ACC005", "유효하지 않은 리프레시 토큰입니다"),
     EXPIRED_REFRESH_TOKEN(ErrorLevel.UNAUTHORIZED, "ACC006", "만료된 리프레시 토큰입니다"),
     USER_NOT_FOUND(ErrorLevel.NOT_FOUND, "ACC007", "사용자를 찾을 수 없습니다"),
+    ACCESS_DENIED(ErrorLevel.FORBIDDEN, "ACC013", "접근 권한이 없습니다"),
+    INVALID_INPUT_VALUE(ErrorLevel.BAD_REQUEST, "ACC014", "입력 값이 유효하지 않습니다"),
     
     // Account 서비스만의 고유 에러들
     ACCOUNT_LOCKED(ErrorLevel.FORBIDDEN, "ACC008", "계정이 잠겨있습니다"),

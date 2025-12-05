@@ -5,8 +5,8 @@ import com.gooddaytaxi.account.application.dto.RefreshTokenResult;
 import com.gooddaytaxi.account.domain.model.User;
 import com.gooddaytaxi.account.domain.repository.UserReadRepository;
 import com.gooddaytaxi.account.domain.service.JwtTokenProvider;
-import com.gooddaytaxi.common.core.exception.BusinessException;
-import com.gooddaytaxi.common.core.exception.ErrorCode;
+import com.gooddaytaxi.account.domain.exception.AccountBusinessException;
+import com.gooddaytaxi.account.domain.exception.AccountErrorCode;
 import io.jsonwebtoken.Claims;
 
 import java.util.UUID;
@@ -42,7 +42,7 @@ public class RefreshTokenUseCase {
         // 1. 리프레시 토큰 유효성 검증
         if (!jwtTokenProvider.isValidRefreshToken(command.getRefreshToken())) {
             log.warn("유효하지 않은 리프레시 토큰으로 재발급 시도");
-            throw new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN);
+            throw new AccountBusinessException(AccountErrorCode.INVALID_REFRESH_TOKEN);
         }
         
         // 2. 토큰에서 사용자 정보 추출
@@ -51,7 +51,7 @@ public class RefreshTokenUseCase {
         
         if (userId == null || userId.isBlank()) {
             log.warn("리프레시 토큰에 사용자 정보가 없음");
-            throw new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN);
+            throw new AccountBusinessException(AccountErrorCode.INVALID_REFRESH_TOKEN);
         }
         
         // 3. 사용자 존재 여부 및 활성 상태 확인
@@ -59,12 +59,12 @@ public class RefreshTokenUseCase {
         User user = userReadRepository.findById(userUuid)
                 .orElseThrow(() -> {
                     log.warn("리프레시 토큰에 포함된 사용자가 존재하지 않음: userId={}", userId);
-                    return new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN);
+                    return new AccountBusinessException(AccountErrorCode.INVALID_REFRESH_TOKEN);
                 });
         
         if (user.isDeleted() || !user.isActive()) {
             log.warn("비활성 또는 삭제된 사용자로 토큰 재발급 시도: userId={}", userId);
-            throw new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN);
+            throw new AccountBusinessException(AccountErrorCode.INVALID_REFRESH_TOKEN);
         }
         
         // 4. 새로운 토큰 발급 (Refresh Token Rotation)

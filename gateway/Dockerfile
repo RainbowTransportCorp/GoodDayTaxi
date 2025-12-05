@@ -4,12 +4,12 @@
 FROM eclipse-temurin:17-jdk AS builder
 WORKDIR /app
 
-# Gateway 프로젝트 복사
-COPY gateway/gradlew .
-COPY gateway/gradle ./gradle
-COPY gateway/build.gradle .
-COPY gateway/settings.gradle .
-COPY gateway/src ./src
+# context = ./gateway 이므로 gateway/ 제거
+COPY gradlew .
+COPY gradle ./gradle
+COPY build.gradle .
+COPY settings.gradle .
+COPY src ./src
 
 # Build jar
 RUN chmod +x gradlew
@@ -22,7 +22,7 @@ FROM eclipse-temurin:17-jre
 WORKDIR /app
 
 # copy secrets.yaml (필수)
-COPY gateway/src/main/resources/secrets.yaml ./secrets.yaml
+COPY src/main/resources/secrets.yaml ./secrets.yaml
 
 COPY --from=builder /app/build/libs/*.jar app.jar
 

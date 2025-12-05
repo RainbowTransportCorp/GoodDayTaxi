@@ -1,5 +1,6 @@
 package com.gooddaytaxi.account.application.exception;
 
+import com.gooddaytaxi.account.domain.exception.AccountBusinessException;
 import com.gooddaytaxi.common.core.dto.ApiResponse;
 import com.gooddaytaxi.common.core.exception.BusinessException;
 import com.gooddaytaxi.common.core.exception.ErrorLevel;
@@ -17,19 +18,35 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
     /**
-     * BusinessException 처리
+     * AccountBusinessException 처리 (Account 도메인 특화)
+     *
+     * @param e Account 비즈니스 예외
+     * @return ApiResponse와 적절한 HTTP 상태 코드
+     */
+    @ExceptionHandler(AccountBusinessException.class)
+    public ResponseEntity<ApiResponse<String>> handle(AccountBusinessException e) {
+
+        HttpStatus status = mapErrorLevelToHttpStatus(e.getAccountErrorCode().getLevel());
+
+        return ResponseEntity
+                .status(status)
+                .body(ApiResponse.error(e.getAccountErrorCode().getMessage()));
+    }
+
+    /**
+     * BusinessException 처리 (공통 에러)
      *
      * @param e 비즈니스 예외
      * @return ApiResponse와 적절한 HTTP 상태 코드
      */
     @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<ApiResponse<Void>> handle(BusinessException e) {
+    public ResponseEntity<ApiResponse<String>> handle(BusinessException e) {
 
         HttpStatus status = mapErrorLevelToHttpStatus(e.getErrorCode().getLevel());
 
         return ResponseEntity
                 .status(status)
-                .body(ApiResponse.success(null, e.getErrorCode().getMessage()));
+                .body(ApiResponse.error(e.getErrorCode().getMessage()));
     }
     
     /**
@@ -39,7 +56,7 @@ public class GlobalExceptionHandler {
      * @return ApiResponse와 BAD_REQUEST 상태 코드
      */
     @ExceptionHandler({MethodArgumentNotValidException.class, BindException.class})
-    public ResponseEntity<ApiResponse<Void>> handleValidationException(Exception e) {
+    public ResponseEntity<ApiResponse<String>> handleValidationException(Exception e) {
         String message = "입력 값이 올바르지 않습니다.";
         
         if (e instanceof MethodArgumentNotValidException validException) {
@@ -54,7 +71,7 @@ public class GlobalExceptionHandler {
         
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.success(null, message));
+                .body(ApiResponse.error(message));
     }
     
     /**
@@ -64,10 +81,10 @@ public class GlobalExceptionHandler {
      * @return ApiResponse와 INTERNAL_SERVER_ERROR 상태 코드
      */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Void>> handleException(Exception e) {
+    public ResponseEntity<ApiResponse<String>> handleException(Exception e) {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.success(null, "서버 내부 오류가 발생했습니다."));
+                .body(ApiResponse.error("서버 내부 오류가 발생했습니다."));
     }
 
     /**
