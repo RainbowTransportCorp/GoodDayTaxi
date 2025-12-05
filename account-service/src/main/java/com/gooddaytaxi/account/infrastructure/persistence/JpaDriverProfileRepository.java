@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * JPA 기반 기사 프로필 리포지토리 구현체
@@ -22,7 +23,7 @@ public class JpaDriverProfileRepository implements DriverProfileRepository {
     }
 
     @Override
-    public Optional<DriverProfile> findByUserId(String userId) {
+    public Optional<DriverProfile> findByUserId(UUID userId) {
         return driverProfileJpaRepository.findByUserId(userId);
     }
 
