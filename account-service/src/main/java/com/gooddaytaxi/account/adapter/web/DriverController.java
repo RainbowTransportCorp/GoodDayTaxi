@@ -8,6 +8,7 @@ import com.gooddaytaxi.account.application.dto.UpdateDriverStatusResponse;
 import com.gooddaytaxi.account.application.usecase.GetDriverProfileUseCase;
 import com.gooddaytaxi.account.application.usecase.UpdateDriverProfileUseCase;
 import com.gooddaytaxi.account.application.usecase.UpdateDriverStatusUseCase;
+import com.gooddaytaxi.common.core.dto.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +28,7 @@ public class DriverController {
     private final UpdateDriverStatusUseCase updateDriverStatusUseCase;
     
     @GetMapping("/{driverId}")
-    public ResponseEntity<DriverProfileResponse> getDriverProfile(
+    public ResponseEntity<ApiResponse<DriverProfileResponse>> getDriverProfile(
             @PathVariable("driverId") String driverId) {
         
         log.debug("기사 프로필 조회 요청: driverId={}", driverId);
@@ -37,11 +38,11 @@ public class DriverController {
         
         log.debug("기사 프로필 조회 완료: driverId={}", driverId);
         
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(response, "기사 프로필 조회가 완료되었습니다."));
     }
     
     @PatchMapping("/{driverId}")
-    public ResponseEntity<UpdateDriverProfileResponse> updateDriverProfile(
+    public ResponseEntity<ApiResponse<UpdateDriverProfileResponse>> updateDriverProfile(
             @RequestHeader("X-User-UUID") String requestUserUuid,
             @PathVariable("driverId") String driverId,
             @Valid @RequestBody UpdateDriverProfileCommand command) {
@@ -55,11 +56,11 @@ public class DriverController {
         
         log.debug("기사 프로필 수정 완료: driverId={}", driverId);
         
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(response, "기사 프로필 수정이 완료되었습니다."));
     }
     
     @PatchMapping("/{driverId}/status")
-    public ResponseEntity<UpdateDriverStatusResponse> updateDriverStatus(
+    public ResponseEntity<ApiResponse<UpdateDriverStatusResponse>> updateDriverStatus(
             @RequestHeader("X-User-UUID") String requestUserUuid,
             @PathVariable("driverId") String driverId,
             @Valid @RequestBody UpdateDriverStatusCommand command) {
@@ -74,6 +75,6 @@ public class DriverController {
         
         log.debug("기사 상태 변경 완료: driverId={}, newStatus={}", driverId, response.getOnlineStatus());
         
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(response, "기사 상태 변경이 완료되었습니다."));
     }
 }

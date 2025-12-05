@@ -36,4 +36,15 @@ public class RefundRequest extends BaseEntity {
     }
 
 
+    public void respond(Boolean approve, String response) {
+        this.response = response;
+        if(approve) {
+            this.status = RefundRequestStatus.APPROVED;
+        }else {
+            this.status = RefundRequestStatus.REJECTED;
+        }
+    }
+    public void cancel() {
+        this.status = RefundRequestStatus.CANCELED;
+    }
 }

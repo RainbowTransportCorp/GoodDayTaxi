@@ -1,12 +1,12 @@
 package com.gooddaytaxi.payment.domain.vo;
 
-import com.gooddaytaxi.common.core.exception.BusinessException;
-import com.gooddaytaxi.common.core.exception.ErrorCode;
+import com.gooddaytaxi.payment.application.exception.PaymentErrorCode;
+import com.gooddaytaxi.payment.application.exception.PaymentException;
 
 public record Fare(long value) {
     public Fare {
-        if (value < 0) throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
-        if(value > 1000000) throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+        if (value < 0) throw new PaymentException(PaymentErrorCode.INVALID_AMOUNT);
+        if(value > 1000000) throw new PaymentException(PaymentErrorCode.INVALID_AMOUNT);
     }
 
     public static Fare of(long value) {

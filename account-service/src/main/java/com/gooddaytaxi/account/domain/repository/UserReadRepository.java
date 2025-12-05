@@ -4,6 +4,7 @@ import com.gooddaytaxi.account.domain.model.User;
 import com.gooddaytaxi.account.domain.model.UserRole;
 import com.gooddaytaxi.account.domain.model.UserStatus;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -78,4 +79,11 @@ public interface UserReadRepository {
      * @return 해당 역할의 사용자 정보, 존재하지 않으면 empty Optional
      */
     Optional<User> findByUserUuidAndRoleAndDeletedAtIsNull(UUID userUuid, UserRole role);
+    
+    /**
+     * 모든 사용자 조회
+     *
+     * @return 모든 사용자 목록
+     */
+    List<User> findAll();
 }

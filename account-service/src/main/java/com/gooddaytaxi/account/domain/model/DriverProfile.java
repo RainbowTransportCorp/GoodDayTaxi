@@ -39,6 +39,9 @@ public class DriverProfile extends BaseEntity {
     @Column(name = "online_status", nullable = false, length = 20)
     private String onlineStatus = "OFFLINE";
 
+    @Column(name = "slack_user_id", length = 50)
+    private String slackUserId;
+
     /**
      * 기사 프로필 엔티티 생성
      *
@@ -48,13 +51,14 @@ public class DriverProfile extends BaseEntity {
      * @param vehicleColor 차량 색상
      */
     @Builder
-    public DriverProfile(User user, String vehicleNumber, String vehicleType, String vehicleColor) {
+    public DriverProfile(User user, String vehicleNumber, String vehicleType, String vehicleColor, String slackUserId) {
         this.user = user;
         this.userId = user.getUserUuid();
         this.vehicleNumber = vehicleNumber;
         this.vehicleType = vehicleType;
         this.vehicleColor = vehicleColor;
         this.onlineStatus = "OFFLINE";
+        this.slackUserId = slackUserId;
     }
 
     /**
@@ -100,5 +104,14 @@ public class DriverProfile extends BaseEntity {
      */
     public boolean isOnline() {
         return "ONLINE".equals(this.onlineStatus);
+    }
+
+    /**
+     * 슬랙 사용자 ID 업데이트
+     *
+     * @param slackUserId 새로운 슬랙 사용자 ID
+     */
+    public void updateSlackUserId(String slackUserId) {
+        this.slackUserId = slackUserId;
     }
 }
