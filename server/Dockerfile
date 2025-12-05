@@ -4,12 +4,12 @@
 FROM eclipse-temurin:17-jdk AS builder
 WORKDIR /app
 
-# Copy files from server folder because context = project root
-COPY server/gradlew .
-COPY server/gradle ./gradle
-COPY server/build.gradle .
-COPY server/settings.gradle .
-COPY server/src ./src
+# context = ./server 이므로 server/ 제거
+COPY gradlew .
+COPY gradle ./gradle
+COPY build.gradle .
+COPY settings.gradle .
+COPY src ./src
 
 # Build jar
 RUN chmod +x gradlew
@@ -22,7 +22,8 @@ FROM eclipse-temurin:17-jre
 WORKDIR /app
 
 # copy secrets.yaml (필수)
-COPY server/src/main/resources/secrets.yaml ./secrets.yaml
+# context가 server 이므로 server/ 제거
+COPY src/main/resources/secrets.yaml ./secrets.yaml
 
 COPY --from=builder /app/build/libs/*.jar app.jar
 

@@ -25,10 +25,13 @@ public class DispatchHistory extends BaseEntity {
     @Column(name = "dispatch_id", nullable = false)
     private UUID dispatchId;
 
-    // 어떤 종류의 이벤트인지
-    @Enumerated(EnumType.STRING)
+    /*
+    Dto 단에서는 String으로 받고, 어플리케이션, 도메인에서는 이벤트 유형별로 다른 역할을 하기 때문에
+    유형 별로 구분한 Enum으로 사용하고,
+    다시 column으로 저장할 때는 String으로 저장합니다.
+    */
     @Column(name = "event_type", nullable = false)
-    private HistoryEventType eventType;
+    private String eventType;
 
     // 이전 상태
     @Enumerated(EnumType.STRING)
@@ -50,7 +53,7 @@ public class DispatchHistory extends BaseEntity {
 
     public static DispatchHistory recordStatusChange(
             UUID dispatchId,
-            HistoryEventType type,
+            String type,
             DispatchStatus fromStatus,
             DispatchStatus toStatus,
             ChangedBy changedBy,
