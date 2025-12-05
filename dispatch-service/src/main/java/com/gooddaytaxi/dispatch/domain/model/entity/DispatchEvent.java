@@ -2,7 +2,6 @@ package com.gooddaytaxi.dispatch.domain.model.entity;
 
 import com.gooddaytaxi.common.jpa.model.BaseEntity;
 import com.gooddaytaxi.dispatch.domain.model.enums.EventStatus;
-import com.gooddaytaxi.dispatch.domain.model.enums.EventType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -25,9 +24,13 @@ public class DispatchEvent extends BaseEntity {
     @Column(name = "dispatch_id", nullable = false)
     private UUID dispatchId;
 
-    @Enumerated(EnumType.STRING)
+    /*
+    Dto 단에서는 String으로 받고, 어플리케이션, 도메인에서는 이벤트 유형별로 다른 역할을 하기 때문에
+    유형 별로 구분한 Enum으로 사용하고,
+    다시 column으로 저장할 때는 String으로 저장합니다.
+     */
     @Column(name = "event_type", nullable = false)
-    private EventType eventType; // DISPATCH_CREATED, DISPATCH_ASSIGNED 등
+    private String eventType; // DISPATCH_CREATED, DISPATCH_ASSIGNED 등
 
     @Enumerated(EnumType.STRING)
     @Column(name = "event_status", nullable = false)
@@ -42,7 +45,7 @@ public class DispatchEvent extends BaseEntity {
     @Column(name = "error_message")
     private String errorMessage;
 
-    public static DispatchEvent pending(UUID dispatchId, EventType type, String payload) {
+    public static DispatchEvent pending(UUID dispatchId, String type, String payload) {
         return DispatchEvent.builder()
                 .dispatchId(dispatchId)
                 .eventType(type)
