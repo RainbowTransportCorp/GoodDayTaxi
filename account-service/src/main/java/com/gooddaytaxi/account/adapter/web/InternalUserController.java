@@ -21,7 +21,7 @@ import java.util.UUID;
  */
 @Slf4j
 @RestController
-@RequestMapping("/internal/users")
+@RequestMapping("/api/v1/internal/users")
 @RequiredArgsConstructor
 public class InternalUserController {
     
