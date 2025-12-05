@@ -129,47 +129,16 @@ public enum ErrorCode {
      * 외부 HTTP API 연동 실패
      * - 예: PG사, 외부 지도 API 등
      */
-    EXTERNAL_API_ERROR(ErrorLevel.BAD_GATEWAY, "I004", "외부 API 호출 중 오류가 발생했습니다."),
+    EXTERNAL_API_ERROR(ErrorLevel.BAD_GATEWAY, "I004", "외부 API 호출 중 오류가 발생했습니다.");
 
 
     // =========================================================
-    // 🔹 사용자 관리 관련 에러
+    // 🔹 도메인별 에러 코드는 각 서비스에서 관리
+    //   - account-service: AccountErrorCode
+    //   - dispatch-service: DispatchErrorCode  
+    //   - payment-service: PaymentErrorCode
+    //   - trip-service: TripErrorCode 등
     // =========================================================
-
-    /**
-     * 이메일 중복 에러
-     */
-    DUPLICATE_EMAIL(ErrorLevel.CONFLICT, "U001", "이미 사용 중인 이메일입니다."),
-
-    /**
-     * 기사 가입 시 차량 정보 누락
-     */
-    MISSING_VEHICLE_INFO(ErrorLevel.BAD_REQUEST, "U002", "기사 가입 시 차량 정보가 필수입니다."),
-
-    /**
-     * 차량번호 중복 에러
-     */
-    DUPLICATE_VEHICLE_NUMBER(ErrorLevel.CONFLICT, "U003", "이미 등록된 차량번호입니다."),
-
-    /**
-     * 로그인 실패 (이메일/비밀번호 불일치)
-     */
-    INVALID_CREDENTIALS(ErrorLevel.UNAUTHORIZED, "U004", "이메일 또는 비밀번호가 올바르지 않습니다."),
-
-    /**
-     * 유효하지 않은 리프레시 토큰
-     */
-    INVALID_REFRESH_TOKEN(ErrorLevel.UNAUTHORIZED, "U005", "유효하지 않은 리프레시 토큰입니다."),
-
-    /**
-     * 만료된 리프레시 토큰
-     */
-    EXPIRED_REFRESH_TOKEN(ErrorLevel.UNAUTHORIZED, "U006", "만료된 리프레시 토큰입니다."),
-
-    /**
-     * 사용자를 찾을 수 없음
-     */
-    USER_NOT_FOUND(ErrorLevel.NOT_FOUND, "U007", "사용자를 찾을 수 없습니다.");
 
     // =========================================================
     // 필드 정의

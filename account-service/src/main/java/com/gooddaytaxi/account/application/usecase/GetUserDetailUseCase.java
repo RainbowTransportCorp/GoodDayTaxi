@@ -2,11 +2,12 @@ package com.gooddaytaxi.account.application.usecase;
 
 import com.gooddaytaxi.account.application.dto.AdminUserDetailResponse;
 import com.gooddaytaxi.account.application.mapper.AdminUserDetailMapper;
+import com.gooddaytaxi.account.domain.exception.AccountBusinessException;
+import com.gooddaytaxi.account.domain.exception.AccountErrorCode;
+import com.gooddaytaxi.account.domain.exception.CommonErrorCode;
 import com.gooddaytaxi.account.domain.model.User;
 import com.gooddaytaxi.account.domain.model.UserRole;
 import com.gooddaytaxi.account.domain.repository.UserRepository;
-import com.gooddaytaxi.common.core.exception.BusinessException;
-import com.gooddaytaxi.common.core.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -37,7 +38,7 @@ public class GetUserDetailUseCase {
     private void validateAdminPermission(String requestUserRole) {
         if (!UserRole.ADMIN.name().equals(requestUserRole)) {
             log.warn("ADMIN 권한 없이 사용자 상세 조회 시도: requestRole={}", requestUserRole);
-            throw new BusinessException(ErrorCode.ACCESS_DENIED);
+            throw new AccountBusinessException(CommonErrorCode.of(com.gooddaytaxi.common.core.exception.ErrorCode.ACCESS_DENIED));
         }
     }
     
@@ -45,7 +46,7 @@ public class GetUserDetailUseCase {
         return userRepository.findByUserUuid(userId)
                 .orElseThrow(() -> {
                     log.error("사용자를 찾을 수 없음: userId={}", userId);
-                    return new BusinessException(ErrorCode.USER_NOT_FOUND);
+                    return new AccountBusinessException(AccountErrorCode.USER_NOT_FOUND);
                 });
     }
 }

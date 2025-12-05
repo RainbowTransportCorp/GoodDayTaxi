@@ -10,6 +10,7 @@ import com.gooddaytaxi.account.application.usecase.AdminDeleteUserUseCase;
 import com.gooddaytaxi.account.application.usecase.ChangeUserStatusUseCase;
 import com.gooddaytaxi.account.application.usecase.GetAllUsersUseCase;
 import com.gooddaytaxi.account.application.usecase.GetUserDetailUseCase;
+import com.gooddaytaxi.common.core.dto.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +32,7 @@ public class AdminController {
     private final AdminDeleteUserUseCase adminDeleteUserUseCase;
     
     @GetMapping("/users")
-    public ResponseEntity<List<AdminUserListResponse>> getAllUsers(
+    public ResponseEntity<ApiResponse<List<AdminUserListResponse>>> getAllUsers(
             @RequestHeader("X-User-Role") String requestUserRole) {
         
         log.debug("전체 사용자 조회 요청: requestUserRole={}", requestUserRole);
@@ -40,11 +41,11 @@ public class AdminController {
         
         log.debug("전체 사용자 조회 완료: userCount={}", response.size());
         
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(response, "전체 사용자 조회가 완료되었습니다."));
     }
     
     @GetMapping("/users/{userId}")
-    public ResponseEntity<AdminUserDetailResponse> getUserDetail(
+    public ResponseEntity<ApiResponse<AdminUserDetailResponse>> getUserDetail(
             @RequestHeader("X-User-Role") String requestUserRole,
             @PathVariable("userId") String userId) {
         
@@ -55,11 +56,11 @@ public class AdminController {
         
         log.debug("사용자 상세 조회 완료: userId={}", userId);
         
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(response, "사용자 상세 조회가 완료되었습니다."));
     }
     
     @PatchMapping("/users/{userId}/status")
-    public ResponseEntity<ChangeUserStatusResponse> changeUserStatus(
+    public ResponseEntity<ApiResponse<ChangeUserStatusResponse>> changeUserStatus(
             @RequestHeader("X-User-Role") String requestUserRole,
             @PathVariable("userId") String userId,
             @Valid @RequestBody ChangeUserStatusCommand command) {
@@ -72,11 +73,11 @@ public class AdminController {
         
         log.debug("사용자 상태 변경 완료: userId={}, newStatus={}", userId, response.getStatus());
         
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(response, "사용자 상태 변경이 완료되었습니다."));
     }
     
     @PatchMapping("/users/{userId}/delete")
-    public ResponseEntity<DeleteUserResponse> deleteUser(
+    public ResponseEntity<ApiResponse<DeleteUserResponse>> deleteUser(
             @RequestHeader("X-User-Role") String requestUserRole,
             @PathVariable("userId") String userId,
             @Valid @RequestBody DeleteUserCommand command) {
@@ -89,6 +90,6 @@ public class AdminController {
         
         log.debug("관리자 사용자 삭제 완료: userId={}, deletedAt={}", userId, response.getDeletedAt());
         
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(response, "사용자 삭제 처리가 완료되었습니다."));
     }
 }

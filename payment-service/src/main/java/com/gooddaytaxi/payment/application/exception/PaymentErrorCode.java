@@ -17,10 +17,12 @@ public enum PaymentErrorCode {
     PERIOD_REQUIRED_FOR_SEARCH(HttpStatus.BAD_REQUEST, "P007", "검색기간에 직접 입력 선택시 시작일과 종료일은 필수 값입니다"),
     PAYMENT_METHOD_NOT_TOSSPAY(HttpStatus.BAD_REQUEST, "P008", "결제 수단이 Toss Pay가 아닙니다"),
     PAYMENT_AMOUNT_SAME(HttpStatus.BAD_REQUEST, "P009", "변경하려는 결제 금액이 기존 금액과 동일합니다"),
+    PAYMENT_METHOD_SAME(HttpStatus.BAD_REQUEST, "P009", "변경하려는 결제 수단이 기존 수단과 동일합니다"),
 
     //403 — FORBIDDEN
     DRIVER_ROLE_REQUIRED(HttpStatus.FORBIDDEN, "P010", "해당 요청은 기사만 사용할 수 있습니다"),
     PASSENGER_ROLE_REQUIRED(HttpStatus.FORBIDDEN, "P011", "해당 요청은 승객만 사용할 수 있습니다"),
+    ADMIN_ROLE_REQUIRED(HttpStatus.FORBIDDEN, "P011", "해당 요청은 관리자만 사용할 수 있습니다"),
     PASSENGER_ROLE_NOT_ALLOWED(HttpStatus.FORBIDDEN, "P012", "승객은 해당 요청을 수행할 수 없습니다"),
     PAYMENT_PASSENGER_MISMATCH(HttpStatus.FORBIDDEN, "P013", "결제 정보의 승객정보가 일치하지 않습니다"),
     PAYMENT_DRIVER_MISMATCH(HttpStatus.FORBIDDEN, "P014", "결제 정보의 기사정보가 일치하지 않습니다"),
@@ -43,6 +45,8 @@ public enum PaymentErrorCode {
     REFUND_REQUEST_NOT_PASSENGER(HttpStatus.FORBIDDEN, "RR002", "해당 환불 요청의 작성자가 아닙니다"),
     REFUND_REQUEST_NOT_DRIVER(HttpStatus.FORBIDDEN, "RR002", "해당 환불 요청의 담당 기사가 아닙니다"),
 
+    //409 — CONFLICT
+    REFUND_REQUEST_STATUS_INVALID(HttpStatus.CONFLICT, "P017", "현재 환불 요청의 상태에서는 요청한 작업을 수행할 수 없습니다"),
 
 
     //공통요청

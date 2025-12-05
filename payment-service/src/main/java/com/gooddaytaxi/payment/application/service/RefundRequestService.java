@@ -1,6 +1,8 @@
 package com.gooddaytaxi.payment.application.service;
 
+import com.gooddaytaxi.payment.application.command.refundRequest.RefundReqeustSearchCommand;
 import com.gooddaytaxi.payment.application.command.refundRequest.RefundRequestCreateCommand;
+import com.gooddaytaxi.payment.application.command.refundRequest.RefundRequestResponseCreateCommand;
 import com.gooddaytaxi.payment.application.exception.PaymentErrorCode;
 import com.gooddaytaxi.payment.application.exception.PaymentException;
 import com.gooddaytaxi.payment.application.port.out.PaymentQueryPort;
@@ -14,7 +16,12 @@ import com.gooddaytaxi.payment.domain.entity.RefundRequest;
 import com.gooddaytaxi.payment.domain.enums.PaymentStatus;
 import com.gooddaytaxi.payment.domain.enums.RefundRequestStatus;
 import com.gooddaytaxi.payment.domain.enums.UserRole;
+import com.gooddaytaxi.payment.domain.vo.RefundRequestSortBy;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,6 +67,42 @@ public class RefundRequestService {
                 throw new PaymentException(PaymentErrorCode.REFUND_REQUEST_NOT_DRIVER);
         }
         return new RefundRequestReadResult(request.getId(), request.getPaymentId(), request.getReason(), request.getResponse(), request.getStatus());
+    }
+
+    @Transactional(readOnly = true)
+    public Page<RefundRequestReadResult> searchRefundRequests(RefundReqeustSearchCommand command, UUID userId, String role) {
+        UUID passeangerId = command.passengerId();
+        UUID driverId = command.driverId();
+
+        //승객인 경우 본인 승객아이디로 승객아이디 고정
+        if (UserRole.of(role) == UserRole.PASSENGER) {
+            passeangerId = userId;
+            //기사인 경우 본인 기사아이디로 기사 아이디 고정
+        } else if (UserRole.of(role) == UserRole.DRIVER) {
+            driverId = userId;
+        }
+
+        //정렬 조건 체크
+        RefundRequestSortBy.checkValid(command.sortBy());
+        //오름차순/내림차순
+        Sort.Direction direction = command.sortAscending() ? Sort.Direction.ASC : Sort.Direction.DESC;
+
+        //데이터 조회
+        Pageable pageable = PageRequest.of(command.page()-1, command.size(), Sort.by(direction, command.sortBy()));
+        Page<RefundRequest> requests = requestQueryPort.searchRefundRequests(command.paymentId(), command.status(), command.reasonKeyword(), command.method(), passeangerId, driverId, command.startDay(), command.endDay(), pageable);
+        return requests.map(request -> new RefundRequestReadResult(request.getId(), request.getPaymentId(), request.getReason(), request.getResponse(), request.getStatus()));
+    }
+
+    @Transactional
+    public RefundRequestCreateResult respondToRefundRequest(RefundRequestResponseCreateCommand command, String role) {
+        //환불 요청 응답은 관리지만 가능
+        if(!UserRole.of(role).equals(UserRole.ADMIN)) throw new PaymentException(PaymentErrorCode.ADMIN_ROLE_REQUIRED);
+
+        RefundRequest request = requestQueryPort.findById(command.requestId()).orElseThrow(()-> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+        if(request.getStatus() != RefundRequestStatus.REQUESTED) throw new PaymentException(PaymentErrorCode.REFUND_REQUEST_STATUS_INVALID);
+        request.respond(command.approve(), command.response());
+
+        return new RefundRequestCreateResult(request.getId(), "환불 요청에 대한 응답이 처리되었습니다.");
     }
 
     @Transactional

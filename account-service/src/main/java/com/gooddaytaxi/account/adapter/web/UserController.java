@@ -6,6 +6,7 @@ import com.gooddaytaxi.account.application.dto.UserProfileResponse;
 import com.gooddaytaxi.account.application.usecase.DeleteUserUseCase;
 import com.gooddaytaxi.account.application.usecase.GetUserProfileUseCase;
 import com.gooddaytaxi.account.application.usecase.UpdateUserProfileUseCase;
+import com.gooddaytaxi.common.core.dto.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -26,7 +27,7 @@ public class UserController {
     private final DeleteUserUseCase deleteUserUseCase;
     
     @GetMapping("/me")
-    public ResponseEntity<UserProfileResponse> getMyProfile(
+    public ResponseEntity<ApiResponse<UserProfileResponse>> getMyProfile(
             @RequestHeader("X-User-UUID") String userUuidHeader) {
         
         log.debug("내 정보 조회 요청: userUuid={}", userUuidHeader);
@@ -36,11 +37,11 @@ public class UserController {
         
         log.debug("내 정보 조회 완료: userUuid={}", userUuid);
         
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(response, "내 정보 조회가 완료되었습니다."));
     }
     
     @PatchMapping("/me")
-    public ResponseEntity<UpdateUserProfileResponse> updateMyProfile(
+    public ResponseEntity<ApiResponse<UpdateUserProfileResponse>> updateMyProfile(
             @RequestHeader("X-User-UUID") String userUuidHeader,
             @Valid @RequestBody UpdateUserProfileCommand command) {
         
@@ -51,11 +52,11 @@ public class UserController {
         
         log.debug("내 정보 수정 완료: userUuid={}", userUuid);
         
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(response, "내 정보 수정이 완료되었습니다."));
     }
     
     @DeleteMapping("/me")
-    public ResponseEntity<Void> deleteMyAccount(
+    public ResponseEntity<ApiResponse<Void>> deleteMyAccount(
             @RequestHeader("X-User-UUID") String userUuidHeader) {
         
         log.debug("회원 탈퇴 요청: userUuid={}", userUuidHeader);
@@ -65,6 +66,6 @@ public class UserController {
         
         log.debug("회원 탈퇴 완료: userUuid={}", userUuid);
         
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        return ResponseEntity.ok(ApiResponse.success(null, "회원 탈퇴가 완료되었습니다."));
     }
 }

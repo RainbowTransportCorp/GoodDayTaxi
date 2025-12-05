@@ -1,9 +1,9 @@
 package com.gooddaytaxi.account.domain.service;
 
+import com.gooddaytaxi.account.domain.exception.AccountBusinessException;
+import com.gooddaytaxi.account.domain.exception.AccountErrorCode;
 import com.gooddaytaxi.account.domain.model.UserStatus;
 import com.gooddaytaxi.account.domain.repository.UserReadRepository;
-import com.gooddaytaxi.common.core.exception.BusinessException;
-import com.gooddaytaxi.common.core.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,7 +29,7 @@ public class EmailValidationService implements EmailValidator {
         
         if (userReadRepository.existsByEmailAndStatus(email, UserStatus.ACTIVE)) {
             log.warn("이메일 중복: email={}", email);
-            throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
+            throw new AccountBusinessException(AccountErrorCode.DUPLICATE_EMAIL);
         }
         
         log.debug("이메일 중복 검증 통과: email={}", email);
