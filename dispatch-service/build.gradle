@@ -39,8 +39,8 @@ dependencies {
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 
     // Common module
-    implementation 'com.gooddaytaxi:common-core:0.0.2-SNAPSHOT'
-    implementation 'com.gooddaytaxi:common-jpa:0.0.2-SNAPSHOT'
+    implementation 'com.gooddaytaxi:common-core:0.0.3-SNAPSHOT'
+    implementation 'com.gooddaytaxi:common-jpa:0.0.3-SNAPSHOT'
 
     // Lombok
     compileOnly 'org.projectlombok:lombok'
