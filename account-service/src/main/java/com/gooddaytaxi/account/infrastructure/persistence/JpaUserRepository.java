@@ -6,6 +6,7 @@ import com.gooddaytaxi.account.domain.model.UserStatus;
 import com.gooddaytaxi.account.domain.repository.UserReadRepository;
 import com.gooddaytaxi.account.domain.repository.UserWriteRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -16,6 +17,7 @@ import java.util.UUID;
  * JPA 기반 사용자 리포지토리 구현체
  */
 @Repository
+@Primary
 @RequiredArgsConstructor
 public class JpaUserRepository implements UserReadRepository, UserWriteRepository {
 
