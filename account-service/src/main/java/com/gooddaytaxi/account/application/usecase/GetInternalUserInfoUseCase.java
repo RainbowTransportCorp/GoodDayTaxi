@@ -74,7 +74,7 @@ public class GetInternalUserInfoUseCase {
             return null;
         }
         
-        return driverProfileRepository.findByUserId(user.getUserUuid().toString())
+        return driverProfileRepository.findByUserId(user.getUserUuid())
                 .orElse(null); // 기사이지만 프로필이 없는 경우는 null 반환
     }
 }
