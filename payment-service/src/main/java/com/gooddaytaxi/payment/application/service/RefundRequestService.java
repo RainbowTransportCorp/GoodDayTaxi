@@ -8,6 +8,7 @@ import com.gooddaytaxi.payment.application.exception.PaymentException;
 import com.gooddaytaxi.payment.application.port.out.PaymentQueryPort;
 import com.gooddaytaxi.payment.application.port.out.RefundRequestCommandPort;
 import com.gooddaytaxi.payment.application.port.out.RefundRequestQueryPort;
+import com.gooddaytaxi.payment.application.result.refundRequest.RefundRequestCancelResult;
 import com.gooddaytaxi.payment.application.result.refundRequest.RefundRequestCreateResult;
 import com.gooddaytaxi.payment.application.result.refundRequest.RefundRequestReadResult;
 import com.gooddaytaxi.payment.domain.entity.Payment;
@@ -102,5 +103,17 @@ public class RefundRequestService {
         request.respond(command.approve(), command.response());
 
         return new RefundRequestCreateResult(request.getId(), "환불 요청에 대한 응답이 처리되었습니다.");
+    }
+
+    @Transactional
+    public RefundRequestCancelResult cancelRefundRequest(UUID requestId, UUID userId) {
+        RefundRequest request = requestQueryPort.findById(requestId).orElseThrow(()-> new PaymentException(PaymentErrorCode.REFUND_REQUEST_NOT_FOUND));
+        Payment payment = paymentQueryPort.findById(request.getPaymentId()).orElseThrow(()-> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+        //해당 결제의 승객만 취소 가능
+        if(!payment.getPassengerId().equals(userId)) throw new PaymentException(PaymentErrorCode.REFUND_REQUEST_NOT_PASSENGER);
+        //환불 요청 상태가 REQUESTED 일때만 취소 가능
+        if(request.getStatus() != RefundRequestStatus.REQUESTED) throw new PaymentException(PaymentErrorCode.PAYMENT_STATUS_INVALID);
+        request.cancel();
+        return new RefundRequestCancelResult(request.getId(), "환불 요청이 취소되었습니다.");
     }
 }
