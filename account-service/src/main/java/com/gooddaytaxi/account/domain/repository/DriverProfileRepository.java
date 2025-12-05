@@ -3,6 +3,7 @@ package com.gooddaytaxi.account.domain.repository;
 import com.gooddaytaxi.account.domain.model.DriverProfile;
 
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * 기사 프로필 도메인 리포지토리
@@ -23,7 +24,7 @@ public interface DriverProfileRepository {
      * @param userId 조회할 사용자 ID
      * @return 기사 프로필 정보, 존재하지 않으면 empty Optional
      */
-    Optional<DriverProfile> findByUserId(String userId);
+    Optional<DriverProfile> findByUserId(UUID userId);
     
     /**
      * 차량번호로 기사 프로필 조회
