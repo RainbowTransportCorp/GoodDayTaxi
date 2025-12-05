@@ -21,6 +21,7 @@ dependencyManagement {
 }
 
 
+
 repositories {
     mavenLocal()
     mavenCentral()
@@ -47,9 +48,11 @@ dependencies {
     testImplementation 'org.springframework.kafka:spring-kafka-test'
 
     // RabbitMQ
-
     implementation 'org.springframework.boot:spring-boot-starter-amqp'
     testImplementation 'org.springframework.boot:spring-boot-starter-amqp-test'
+
+    // Open Feign
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 
     // Common module
     implementation 'com.gooddaytaxi:common-core:0.0.1-SNAPSHOT'

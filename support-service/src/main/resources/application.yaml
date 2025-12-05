@@ -67,3 +67,7 @@ management:
   zipkin:
     tracing:
       endpoint: "http://localhost:${zipkin.port}/api/v2/spans"
+
+# Slack App 연동
+slack:
+  bot-token: ${slack.bot-token}
