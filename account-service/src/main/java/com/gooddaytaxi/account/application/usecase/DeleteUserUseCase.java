@@ -2,8 +2,8 @@ package com.gooddaytaxi.account.application.usecase;
 
 import com.gooddaytaxi.account.domain.model.User;
 import com.gooddaytaxi.account.domain.repository.UserRepository;
-import com.gooddaytaxi.common.core.exception.BusinessException;
-import com.gooddaytaxi.common.core.exception.ErrorCode;
+import com.gooddaytaxi.account.domain.exception.AccountBusinessException;
+import com.gooddaytaxi.account.domain.exception.AccountErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -32,13 +32,13 @@ public class DeleteUserUseCase {
     
     private User findUserByUuid(UUID userUuid) {
         return userRepository.findById(userUuid)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new AccountBusinessException(AccountErrorCode.USER_NOT_FOUND));
     }
     
     private void validateUserCanBeDeleted(User user) {
         if (user.isDeleted()) {
             log.warn("이미 삭제된 사용자 탈퇴 시도: userUuid={}", user.getUserUuid());
-            throw new BusinessException(ErrorCode.USER_NOT_FOUND);
+            throw new AccountBusinessException(AccountErrorCode.USER_NOT_FOUND);
         }
     }
     
