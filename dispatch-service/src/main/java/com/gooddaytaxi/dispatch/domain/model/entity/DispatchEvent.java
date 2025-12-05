@@ -7,53 +7,71 @@ import lombok.*;
 
 import java.util.UUID;
 
-@Getter
 @Entity
 @Table(name = "p_dispatch_events")
+@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
-@Builder
 public class DispatchEvent extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "event_id", nullable = false)
     private UUID eventId;
 
-    // FK는 안 건다
-    @Column(name = "dispatch_id", nullable = false)
-    private UUID dispatchId;
+    @Column(nullable = false)
+    private String eventType;            // 예: DISPATCH_CREATED
 
-    /*
-    Dto 단에서는 String으로 받고, 어플리케이션, 도메인에서는 이벤트 유형별로 다른 역할을 하기 때문에
-    유형 별로 구분한 Enum으로 사용하고,
-    다시 column으로 저장할 때는 String으로 저장합니다.
-     */
-    @Column(name = "event_type", nullable = false)
-    private String eventType; // DISPATCH_CREATED, DISPATCH_ASSIGNED 등
+    @Column(nullable = false)
+    private String topic;                // 예: dispatch.request.created
+
+    @Column(nullable = false)
+    private String messageKey;           // 예: passengerId
+
+    @Column(nullable = false)
+    private String aggregateType;        // 예: Dispatch
+
+    @Column(nullable = false)
+    private UUID aggregateId;            // 예: dispatchId
+
+    @Column(nullable = false)
+    private int payloadVersion;          // 예: 1
+
+    @Column(nullable = false, columnDefinition = "jsonb")
+    private String payload;              // envelope json
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "event_status", nullable = false)
-    private EventStatus eventStatus; // PENDING / SENT / FAILED
+    @Column(nullable = false)
+    private EventStatus eventStatus;
 
-    @Column(name = "payload", nullable = false, columnDefinition = "jsonb")
-    private String payload;
-
-    @Column(name = "retry_count", nullable = false)
+    @Column(nullable = false)
     private int retryCount;
 
-    @Column(name = "error_message")
+    @Column
     private String errorMessage;
 
-    public static DispatchEvent pending(UUID dispatchId, String type, String payload) {
-        return DispatchEvent.builder()
-                .dispatchId(dispatchId)
-                .eventType(type)
-                .eventStatus(EventStatus.PENDING)
-                .payload(payload)
-                .retryCount(0)
-                .build();
+
+    public static DispatchEvent pending(
+            String eventType,
+            String topic,
+            String messageKey,
+            String aggregateType,
+            UUID aggregateId,
+            int payloadVersion,
+            String payloadJson
+    ) {
+        DispatchEvent event = new DispatchEvent();
+        event.eventType = eventType;
+        event.topic = topic;
+        event.messageKey = messageKey;
+        event.aggregateType = aggregateType;
+        event.aggregateId = aggregateId;
+        event.payloadVersion = payloadVersion;
+        event.payload = payloadJson;
+        event.eventStatus = EventStatus.PENDING;
+        event.retryCount = 0;
+        return event;
     }
+
+
 
     public void markSent() {
         this.eventStatus = EventStatus.SENT;
