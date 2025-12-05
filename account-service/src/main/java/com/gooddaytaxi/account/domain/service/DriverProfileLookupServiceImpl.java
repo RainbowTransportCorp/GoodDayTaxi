@@ -36,7 +36,7 @@ public class DriverProfileLookupServiceImpl implements DriverProfileLookupServic
     public DriverProfile findDriverProfileByUserId(UUID userId) {
         log.debug("기사 프로필 조회 실행: userId={}", userId);
         
-        return driverProfileRepository.findByUserId(userId.toString())
+        return driverProfileRepository.findByUserId(userId)
                 .orElseThrow(() -> {
                     log.warn("기사 프로필을 찾을 수 없음: userId={}", userId);
                     return new BusinessException(ErrorCode.USER_NOT_FOUND);
