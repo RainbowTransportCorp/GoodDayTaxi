@@ -24,7 +24,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Objects;
 import java.util.UUID;
 
 @Slf4j
@@ -115,10 +114,10 @@ public class PaymentService {
         //실패시 실패 기록 및 예외 던지기
         if (!result.success()) {
             // 실패 기록은 별도 트랜잭션으로 먼저 확정
-            failureRecorder.recordFailure(payment, attempt,result.error() , command);
+            failureRecorder.recordConfirmFailure(payment, attempt,result.error() , command);
 
             //최종적으로 비즈니스 예외 던지기
-            throw new PaymentException(PaymentErrorCode.PAYMENT_STATUS_INVALID);
+            throw new PaymentException(PaymentErrorCode.TOSSPAY_CONFIRM_FAILED);
         }
 
         //성공시 결제 청구서 상태를 '결제 완료'로 변경

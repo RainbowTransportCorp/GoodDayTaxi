@@ -14,6 +14,8 @@ public enum PaymentErrorCode {
     INVALID_USER_ROLE(HttpStatus.BAD_REQUEST, "P004", "유효하지 않은 유저 롤입니다"),
     INVALID_SORT_BY(HttpStatus.BAD_REQUEST, "P005", "유효하지 않은 정렬 조건입니다"),
     INVALID_SEARCH_PERIOD(HttpStatus.BAD_REQUEST, "P006", "유효하지 않은 검색 기간입니다"),
+    INVALID_REFUND_STATUS(HttpStatus.BAD_REQUEST, "P006", "유효하지 않은 환불 상태입니다"),
+    INVALID_REFUND_REASON(HttpStatus.BAD_REQUEST, "P006", "유효하지 않은 환불 이유입니다"),
     PERIOD_REQUIRED_FOR_SEARCH(HttpStatus.BAD_REQUEST, "P007", "검색기간에 직접 입력 선택시 시작일과 종료일은 필수 값입니다"),
     PAYMENT_METHOD_NOT_TOSSPAY(HttpStatus.BAD_REQUEST, "P008", "결제 수단이 Toss Pay가 아닙니다"),
     PAYMENT_AMOUNT_SAME(HttpStatus.BAD_REQUEST, "P009", "변경하려는 결제 금액이 기존 금액과 동일합니다"),
@@ -36,6 +38,7 @@ public enum PaymentErrorCode {
 
     //502 — BAD_GATEWAY
     TOSSPAY_CONFIRM_FAILED(HttpStatus.BAD_GATEWAY, "P018", "토스페이 결제 승인 요청이 실패했습니다"),
+    TOSSPAY_CANCEL_FAILED(HttpStatus.BAD_GATEWAY, "P018", "토스페이 결제 취소 요청이 실패했습니다"),
 
     //REFUNDREQUEST
     //404 — NOT_FOUND

@@ -1,7 +1,7 @@
 package com.gooddaytaxi.payment.domain.enums;
 
 public enum RefundRequestStatus {
-    REQUESTED,APPROVED,REJECTED,COMPLETED,CANCELED;
+    REQUESTED,APPROVED,REJECTED,CANCELED;
 
     public static RefundRequestStatus of (String status) {
         for (RefundRequestStatus s : RefundRequestStatus.values()) {

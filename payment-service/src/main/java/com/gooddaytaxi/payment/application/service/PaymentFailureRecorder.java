@@ -5,6 +5,7 @@ import com.gooddaytaxi.payment.application.port.out.PaymentCommandPort;
 import com.gooddaytaxi.payment.application.result.payment.ExternalPaymentError;
 import com.gooddaytaxi.payment.domain.entity.Payment;
 import com.gooddaytaxi.payment.domain.entity.PaymentAttempt;
+import com.gooddaytaxi.payment.domain.entity.Refund;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,7 +26,7 @@ public class PaymentFailureRecorder {
     private final PaymentCommandPort paymentCommandPort;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void recordFailure(Payment payment, PaymentAttempt attempt, ExternalPaymentError error, PaymentTossPayCommand command) {
+    public void recordConfirmFailure(Payment payment, PaymentAttempt attempt, ExternalPaymentError error, PaymentTossPayCommand command) {
 
         //실패시 결제 청구서 상태를 '결제 실패'로 변경
         payment.updateStatusToFailed();
@@ -41,6 +42,25 @@ public class PaymentFailureRecorder {
             attempt.registerFailReason(error.providerMessage(), detailReason);
         }
         payment.addAttempt(attempt);
+
+        paymentCommandPort.save(payment);
+    }
+
+//  결제 취소 실패 기록
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void recordCancelFailure(Payment payment, Refund refund, ExternalPaymentError error) {
+        log.warn("TossPay cancel Failed for paymentId={}: status={}, message={}",
+                payment.getId(), error.status(), error.rawBody());
+
+        //실패 이유가 네트워크 오류인 경우 Network error로 저장
+        if(error.status() == -1) refund.registerFailReason("Network error");
+
+            //실패 이유가 tosspay 비즈니스 오류인 경우 토스페이에서 전달한 사유를 저장
+        else {
+            refund.registerFailReason(error.providerMessage());
+        }
+
+        payment.registerRefund(refund, false);
 
         paymentCommandPort.save(payment);
     }
