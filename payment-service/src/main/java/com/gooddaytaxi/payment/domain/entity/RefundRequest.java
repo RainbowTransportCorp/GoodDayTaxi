@@ -44,4 +44,7 @@ public class RefundRequest extends BaseEntity {
             this.status = RefundRequestStatus.REJECTED;
         }
     }
+    public void cancel() {
+        this.status = RefundRequestStatus.CANCELED;
+    }
 }
