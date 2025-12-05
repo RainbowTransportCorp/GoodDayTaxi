@@ -1,5 +1,6 @@
 package com.gooddaytaxi.support.application.service;
 
+import com.gooddaytaxi.support.adapter.out.external.http.dto.UserInfo;
 import com.gooddaytaxi.support.application.dto.CreateCallCommand;
 import com.gooddaytaxi.support.application.dto.DispatchAcceptCommand;
 import com.gooddaytaxi.support.application.port.in.account.AccountDomainCommunicationPort;
@@ -55,8 +56,8 @@ public class DispatchNotificationService implements RequestCallUsecase, AcceptDi
 
         // Push 알림: Slack, FCM 등
 //        PushMessage message = new PushMessage(receivers, messageTitle, noti.getMessage());
-        String drivereSlackId = accountDomainCommunicationPort.getExternalInfo(receivers.get(0));
-        notificationAlertExternalPort.sendCallRequest(drivereSlackId, receivers, messageTitle, noti.getMessage());
+        UserInfo driver = accountDomainCommunicationPort.getUserInfo(receivers.get(0));
+        notificationAlertExternalPort.sendCallRequest(driver.slackUserId(), receivers, messageTitle, noti.getMessage());
 
         // 로그
         log.info("\uD83D\uDCE2 [CALL-REQUEST] dispatchId={}, driverId={}, passengerId={} >>> {}",
