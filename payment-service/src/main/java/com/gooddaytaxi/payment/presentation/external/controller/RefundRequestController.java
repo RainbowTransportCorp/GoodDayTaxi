@@ -2,13 +2,16 @@ package com.gooddaytaxi.payment.presentation.external.controller;
 
 import com.gooddaytaxi.common.core.dto.ApiResponse;
 import com.gooddaytaxi.payment.application.command.refundRequest.RefundRequestCreateCommand;
+import com.gooddaytaxi.payment.application.result.refundRequest.RefundRequestCancelResult;
 import com.gooddaytaxi.payment.application.result.refundRequest.RefundRequestCreateResult;
 import com.gooddaytaxi.payment.application.result.refundRequest.RefundRequestReadResult;
 import com.gooddaytaxi.payment.application.service.RefundRequestService;
+import com.gooddaytaxi.payment.presentation.external.dto.response.reqeustRufund.RefundReqeustCancelResponseDto;
 import com.gooddaytaxi.payment.presentation.external.dto.response.reqeustRufund.RefundReqeustCreateResponseDto;
 import com.gooddaytaxi.payment.presentation.external.dto.request.requestRefund.RefundRequestCreateRequestDto;
 import com.gooddaytaxi.payment.presentation.external.dto.response.reqeustRufund.RefundRequestReadResponseDto;
 import com.gooddaytaxi.payment.presentation.external.mapper.command.requestFefund.RefundRequestCreateMapper;
+import com.gooddaytaxi.payment.presentation.external.mapper.response.requestFefund.RefundRequestCancelResponseMapper;
 import com.gooddaytaxi.payment.presentation.external.mapper.response.requestFefund.RefundRequestCreateResponseMapper;
 import com.gooddaytaxi.payment.presentation.external.mapper.response.requestFefund.RefundRequestReadResponseMapper;
 import jakarta.validation.Valid;
@@ -43,6 +46,15 @@ public class RefundRequestController {
                                                                                       @RequestParam String role) {
         RefundRequestReadResult result = requestService.getRefundRequest(requestId, userId, role);
         RefundRequestReadResponseDto responseDto = RefundRequestReadResponseMapper.toResponse(result);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
+    }
+
+    //환불 요청 취소
+    @DeleteMapping("/{requestId}")
+    public ResponseEntity<ApiResponse<RefundReqeustCancelResponseDto>> cancelRefundRequest(@PathVariable UUID requestId,
+                                                                    @RequestParam UUID userId) {
+        RefundRequestCancelResult result = requestService.cancelRefundRequest(requestId, userId);
+        RefundReqeustCancelResponseDto responseDto = RefundRequestCancelResponseMapper.toResponse(result);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
     }
 }
