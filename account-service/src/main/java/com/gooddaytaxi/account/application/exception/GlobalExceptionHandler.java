@@ -1,5 +1,6 @@
 package com.gooddaytaxi.account.application.exception;
 
+import com.gooddaytaxi.account.domain.exception.AccountBusinessException;
 import com.gooddaytaxi.common.core.dto.ApiResponse;
 import com.gooddaytaxi.common.core.exception.BusinessException;
 import com.gooddaytaxi.common.core.exception.ErrorLevel;
@@ -17,7 +18,23 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
     /**
-     * BusinessException 처리
+     * AccountBusinessException 처리 (Account 도메인 특화)
+     *
+     * @param e Account 비즈니스 예외
+     * @return ApiResponse와 적절한 HTTP 상태 코드
+     */
+    @ExceptionHandler(AccountBusinessException.class)
+    public ResponseEntity<ApiResponse<Void>> handle(AccountBusinessException e) {
+
+        HttpStatus status = mapErrorLevelToHttpStatus(e.getAccountErrorCode().getLevel());
+
+        return ResponseEntity
+                .status(status)
+                .body(ApiResponse.success(null, e.getAccountErrorCode().getMessage()));
+    }
+
+    /**
+     * BusinessException 처리 (공통 에러)
      *
      * @param e 비즈니스 예외
      * @return ApiResponse와 적절한 HTTP 상태 코드
