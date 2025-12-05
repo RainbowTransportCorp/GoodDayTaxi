@@ -86,4 +86,9 @@ public class Payment extends BaseEntity {
         this.status = PaymentStatus.PENDING;
         this.amount = amount;
     }
+
+    public void changeMethod(PaymentMethod method) {
+        this.status = PaymentStatus.PENDING;
+        this.method = method;
+    }
 }
