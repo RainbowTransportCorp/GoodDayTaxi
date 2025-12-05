@@ -40,6 +40,13 @@ public record ApiResponse<T>(
     }
 
     /**
+     * 실패 응답 생성 (에러 메시지)
+     */
+    public static <T> ApiResponse<T> error(String message) {
+        return new ApiResponse<>(false, message, null, System.currentTimeMillis());
+    }
+
+    /**
      * 실패 응답 생성 (에러 데이터)
      */
     public static <T> ApiResponse<T> error(T errorData) {
