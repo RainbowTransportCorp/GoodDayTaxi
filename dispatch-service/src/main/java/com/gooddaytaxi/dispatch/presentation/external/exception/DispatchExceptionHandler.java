@@ -2,9 +2,12 @@ package com.gooddaytaxi.dispatch.presentation.external.exception;
 
 import com.gooddaytaxi.common.core.dto.ApiResponse;
 import com.gooddaytaxi.dispatch.application.exception.DispatchNotFoundException;
+import com.gooddaytaxi.dispatch.application.exception.DispatchPermissionDeniedException;
 import com.gooddaytaxi.dispatch.application.exception.ErrorResponse;
 import com.gooddaytaxi.dispatch.domain.exception.DispatchErrorCode;
 import com.gooddaytaxi.dispatch.domain.exception.InvalidDispatchStateException;
+import com.gooddaytaxi.dispatch.presentation.external.controller.DispatchController;
+import com.gooddaytaxi.dispatch.presentation.external.controller.DriverDispatchController;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,16 +15,18 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @Slf4j
-@RestControllerAdvice(basePackages = "com.gooddaytaxi.dispatch.presentation.external")
+@RestControllerAdvice(assignableTypes = {
+        DispatchController.class,
+        DriverDispatchController.class
+})
 public class DispatchExceptionHandler {
-
 
     @ExceptionHandler(DispatchNotFoundException.class)
     public ResponseEntity<ApiResponse<ErrorResponse>> handleDispatchNotFound(DispatchNotFoundException e) {
 
         ErrorResponse response = new ErrorResponse(
-                e.getCode(),         // "DISPATCH_NOT_FOUND"
-                e.getMessage()       // "배차 정보를 찾을 수 없습니다. dispatchId=..."
+                e.getCode(),
+                e.getMessage()
         );
 
         return ResponseEntity
@@ -30,14 +35,11 @@ public class DispatchExceptionHandler {
     }
 
     @ExceptionHandler(InvalidDispatchStateException.class)
-    public ResponseEntity<ApiResponse<ErrorResponse>> handleInvalidState(
-            InvalidDispatchStateException e
-    ) {
-        DispatchErrorCode code = e.getErrorCode();
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleInvalidState(InvalidDispatchStateException e) {
 
+        DispatchErrorCode code = e.getErrorCode();
         HttpStatus status = HttpStatus.valueOf(code.getStatus());
 
-        // application ErrorResponse 사용
         ErrorResponse response = new ErrorResponse(
                 code.getCode(),
                 code.getMessage()
@@ -47,6 +49,18 @@ public class DispatchExceptionHandler {
                 .status(status)
                 .body(ApiResponse.error(response));
     }
+
+    @ExceptionHandler(DispatchPermissionDeniedException.class)
+    public ResponseEntity<ApiResponse<ErrorResponse>> handlePermissionDenied(
+            DispatchPermissionDeniedException e
+    ) {
+        ErrorResponse response = new ErrorResponse(
+                e.getCode(),
+                e.getMessage()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.error(response));
+    }
 }
-
-

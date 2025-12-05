@@ -10,16 +10,14 @@ import java.util.UUID;
 
 @Getter
 @Entity
-@Table(name = "p_dispatch_assignments")
+@Table(name = "p_dispatch_assignment_logs")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
-@Builder
-public class DispatchAssignment extends BaseEntity {
+public class DispatchAssignmentLog extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "assignment_id", nullable = false)
-    private UUID assignmentId;   // ← camelCase로 변경
+    private UUID assignmentId;
 
     @Column(name = "dispatch_id", nullable = false)
     private UUID dispatchId;
@@ -37,40 +35,33 @@ public class DispatchAssignment extends BaseEntity {
     @Column(name = "responded_at")
     private LocalDateTime respondedAt;
 
-    /**
-     * 기사 수락
-     */
+    // ==== 생성 정팩메 ====
+    public static DispatchAssignmentLog create(UUID dispatchId, UUID driverId) {
+        DispatchAssignmentLog log = new DispatchAssignmentLog();
+        log.dispatchId = dispatchId;
+        log.candidateDriverId = driverId;
+        log.assignmentStatus = AssignmentStatus.SENT;
+        log.attemptedAt = LocalDateTime.now();
+        return log;
+    }
+
+    // ==== 상태 전이 ====
+
+    /** 기사 수락 */
     public void accept() {
         this.assignmentStatus = AssignmentStatus.ACCEPTED;
         this.respondedAt = LocalDateTime.now();
     }
 
-    /**
-     * 기사 거절
-     */
+    /** 기사 거절 */
     public void reject() {
         this.assignmentStatus = AssignmentStatus.REJECTED;
         this.respondedAt = LocalDateTime.now();
     }
 
-    /**
-     * 기사 응답 없음 → 타임아웃
-     */
+    /** 응답 없음 → 타임아웃 */
     public void timeout() {
         this.assignmentStatus = AssignmentStatus.TIMEOUT;
         this.respondedAt = LocalDateTime.now();
     }
-
-    /**
-     * 처음 생성될 때(배차 시도) 초기값 설정 편의 메서드
-     */
-    public static DispatchAssignment create(UUID dispatchId, UUID candidateDriverId) {
-        return DispatchAssignment.builder()
-                .dispatchId(dispatchId)
-                .candidateDriverId(candidateDriverId)
-                .assignmentStatus(AssignmentStatus.SENT)
-                .attemptedAt(LocalDateTime.now())
-                .build();
-    }
 }
-

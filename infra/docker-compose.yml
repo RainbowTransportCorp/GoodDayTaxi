@@ -1,5 +1,4 @@
-version: "3.8"
-
+# version 제거 (compose v2에서는 obsolete)
 services:
 
   # ============================
@@ -89,6 +88,7 @@ services:
     networks:
       - gd-network
 
+
   # ============================
   # ZIPKIN
   # ============================
@@ -101,9 +101,10 @@ services:
     networks:
       - gd-network
 
-   # ============================
-   # KAFKA
-   # ============================
+
+  # ============================
+  # KAFKA
+  # ============================
 
   zookeeper:
     image: wurstmeister/zookeeper:latest
@@ -158,23 +159,22 @@ services:
       SERVER_PORT: 9999
     networks:
       - gd-network
+
+
   # ============================
   # RabbitMQ
   # ============================
+
   rabbitmq:
     image: rabbitmq:4-management
     container_name: gd_rabbitmq
     restart: unless-stopped
     ports:
-      - "${RABBITMQ_PORT}:5672"      # AMQP
-      - "${RABBITMQ_MANAGEMENT_PORT}:15672"    # Management UI
+      - "${RABBITMQ_PORT}:5672"
+      - "${RABBITMQ_MANAGEMENT_PORT}:15672"
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
-
-      # (옵션) vhost 자동 생성
-      # RABBITMQ_DEFAULT_VHOST: "/"
-
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     networks:
@@ -182,12 +182,13 @@ services:
 
 
   # ============================
-  # CORE SERVICES
+  # CORE SERVICES (경로 수정 완료)
   # ============================
+
   server:
     build:
-      context: .
-      dockerfile: server/Dockerfile
+      context: ../server
+      dockerfile: Dockerfile
     container_name: gd_eureka
     ports:
       - "${EUREKA_PORT}:8761"
@@ -198,8 +199,8 @@ services:
 
   gateway:
     build:
-      context: .
-      dockerfile: gateway/Dockerfile
+      context: ../gateway
+      dockerfile: Dockerfile
     container_name: gd_gateway
     ports:
       - "${GATEWAY_PORT}:8080"
@@ -211,9 +212,11 @@ services:
     networks:
       - gd-network
 
+
   # ============================
   # PROMETHEUS
   # ============================
+
   prometheus:
     image: prom/prometheus:latest
     container_name: gd_prometheus
@@ -224,27 +227,32 @@ services:
     networks:
       - gd-network
 
+
   # ============================
   # GRAFANA
   # ============================
+
   grafana:
     image: grafana/grafana:latest
     container_name: gd_grafana
     ports:
       - "3000:3000"
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
     networks:
       - gd-network
     depends_on:
       - prometheus
 
-  # # ============================
-  # # DOMAIN SERVICES
-  # # ============================
+
+  # ============================
+  # DOMAIN SERVICES (주석 유지 + 경로만 수정)
+  # ============================
 
   # account-service:
-  #   build: ./account-service
+  #   build:
+  #     context: ../account-service
+  #     dockerfile: Dockerfile
   #   container_name: gd_account_service
   #   ports:
   #     - "${ACCOUNT_SERVICE_PORT}:8080"
@@ -255,7 +263,9 @@ services:
   #     - gd-network
 
   # dispatch-service:
-  #   build: ./dispatch-service
+  #   build:
+  #     context: ../dispatch-service
+  #     dockerfile: Dockerfile
   #   container_name: gd_dispatch_service
   #   ports:
   #     - "${DISPATCH_SERVICE_PORT}:8080"
@@ -267,7 +277,9 @@ services:
   #     - gd-network
 
   # trip-service:
-  #   build: ./trip-service
+  #   build:
+  #     context: ../trip-service
+  #     dockerfile: Dockerfile
   #   container_name: gd_trip_service
   #   ports:
   #     - "${TRIP_SERVICE_PORT}:8080"
@@ -278,7 +290,9 @@ services:
   #     - gd-network
 
   # payment-service:
-  #   build: ./payment-service
+  #   build:
+  #     context: ../payment-service
+  #     dockerfile: Dockerfile
   #   container_name: gd_payment_service
   #   ports:
   #     - "${PAYMENT_SERVICE_PORT}:8080"
@@ -290,7 +304,9 @@ services:
   #     - gd-network
 
   # support-service:
-  #   build: ./support-service
+  #   build:
+  #     context: ../support-service
+  #     dockerfile: Dockerfile
   #   container_name: gd_support_service
   #   ports:
   #     - "${SUPPORT_SERVICE_PORT}:8080"
@@ -299,6 +315,7 @@ services:
   #     - server
   #   networks:
   #     - gd-network
+
 
 # ================
 # VOLUMES

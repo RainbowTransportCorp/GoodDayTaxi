@@ -13,8 +13,6 @@ import java.util.UUID;
 @Entity
 @Table(name = "p_dispatches")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
-@Builder
 public class Dispatch extends BaseEntity {
 
     @Id
@@ -52,6 +50,23 @@ public class Dispatch extends BaseEntity {
 
     @Column(name = "timeout_at")
     private LocalDateTime timeoutAt;
+
+    // ======== 정적 팩토리 메서드로 생성 ========
+    public static Dispatch create(
+            UUID passengerId,
+            String pickupAddress,
+            String destinationAddress
+    ) {
+        Dispatch d = new Dispatch();
+        d.passengerId = passengerId;
+        d.pickupAddress = pickupAddress;
+        d.destinationAddress = destinationAddress;
+        d.dispatchStatus = DispatchStatus.REQUESTED;
+        d.requestCreatedAt = LocalDateTime.now();
+        return d;
+    }
+
+    // ======== 상태 전이 ========
 
     public void cancel() {
         if (!isCancelableStatus()) {

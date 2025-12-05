@@ -36,13 +36,14 @@ public class DispatchController {
      */
     @PostMapping
     public ResponseEntity<ApiResponse<DispatchCreateResponseDto>> create(
-            @RequestBody DispatchCreateRequestDto requestDto
-//            ,@RequestHeader(value = "x-user-UUID", required = false) UUID userId,
-//            @RequestHeader(value = "x-user-role", required = false) String role
+            @RequestBody DispatchCreateRequestDto requestDto,
+            @RequestHeader(value = "x-user-UUID", required = false) UUID userId,
+            @RequestHeader(value = "x-user-role", required = false) String role
             ) {
-        UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000001");
-        DispatchCreateCommand createCommand = DispatchCreateCommandMapper.toCommand(requestDto);
-        DispatchCreateResult createResult = passengerDispatchService.create(userId, createCommand);
+        userId = UUID.fromString("00000000-0000-0000-0000-000000000001");
+        role = "ADMIN";
+        DispatchCreateCommand createCommand = DispatchCreateCommandMapper.toCommand(userId, role, requestDto);
+        DispatchCreateResult createResult = passengerDispatchService.create(createCommand);
         DispatchCreateResponseDto responseDto = DispatchCreateResponseMapper.toCreateResponse(createResult);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(responseDto));
