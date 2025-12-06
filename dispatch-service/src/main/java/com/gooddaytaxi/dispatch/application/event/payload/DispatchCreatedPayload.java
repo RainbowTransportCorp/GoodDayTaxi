@@ -1,21 +1,20 @@
 package com.gooddaytaxi.dispatch.application.event.payload;
 
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
-import lombok.Builder;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Builder
-public record DispatchCreatedEvent(
+
+public record DispatchCreatedPayload(
         UUID dispatchId,
         UUID passengerId,
         String pickupAddress,
         String destinationAddress,
         LocalDateTime requestCreatedAt
 ) {
-    public static DispatchCreatedEvent from(Dispatch d) {
-        return new DispatchCreatedEvent(
+    public static DispatchCreatedPayload from(Dispatch d) {
+        return new DispatchCreatedPayload(
                 d.getDispatchId(),
                 d.getPassengerId(),
                 d.getPickupAddress(),
