@@ -3,9 +3,11 @@ package com.gooddaytaxi.dispatch.infrastructure.outbox.entity;
 import com.gooddaytaxi.common.jpa.model.BaseEntity;
 import com.gooddaytaxi.dispatch.domain.model.enums.EventStatus;
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
 import lombok.*;
 
 import java.util.UUID;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "p_dispatch_events")
@@ -35,6 +37,7 @@ public class DispatchEvent extends BaseEntity {
     @Column(nullable = false)
     private int payloadVersion;          // 예: 1
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(nullable = false, columnDefinition = "jsonb")
     private String payload;              // envelope json
 

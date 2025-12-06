@@ -38,6 +38,9 @@ dependencies {
     // Eureka Client (Spring Cloud Starter)
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 
+    // Feign Client
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+
     // Common module
     implementation 'com.gooddaytaxi:common-core:0.0.3-SNAPSHOT'
     implementation 'com.gooddaytaxi:common-jpa:0.0.3-SNAPSHOT'
