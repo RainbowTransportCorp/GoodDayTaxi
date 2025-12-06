@@ -2,7 +2,7 @@ package com.gooddaytaxi.dispatch.application.event;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gooddaytaxi.dispatch.application.event.payload.DispatchCreatedEvent;
+import com.gooddaytaxi.dispatch.application.event.payload.DispatchCreatedPayload;
 import com.gooddaytaxi.dispatch.domain.model.entity.DispatchEvent;
 import com.gooddaytaxi.dispatch.domain.repository.DispatchEventRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,13 +24,13 @@ public class DispatchEventPublisher {
     private static final int PAYLOAD_VERSION = 1;
 
     @Transactional
-    public void save(DispatchCreatedEvent createdEvent) {
+    public void save(DispatchCreatedPayload createdEvent) {
 
         log.info("[OUTBOX-PREPARE] dispatchId={} eventType={} topic={}",
                 createdEvent.dispatchId(), EVENT_TYPE, TOPIC);
 
         // 1. Envelope 생성
-        EventEnvelope<DispatchCreatedEvent> envelope =
+        EventEnvelope<DispatchCreatedPayload> envelope =
                 EventEnvelope.of(EVENT_TYPE, PAYLOAD_VERSION, createdEvent);
 
         log.debug("[OUTBOX-ENVELOPE] dispatchId={} envelope={}",

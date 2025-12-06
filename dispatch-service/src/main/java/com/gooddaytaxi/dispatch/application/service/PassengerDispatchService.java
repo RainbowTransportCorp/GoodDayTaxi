@@ -3,7 +3,7 @@ package com.gooddaytaxi.dispatch.application.service;
 import com.gooddaytaxi.dispatch.application.commend.DispatchCancelCommand;
 import com.gooddaytaxi.dispatch.application.commend.DispatchCreateCommand;
 import com.gooddaytaxi.dispatch.application.event.DispatchEventPublisher;
-import com.gooddaytaxi.dispatch.application.event.payload.DispatchCreatedEvent;
+import com.gooddaytaxi.dispatch.application.event.payload.DispatchCreatedPayload;
 import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchAssignmentLogCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchHistoryCommandPort;
@@ -14,7 +14,6 @@ import com.gooddaytaxi.dispatch.application.result.DispatchDetailResult;
 import com.gooddaytaxi.dispatch.application.result.DispatchListResult;
 import com.gooddaytaxi.dispatch.application.validator.RoleValidator;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
-import com.gooddaytaxi.dispatch.domain.model.entity.DispatchEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -67,7 +66,7 @@ public class PassengerDispatchService {
 
         // 6. 아웃박스 이벤트 저장
         dispatchEventPublisher.save(
-                DispatchCreatedEvent.from(saved)
+                DispatchCreatedPayload.from(saved)
         );
 
 
