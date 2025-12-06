@@ -6,7 +6,7 @@ import com.gooddaytaxi.trip.application.result.TripCreateResult;
 import com.gooddaytaxi.trip.application.result.TripItem;
 import com.gooddaytaxi.trip.application.result.TripListResult;
 import com.gooddaytaxi.trip.application.service.TripService;
-import com.gooddaytaxi.trip.domain.model.Trip;
+
 import com.gooddaytaxi.trip.presentation.dto.request.CreateTripRequest;
 import com.gooddaytaxi.trip.presentation.dto.response.CreateTripResponse;
 import com.gooddaytaxi.trip.presentation.dto.response.TripListResponse;
@@ -16,7 +16,7 @@ import com.gooddaytaxi.trip.presentation.mapper.result.TripCreateResponseMapper;
 import com.gooddaytaxi.trip.presentation.mapper.result.TripDetailResponseMapper;
 import com.gooddaytaxi.trip.presentation.mapper.result.TripListResponseMapper;
 import jakarta.validation.Valid;
-import jakarta.ws.rs.Path;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
