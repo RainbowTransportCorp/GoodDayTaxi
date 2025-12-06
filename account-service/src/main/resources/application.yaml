@@ -45,4 +45,13 @@ management:
       probability: 1.0
   zipkin:
     tracing:
-      endpoint: http://zipkin:${zipkin.port}/api/v2/spans
+      endpoint: http://localhost:${zipkin.port}/api/v2/spans
+
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+
+  metrics:
+    tags:
+      application: account-service
