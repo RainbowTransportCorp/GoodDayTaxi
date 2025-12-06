@@ -2,7 +2,7 @@ package com.gooddaytaxi.dispatch.application.service;
 
 import com.gooddaytaxi.dispatch.application.commend.DispatchCancelCommand;
 import com.gooddaytaxi.dispatch.application.commend.DispatchCreateCommand;
-import com.gooddaytaxi.dispatch.application.event.DispatchEventPublisher;
+import com.gooddaytaxi.dispatch.infrastructure.outbox.publisher.DispatchEventPublisher;
 import com.gooddaytaxi.dispatch.application.event.payload.DispatchCreatedPayload;
 import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchAssignmentLogCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchCommandPort;

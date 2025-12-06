@@ -1,4 +1,4 @@
-package com.gooddaytaxi.dispatch.domain.model.entity;
+package com.gooddaytaxi.dispatch.infrastructure.outbox.entity;
 
 import com.gooddaytaxi.common.jpa.model.BaseEntity;
 import com.gooddaytaxi.dispatch.domain.model.enums.EventStatus;
@@ -70,7 +70,6 @@ public class DispatchEvent extends BaseEntity {
         event.retryCount = 0;
         return event;
     }
-
 
 
     public void markSent() {
