@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class DispatchEventPublisher {
+public class DispatchCreatedEventPublisher {
 
     private final DispatchEventRepository outboxRepository;
     private final ObjectMapper objectMapper;

@@ -2,7 +2,7 @@ package com.gooddaytaxi.dispatch.application.service;
 
 import com.gooddaytaxi.dispatch.application.commend.DispatchCancelCommand;
 import com.gooddaytaxi.dispatch.application.commend.DispatchCreateCommand;
-import com.gooddaytaxi.dispatch.infrastructure.outbox.publisher.DispatchEventPublisher;
+import com.gooddaytaxi.dispatch.infrastructure.outbox.publisher.DispatchCreatedEventPublisher;
 import com.gooddaytaxi.dispatch.application.event.payload.DispatchCreatedPayload;
 import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchAssignmentLogCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchCommandPort;
@@ -35,7 +35,7 @@ public class PassengerDispatchService {
 
     private final DispatchQueryPort dispatchQueryPort;
 
-    private final DispatchEventPublisher dispatchEventPublisher;
+    private final DispatchCreatedEventPublisher dispatchCreatedEventPublisher;
     private final RoleValidator roleValidator;
     /**
      * 콜 생성 (승객)
@@ -65,7 +65,7 @@ public class PassengerDispatchService {
                 saved.getDispatchId(), saved.getDispatchStatus());
 
         // 6. 아웃박스 이벤트 저장
-        dispatchEventPublisher.save(
+        dispatchCreatedEventPublisher.save(
                 DispatchCreatedPayload.from(saved)
         );
 
