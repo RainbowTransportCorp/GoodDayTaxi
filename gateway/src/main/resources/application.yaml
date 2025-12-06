@@ -17,8 +17,7 @@ spring:
         - id: trip-service
           uri: http://host.docker.internal:8205
           predicates:
-            - Path=/api/v*/trips/**
-            - Path=/api/v*/policies/**
+            - Path=/api/v*/trips/**,/api/v*/policies/**
 
         - id: dispatch-service
           uri: http://host.docker.internal:8202
@@ -33,14 +32,12 @@ spring:
         - id: account-service
           uri: http://host.docker.internal:8201
           predicates:
-            - Path=/api/v*/account/**
-            - Path=/api/v*/auth/**
+            - Path=/api/v*/account/**,/api/v*/auth/**
 
         - id: support-service
           uri: http://host.docker.internal:8203
           predicates:
             - Path=/api/v*/support/**
-
 springdoc:
   swagger-ui:
     path: /docs

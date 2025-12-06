@@ -1,10 +1,11 @@
-package com.gooddaytaxi.dispatch.application.event;
+package com.gooddaytaxi.dispatch.infrastructure.outbox.publisher;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gooddaytaxi.dispatch.application.event.payload.DispatchCreatedEvent;
-import com.gooddaytaxi.dispatch.domain.model.entity.DispatchEvent;
-import com.gooddaytaxi.dispatch.domain.repository.DispatchEventRepository;
+import com.gooddaytaxi.dispatch.application.event.EventEnvelope;
+import com.gooddaytaxi.dispatch.application.event.payload.DispatchCreatedPayload;
+import com.gooddaytaxi.dispatch.infrastructure.outbox.entity.DispatchEvent;
+import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchEventRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -13,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class DispatchEventPublisher {
+public class DispatchCreatedEventPublisher {
 
     private final DispatchEventRepository outboxRepository;
     private final ObjectMapper objectMapper;
@@ -24,13 +25,13 @@ public class DispatchEventPublisher {
     private static final int PAYLOAD_VERSION = 1;
 
     @Transactional
-    public void save(DispatchCreatedEvent createdEvent) {
+    public void save(DispatchCreatedPayload createdEvent) {
 
         log.info("[OUTBOX-PREPARE] dispatchId={} eventType={} topic={}",
                 createdEvent.dispatchId(), EVENT_TYPE, TOPIC);
 
         // 1. Envelope 생성
-        EventEnvelope<DispatchCreatedEvent> envelope =
+        EventEnvelope<DispatchCreatedPayload> envelope =
                 EventEnvelope.of(EVENT_TYPE, PAYLOAD_VERSION, createdEvent);
 
         log.debug("[OUTBOX-ENVELOPE] dispatchId={} envelope={}",
