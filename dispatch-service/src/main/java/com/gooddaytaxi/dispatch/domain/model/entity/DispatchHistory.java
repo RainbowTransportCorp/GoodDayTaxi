@@ -13,8 +13,6 @@ import java.util.UUID;
 @Entity
 @Table(name = "p_dispatch_histories")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
-@Builder
 public class DispatchHistory extends BaseEntity {
 
     @Id

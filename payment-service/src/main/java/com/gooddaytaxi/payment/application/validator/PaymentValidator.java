@@ -4,6 +4,7 @@ import com.gooddaytaxi.payment.application.exception.PaymentErrorCode;
 import com.gooddaytaxi.payment.application.exception.PaymentException;
 import com.gooddaytaxi.payment.domain.enums.PaymentMethod;
 import com.gooddaytaxi.payment.domain.enums.PaymentStatus;
+import com.gooddaytaxi.payment.domain.enums.RefundRequestStatus;
 import com.gooddaytaxi.payment.domain.enums.UserRole;
 import org.springframework.stereotype.Component;
 
@@ -36,6 +37,12 @@ public class PaymentValidator {
     public void checkDriverPermission(UUID userId, UUID driverId) {
         if(!driverId.equals(userId)) {
             throw new PaymentException(PaymentErrorCode.PAYMENT_DRIVER_MISMATCH);
+        }
+    }
+    //유저의 역할이 관리자인지 확인
+    public void checkRoleAdmin(UserRole role) {
+        if(role != UserRole.ADMIN) {
+            throw new PaymentException(PaymentErrorCode.ADMIN_ROLE_REQUIRED);
         }
     }
 
@@ -76,4 +83,17 @@ public class PaymentValidator {
         }
     }
 
+    //결제가 완료된상태인지 확인
+    public void checkPaymentStatusCompleted(PaymentStatus status) {
+        if(!status.equals(PaymentStatus.COMPLETED)) {
+            throw new PaymentException(PaymentErrorCode.PAYMENT_STATUS_INVALID);
+        }
+    }
+
+    //해당 환불 요청이 승인된 상태인지 확인
+    public void checkRefundRequestApproved(RefundRequestStatus status) {
+        if(!status.equals(RefundRequestStatus.APPROVED)) {
+            throw new PaymentException(PaymentErrorCode.REFUND_REQUEST_STATUS_INVALID);
+        }
+    }
 }
