@@ -2,20 +2,23 @@ package com.gooddaytaxi.payment.infrastructure.adapter.out;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gooddaytaxi.payment.application.command.payment.ExternalPaymentConfirmCommand;
+import com.gooddaytaxi.payment.application.command.refund.ExternalPaymentCancelCommand;
 import com.gooddaytaxi.payment.application.port.out.ExternalPaymentPort;
 import com.gooddaytaxi.payment.application.result.payment.ExternalPaymentConfirmResult;
 import com.gooddaytaxi.payment.application.result.payment.ExternalPaymentError;
+import com.gooddaytaxi.payment.application.result.refund.ExternalPaymentCancelResult;
 import com.gooddaytaxi.payment.infrastructure.client.TosspayFeignClient;
-import com.gooddaytaxi.payment.infrastructure.client.dto.TossErrorResponse;
-import com.gooddaytaxi.payment.infrastructure.client.dto.TossPayConfirmRequestDto;
-import com.gooddaytaxi.payment.infrastructure.client.dto.TossPayConfirmResponseDto;
+import com.gooddaytaxi.payment.infrastructure.client.dto.*;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.UUID;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class TossPayClientAdapter implements ExternalPaymentPort {
@@ -49,6 +52,30 @@ public class TossPayClientAdapter implements ExternalPaymentPort {
         }
     }
 
+    @Override
+    public ExternalPaymentCancelResult cancelTosspayPayment(String paymentKey, UUID idempotencyKey, ExternalPaymentCancelCommand command) {
+        TossPayCancelRequestDto requestDto = new TossPayCancelRequestDto(command.cancelReason());
+        try {
+            TossPayCancelResponseDto response = tosspayClient.cancelPayment(paymentKey, idempotencyKey.toString(), requestDto);
+            TossCancelDetail cancel = response.cancels().get(0);
+            log.info("TossPay cancel cancelAt: {}, cancelAmount: {}, cancelReason: {}, transactionKey: {}",
+                    cancel.canceledAt(), cancel.cancelAmount(), cancel.cancelReason(), cancel.transactionKey());
+            //취소가 비즈니서적으로 정상 처리되지 않은 경우
+            if(!response.status().equals("CANCELED")) {
+                log.warn("TossPay cancel failed for TossPay Business error : {}", response);
+                return new ExternalPaymentCancelResult(false, null,  null, null,
+                        new ExternalPaymentError(0, "TosspayBusiness failed", "Status: " + response.status()));
+            }
+            //정상 취소 처리된 경우
+            return new ExternalPaymentCancelResult(true, parseTosspayTime(cancel.canceledAt()), cancel.cancelAmount(), cancel.transactionKey(), null);
+
+            //Feign 통신 오류 처리
+        } catch (FeignException e) {
+            ExternalPaymentError error = toExternalPaymentError(e);
+            return new ExternalPaymentCancelResult(false, null, null, null, error);
+        }
+    }
+
     //토스페이 시간 파싱
     private LocalDateTime parseTosspayTime(String time) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX");
@@ -68,4 +95,23 @@ public class TossPayClientAdapter implements ExternalPaymentPort {
     }
 
 
+    public ExternalPaymentConfirmResult getPayment(String paymentKey) {
+        try {
+            TossPayConfirmResponseDto response = tosspayClient.getPayment(paymentKey);
+
+            return new ExternalPaymentConfirmResult(
+                    true,
+                    parseTosspayTime(response.requestedAt()),
+                    parseTosspayTime(response.approvedAt()),
+                    response.method(),
+                    response.easyPay() != null ? response.easyPay().provider() : null,
+                    response.totalAmount(),
+                    null
+            );
+        } catch (FeignException e) {
+            ExternalPaymentError error = toExternalPaymentError(e);
+            return new ExternalPaymentConfirmResult(false, null,null,null,null,0, error);
+        }
+
+    }
 }

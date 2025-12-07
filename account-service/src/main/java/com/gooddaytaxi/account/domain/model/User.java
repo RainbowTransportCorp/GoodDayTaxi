@@ -50,8 +50,6 @@ public class User extends BaseEntity {
     @Column(name = "deleted_by")
     private String deletedBy;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private DriverProfile driverProfile;
 
     /**
      * 사용자 엔티티 생성
