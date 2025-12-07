@@ -29,6 +29,7 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
     private static final List<String> PUBLIC_API_PREFIXES =
             List.of("/internal/", "/v3/api-docs", "/swagger-ui", "/api/v1/auth/");
 
+    private static final String SYSTEM_UUID = "99999999-9999-9999-9999-999999999999";
     private static final String BEARER = "Bearer ";
 
     private static final String USER_UUID_HEADER = "x-user-UUID";
@@ -43,9 +44,15 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
         String path = exchange.getRequest().getURI().getPath();
 
         // Swagger·Internal API에 인증 강제하면 시스템 내부 흐름이 막히므로 인증 제외
+        //감사 처리를 위해 내부용 UUID (SYSTEM) 추가
         if (isPublicPath(path)) {
-            log.debug("[Gateway] Public Path 접근 → 인증 생략 (path={})", path);
-            return chain.filter(exchange);
+            log.debug("[Gateway] Public Path → SYSTEM UUID 주입");
+
+            ServerHttpRequest mutated = exchange.getRequest().mutate()
+                .header(USER_UUID_HEADER, SYSTEM_UUID)
+                .build();
+
+            return chain.filter(exchange.mutate().request(mutated).build());
         }
 
         String authHeader = extractAuthorizationHeader(exchange);
