@@ -1,20 +1,24 @@
 package com.gooddaytaxi.trip.presentation.controller;
 
 import com.gooddaytaxi.common.core.dto.ApiResponse;
+import com.gooddaytaxi.trip.application.command.StartTripCommand;
 import com.gooddaytaxi.trip.application.command.TripCreateCommand;
 import com.gooddaytaxi.trip.application.result.TripCreateResult;
 import com.gooddaytaxi.trip.application.result.TripItem;
 import com.gooddaytaxi.trip.application.result.TripListResult;
+import com.gooddaytaxi.trip.application.result.TripStartResult;
 import com.gooddaytaxi.trip.application.service.TripService;
 
 import com.gooddaytaxi.trip.presentation.dto.request.CreateTripRequest;
 import com.gooddaytaxi.trip.presentation.dto.response.CreateTripResponse;
 import com.gooddaytaxi.trip.presentation.dto.response.TripListResponse;
 import com.gooddaytaxi.trip.presentation.dto.response.TripResponse;
+import com.gooddaytaxi.trip.presentation.dto.response.TripStartResponse;
 import com.gooddaytaxi.trip.presentation.mapper.command.TripCreateRequestMapper;
 import com.gooddaytaxi.trip.presentation.mapper.result.TripCreateResponseMapper;
 import com.gooddaytaxi.trip.presentation.mapper.result.TripDetailResponseMapper;
 import com.gooddaytaxi.trip.presentation.mapper.result.TripListResponseMapper;
+import com.gooddaytaxi.trip.presentation.mapper.result.TripStartResponseMapper;
 import jakarta.validation.Valid;
 
 import lombok.RequiredArgsConstructor;
@@ -34,6 +38,8 @@ public class TripController {
     private final TripCreateResponseMapper tripCreateResponseMapper;
     private final TripListResponseMapper tripListResponseMapper;
     private final TripDetailResponseMapper tripDetailResponseMapper;
+    private final TripStartResponseMapper tripStartResponseMapper;
+
 
 
     @PostMapping
@@ -76,6 +82,19 @@ public class TripController {
 
         // 2. Result → Response DTO
         TripResponse response = tripDetailResponseMapper.toResponse(result);
+
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+
+    public ResponseEntity<ApiResponse<TripStartResponse>> startTrip(
+            @PathVariable("tripId") UUID tripId
+    ) {
+        StartTripCommand command = new StartTripCommand(tripId);
+
+        TripStartResult result = tripService.startTrip(command);
+
+        TripStartResponse response = tripStartResponseMapper.toResponse(result);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
