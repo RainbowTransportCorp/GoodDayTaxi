@@ -20,8 +20,12 @@ public class DispatchRepositoryImpl implements DispatchRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public List<Dispatch> findAllByCondition() {
-        return List.of();
+    public List<Dispatch> findAllByCondition(UUID passengerId) {
+        return queryFactory
+                .selectFrom(dispatch)
+                .where(dispatch.createdBy.eq(passengerId))
+                .orderBy(dispatch.requestCreatedAt.asc())
+                .stream().toList();
     }
 
     @Override
@@ -34,7 +38,11 @@ public class DispatchRepositoryImpl implements DispatchRepositoryCustom {
     }
 
     @Override
-    public Optional<Dispatch> findByDispatchId(UUID id) {
-        return Optional.empty();
+    public Optional<Dispatch> findByDispatchId(UUID dispatchId) {
+        return Optional.ofNullable(
+                queryFactory
+                        .selectFrom(dispatch)
+                        .where(dispatch.dispatchId.eq(dispatchId))
+                        .fetchOne());
     }
 }
