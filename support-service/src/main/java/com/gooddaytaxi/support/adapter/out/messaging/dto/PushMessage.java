@@ -7,7 +7,8 @@ import java.util.UUID;
 
 /**
  * Push 메시지 DTO
- * RabbitMQ로 Push하는 메시지
+ * - RabbitMQ로 Push하는 메시지
+ * - receivers 리스트 index: 0 -> driverId, 1 -> passengerId
  */
 public record PushMessage (
         List<UUID> receivers,
