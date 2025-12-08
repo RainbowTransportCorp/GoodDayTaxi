@@ -1,4 +1,4 @@
-package com.gooddaytaxi.support.adapter.in.config;
+package com.gooddaytaxi.support.adapter.in.kafka.config;
 
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;

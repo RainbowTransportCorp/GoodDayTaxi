@@ -1,4 +1,4 @@
-package com.gooddaytaxi.support.adapter.out.config;
+package com.gooddaytaxi.support.adapter.out.messaging.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -33,7 +33,10 @@ public class RabbitMQConfig {
     // Exchange
     public static final String EXCHANGE = "gooddaytaxi";
     // Routing Key
-    public static final String ROUTING_KEY = "push.send";
+    public static final String SYSTEM_ROUTING_KEY = "push.system";
+    public static final String DISPATCH_ROUTING_KEY = "push.dispatch";
+    public static final String TRIP_ROUTING_KEY = "push.trip";
+    public static final String PAYMENT_ROUTING_KEY = "push.payment";
     // Queue
     public static final String SYSTEM_QUEUE = "gooddaytaxi.system.queue";
     public static final String DISPATCH_QUEUE = "gooddaytaxi.dispatch.queue";
@@ -60,10 +63,10 @@ public class RabbitMQConfig {
     /* Binding
      * Dispatch, Trip, Payment, System에 대한 Binding
      */
-    @Bean public Binding bindingSystem(TopicExchange exchange) { return BindingBuilder.bind(queueSystem()).to(exchange).with(ROUTING_KEY); }
-    @Bean public Binding bindingDispatch(TopicExchange exchange) { return BindingBuilder.bind(queueDispatch()).to(exchange).with(ROUTING_KEY); }
-    @Bean public Binding bindingTrip(TopicExchange exchange) { return BindingBuilder.bind(queueTrip()).to(exchange).with(ROUTING_KEY); }
-    @Bean public Binding bindingPayment(TopicExchange exchange) { return BindingBuilder.bind(queuePayment()).to(exchange).with(ROUTING_KEY); }
+    @Bean public Binding bindingSystem(TopicExchange exchange) { return BindingBuilder.bind(queueSystem()).to(exchange).with(SYSTEM_ROUTING_KEY); }
+    @Bean public Binding bindingDispatch(TopicExchange exchange) { return BindingBuilder.bind(queueDispatch()).to(exchange).with(DISPATCH_ROUTING_KEY); }
+    @Bean public Binding bindingTrip(TopicExchange exchange) { return BindingBuilder.bind(queueTrip()).to(exchange).with(TRIP_ROUTING_KEY); }
+    @Bean public Binding bindingPayment(TopicExchange exchange) { return BindingBuilder.bind(queuePayment()).to(exchange).with(PAYMENT_ROUTING_KEY); }
 
     // TODO: err 관련 binding, queue 작성
 
