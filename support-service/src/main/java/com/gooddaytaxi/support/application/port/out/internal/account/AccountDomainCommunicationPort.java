@@ -1,6 +1,6 @@
-package com.gooddaytaxi.support.application.port.in.account;
+package com.gooddaytaxi.support.application.port.out.internal.account;
 
-import com.gooddaytaxi.support.adapter.out.external.http.dto.UserInfo;
+import com.gooddaytaxi.support.adapter.out.internal.account.dto.UserInfo;
 
 import java.util.UUID;
 

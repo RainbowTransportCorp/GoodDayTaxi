@@ -1,4 +1,4 @@
-package com.gooddaytaxi.support.adapter.out.external.http.dto;
+package com.gooddaytaxi.support.adapter.out.internal.account.dto;
 
 /**
  * 사용자 상태 타입

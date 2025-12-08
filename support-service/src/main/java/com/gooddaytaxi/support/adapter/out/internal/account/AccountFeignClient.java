@@ -1,6 +1,6 @@
-package com.gooddaytaxi.support.adapter.out.external.http;
+package com.gooddaytaxi.support.adapter.out.internal.account;
 
-import com.gooddaytaxi.support.adapter.out.external.http.dto.UserInfo;
+import com.gooddaytaxi.support.adapter.out.internal.account.dto.UserInfo;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
