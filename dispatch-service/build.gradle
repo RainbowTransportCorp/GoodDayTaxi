@@ -42,8 +42,8 @@ dependencies {
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 
     // Common module
-    implementation 'com.gooddaytaxi:common-core:0.0.3-SNAPSHOT'
-    implementation 'com.gooddaytaxi:common-jpa:0.0.3-SNAPSHOT'
+    implementation 'com.gooddaytaxi:common-core:0.0.4-SNAPSHOT'
+    implementation 'com.gooddaytaxi:common-jpa:0.0.4-SNAPSHOT'
 
     // Lombok
     compileOnly 'org.projectlombok:lombok'
