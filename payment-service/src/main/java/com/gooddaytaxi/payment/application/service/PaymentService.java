@@ -7,6 +7,7 @@ import com.gooddaytaxi.payment.application.port.out.ExternalPaymentPort;
 import com.gooddaytaxi.payment.application.port.out.PaymentCommandPort;
 import com.gooddaytaxi.payment.application.port.out.PaymentQueryPort;
 import com.gooddaytaxi.payment.application.result.payment.*;
+import com.gooddaytaxi.payment.application.validator.PaymentValidator;
 import com.gooddaytaxi.payment.domain.entity.Payment;
 import com.gooddaytaxi.payment.domain.entity.PaymentAttempt;
 import com.gooddaytaxi.payment.domain.enums.PaymentMethod;
@@ -23,7 +24,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Objects;
 import java.util.UUID;
 
 @Slf4j
@@ -35,18 +35,34 @@ public class PaymentService {
     private final PaymentQueryPort paymentQueryPort;
     private final ExternalPaymentPort externalPaymentPort;
     private final PaymentFailureRecorder failureRecorder;
+    private final PaymentValidator validator;
 
 
     @Transactional
     public PaymentCreateResult createPayment(PaymentCreateCommand command) {
         //승객아이디, 운전자아이디, 탑승아이디 검증은 운행에서 받아올 계획이므로 없음
+        UUID tripId = command.tripId();
+
+        //해당 여행 아이디로 이미 결제 청구서가 존재하는지 확인
+        // 대기, 진행중, 실패, 완료된 청구서는 다시 생성 불가
+        //취소되었거나 환불된 청구서는 재생성 가능
+        if(paymentQueryPort.existByTripIdAndNotStatusForCreate(tripId)) {
+            Payment payment = paymentQueryPort.findLastByTripIdAndStatusForCreate(tripId);
+            PaymentStatus status = payment.getStatus();
+            if(status.equals(PaymentStatus.PENDING)
+                    || status.equals(PaymentStatus.IN_PROCESS)
+                    || status.equals(PaymentStatus.FAILED))
+                throw new PaymentException(PaymentErrorCode.DUPLICATE_PAYMENT_EXISTS);
+            else if (status.equals(PaymentStatus.COMPLETED)) throw new PaymentException(PaymentErrorCode.COMPLETED_PAYMENT);
+        }
+//        paymentQueryPort.
         // 금액 검증
         Fare amount = Fare.of(command.amount());
         //결제 수단 검증
         PaymentMethod method = PaymentMethod.of(command.method());
 
         //결제 청구서 생성
-        Payment payment = new Payment(amount,  method, command.passengerId(), command.driverId(), command.tripId());
+        Payment payment = new Payment(amount,  method, command.passengerId(), command.driverId(), tripId);
 
         paymentCommandPort.save(payment);
 
@@ -58,25 +74,19 @@ public class PaymentService {
     public Long tosspayReady(UUID userId, String role, UUID tripId) {
         log.info("TossPay Ready called: userId={}, role={}, tripId={}", userId, role, tripId);
         //유저의 역할이 승객인지 확인
-        if(UserRole.of(role) != UserRole.PASSENGER) {
-            throw new PaymentException(PaymentErrorCode.PASSENGER_ROLE_REQUIRED);
-        }
+        validator.checkRolePassenger(UserRole.of(role));
         //운행 아이디로 결제 청구서 조회
-        Payment payment = paymentQueryPort.findByTripId(tripId)
-                .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+        Payment payment = paymentQueryPort.findLastByTripIdAndStatusForCreate(tripId);
 
         log.debug("TossPay Payment found for tripId={}", tripId);
         //해당 승객이 맞는지 확인
-        if(!Objects.equals(payment.getPassengerId(), userId))
-            throw new PaymentException(PaymentErrorCode.PAYMENT_PASSENGER_MISMATCH);
+        validator.checkPassengerPermission(userId, payment.getPassengerId());
 
         //결제 수단이 토스페이인지 확인
-        if(!(payment.getMethod() == PaymentMethod.TOSS_PAY))
-            throw new PaymentException(PaymentErrorCode.PAYMENT_METHOD_NOT_TOSSPAY);
+        validator.checkMethodTossPay(payment.getMethod());
 
-        //결제 청구서 상태가 대기거나 진행중인지 확인
-        if(!(payment.getStatus() == PaymentStatus.PENDING || payment.getStatus() == PaymentStatus.IN_PROCESS))
-            throw new PaymentException(PaymentErrorCode.PAYMENT_STATUS_INVALID);
+        //결제 전 상태인지 확인
+        validator.checkStatusBeforePayment(payment.getStatus());
 
         //해당 결제 청구서의 상태를 '결제 진행 중'으로 변경
         payment.updateStatusToProcessing();
@@ -93,13 +103,10 @@ public class PaymentService {
                 command.paymentKey(), command.orderId(), command.amount());
 
         //해당 결제 청구서 조회
-        Payment payment = paymentQueryPort.findByTripId(UUID.fromString(command.orderId().substring(6)))
-                .orElseThrow(() -> new PaymentException(PaymentErrorCode.TRIP_PAYMENT_NOT_FOUND));
+        Payment payment = paymentQueryPort.findLastByTripIdAndStatusForCreate(UUID.fromString(command.orderId().substring(6)));
 
         //결제 수단이 토스페이인지 확인
-        if(!(payment.getMethod() == PaymentMethod.TOSS_PAY))
-            throw new PaymentException(PaymentErrorCode.PAYMENT_METHOD_NOT_TOSSPAY);
-
+        validator.checkMethodTossPay(payment.getMethod());
 
         //결제 청구서 상태가 '결제 진행 중'인지 확인
         if(!(payment.getStatus() == PaymentStatus.IN_PROCESS)) throw new PaymentException(PaymentErrorCode.PAYMENT_STATUS_INVALID);
@@ -120,10 +127,10 @@ public class PaymentService {
         //실패시 실패 기록 및 예외 던지기
         if (!result.success()) {
             // 실패 기록은 별도 트랜잭션으로 먼저 확정
-            failureRecorder.recordFailure(payment, attempt,result.error() , command);
+            failureRecorder.recordConfirmFailure(payment, attempt,result.error() , command);
 
             //최종적으로 비즈니스 예외 던지기
-            throw new PaymentException(PaymentErrorCode.PAYMENT_STATUS_INVALID);
+            throw new PaymentException(PaymentErrorCode.TOSSPAY_CONFIRM_FAILED);
         }
 
         //성공시 결제 청구서 상태를 '결제 완료'로 변경
@@ -149,28 +156,20 @@ public class PaymentService {
         log.info("Driver Pay Payment called: paymentId={}", paymentId);
 
         //유저의 역할이 기사인지 확인
-        if(UserRole.of(role) != UserRole.DRIVER) {
-            throw new PaymentException(PaymentErrorCode.DRIVER_ROLE_REQUIRED);
-        }
+        validator.checkRoleDriver(UserRole.of(role));
 
         //운행 아이디로 결제 청구서 조회
         Payment payment = paymentQueryPort.findById(paymentId)
                 .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
         //해당 기사가 맞는지 확인
-        if(!Objects.equals(payment.getDriverId(), userId)) {
-            throw new PaymentException(PaymentErrorCode.PAYMENT_DRIVER_MISMATCH);
-        }
+        validator.checkDriverPermission(userId, payment.getDriverId());
 
         //결제 청구서 상태가 대기인지 확인
-        if(!payment.getStatus().equals(PaymentStatus.PENDING)) {
-            throw new PaymentException(PaymentErrorCode.PAYMENT_STATUS_INVALID);
-        }
+        validator.checkStatusPending(payment.getStatus());
 
-        //결제 수단이 현금 또는 카드일때만 가능
-        if(!(payment.getMethod() == PaymentMethod.CARD || payment.getMethod() == PaymentMethod.CASH)) {
-            throw new PaymentException(PaymentErrorCode.INVALID_PAYMENT_METHOD);
-        }
+        //결제 수단이 외부 결제가 아닌 경우만 가능
+        validator.checkMethodNotExternalPayment(payment.getMethod());
 
         //해당 결제 청구서의 상태를 결제 완료로 변경
         payment.updateStatusToComplete();
@@ -280,7 +279,7 @@ public class PaymentService {
     @Transactional
     public PaymentUpdateResult changePaymentAmount(PaymentAmountChangeCommand command, UUID userId, String role) {
         //승객은 무조건 불가
-        if(UserRole.of(role) == UserRole.PASSENGER) throw new PaymentException(PaymentErrorCode.PASSENGER_ROLE_NOT_ALLOWED);
+        validator.notAllowedPassenger(UserRole.of(role));
 
 
         Payment payment = paymentQueryPort.findById(command.paymentId())
@@ -290,15 +289,44 @@ public class PaymentService {
         if(payment.getAmount().value() == command.amount()) throw new PaymentException(PaymentErrorCode.PAYMENT_AMOUNT_SAME);
 
         //기사는 해당 청구서의 기사만 가능
-        if(UserRole.of(role) == UserRole.DRIVER) {
-            if(!Objects.equals(payment.getDriverId(), userId)) throw new PaymentException(PaymentErrorCode.PAYMENT_DRIVER_MISMATCH);
-        }
+        if(UserRole.of(role) == UserRole.DRIVER) validator.checkDriverPermission(userId, payment.getDriverId());
 
-        //결제가 대기중이거나 결제 시도 전인 경우에만 금액 변경 가능
-        if(!(payment.getStatus().equals(PaymentStatus.PENDING) || payment.getStatus().equals(PaymentStatus.IN_PROCESS))) throw new PaymentException(PaymentErrorCode.PAYMENT_STATUS_INVALID);
+        //결제가 결제 승인 전에만 가능
+        validator.checkStatusBeforePayment(payment.getStatus());
 
         //금액 변경 처리
         payment.changeAmount(Fare.of(command.amount()));
+
+        return new PaymentUpdateResult(
+                payment.getId(),
+                payment.getAmount().value(),
+                payment.getMethod().name()
+        );
+    }
+
+
+    //결제 수단 변경
+    @Transactional
+    public PaymentUpdateResult changePaymentMethod(PaymentMethodChangeCommand command, UUID userId, String role) {
+        //승객은 무조건 불가
+        if(UserRole.of(role) == UserRole.PASSENGER) throw new PaymentException(PaymentErrorCode.PASSENGER_ROLE_NOT_ALLOWED);
+
+
+        Payment payment = paymentQueryPort.findById(command.paymentId())
+                .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+
+        PaymentMethod method = PaymentMethod.of(command.method());
+        //결제 수단이 같으면 불가
+        if(payment.getMethod().equals(method)) throw new PaymentException(PaymentErrorCode.PAYMENT_METHOD_SAME);
+
+        //기사는 해당 청구서의 기사만 가능
+        if(UserRole.of(role) == UserRole.DRIVER) validator.checkDriverPermission(userId, payment.getDriverId());
+
+        //결제가 결제 승인 전에만 가능
+        validator.checkStatusBeforePayment(payment.getStatus());
+
+        //금액 변경 처리
+        payment.changeMethod(method);
 
         return new PaymentUpdateResult(
                 payment.getId(),
@@ -311,18 +339,17 @@ public class PaymentService {
     @Transactional
     public PaymentCancelResult cancelPayment(PaymentCancelCommand command, UUID userId, String role) {
         //승객은 무조건 붊가
-        if(UserRole.of(role) == UserRole.PASSENGER) throw new PaymentException(PaymentErrorCode.PASSENGER_ROLE_NOT_ALLOWED);
+        validator.notAllowedPassenger(UserRole.of(role));
 
         Payment payment = paymentQueryPort.findById(command.paymentId())
                 .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
         //기사는 해당 청구서의 기사만 가능
-        if(UserRole.of(role) == UserRole.DRIVER) {
-            if(!Objects.equals(payment.getDriverId(), userId)) throw new PaymentException(PaymentErrorCode.PAYMENT_DRIVER_MISMATCH);
-        }
+        if(UserRole.of(role) == UserRole.DRIVER) validator.checkDriverPermission(userId, payment.getDriverId());
 
-        //이미 완료되었거나 취소된 결제는 불가
-        if(payment.getStatus().equals(PaymentStatus.COMPLETED) ||payment.getStatus().equals(PaymentStatus.CANCELED) ) throw new PaymentException(PaymentErrorCode.PAYMENT_STATUS_INVALID);
+
+        //결제가 완료되었거나(환불 포함) 이미 취소된 결제는 불가
+        validator.checkStatusAfterPaymentOrCanceled(payment.getStatus());
 
         //결제 취소 처리
         payment.cancelPayment(command.cancelReason());
@@ -332,5 +359,5 @@ public class PaymentService {
                 payment.getStatus().name()
         );
     }
-
+    
 }

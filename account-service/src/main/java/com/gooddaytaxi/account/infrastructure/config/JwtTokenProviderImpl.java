@@ -1,9 +1,9 @@
 package com.gooddaytaxi.account.infrastructure.config;
 
+import com.gooddaytaxi.account.domain.exception.AccountBusinessException;
+import com.gooddaytaxi.account.domain.exception.AccountErrorCode;
 import com.gooddaytaxi.account.domain.model.User;
 import com.gooddaytaxi.account.domain.service.JwtTokenProvider;
-import com.gooddaytaxi.common.core.exception.BusinessException;
-import com.gooddaytaxi.common.core.exception.ErrorCode;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -89,13 +89,13 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
                     
         } catch (ExpiredJwtException e) {
             log.warn("만료된 JWT 토큰: {}", e.getMessage());
-            throw new BusinessException(ErrorCode.EXPIRED_REFRESH_TOKEN);
+            throw new AccountBusinessException(AccountErrorCode.EXPIRED_REFRESH_TOKEN);
         } catch (MalformedJwtException | UnsupportedJwtException | IllegalArgumentException e) {
             log.warn("잘못된 JWT 토큰: {}", e.getMessage());
-            throw new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN);
+            throw new AccountBusinessException(AccountErrorCode.INVALID_REFRESH_TOKEN);
         } catch (io.jsonwebtoken.security.SignatureException e) {
             log.warn("JWT 서명 불일치: {}", e.getMessage());
-            throw new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN);
+            throw new AccountBusinessException(AccountErrorCode.INVALID_REFRESH_TOKEN);
         }
     }
     
@@ -112,7 +112,7 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
             }
             
             return true;
-        } catch (BusinessException e) {
+        } catch (AccountBusinessException e) {
             return false;
         }
     }

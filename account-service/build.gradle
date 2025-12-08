@@ -16,7 +16,7 @@ java {
 
 dependencyManagement {
     imports {
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:2023.0.3"
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:2023.0.4"
     }
 }
 
@@ -48,8 +48,8 @@ dependencies {
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
     // Common module
-    implementation 'com.gooddaytaxi:common-core:0.0.1-SNAPSHOT'
-    implementation 'com.gooddaytaxi:common-jpa:0.0.1-SNAPSHOT'
+    implementation 'com.gooddaytaxi:common-core:0.0.3-SNAPSHOT'
+    implementation 'com.gooddaytaxi:common-jpa:0.0.3-SNAPSHOT'
 
     // Lombok
     compileOnly 'org.projectlombok:lombok'
@@ -61,6 +61,10 @@ dependencies {
 
     //Kafka
     implementation 'org.springframework.kafka:spring-kafka'
+
+    //prometheus
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
 
     // 테스트
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

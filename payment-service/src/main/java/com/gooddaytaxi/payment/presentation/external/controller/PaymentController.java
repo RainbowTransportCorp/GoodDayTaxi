@@ -117,6 +117,16 @@ public class PaymentController {
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
     }
 
+    //결제 전 결제 수단 변경
+    @PutMapping("/method")
+    public ResponseEntity<ApiResponse<PaymentUpdateResponseDto>> changePaymentMethod(@RequestBody @Valid PaymentMethodChangeRequestDto requestDto,
+                                                                                     @RequestParam UUID userId,
+                                                                                     @RequestParam String role) {
+        PaymentMethodChangeCommand command = PaymentUpdateMapper.toMethodCommand(requestDto);
+        PaymentUpdateResult result = paymentService.changePaymentMethod(command, userId, role);
+        PaymentUpdateResponseDto responseDto = PaymentUpdateResponseMapper.toResponse(result);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
+    }
     //결제 취소
     @DeleteMapping
     public ResponseEntity<ApiResponse<PaymentCancelResponseDto>> cancelPayment(@RequestBody @Valid PaymentCancelRequestDto requestDto,

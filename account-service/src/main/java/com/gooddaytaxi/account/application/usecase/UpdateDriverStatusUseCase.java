@@ -6,8 +6,8 @@ import com.gooddaytaxi.account.application.mapper.UpdateDriverStatusMapper;
 import com.gooddaytaxi.account.domain.model.DriverProfile;
 import com.gooddaytaxi.account.domain.repository.DriverProfileRepository;
 import com.gooddaytaxi.account.domain.service.DriverProfileLookupService;
-import com.gooddaytaxi.common.core.exception.BusinessException;
-import com.gooddaytaxi.common.core.exception.ErrorCode;
+import com.gooddaytaxi.account.domain.exception.AccountBusinessException;
+import com.gooddaytaxi.account.domain.exception.AccountErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -44,7 +44,7 @@ public class UpdateDriverStatusUseCase {
         if (!requestUserUuid.equals(driverUuid)) {
             log.warn("본인이 아닌 기사 프로필 상태 변경 시도: requestUser={}, targetDriver={}", 
                     requestUserUuid, driverUuid);
-            throw new BusinessException(ErrorCode.ACCESS_DENIED);
+            throw new AccountBusinessException(AccountErrorCode.ACCESS_DENIED);
         }
     }
     

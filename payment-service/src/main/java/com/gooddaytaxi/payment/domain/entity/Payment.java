@@ -51,6 +51,12 @@ public class Payment extends BaseEntity {
     @OrderBy("attemptNo DESC")
     private List<PaymentAttempt> attempts = new ArrayList<>();
 
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "payment")
+    @JoinColumn(name = "refund_id")
+    private Refund refund;
+
+
+
 
     public Payment(Fare amount, PaymentMethod method, UUID passengerId, UUID driverId, UUID tripId) {
         this.amount = amount;
@@ -77,6 +83,12 @@ public class Payment extends BaseEntity {
         attempt.registerPayment(this);
     }
 
+    public void registerRefund (Refund refund, boolean isSuccess) {
+        if(isSuccess)this.status = PaymentStatus.REFUNDED;
+        this.refund = refund;
+        refund.registerPayment(this);
+    }
+
     public void cancelPayment(String cancelReason) {
         this.status = PaymentStatus.CANCELED;
         this.cancelReason = cancelReason;
@@ -85,5 +97,10 @@ public class Payment extends BaseEntity {
     public void changeAmount(Fare amount) {
         this.status = PaymentStatus.PENDING;
         this.amount = amount;
+    }
+
+    public void changeMethod(PaymentMethod method) {
+        this.status = PaymentStatus.PENDING;
+        this.method = method;
     }
 }

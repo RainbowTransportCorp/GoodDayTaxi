@@ -50,8 +50,6 @@ public class User extends BaseEntity {
     @Column(name = "deleted_by")
     private String deletedBy;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private DriverProfile driverProfile;
 
     /**
      * 사용자 엔티티 생성
@@ -88,6 +86,15 @@ public class User extends BaseEntity {
      */
     public void deactivate() {
         this.status = UserStatus.INACTIVE;
+    }
+    
+    /**
+     * 사용자 상태 변경
+     *
+     * @param status 새로운 상태
+     */
+    public void changeStatus(UserStatus status) {
+        this.status = status;
     }
 
     /**

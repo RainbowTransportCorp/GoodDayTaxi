@@ -8,8 +8,8 @@ import com.gooddaytaxi.account.domain.model.User;
 import com.gooddaytaxi.account.domain.repository.DriverProfileRepository;
 import com.gooddaytaxi.account.domain.service.DriverProfileLookupService;
 import com.gooddaytaxi.account.domain.service.DriverProfileUpdateService;
-import com.gooddaytaxi.common.core.exception.BusinessException;
-import com.gooddaytaxi.common.core.exception.ErrorCode;
+import com.gooddaytaxi.account.domain.exception.AccountBusinessException;
+import com.gooddaytaxi.account.domain.exception.AccountErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -51,7 +51,7 @@ public class UpdateDriverProfileUseCase {
         if (!requestUserUuid.equals(targetDriverId)) {
             log.warn("본인 프로필이 아닌 기사 프로필 수정 시도: requestUser={}, target={}", 
                     requestUserUuid, targetDriverId);
-            throw new BusinessException(ErrorCode.ACCESS_DENIED);
+            throw new AccountBusinessException(AccountErrorCode.ACCESS_DENIED);
         }
     }
     

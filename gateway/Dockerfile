@@ -4,16 +4,14 @@
 FROM eclipse-temurin:17-jdk AS builder
 WORKDIR /app
 
-# Gateway 프로젝트 복사
-COPY gateway/gradlew .
-COPY gateway/gradle ./gradle
-COPY gateway/build.gradle .
-COPY gateway/settings.gradle .
-COPY gateway/src ./src
+COPY gradlew .
+COPY gradle ./gradle
+COPY build.gradle .
+COPY settings.gradle .
+COPY src ./src
 
-# Build jar
 RUN chmod +x gradlew
-RUN ./gradlew bootJar --no-daemon
+RUN ./gradlew clean bootJar --no-daemon
 
 # ============================
 # 2) Run Stage
@@ -21,9 +19,11 @@ RUN ./gradlew bootJar --no-daemon
 FROM eclipse-temurin:17-jre
 WORKDIR /app
 
-# copy secrets.yaml (필수)
-COPY gateway/src/main/resources/secrets.yaml ./secrets.yaml
+# application.yaml 복사
+COPY src/main/resources/application.yaml ./application.yaml
+COPY src/main/resources/secrets.yaml ./secrets.yaml
 
+# jar 복사
 COPY --from=builder /app/build/libs/*.jar app.jar
 
 EXPOSE 8080
