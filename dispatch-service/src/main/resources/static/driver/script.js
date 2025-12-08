@@ -20,24 +20,27 @@ async function loadPending() {
     }
 
     listEl.innerHTML = data.map(d => `
-    <div class="dispatch-card">
-      <div class="dispatch-badge">
-        <span class="dispatch-badge-dot"></span>
-        NEW DISPATCH
-      </div>
-      <div class="dispatch-title">🔔 새로운 콜 요청</div>
-      <div class="info"><b>출발:</b> ${d.pickupAddress}</div>
-      <div class="info"><b>도착:</b> ${d.dropoffAddress}</div>
-      <div class="info"><b>요금:</b> ${d.estimatedFare}원</div>
-      <div class="info"><b>거리:</b> ${d.estimatedDistanceKm}km</div>
-      <div class="info-meta">디스패치 ID: ${d.dispatchId}</div>
+        <div class="dispatch-card">
+            <div class="dispatch-badge">
+                <span class="dispatch-badge-dot"></span>
+                NEW DISPATCH
+            </div>
 
-      <div class="actions">
-        <button class="btn btn-accept" onclick="acceptCall('${d.dispatchId}')">수락하기</button>
-        <button class="btn btn-reject" onclick="rejectCall('${d.dispatchId}')">거절하기</button>
-      </div>
-    </div>
-  `).join("");
+            <div class="dispatch-title">🔔 새로운 콜 요청</div>
+
+            <div class="info"><b>출발:</b> ${d.pickupAddress}</div>
+            <div class="info"><b>도착:</b> ${d.dropoffAddress}</div>
+            <div class="info"><b>요금:</b> ${d.estimatedFare}원</div>
+            <div class="info"><b>거리:</b> ${d.estimatedDistanceKm}km</div>
+
+            <div class="info-meta">디스패치 ID: ${d.dispatchId}</div>
+
+            <div class="actions">
+                <button class="btn btn-accept" onclick="acceptCall('${d.dispatchId}')">수락하기</button>
+                <button class="btn btn-reject" onclick="rejectCall('${d.dispatchId}')">거절하기</button>
+            </div>
+        </div>
+    `).join("");
 }
 
 async function acceptCall(id) {
