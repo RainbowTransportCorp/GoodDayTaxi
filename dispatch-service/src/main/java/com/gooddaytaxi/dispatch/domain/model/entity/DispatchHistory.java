@@ -2,7 +2,6 @@ package com.gooddaytaxi.dispatch.domain.model.entity;
 
 import com.gooddaytaxi.common.jpa.model.BaseEntity;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
-import com.gooddaytaxi.dispatch.domain.model.enums.HistoryEventType;
 import com.gooddaytaxi.dispatch.domain.model.enums.ChangedBy;
 import jakarta.persistence.*;
 import lombok.*;

@@ -54,11 +54,11 @@ public class DriverDispatchController {
      */
     @PatchMapping("/{dispatchId}/accept")
     public ResponseEntity<ApiResponse<DispatchAcceptResponseDto>> accept(
-            @PathVariable UUID dispatchId
-            //            ,@RequestHeader(value = "x-user-uuid", required = false) UUID userId
+            @PathVariable UUID dispatchId,
+            @RequestHeader(value = "x-user-uuid", required = false) UUID userId,
+            @RequestHeader(value = "x-user-role", required = false) String role
     ) {
-        UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000011");
-        DispatchAcceptCommand command = DispatchAcceptCommandMapper.toCommand(userId, dispatchId);
+        DispatchAcceptCommand command = DispatchAcceptCommandMapper.toCommand(userId, role, dispatchId);
         DispatchAcceptResult result = driverDispatchService.accept(command);
         DispatchAcceptResponseDto responseDto = DispatchAcceptResponseMapper.toResponse(result);
         return ResponseEntity.ok(ApiResponse.success(responseDto));

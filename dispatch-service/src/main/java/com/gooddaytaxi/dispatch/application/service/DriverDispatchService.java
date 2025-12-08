@@ -66,6 +66,8 @@ public class DriverDispatchService {
      */
     public DispatchAcceptResult accept(DispatchAcceptCommand command) {
 
+        //권한 검증 로직 추가
+
         log.info("[Accept] 콜 수락 요청 수신 - driverId={}, dispatchId={}",
                 command.getDriverId(), command.getDispatchId());
 
