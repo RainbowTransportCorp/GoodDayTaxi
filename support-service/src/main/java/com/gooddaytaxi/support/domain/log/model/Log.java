@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -15,6 +16,7 @@ import java.util.UUID;
 /**
  * 로그 Entity - 장애 의심 상태에 대한 기록
  */
+@EntityListeners(AuditingEntityListener.class)
 @Entity
 @Table(name="p_support_system_logs")
 @Getter
