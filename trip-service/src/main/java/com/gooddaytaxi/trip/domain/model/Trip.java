@@ -115,4 +115,26 @@ public class Trip extends BaseEntity {
                 .build();
     }
 
+
+    public void start() {
+        // 이미 시작되어 있으면 멱등하게 처리
+        if (this.status == TripStatus.STARTED) {
+            return;
+        }
+
+        // READY가 아닌 상태에서 시작 시도하면 예외
+        if (this.status != TripStatus.READY) {
+            throw new IllegalStateException(
+                    "READY 상태에서만 STARTED로 변경할 수 있습니다. 현재 상태: " + this.status
+            );
+        }
+
+        this.status = TripStatus.STARTED;
+
+        // 시작 시간이 비어있으면 지금 시간으로
+        if (this.startTime == null) {
+            this.startTime = LocalDateTime.now();
+        }
+    }
+
 }

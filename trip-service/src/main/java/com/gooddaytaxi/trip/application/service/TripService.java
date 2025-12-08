@@ -1,13 +1,16 @@
 package com.gooddaytaxi.trip.application.service;
 
 
+import com.gooddaytaxi.trip.application.command.StartTripCommand;
 import com.gooddaytaxi.trip.application.command.TripCreateCommand;
 import com.gooddaytaxi.trip.application.port.out.CreateTripPort;
 import com.gooddaytaxi.trip.application.port.out.LoadTripByIdPort;
 import com.gooddaytaxi.trip.application.port.out.LoadTripsPort;
+import com.gooddaytaxi.trip.application.port.out.UpdateTripPort;
 import com.gooddaytaxi.trip.application.result.TripCreateResult;
 import com.gooddaytaxi.trip.application.result.TripItem;
 import com.gooddaytaxi.trip.application.result.TripListResult;
+import com.gooddaytaxi.trip.application.result.TripStartResult;
 import com.gooddaytaxi.trip.domain.model.Trip;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +26,7 @@ public class TripService {
     private final CreateTripPort createTripPort;
     private final LoadTripsPort loadTripsPort;
     private final LoadTripByIdPort loadTripByIdPort;
+    private final UpdateTripPort updateTripPort;
 
 
     @Transactional
@@ -61,6 +65,28 @@ public class TripService {
                 .orElseThrow(() -> new IllegalArgumentException("Trip not found"));
 
         return TripItem.from(trip);
+    }
+
+
+    @Transactional
+    public TripStartResult startTrip(StartTripCommand command) {
+
+        Trip trip = loadTripByIdPort.loadTripById(command.tripId())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Trip not found: " + command.tripId()
+                )); // → GlobalExceptionHandler에서 404로 맵핑되게 해 두면 됨
+
+        // 도메인 로직 호출 (READY → STARTED)
+        trip.start();
+
+        Trip saved = updateTripPort.updateTrip(trip);
+
+        return new TripStartResult(
+                saved.getTripId(),
+                saved.getStatus().name(),
+                saved.getStartTime(),
+                "운행이 시작되었습니다."
+        );
     }
 
 
