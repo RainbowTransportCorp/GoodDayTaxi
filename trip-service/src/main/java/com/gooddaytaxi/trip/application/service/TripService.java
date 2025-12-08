@@ -1,17 +1,16 @@
 package com.gooddaytaxi.trip.application.service;
 
 
+import com.gooddaytaxi.trip.application.command.EndTripCommand;
 import com.gooddaytaxi.trip.application.command.StartTripCommand;
 import com.gooddaytaxi.trip.application.command.TripCreateCommand;
 import com.gooddaytaxi.trip.application.port.out.CreateTripPort;
 import com.gooddaytaxi.trip.application.port.out.LoadTripByIdPort;
 import com.gooddaytaxi.trip.application.port.out.LoadTripsPort;
 import com.gooddaytaxi.trip.application.port.out.UpdateTripPort;
-import com.gooddaytaxi.trip.application.result.TripCreateResult;
-import com.gooddaytaxi.trip.application.result.TripItem;
-import com.gooddaytaxi.trip.application.result.TripListResult;
-import com.gooddaytaxi.trip.application.result.TripStartResult;
+import com.gooddaytaxi.trip.application.result.*;
 import com.gooddaytaxi.trip.domain.model.Trip;
+import com.gooddaytaxi.trip.domain.model.enums.TripStatus;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -86,6 +85,27 @@ public class TripService {
                 saved.getStatus().name(),
                 saved.getStartTime(),
                 "운행이 시작되었습니다."
+        );
+    }
+
+    public TripEndResult endTrip(UUID tripId, EndTripCommand command) {
+        Trip trip = loadTripByIdPort.loadTripById(tripId)
+                .orElseThrow(() -> new IllegalArgumentException("Trip not found: " + tripId));
+
+        if (trip.getStatus() == TripStatus.ENDED) {
+            throw new IllegalStateException("이미 ENDED 상태인 운행입니다.");
+        }
+
+        trip.end(command.totalDistance(), command.totalDuration());
+
+        Trip updated = updateTripPort.updateTrip(trip);
+
+        return new TripEndResult(
+                updated.getTripId(),
+                updated.getStatus().name(),
+                updated.getEndTime(),
+                updated.getFinalFare(),
+                "운행 종료, 요금 산정 완료 및 결제 요청 이벤트 발행 완료"
         );
     }
 

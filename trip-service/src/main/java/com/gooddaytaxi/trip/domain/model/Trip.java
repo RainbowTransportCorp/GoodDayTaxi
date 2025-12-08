@@ -137,4 +137,29 @@ public class Trip extends BaseEntity {
         }
     }
 
+    public void end(BigDecimal totalDistance, long totalDuration) {
+        if (this.status != TripStatus.STARTED) {
+            throw new IllegalStateException("STARTED 상태에서만 ENDED로 변경할 수 있습니다.");
+        }
+
+        this.status = TripStatus.ENDED;
+        this.totalDistance = totalDistance;
+        this.totalDuration = totalDuration;
+        this.endTime = LocalDateTime.now();
+
+        // 요금 계산 로직 (임시 간단 버전)
+        this.finalFare = calculateFare(totalDistance, totalDuration);
+    }
+
+    private long calculateFare(BigDecimal totalDistance, long totalDurationSeconds) {
+        // 예시 정책: 기본 3,000원 + (km당 1,000원) + (초당 2원)
+        long baseFare = 3000L;
+        long distanceFare = totalDistance
+                .multiply(BigDecimal.valueOf(1000L))
+                .longValue();
+        long timeFare = totalDurationSeconds * 2L;
+
+        return baseFare + distanceFare + timeFare;
+    }
+//나중에  FarePolicy 적용할 때는 calculateFare 부분 리펙토링
 }

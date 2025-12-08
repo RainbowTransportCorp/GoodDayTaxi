@@ -1,5 +1,6 @@
 package com.gooddaytaxi.account.infrastructure.config;
 
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -7,6 +8,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.filter.RequestContextFilter;
 
 /**
  * 보안 설정 클래스
@@ -44,4 +46,14 @@ public class SecurityConfig {
             
         return http.build();
     }
+
+    @Bean
+    public FilterRegistrationBean<RequestContextFilter> requestContextFilter() {
+        FilterRegistrationBean<RequestContextFilter> registration = new FilterRegistrationBean<>();
+        registration.setFilter(new RequestContextFilter());
+        registration.setOrder(0); // SecurityFilterChain보다 먼저 실행됨
+        return registration;
+    }
+
+
 }
