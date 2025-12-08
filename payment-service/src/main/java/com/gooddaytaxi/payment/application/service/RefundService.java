@@ -11,6 +11,7 @@ import com.gooddaytaxi.payment.application.port.out.RefundRequestQueryPort;
 import com.gooddaytaxi.payment.application.result.payment.ExternalPaymentConfirmResult;
 import com.gooddaytaxi.payment.application.result.refund.ExternalPaymentCancelResult;
 import com.gooddaytaxi.payment.application.result.refund.RefundCreateResult;
+import com.gooddaytaxi.payment.application.result.refund.RefundReadResult;
 import com.gooddaytaxi.payment.application.validator.PaymentValidator;
 import com.gooddaytaxi.payment.domain.entity.Payment;
 import com.gooddaytaxi.payment.domain.entity.Refund;
@@ -100,5 +101,32 @@ public class RefundService {
 
         ExternalPaymentConfirmResult dto = externalPaymentPort.getPayment(paymentKey);
         return dto.toString();
+    }
+
+    public RefundReadResult getRefund(UUID paymentId, UUID userId, String role) {
+        Payment payment = paymentQueryPort.findById(paymentId).orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+        //권한 체크
+        UserRole userRole = UserRole.of(role);
+        //승객이나 운잔자이면 본인 결제값인지 확인, 관리자는 통과
+        if(userRole == UserRole.PASSENGER) validator.checkPassengerPermission(userId, payment.getPassengerId());
+        else if(userRole == UserRole.DRIVER) validator.checkDriverPermission(userId, payment.getDriverId());
+
+        //환불 정보 가져오기
+        Refund refund = payment.getRefund();
+
+        return new RefundReadResult(
+                refund.getId(),
+                refund.getStatus().name(),
+                refund.getReason().getDescription(),
+                refund.getDetailReason(),
+                refund.getRequestId(),
+                refund.getCanceledAt(),
+                refund.getTransactionKey(),
+                refund.getPgFailReason(),
+                refund.getPayment().getId(),
+                refund.getPayment().getAmount().value(),
+                refund.getCreatedAt(),
+                refund.getUpdatedAt()
+        );
     }
 }

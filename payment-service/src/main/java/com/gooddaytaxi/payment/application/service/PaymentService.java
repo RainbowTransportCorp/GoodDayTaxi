@@ -41,13 +41,28 @@ public class PaymentService {
     @Transactional
     public PaymentCreateResult createPayment(PaymentCreateCommand command) {
         //승객아이디, 운전자아이디, 탑승아이디 검증은 운행에서 받아올 계획이므로 없음
+        UUID tripId = command.tripId();
+
+        //해당 여행 아이디로 이미 결제 청구서가 존재하는지 확인
+        // 대기, 진행중, 실패, 완료된 청구서는 다시 생성 불가
+        //취소되었거나 환불된 청구서는 재생성 가능
+        if(paymentQueryPort.existByTripIdAndNotStatusForCreate(tripId)) {
+            Payment payment = paymentQueryPort.findLastByTripIdAndStatusForCreate(tripId);
+            PaymentStatus status = payment.getStatus();
+            if(status.equals(PaymentStatus.PENDING)
+                    || status.equals(PaymentStatus.IN_PROCESS)
+                    || status.equals(PaymentStatus.FAILED))
+                throw new PaymentException(PaymentErrorCode.DUPLICATE_PAYMENT_EXISTS);
+            else if (status.equals(PaymentStatus.COMPLETED)) throw new PaymentException(PaymentErrorCode.COMPLETED_PAYMENT);
+        }
+//        paymentQueryPort.
         // 금액 검증
         Fare amount = Fare.of(command.amount());
         //결제 수단 검증
         PaymentMethod method = PaymentMethod.of(command.method());
 
         //결제 청구서 생성
-        Payment payment = new Payment(amount,  method, command.passengerId(), command.driverId(), command.tripId());
+        Payment payment = new Payment(amount,  method, command.passengerId(), command.driverId(), tripId);
 
         paymentCommandPort.save(payment);
 
@@ -61,8 +76,7 @@ public class PaymentService {
         //유저의 역할이 승객인지 확인
         validator.checkRolePassenger(UserRole.of(role));
         //운행 아이디로 결제 청구서 조회
-        Payment payment = paymentQueryPort.findByTripId(tripId)
-                .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+        Payment payment = paymentQueryPort.findLastByTripIdAndStatusForCreate(tripId);
 
         log.debug("TossPay Payment found for tripId={}", tripId);
         //해당 승객이 맞는지 확인
@@ -89,8 +103,7 @@ public class PaymentService {
                 command.paymentKey(), command.orderId(), command.amount());
 
         //해당 결제 청구서 조회
-        Payment payment = paymentQueryPort.findByTripId(UUID.fromString(command.orderId().substring(6)))
-                .orElseThrow(() -> new PaymentException(PaymentErrorCode.TRIP_PAYMENT_NOT_FOUND));
+        Payment payment = paymentQueryPort.findLastByTripIdAndStatusForCreate(UUID.fromString(command.orderId().substring(6)));
 
         //결제 수단이 토스페이인지 확인
         validator.checkMethodTossPay(payment.getMethod());

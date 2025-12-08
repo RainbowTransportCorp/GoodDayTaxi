@@ -14,4 +14,8 @@ public interface PaymentQueryPort {
     Optional<Payment> findById(UUID paymentId);
 
     Page<Payment> searchPayments( String method, String status, UUID passeangerId, UUID driverId, UUID tripId, LocalDateTime startDay, LocalDateTime endDay,  Pageable pageable);
+
+    boolean existByTripIdAndNotStatusForCreate(UUID tripId);
+
+    Payment findLastByTripIdAndStatusForCreate(UUID tripId);
 }
