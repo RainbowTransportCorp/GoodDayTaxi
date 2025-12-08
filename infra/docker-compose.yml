@@ -12,6 +12,7 @@ services:
       POSTGRES_USER: ${ACCOUNT_DB_USER}
       POSTGRES_PASSWORD: ${ACCOUNT_DB_PASS}
       POSTGRES_DB: ${ACCOUNT_DB_NAME}
+      POSTGRES_HOST_AUTH_METHOD: trust
     ports:
       - "5433:5432"
     volumes:
@@ -26,6 +27,7 @@ services:
       POSTGRES_USER: ${DISPATCH_DB_USER}
       POSTGRES_PASSWORD: ${DISPATCH_DB_PASS}
       POSTGRES_DB: ${DISPATCH_DB_NAME}
+      POSTGRES_HOST_AUTH_METHOD: trust
     ports:
       - "5434:5432"
     volumes:
@@ -40,6 +42,7 @@ services:
       POSTGRES_USER: ${TRIP_DB_USER}
       POSTGRES_PASSWORD: ${TRIP_DB_PASS}
       POSTGRES_DB: ${TRIP_DB_NAME}
+      POSTGRES_HOST_AUTH_METHOD: trust
     ports:
       - "5435:5432"
     volumes:
@@ -54,6 +57,7 @@ services:
       POSTGRES_USER: ${PAYMENT_DB_USER}
       POSTGRES_PASSWORD: ${PAYMENT_DB_PASS}
       POSTGRES_DB: ${PAYMENT_DB_NAME}
+      POSTGRES_HOST_AUTH_METHOD: trust
     ports:
       - "5436:5432"
     volumes:
@@ -68,6 +72,7 @@ services:
       POSTGRES_USER: ${SUPPORT_DB_USER}
       POSTGRES_PASSWORD: ${SUPPORT_DB_PASS}
       POSTGRES_DB: ${SUPPORT_DB_NAME}
+      POSTGRES_HOST_AUTH_METHOD: trust
     ports:
       - "5437:5432"
     volumes:

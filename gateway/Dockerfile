@@ -11,7 +11,8 @@ COPY settings.gradle .
 COPY src ./src
 
 RUN chmod +x gradlew
-RUN ./gradlew clean bootJar --no-daemon
+# mavenLocal/cache 오염을 무시하고 dependencies를 강제로 다시 다운로드함
+RUN ./gradlew clean --refresh-dependencies bootJar --no-daemon
 
 # ============================
 # 2) Run Stage

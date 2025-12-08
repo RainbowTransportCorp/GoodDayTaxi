@@ -12,8 +12,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Date;
 
 /**
@@ -83,10 +81,11 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
             SecretKey key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey));
             
             return Jwts.parser()
-                    .setSigningKey(key)
-                    .parseClaimsJws(token)
-                    .getBody();
-                    
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+
         } catch (ExpiredJwtException e) {
             log.warn("만료된 JWT 토큰: {}", e.getMessage());
             throw new AccountBusinessException(AccountErrorCode.EXPIRED_REFRESH_TOKEN);
