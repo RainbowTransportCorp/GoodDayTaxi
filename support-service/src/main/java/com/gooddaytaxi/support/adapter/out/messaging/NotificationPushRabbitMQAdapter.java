@@ -20,20 +20,14 @@ import java.util.UUID;
 public class NotificationPushRabbitMQAdapter implements NotificationPushMessagingPort {
 
     private final RabbitTemplate rabbitTemplate;
-    private final NotificationPushMessagingPort notificationPushMessagingPort;
 
     @Override
     public void send(List<UUID> receivers, String title, String body) {
         // RabbitMQ Queue에 메시지 Push
         rabbitTemplate.convertAndSend(
                 RabbitMQConfig.EXCHANGE,
-                RabbitMQConfig.ROUTING_KEY,
+                RabbitMQConfig.DISPATCH_ROUTING_KEY,
                 new PushMessage(receivers, title, body)
         );
-
-        // Queue에서 메시지 취득하여 Slack에 알림
-
-
-
     }
 }

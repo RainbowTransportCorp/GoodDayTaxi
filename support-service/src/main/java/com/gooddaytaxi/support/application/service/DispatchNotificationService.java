@@ -1,9 +1,9 @@
 package com.gooddaytaxi.support.application.service;
 
-import com.gooddaytaxi.support.adapter.out.external.http.dto.UserInfo;
+import com.gooddaytaxi.support.adapter.out.internal.account.dto.UserInfo;
 import com.gooddaytaxi.support.application.dto.CreateCallCommand;
 import com.gooddaytaxi.support.application.dto.DispatchAcceptCommand;
-import com.gooddaytaxi.support.application.port.in.account.AccountDomainCommunicationPort;
+import com.gooddaytaxi.support.application.port.out.internal.account.AccountDomainCommunicationPort;
 import com.gooddaytaxi.support.application.port.in.dispatch.AcceptDispatchUsecase;
 import com.gooddaytaxi.support.application.port.in.dispatch.RequestCallUsecase;
 import com.gooddaytaxi.support.application.port.out.external.NotificationAlertExternalPort;
@@ -47,9 +47,9 @@ public class DispatchNotificationService implements RequestCallUsecase, AcceptDi
         notificationCommandPersistencePort.save(noti);
 
         List<UUID> receivers = new ArrayList<>();
-        String messageTitle = "새로운 콜 요청이 도착했습니다!";
-        receivers.add(noti.getDriverId());
-        receivers.add(noti.getPassengerId());
+        receivers.add(command.getDriverId());
+        receivers.add(command.getPassengerId());
+        String messageTitle = "\uD83D\uDE95 새로운 콜 요청이 도착했습니다!";
 
         // RabbitMQ로 driver, passenger에게 알림 Push
         notificationPushMessagingPort.send(receivers, messageTitle, noti.getMessage());
@@ -57,7 +57,10 @@ public class DispatchNotificationService implements RequestCallUsecase, AcceptDi
         // Push 알림: Slack, FCM 등
 //        PushMessage message = new PushMessage(receivers, messageTitle, noti.getMessage());
         UserInfo driver = accountDomainCommunicationPort.getUserInfo(receivers.get(0));
-        notificationAlertExternalPort.sendCallRequest(driver.slackUserId(), receivers, messageTitle, noti.getMessage());
+        List<String> slackReceivers = new ArrayList<>();
+        slackReceivers.add(driver.slackUserId());
+            // slack
+        notificationAlertExternalPort.sendCallRequest(slackReceivers, messageTitle, noti.getMessage());
 
         // 로그
         log.info("\uD83D\uDCE2 [CALL-REQUEST] dispatchId={}, driverId={}, passengerId={} >>> {}",
