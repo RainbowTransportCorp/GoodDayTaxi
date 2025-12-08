@@ -9,7 +9,7 @@ import java.util.UUID;
  */
 @Getter
 public class CreateCallCommand extends Command{
-    private final UUID dispatchId;
+//    private final UUID dispatchId;
     private final UUID driverId;
     private final UUID passengerId;
     private final String pickupAddress;
@@ -17,12 +17,12 @@ public class CreateCallCommand extends Command{
 
     private CreateCallCommand(
             UUID notificationOriginId, UUID notifierId,
-            UUID dispatchId, UUID driverId, UUID passengerId,
+            UUID driverId, UUID passengerId,
             String pickupAddress, String destinationAddress,
             String message
     ) {
         super(notificationOriginId, notifierId, message);
-        this.dispatchId = dispatchId;
+//        this.dispatchId = dispatchId;
         this.driverId = driverId;
         this.passengerId = passengerId;
         this.pickupAddress = pickupAddress;
@@ -30,10 +30,10 @@ public class CreateCallCommand extends Command{
     }
     public static CreateCallCommand create(
             UUID notificationOriginId, UUID notifierId,
-            UUID dispatchId, UUID driverId, UUID passengerId,
+            UUID driverId, UUID passengerId,
             String pickupAddress, String destinationAddress,
             String message
     ) {
-        return new CreateCallCommand(notificationOriginId, notifierId, dispatchId, driverId, passengerId, pickupAddress, destinationAddress, message);
+        return new CreateCallCommand(notificationOriginId, notifierId, driverId, passengerId, pickupAddress, destinationAddress, message);
     }
 }

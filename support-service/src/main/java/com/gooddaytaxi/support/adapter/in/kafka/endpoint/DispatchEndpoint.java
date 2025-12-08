@@ -21,7 +21,7 @@ public class DispatchEndpoint {
 //        DispatchCallRequestReq req = DispatchCallRequestReq.from(message);
         CreateCallCommand command = CreateCallCommand.create(
                 req.notificationOriginId(), req.notifierId(),
-                req.dispatchId(), req.driverId(), req.passengerId(),
+                req.driverId(), req.passengerId(),
                 req.pickupAddress(), req.destinationAddress(),
                 req.message());
 

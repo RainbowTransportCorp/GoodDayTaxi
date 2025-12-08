@@ -11,7 +11,7 @@ import java.util.UUID;
 public record DispatchCallRequestReq (
     UUID notificationOriginId,
     UUID notifierId,
-    UUID dispatchId,
+//    UUID dispatchId,
     UUID driverId,
     UUID passengerId,
     String pickupAddress,
