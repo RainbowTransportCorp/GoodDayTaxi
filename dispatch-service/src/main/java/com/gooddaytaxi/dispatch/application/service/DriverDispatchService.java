@@ -5,6 +5,7 @@ import com.gooddaytaxi.dispatch.application.commend.DispatchRejectCommand;
 import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
 import com.gooddaytaxi.dispatch.application.result.*;
+import com.gooddaytaxi.dispatch.application.validator.DispatchDriverPermissionValidator;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ public class DriverDispatchService {
 
     private final DispatchQueryPort dispatchQueryPort;
 
+    private final DispatchDriverPermissionValidator dispatchDriverPermissionValidator;
 
     /**
      * 배차 대기 (ASSIGNING) 상태 콜 조회 (기사)
@@ -66,7 +68,7 @@ public class DriverDispatchService {
      */
     public DispatchAcceptResult accept(DispatchAcceptCommand command) {
 
-        //권한 검증 로직 추가
+        dispatchDriverPermissionValidator.validate(command.getRole());
 
         log.info("[Accept] 콜 수락 요청 수신 - driverId={}, dispatchId={}",
                 command.getDriverId(), command.getDispatchId());

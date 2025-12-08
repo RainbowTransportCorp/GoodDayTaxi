@@ -4,9 +4,7 @@ import com.gooddaytaxi.dispatch.application.commend.DispatchCancelCommand;
 import com.gooddaytaxi.dispatch.application.commend.DispatchCreateCommand;
 import com.gooddaytaxi.dispatch.application.event.payload.DispatchCreatedPayload;
 import com.gooddaytaxi.dispatch.application.event.payload.DispatchRequestedPayload;
-import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchAssignmentLogCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchCommandPort;
-import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchHistoryCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
 import com.gooddaytaxi.dispatch.application.result.DispatchCancelResult;
 import com.gooddaytaxi.dispatch.application.result.DispatchCreateResult;
@@ -16,6 +14,10 @@ import com.gooddaytaxi.dispatch.application.validator.DispatchCreatePermissionVa
 import com.gooddaytaxi.dispatch.application.validator.DispatchPassengerPermissionValidator;
 import com.gooddaytaxi.dispatch.application.validator.UserRole;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
+import com.gooddaytaxi.dispatch.domain.model.entity.DispatchAssignmentLog;
+import com.gooddaytaxi.dispatch.domain.model.entity.DispatchHistory;
+import com.gooddaytaxi.dispatch.domain.model.enums.ChangedBy;
+import com.gooddaytaxi.dispatch.domain.model.enums.DispatchDomainEventType;
 import com.gooddaytaxi.dispatch.infrastructure.outbox.publisher.DispatchCreatedEventPublisher;
 import com.gooddaytaxi.dispatch.infrastructure.outbox.publisher.DispatchRequestedEventPublisher;
 import lombok.RequiredArgsConstructor;
@@ -34,8 +36,6 @@ import java.util.UUID;
 public class PassengerDispatchService {
 
     private final DispatchCommandPort dispatchCommandPort;
-    private final DispatchHistoryCommandPort dispatchHistoryCommandPort;
-    private final DispatchAssignmentLogCommandPort dispatchAssignmentCommandPort;
 
     private final DispatchQueryPort dispatchQueryPort;
 
@@ -65,10 +65,15 @@ public class PassengerDispatchService {
         Dispatch saved = dispatchCommandPort.save(entity);
 
         // 4. 히스토리 기록 (REQUESTED)
-        dispatchHistoryCommandPort.recordStatusChange(saved);
+        DispatchHistory.recordStatusChange(
+                saved.getDispatchId(),
+                DispatchDomainEventType.CREATED.name(),
+                null,                      // fromStatus
+                saved.getDispatchStatus(), // toStatus = REQUESTED
+                ChangedBy.PASSENGER,
+                null
+                );
 
-        // 5. 시도 로그 저장
-        dispatchAssignmentCommandPort.createAssignmentLog(saved);
 
         log.info("저장 완료: dispatchId={} / status={}",
                 saved.getDispatchId(), saved.getDispatchStatus());
@@ -82,6 +87,9 @@ public class PassengerDispatchService {
 
         //임시로 기사 id 발생
         UUID randomDriverId = UUID.randomUUID();
+
+        // 시도 로그 저장
+        DispatchAssignmentLog.create(saved.getDispatchId(), saved.getDriverId());
 
         // 7. support 쪽에 '콜 생성했으니 기사에게 알림을 보내세요'용 Requested 이벤트 발행
         dispatchRequestedEventPublisher.save(
