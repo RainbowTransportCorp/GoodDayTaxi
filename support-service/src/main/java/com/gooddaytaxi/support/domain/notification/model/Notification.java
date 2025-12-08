@@ -7,6 +7,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -15,6 +16,7 @@ import java.util.UUID;
 /**
  * 알림 Entity - 시스템에서 발생하는 주요 이벤트 기반 알림
  */
+@EntityListeners(AuditingEntityListener.class)
 @Entity
 @Table(name="p_support_notifications")
 @Getter
@@ -36,7 +38,7 @@ public class Notification extends BaseEntity {
 
     @Column(name = "notificiation_type", nullable = false)
     @Enumerated(EnumType.STRING)
-    private NotificationType notificiationType;
+    private NotificationType notificationType;
 
     @Column(name = "dispatch_id")
     private UUID dispatchId;
@@ -83,20 +85,20 @@ public class Notification extends BaseEntity {
      *
      * @param notifierId 알림 생성자
      * @param notificationOriginId 알림 생성 근원 도메인 ID
-     * @param notificiationType 알림 타입
+     * @param notificationType 알림 타입
      * @param message 알림 메시지
      */
 //    @Builder
-    private Notification(UUID notifierId, UUID notificationOriginId, NotificationType notificiationType, String message) {
+    private Notification(UUID notifierId, UUID notificationOriginId, NotificationType notificationType, String message) {
         this.notifierId = notifierId;
         this.notificationOriginId = notificationOriginId;
-        this.notificiationType = notificiationType;
+        this.notificationType = notificationType;
         this.message = (message == null || message.isBlank()) ? null : message;
         this.isRead = false;
         this.notifiedAt = LocalDateTime.now();
     }
-    public static Notification from(Command command, NotificationType notificiationType) {
-        return new Notification(command.getNotifierId(), command.getNotificationOriginId(), notificiationType, command.getMessage());
+    public static Notification from(Command command, NotificationType notificationType) {
+        return new Notification(command.getNotifierId(), command.getNotificationOriginId(), notificationType, command.getMessage());
     }
 
 

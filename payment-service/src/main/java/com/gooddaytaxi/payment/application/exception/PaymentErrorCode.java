@@ -35,6 +35,9 @@ public enum PaymentErrorCode {
 
     //409 — CONFLICT
     PAYMENT_STATUS_INVALID(HttpStatus.CONFLICT, "P017", "현재 결제 상태에서는 요청한 작업을 수행할 수 없습니다"),
+    DUPLICATE_PAYMENT_EXISTS(HttpStatus.CONFLICT, "P018", "이미 진행중인 결제 청구서가 있습니다"),
+    COMPLETED_PAYMENT(HttpStatus.CONFLICT, "P019", "이미 완료된 결제 청구서가 있습니다"),
+
 
     //502 — BAD_GATEWAY
     TOSSPAY_CONFIRM_FAILED(HttpStatus.BAD_GATEWAY, "P018", "토스페이 결제 승인 요청이 실패했습니다"),

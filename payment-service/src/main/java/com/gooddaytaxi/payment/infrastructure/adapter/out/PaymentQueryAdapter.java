@@ -32,4 +32,14 @@ public class PaymentQueryAdapter implements PaymentQueryPort {
         return paymentRepository.searchPayments(method, status, passeangerId, driverId, tripId, startDay, endDay, pageable);
     }
 
+    @Override
+    public boolean existByTripIdAndNotStatusForCreate(UUID tripId) {
+        return paymentRepository.existByTripIdAndNotStatusForCreate(tripId);
+    }
+
+    @Override
+    public Payment findLastByTripIdAndStatusForCreate(UUID tripId) {
+        return paymentRepository.findLastByTripIdAndStatusForCreate(tripId);
+    }
+
 }

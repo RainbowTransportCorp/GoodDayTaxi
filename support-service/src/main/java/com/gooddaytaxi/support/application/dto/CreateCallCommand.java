@@ -9,11 +9,11 @@ import java.util.UUID;
  */
 @Getter
 public class CreateCallCommand extends Command{
-    private UUID dispatchId;
-    private UUID driverId;
-    private UUID passengerId;
-    private String pickupAddress;
-    private String destinationAddress;
+    private final UUID dispatchId;
+    private final UUID driverId;
+    private final UUID passengerId;
+    private final String pickupAddress;
+    private final String destinationAddress;
 
     private CreateCallCommand(
             UUID notificationOriginId, UUID notifierId,
