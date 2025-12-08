@@ -1,5 +1,6 @@
 package com.gooddaytaxi.payment.domain.entity;
 
+import com.gooddaytaxi.common.jpa.model.BaseEntity;
 import com.gooddaytaxi.payment.domain.enums.RefundReason;
 import com.gooddaytaxi.payment.domain.enums.RefundStatus;
 import jakarta.persistence.*;
@@ -13,7 +14,7 @@ import java.util.UUID;
 @Getter
 @Table(name="p_refunds")
 @NoArgsConstructor
-public class Refund {
+public class Refund extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "refund_id")
@@ -32,6 +33,7 @@ public class Refund {
     private UUID requestId;  //환불 요청 ID
 
     private LocalDateTime canceledAt; //환불 승인 시간
+
     private String transactionKey; //환불 거래 고유 키
 
     private String pgFailReason; //환불 실패 사유
