@@ -47,7 +47,8 @@ public class UserValidationService {
                     command.getRole(),
                     command.getVehicleNumber(),
                     command.getVehicleType(), 
-                    command.getVehicleColor()
+                    command.getVehicleColor(),
+                    command.getSlackId()
                 ));
     }
 }

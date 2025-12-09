@@ -52,6 +52,7 @@ public class AuthController {
                 .password(request.getPassword())
                 .name(request.getName())
                 .phoneNumber(request.getPhoneNumber())
+                .slackId(request.getSlackId())
                 .role(request.getRole())
                 .vehicleNumber(request.getVehicleNumber())
                 .vehicleType(request.getVehicleType())
