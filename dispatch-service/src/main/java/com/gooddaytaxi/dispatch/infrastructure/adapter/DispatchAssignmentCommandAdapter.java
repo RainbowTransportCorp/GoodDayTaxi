@@ -1,6 +1,6 @@
 package com.gooddaytaxi.dispatch.infrastructure.adapter;
 
-import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchAssignmentCommandPort;
+import com.gooddaytaxi.dispatch.application.port.out.command.DispatchAssignmentCommandPort;
 import com.gooddaytaxi.dispatch.domain.model.entity.DispatchAssignmentLog;
 import com.gooddaytaxi.dispatch.domain.repository.DispatchAssignmentRepository;
 import lombok.RequiredArgsConstructor;

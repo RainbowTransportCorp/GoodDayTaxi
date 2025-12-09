@@ -35,9 +35,8 @@ public class DriverDispatchController {
      */
     @GetMapping("/pending")
     public ResponseEntity<ApiResponse<List<DispatchPendingListResponseDto>>> getPendingDispatches(
-            //            ,@RequestHeader(value = "x-user-uuid", required = false) UUID userId
+                        @RequestHeader(value = "x-user-uuid", required = false) UUID userId
     ) {
-        UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000011");
         List<DispatchPendingListResult> dispatchPendingListResults =
                 driverDispatchService.getDriverPendingDispatch(userId);
 

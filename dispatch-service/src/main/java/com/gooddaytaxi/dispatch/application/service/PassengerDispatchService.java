@@ -3,8 +3,9 @@ package com.gooddaytaxi.dispatch.application.service;
 import com.gooddaytaxi.dispatch.application.commend.DispatchCancelCommand;
 import com.gooddaytaxi.dispatch.application.commend.DispatchCreateCommand;
 import com.gooddaytaxi.dispatch.application.event.payload.DispatchRequestedPayload;
-import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchCommandPort;
-import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchHistoryCommandPort;
+import com.gooddaytaxi.dispatch.application.port.out.command.DispatchCommandPort;
+import com.gooddaytaxi.dispatch.application.port.out.command.DispatchHistoryCommandPort;
+import com.gooddaytaxi.dispatch.application.port.out.command.DispatchRequestedCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
 import com.gooddaytaxi.dispatch.application.port.out.query.DriverSelectionQueryPort;
 import com.gooddaytaxi.dispatch.application.result.DispatchCancelResult;
@@ -37,11 +38,11 @@ public class PassengerDispatchService {
 
     private final DispatchCommandPort dispatchCommandPort;
     private final DispatchHistoryCommandPort dispatchHistoryCommandPort;
+    private final DispatchRequestedCommandPort dispatchRequestedCommandPort;
 
     private final DispatchQueryPort dispatchQueryPort;
     private final DriverSelectionQueryPort driverSelectionQueryPort;
 
-    private final DispatchRequestedEventPublisher dispatchRequestedEventPublisher;
 
     private final DispatchCreatePermissionValidator dispatchCreatePermissionValidator;
     private final DispatchPassengerPermissionValidator dispatchPassengerPermissionValidator;
@@ -83,7 +84,7 @@ public class PassengerDispatchService {
 
 
         // 6. 기사 조회 -> 페인 entity 조회로 로직 변경 (이벤트 x)
-        driverSelectionQueryPort.selectCandidateDriver(saved);
+//        driverSelectionQueryPort.selectCandidateDriver(saved);
 
         //임시로 기사 id 발생
         UUID randomDriverId = UUID.randomUUID();
@@ -92,7 +93,7 @@ public class PassengerDispatchService {
         DispatchAssignmentLog.create(saved.getDispatchId(), saved.getDriverId());
 
         // 7. support 쪽에 '콜 생성했으니 기사에게 알림을 보내세요'용 Requested 이벤트 발행
-        dispatchRequestedEventPublisher.save(
+        dispatchRequestedCommandPort.publishRequested(
                 DispatchRequestedPayload.from(
                         saved.getDispatchId(),
                         saved.getPassengerId(),

@@ -3,9 +3,10 @@ package com.gooddaytaxi.dispatch.application.service;
 import com.gooddaytaxi.dispatch.application.commend.DispatchAcceptCommand;
 import com.gooddaytaxi.dispatch.application.commend.DispatchRejectCommand;
 import com.gooddaytaxi.dispatch.application.event.payload.DispatchAcceptedPayload;
-import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchAssignmentCommandPort;
-import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchCommandPort;
-import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchHistoryCommandPort;
+import com.gooddaytaxi.dispatch.application.port.out.command.DispatchAcceptedCommandPort;
+import com.gooddaytaxi.dispatch.application.port.out.command.DispatchAssignmentCommandPort;
+import com.gooddaytaxi.dispatch.application.port.out.command.DispatchCommandPort;
+import com.gooddaytaxi.dispatch.application.port.out.command.DispatchHistoryCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
 import com.gooddaytaxi.dispatch.application.result.*;
 import com.gooddaytaxi.dispatch.application.validator.DispatchDriverPermissionValidator;
@@ -35,6 +36,8 @@ public class DriverDispatchService {
     private final DispatchAssignmentCommandPort dispatchAssignmentCommandPort;
 
     private final DispatchQueryPort dispatchQueryPort;
+
+    private final DispatchAcceptedCommandPort dispatchAcceptedCommandPort;
 
     private final DispatchDriverPermissionValidator dispatchDriverPermissionValidator;
 
@@ -118,7 +121,7 @@ public class DriverDispatchService {
         dispatchCommandPort.save(dispatch);
 
         // === 이벤트 발행 (Outbox) ===
-        dispatchAcceptedEventPublisher.save(
+        dispatchAcceptedCommandPort.publishAccepted(
                 DispatchAcceptedPayload.from(dispatch, command.getDriverId())
         );
 
