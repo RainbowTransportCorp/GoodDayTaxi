@@ -15,6 +15,8 @@ import com.gooddaytaxi.account.presentation.dto.RefreshTokenResponse;
 import com.gooddaytaxi.account.presentation.dto.SignupRequest;
 import com.gooddaytaxi.account.presentation.dto.SignupResponse;
 import com.gooddaytaxi.common.core.dto.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * 인증 관련 REST API 컨트롤러
  */
+@Tag(name = "인증", description = "회원가입, 로그인, 토큰 재발급 API")
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -38,13 +41,7 @@ public class AuthController {
     private final LoginUserUseCase loginUserUseCase;
     private final RefreshTokenUseCase refreshTokenUseCase;
 
-    /**
-     * 사용자 회원가입 API
-     *
-     * @param request 회원가입 요청 데이터 (이메일, 비밀번호, 이름, 전화번호, 역할, 차량정보)
-     * @return 201 Created - 생성된 사용자 ID 포함 응답
-     * @throws BusinessException 이메일 중복, 차량정보 누락, 차량번호 중복 시 발생
-     */
+    @Operation(summary = "회원가입", description = "새 사용자를 등록합니다. 기사인 경우 차량 정보가 필수입니다.")
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<SignupResponse>> signup(@Valid @RequestBody SignupRequest request) {
         UserSignupCommand command = UserSignupCommand.builder()
@@ -66,13 +63,7 @@ public class AuthController {
                 .body(ApiResponse.success(response, "회원가입이 완료되었습니다."));
     }
 
-    /**
-     * 사용자 로그인 API
-     *
-     * @param request 로그인 요청 데이터 (이메일, 비밀번호)
-     * @return 200 OK - JWT 토큰과 사용자 정보 포함 응답
-     * @throws BusinessException 인증 실패 시 발생
-     */
+    @Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인하여 JWT 토큰을 발급받습니다.")
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
         UserLoginCommand command = new UserLoginCommand(request.getEmail(), request.getPassword());
@@ -83,13 +74,7 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success(response, "로그인이 완료되었습니다."));
     }
 
-    /**
-     * 토큰 재발급 API
-     *
-     * @param request 리프레시 토큰 요청 데이터
-     * @return 200 OK - 새로운 Access Token과 Refresh Token 포함 응답
-     * @throws BusinessException 토큰이 유효하지 않거나 만료된 경우 발생
-     */
+    @Operation(summary = "토큰 재발급", description = "리프레시 토큰을 사용해 새로운 액세스 토큰과 리프레시 토큰을 발급받습니다.")
     @PostMapping("/refresh-token")
     public ResponseEntity<ApiResponse<RefreshTokenResponse>> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
         RefreshTokenCommand command = new RefreshTokenCommand(request.getRefreshToken());
