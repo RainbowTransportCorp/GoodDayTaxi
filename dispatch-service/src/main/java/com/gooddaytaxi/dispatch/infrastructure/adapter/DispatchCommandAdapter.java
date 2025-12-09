@@ -1,6 +1,6 @@
 package com.gooddaytaxi.dispatch.infrastructure.adapter;
 
-import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchCommandPort;
+import com.gooddaytaxi.dispatch.application.port.out.command.DispatchCommandPort;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
 import com.gooddaytaxi.dispatch.domain.repository.DispatchRepository;
 import lombok.RequiredArgsConstructor;

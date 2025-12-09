@@ -68,6 +68,11 @@ public class JpaUserRepository implements UserReadRepository, UserWriteRepositor
     public List<User> findAll() {
         return userJpaRepository.findAll();
     }
+    
+    @Override
+    public List<User> findByRoleAndStatusAndDeletedAtIsNull(UserRole role, UserStatus status) {
+        return userJpaRepository.findByRoleAndStatusAndDeletedAtIsNull(role, status);
+    }
 
     // UserWriteRepository 구현
     @Override

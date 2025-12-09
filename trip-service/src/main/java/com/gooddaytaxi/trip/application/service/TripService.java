@@ -10,6 +10,7 @@ import com.gooddaytaxi.trip.domain.model.Trip;
 import com.gooddaytaxi.trip.domain.model.enums.TripStatus;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,6 +25,7 @@ public class TripService {
     private final LoadTripByIdPort loadTripByIdPort;
     private final UpdateTripPort updateTripPort;
     private final LoadTripsByPassengerPort loadTripsByPassengerPort;
+    private final LoadTripsByDriverPort loadTripsByDriverPort;
 
 
     @Transactional
@@ -125,6 +127,27 @@ public class TripService {
                 items
         );
     }
+
+    public DriverTripHistoryResult getDriverTripHistory(UUID driverId, int page, int size) {
+
+        Page<Trip> tripPage = loadTripsByDriverPort.loadTripsByDriverId(driverId, page, size);
+
+        var items = tripPage.getContent().stream()
+                .map(TripHistoryItem::from)  // Trip → TripHistoryItem 변환
+                .toList();
+
+        return new DriverTripHistoryResult(
+                driverId,
+                tripPage.getTotalElements(),
+                page,
+                size,
+                items
+        );
+    }
+
+
+
+
 
 
 

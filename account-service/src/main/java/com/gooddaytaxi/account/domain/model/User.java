@@ -35,6 +35,9 @@ public class User extends BaseEntity {
 
     @Column(name = "phone_number", nullable = false, length = 20)
     private String phoneNumber;
+    
+    @Column(name = "slack_id", length = 50)
+    private String slackId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false, length = 10)
@@ -58,14 +61,16 @@ public class User extends BaseEntity {
      * @param password 암호화된 비밀번호
      * @param name 사용자 이름
      * @param phoneNumber 전화번호
+     * @param slackId 슬랙 ID (선택)
      * @param role 사용자 역할 (PASSENGER/DRIVER/ADMIN)
      */
     @Builder
-    public User(String email, String password, String name, String phoneNumber, UserRole role) {
+    public User(String email, String password, String name, String phoneNumber, String slackId, UserRole role) {
         this.email = email;
         this.password = password;
         this.name = name;
         this.phoneNumber = phoneNumber;
+        this.slackId = slackId;
         this.role = role;
         this.status = UserStatus.ACTIVE;
     }

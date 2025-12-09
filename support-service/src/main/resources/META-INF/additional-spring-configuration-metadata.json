@@ -39,5 +39,30 @@
       "name": "zipkin.port",
       "type": "java.lang.String",
       "description": "Description for zipkin.port."
+    },
+    {
+      "name": "rabbitmq.port",
+      "type": "java.lang.String",
+      "description": "Description for rabbitmq.port."
+    },
+    {
+      "name": "rabbitmq.user",
+      "type": "java.lang.String",
+      "description": "Description for rabbitmq.user."
+    },
+    {
+      "name": "rabbitmq.password",
+      "type": "java.lang.String",
+      "description": "Description for rabbitmq.password."
+    },
+    {
+      "name": "rabbitmq.externalhost",
+      "type": "java.lang.String",
+      "description": "Description for rabbitmq.externalhost."
+    },
+    {
+      "name": "rabbitmq.internalhost",
+      "type": "java.lang.String",
+      "description": "Description for rabbitmq.internalhost."
     }
   ] }

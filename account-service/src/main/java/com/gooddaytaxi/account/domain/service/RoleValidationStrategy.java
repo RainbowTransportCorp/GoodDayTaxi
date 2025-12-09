@@ -22,7 +22,8 @@ public interface RoleValidationStrategy {
      * @param vehicleNumber 차량번호 (기사인 경우 필수)
      * @param vehicleType 차량종류 (기사인 경우 필수)
      * @param vehicleColor 차량색상 (기사인 경우 필수)
+     * @param slackId 슬랙 ID (승객, 기사인 경우 필수)
      * @throws BusinessException 검증 실패 시
      */
-    void validate(UserRole userRole, String vehicleNumber, String vehicleType, String vehicleColor);
+    void validate(UserRole userRole, String vehicleNumber, String vehicleType, String vehicleColor, String slackId);
 }

@@ -27,7 +27,8 @@ public enum AccountErrorCode implements ErrorCode {
     ACCOUNT_SUSPENDED(ErrorLevel.FORBIDDEN, "ACC009", "계정이 정지된 상태입니다"),
     PROFILE_UPDATE_RESTRICTED(ErrorLevel.FORBIDDEN, "ACC010", "프로필 수정 권한이 없습니다"),
     DRIVER_LICENSE_EXPIRED(ErrorLevel.BAD_REQUEST, "ACC011", "운전면허가 만료되었습니다"),
-    VEHICLE_REGISTRATION_REQUIRED(ErrorLevel.BAD_REQUEST, "ACC012", "차량 등록이 필요합니다");
+    VEHICLE_REGISTRATION_REQUIRED(ErrorLevel.BAD_REQUEST, "ACC012", "차량 등록이 필요합니다"),
+    SLACK_ID_REQUIRED(ErrorLevel.BAD_REQUEST, "ACC015", "슬랙 ID는 필수입니다");
     
     private final ErrorLevel level;
     private final String code;

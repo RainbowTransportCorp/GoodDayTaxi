@@ -11,5 +11,8 @@ public interface TripJpaRepository extends JpaRepository<Trip, UUID> {
 
     Page<Trip> findByPassengerId(UUID passengerId, Pageable pageable);
 
+    Page<Trip> findByDriverIdOrderByStartTimeDesc(UUID driverId, Pageable pageable);
+
+
 
 }

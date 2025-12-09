@@ -86,4 +86,13 @@ public interface UserReadRepository {
      * @return 모든 사용자 목록
      */
     List<User> findAll();
+    
+    /**
+     * 특정 역할과 상태를 가진 삭제되지 않은 사용자 목록 조회
+     *
+     * @param role 사용자 역할
+     * @param status 사용자 상태
+     * @return 해당 조건의 사용자 목록
+     */
+    List<User> findByRoleAndStatusAndDeletedAtIsNull(UserRole role, UserStatus status);
 }
