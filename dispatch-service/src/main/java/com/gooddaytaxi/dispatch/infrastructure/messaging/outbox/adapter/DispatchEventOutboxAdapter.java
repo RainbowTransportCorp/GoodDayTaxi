@@ -6,6 +6,7 @@ import com.gooddaytaxi.dispatch.infrastructure.messaging.outbox.entity.DispatchE
 import com.gooddaytaxi.dispatch.infrastructure.messaging.outbox.repository.DispatchEventJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -35,6 +36,10 @@ public class DispatchEventOutboxAdapter implements DispatchEventOutboxPort {
     public List<OutboxEventModel> findPending(int limit) {
         List<DispatchEvent> events =  repository.findPending(limit);
 
+        events.forEach(e ->
+                System.out.println("[DEBUG] EVENT ENTITY ID = " + e.getEventId())
+        );
+
         return events.stream()
                 .map(e -> new OutboxEventModel(
                         e.getEventId(),
@@ -50,6 +55,7 @@ public class DispatchEventOutboxAdapter implements DispatchEventOutboxPort {
     }
 
     @Override
+    @Transactional
     public void markPublished(UUID eventId) {
         repository.updateStatusPublished(eventId);
     }

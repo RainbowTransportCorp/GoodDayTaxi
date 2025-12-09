@@ -38,11 +38,11 @@ public class OutboxRelay {
                 outboxPort.markPublished(event.eventId());
 
                 log.info("[DISPATCH-OUTBOX-RELAYED] id={} topic={} eventType={}",
-                        event.aggregateId(), event.topic(), event.eventType());
+                        event.eventId(), event.topic(), event.eventType());
 
             } catch (Exception ex) {
                 log.error("[DISPATCH-OUTBOX-ERROR] id={} topic={} error={}",
-                        event.aggregateId(), event.topic(), ex.getMessage());
+                        event.eventId(), event.topic(), ex.getMessage());
             }
         }
     }
