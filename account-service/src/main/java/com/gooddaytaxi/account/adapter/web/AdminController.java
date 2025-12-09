@@ -11,6 +11,8 @@ import com.gooddaytaxi.account.application.usecase.ChangeUserStatusUseCase;
 import com.gooddaytaxi.account.application.usecase.GetAllUsersUseCase;
 import com.gooddaytaxi.account.application.usecase.GetUserDetailUseCase;
 import com.gooddaytaxi.common.core.dto.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+@Tag(name = "관리자", description = "관리자 전용 사용자 관리 API")
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/admin")
@@ -31,6 +34,7 @@ public class AdminController {
     private final ChangeUserStatusUseCase changeUserStatusUseCase;
     private final AdminDeleteUserUseCase adminDeleteUserUseCase;
     
+    @Operation(summary = "전체 사용자 조회", description = "관리자가 전체 사용자 목록을 조회합니다.")
     @GetMapping("/users")
     public ResponseEntity<ApiResponse<List<AdminUserListResponse>>> getAllUsers(
             @RequestHeader("X-User-Role") String requestUserRole) {
@@ -44,6 +48,7 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.success(response, "전체 사용자 조회가 완료되었습니다."));
     }
     
+    @Operation(summary = "사용자 상세 조회", description = "관리자가 특정 사용자의 상세 정보를 조회합니다.")
     @GetMapping("/users/{userId}")
     public ResponseEntity<ApiResponse<AdminUserDetailResponse>> getUserDetail(
             @RequestHeader("X-User-Role") String requestUserRole,
@@ -59,6 +64,7 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.success(response, "사용자 상세 조회가 완료되었습니다."));
     }
     
+    @Operation(summary = "사용자 상태 변경", description = "관리자가 사용자의 활성/비활성 상태를 변경합니다.")
     @PatchMapping("/users/{userId}/status")
     public ResponseEntity<ApiResponse<ChangeUserStatusResponse>> changeUserStatus(
             @RequestHeader("X-User-Role") String requestUserRole,
@@ -76,6 +82,7 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.success(response, "사용자 상태 변경이 완료되었습니다."));
     }
     
+    @Operation(summary = "사용자 삭제", description = "관리자가 사용자를 삭제 처리합니다.")
     @PatchMapping("/users/{userId}/delete")
     public ResponseEntity<ApiResponse<DeleteUserResponse>> deleteUser(
             @RequestHeader("X-User-Role") String requestUserRole,

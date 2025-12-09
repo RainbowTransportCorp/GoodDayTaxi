@@ -4,13 +4,15 @@ server:
 spring:
   profiles:
     active: ${profiles.active}
+
   config:
     import: secrets.yaml
+
   application:
     name: support-service
 
   datasource:
-    url: jdbc:postgresql://localhost:5437/${postgres.db}
+    url: jdbc:postgresql://${postgres.host.local:localhost}:5437/${postgres.db}
     driver-class-name: org.postgresql.Driver
     username: ${postgres.user}
     password: ${postgres.password}
@@ -24,7 +26,7 @@ spring:
         show_sql: true
 
   kafka:
-    bootstrap-servers: localhost:${KAFKA_PORT}
+    bootstrap-servers: ${kafka.external.host}:${kafka.external.port}
     consumer:
       auto-offset-reset: earliest
       enable-auto-commit: false
@@ -36,12 +38,11 @@ spring:
       concurrency: 3
       poll-timeout: 3000
 
-
   rabbitmq:
-    host: gd_rabbitmq                     # RabbitMQ Docker container name
-    port: ${RABBITMQ_PORT}
-    username: ${RABBITMQ_USER}
-    password: ${RABBITMQ_PASSWORD}
+    host: ${rabbitmq.external.host}
+    port: ${rabbitmq.external.port}
+    username: ${rabbitmq.user}
+    password: ${rabbitmq.password}
     virtual-host: /
     publisher-confirm-type: correlated
     template:
@@ -53,12 +54,10 @@ spring:
         multiplier: 2.0
         max-interval: 5000ms
 
-
 eureka:
   client:
     service-url:
       defaultZone: http://localhost:${eureka.port}/eureka/
-
 
 management:
   tracing:
@@ -67,6 +66,15 @@ management:
   zipkin:
     tracing:
       endpoint: "http://localhost:${zipkin.port}/api/v2/spans"
+
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+
+  metrics:
+    tags:
+      application: support-service
 
 # Slack App 연동
 slack:

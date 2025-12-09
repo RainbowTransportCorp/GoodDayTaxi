@@ -36,6 +36,7 @@ public class TripController {
     private final EndTripRequestMapper endTripRequestMapper;
     private final TripEndResponseMapper tripEndResponseMapper;
     private final PassengerTripHistoryResponseMapper passengerTripHistoryResponseMapper;
+    private final DriverTripHistoryResponseMapper driverTripHistoryResponseMapper;
 
 
 
@@ -126,6 +127,23 @@ public class TripController {
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
+
+    @GetMapping("/drivers/{driverId}")
+    public ResponseEntity<ApiResponse<DriverTripHistoryResponse>> getDriverTripHistory(
+            @PathVariable UUID driverId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+
+        DriverTripHistoryResult result =
+                tripService.getDriverTripHistory(driverId, page, size);
+
+        DriverTripHistoryResponse response =
+                driverTripHistoryResponseMapper.toResponse(result);
+
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
 
 
 
