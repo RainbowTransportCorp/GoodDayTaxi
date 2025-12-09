@@ -31,11 +31,13 @@ public class DriverDispatchController {
 
     /**
      * (기사) 배차 시도 중인 콜 목록 조회
+     *
      * @return
      */
     @GetMapping("/pending")
     public ResponseEntity<ApiResponse<List<DispatchPendingListResponseDto>>> getPendingDispatches(
-                        @RequestHeader(value = "x-user-uuid", required = false) UUID userId
+            @RequestHeader(value = "X-User-UUID", required = false) UUID userId,
+            @RequestHeader(value = "X-User-Role", required = false) String role
     ) {
         List<DispatchPendingListResult> dispatchPendingListResults =
                 driverDispatchService.getDriverPendingDispatch(userId);
@@ -48,14 +50,15 @@ public class DriverDispatchController {
 
     /**
      * (기사) 콜 수락
+     *
      * @param dispatchId
      * @return
      */
     @PatchMapping("/{dispatchId}/accept")
     public ResponseEntity<ApiResponse<DispatchAcceptResponseDto>> accept(
             @PathVariable UUID dispatchId,
-            @RequestHeader(value = "x-user-uuid", required = false) UUID userId,
-            @RequestHeader(value = "x-user-role", required = false) String role
+            @RequestHeader(value = "X-User-UUID", required = false) UUID userId,
+            @RequestHeader(value = "X-User-Role", required = false) String role
     ) {
         DispatchAcceptCommand command = DispatchAcceptCommandMapper.toCommand(userId, role, dispatchId);
         DispatchAcceptResult result = driverDispatchService.accept(command);
@@ -65,15 +68,16 @@ public class DriverDispatchController {
 
     /**
      * (기사) 콜 거절
+     *
      * @param dispatchId
      * @return
      */
     @PatchMapping("/{dispatchId}/reject")
     public ResponseEntity<ApiResponse<DispatchRejectResponseDto>> reject(
-            @PathVariable UUID dispatchId
-            //            ,@RequestHeader(value = "x-user-uuid", required = false) UUID userId
+            @PathVariable UUID dispatchId,
+            @RequestHeader(value = "X-User-UUID", required = false) UUID userId,
+            @RequestHeader(value = "X-User-Role", required = false) String role
     ) {
-        UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000011");
         DispatchRejectCommand command = DispatchRejectCommandMapper.toCommand(userId, dispatchId);
         DispatchRejectResult result = driverDispatchService.reject(command);
         DispatchRejectResponseDto responseDto = DispatchRejectResponseMapper.toResponse(result);
