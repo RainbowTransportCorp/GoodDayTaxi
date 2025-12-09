@@ -1,4 +1,4 @@
-package com.gooddaytaxi.dispatch.infrastructure.config;
+package com.gooddaytaxi.support.adapter.in.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;

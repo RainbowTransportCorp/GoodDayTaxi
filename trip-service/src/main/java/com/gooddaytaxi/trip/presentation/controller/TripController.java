@@ -1,24 +1,18 @@
 package com.gooddaytaxi.trip.presentation.controller;
 
 import com.gooddaytaxi.common.core.dto.ApiResponse;
+import com.gooddaytaxi.trip.application.command.EndTripCommand;
 import com.gooddaytaxi.trip.application.command.StartTripCommand;
 import com.gooddaytaxi.trip.application.command.TripCreateCommand;
-import com.gooddaytaxi.trip.application.result.TripCreateResult;
-import com.gooddaytaxi.trip.application.result.TripItem;
-import com.gooddaytaxi.trip.application.result.TripListResult;
-import com.gooddaytaxi.trip.application.result.TripStartResult;
+import com.gooddaytaxi.trip.application.result.*;
 import com.gooddaytaxi.trip.application.service.TripService;
 
 import com.gooddaytaxi.trip.presentation.dto.request.CreateTripRequest;
-import com.gooddaytaxi.trip.presentation.dto.response.CreateTripResponse;
-import com.gooddaytaxi.trip.presentation.dto.response.TripListResponse;
-import com.gooddaytaxi.trip.presentation.dto.response.TripResponse;
-import com.gooddaytaxi.trip.presentation.dto.response.TripStartResponse;
+import com.gooddaytaxi.trip.presentation.dto.request.EndTripRequest;
+import com.gooddaytaxi.trip.presentation.dto.response.*;
+import com.gooddaytaxi.trip.presentation.mapper.command.EndTripRequestMapper;
 import com.gooddaytaxi.trip.presentation.mapper.command.TripCreateRequestMapper;
-import com.gooddaytaxi.trip.presentation.mapper.result.TripCreateResponseMapper;
-import com.gooddaytaxi.trip.presentation.mapper.result.TripDetailResponseMapper;
-import com.gooddaytaxi.trip.presentation.mapper.result.TripListResponseMapper;
-import com.gooddaytaxi.trip.presentation.mapper.result.TripStartResponseMapper;
+import com.gooddaytaxi.trip.presentation.mapper.result.*;
 import jakarta.validation.Valid;
 
 import lombok.RequiredArgsConstructor;
@@ -39,6 +33,9 @@ public class TripController {
     private final TripListResponseMapper tripListResponseMapper;
     private final TripDetailResponseMapper tripDetailResponseMapper;
     private final TripStartResponseMapper tripStartResponseMapper;
+    private final EndTripRequestMapper endTripRequestMapper;
+    private final TripEndResponseMapper tripEndResponseMapper;
+    private final PassengerTripHistoryResponseMapper passengerTripHistoryResponseMapper;
 
 
 
@@ -86,7 +83,7 @@ public class TripController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-
+    @PutMapping("/{tripId}/start")
     public ResponseEntity<ApiResponse<TripStartResponse>> startTrip(
             @PathVariable("tripId") UUID tripId
     ) {
@@ -98,6 +95,39 @@ public class TripController {
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
+
+
+    @PutMapping("/{tripId}/end")
+    public ResponseEntity<ApiResponse<TripEndResponse>> endTrip(
+            @PathVariable UUID tripId,
+            @Valid @RequestBody EndTripRequest request
+    ) {
+        EndTripCommand command = endTripRequestMapper.toCommand(request);
+
+        TripEndResult result = tripService.endTrip(tripId, command);
+
+        TripEndResponse response = tripEndResponseMapper.toResponse(result);
+
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @GetMapping("/passengers/{passengerId}")
+    public ResponseEntity<ApiResponse<PassengerTripHistoryResponse>> getPassengerTripHistory(
+            @PathVariable UUID passengerId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+
+        PassengerTripHistoryResult result =
+                tripService.getPassengerTripHistory(passengerId, page, size);
+
+        PassengerTripHistoryResponse response =
+                passengerTripHistoryResponseMapper.toResponse(result);
+
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+
 
 
 }

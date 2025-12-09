@@ -16,7 +16,7 @@ public class DispatchEndpoint {
 
     private final RequestCallUsecase requestCallUsecase;
 
-    @KafkaListener(topics = "dispatch.call-request", groupId = "support-service")
+    @KafkaListener(topics = "dispatch.call.request", groupId = "support-service")
     public void onCallRequest(DispatchCallRequestReq req) {
 //        DispatchCallRequestReq req = DispatchCallRequestReq.from(message);
         CreateCallCommand command = CreateCallCommand.create(

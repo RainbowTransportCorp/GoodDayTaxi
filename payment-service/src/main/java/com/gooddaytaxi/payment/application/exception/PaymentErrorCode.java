@@ -35,6 +35,9 @@ public enum PaymentErrorCode {
 
     //409 — CONFLICT
     PAYMENT_STATUS_INVALID(HttpStatus.CONFLICT, "P017", "현재 결제 상태에서는 요청한 작업을 수행할 수 없습니다"),
+    DUPLICATE_PAYMENT_EXISTS(HttpStatus.CONFLICT, "P018", "이미 진행중인 결제 청구서가 있습니다"),
+    COMPLETED_PAYMENT(HttpStatus.CONFLICT, "P019", "이미 완료된 결제 청구서가 있습니다"),
+
 
     //502 — BAD_GATEWAY
     TOSSPAY_CONFIRM_FAILED(HttpStatus.BAD_GATEWAY, "P018", "토스페이 결제 승인 요청이 실패했습니다"),
@@ -46,10 +49,14 @@ public enum PaymentErrorCode {
 
     //403 — FORBIDDEN
     REFUND_REQUEST_NOT_PASSENGER(HttpStatus.FORBIDDEN, "RR002", "해당 환불 요청의 작성자가 아닙니다"),
-    REFUND_REQUEST_NOT_DRIVER(HttpStatus.FORBIDDEN, "RR002", "해당 환불 요청의 담당 기사가 아닙니다"),
+    REFUND_REQUEST_NOT_DRIVER(HttpStatus.FORBIDDEN, "RR003", "해당 환불 요청의 담당 기사가 아닙니다"),
 
     //409 — CONFLICT
-    REFUND_REQUEST_STATUS_INVALID(HttpStatus.CONFLICT, "P017", "현재 환불 요청의 상태에서는 요청한 작업을 수행할 수 없습니다"),
+    REFUND_REQUEST_STATUS_INVALID(HttpStatus.CONFLICT, "RR004", "현재 환불 요청의 상태에서는 요청한 작업을 수행할 수 없습니다"),
+
+    //Refund
+    //409 — CONFLICT
+    REFUND_REQUEST_PAYMENT_MISMATCH(HttpStatus.CONFLICT, "R001", "해당 환불 요청의 결제와 실제 결제가 맞지 않습니다."),
 
 
     //공통요청
