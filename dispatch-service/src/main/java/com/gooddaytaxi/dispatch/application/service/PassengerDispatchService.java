@@ -20,7 +20,6 @@ import com.gooddaytaxi.dispatch.domain.model.entity.DispatchAssignmentLog;
 import com.gooddaytaxi.dispatch.domain.model.entity.DispatchHistory;
 import com.gooddaytaxi.dispatch.domain.model.enums.ChangedBy;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchDomainEventType;
-import com.gooddaytaxi.dispatch.infrastructure.outbox.publisher.DispatchRequestedEventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

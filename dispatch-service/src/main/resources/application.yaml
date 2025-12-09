@@ -25,6 +25,24 @@ spring:
         format_sql: true
         show_sql: true
 
+
+  kafka:
+    bootstrap-servers: host.docker.internal:${kafka.port} #local
+#    bootstrap-servers: gd_kafka:${kafka.port} # docker - 서비스 자체를 띄울 때 사용
+    consumer:
+      group-id: dispatch-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+kafka:
+  topic:
+    dispatch: dispatch-topic
+
+
 eureka:
   client:
     service-url:

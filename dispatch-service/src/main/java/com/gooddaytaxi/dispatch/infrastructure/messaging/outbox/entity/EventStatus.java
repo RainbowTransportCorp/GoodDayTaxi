@@ -1,4 +1,4 @@
-package com.gooddaytaxi.dispatch.domain.model.enums;
+package com.gooddaytaxi.dispatch.infrastructure.messaging.outbox.entity;
 
 public enum EventStatus {
     PENDING,   // 이벤트가 생성되었으나 아직 처리되지 않음 (대기 상태)

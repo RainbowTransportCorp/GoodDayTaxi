@@ -1,4 +1,4 @@
-package com.gooddaytaxi.dispatch.infrastructure.outbox.publisher;
+package com.gooddaytaxi.dispatch.infrastructure.messaging.outbox.publisher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gooddaytaxi.dispatch.application.event.payload.DispatchAcceptedPayload;

@@ -1,11 +1,11 @@
-package com.gooddaytaxi.dispatch.infrastructure.outbox.entity;
+package com.gooddaytaxi.dispatch.infrastructure.messaging.outbox.entity;
 
 import com.gooddaytaxi.common.jpa.model.BaseEntity;
-import com.gooddaytaxi.dispatch.domain.model.enums.EventStatus;
 import jakarta.persistence.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 import org.hibernate.type.SqlTypes;
 
@@ -51,6 +51,8 @@ public class DispatchEvent extends BaseEntity {
     @Column
     private String errorMessage;
 
+    @Column
+    private LocalDateTime publishedAt;
 
     public static DispatchEvent pending(
             String eventType,
@@ -74,9 +76,9 @@ public class DispatchEvent extends BaseEntity {
         return event;
     }
 
-
     public void markSent() {
         this.eventStatus = EventStatus.SENT;
+        this.publishedAt = LocalDateTime.now();
     }
 
     public void markFailed(String message) {
