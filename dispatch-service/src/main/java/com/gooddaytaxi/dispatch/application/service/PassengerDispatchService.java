@@ -3,18 +3,23 @@ package com.gooddaytaxi.dispatch.application.service;
 import com.gooddaytaxi.dispatch.application.commend.DispatchCancelCommand;
 import com.gooddaytaxi.dispatch.application.commend.DispatchCreateCommand;
 import com.gooddaytaxi.dispatch.application.event.payload.DispatchRequestedPayload;
-import com.gooddaytaxi.dispatch.infrastructure.outbox.publisher.DispatchCreatedEventPublisher;
-import com.gooddaytaxi.dispatch.application.event.payload.DispatchCreatedPayload;
-import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchAssignmentLogCommandPort;
-import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchCommandPort;
-import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchHistoryCommandPort;
+import com.gooddaytaxi.dispatch.application.port.out.command.DispatchCommandPort;
+import com.gooddaytaxi.dispatch.application.port.out.command.DispatchHistoryCommandPort;
+import com.gooddaytaxi.dispatch.application.port.out.command.DispatchRequestedCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
+import com.gooddaytaxi.dispatch.application.port.out.query.DriverSelectionQueryPort;
 import com.gooddaytaxi.dispatch.application.result.DispatchCancelResult;
 import com.gooddaytaxi.dispatch.application.result.DispatchCreateResult;
 import com.gooddaytaxi.dispatch.application.result.DispatchDetailResult;
-import com.gooddaytaxi.dispatch.application.result.DispatchListResult;
-import com.gooddaytaxi.dispatch.application.validator.RoleValidator;
+import com.gooddaytaxi.dispatch.application.result.DispatchSummaryResult;
+import com.gooddaytaxi.dispatch.application.validator.DispatchCreatePermissionValidator;
+import com.gooddaytaxi.dispatch.application.validator.DispatchPassengerPermissionValidator;
+import com.gooddaytaxi.dispatch.application.validator.UserRole;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
+import com.gooddaytaxi.dispatch.domain.model.entity.DispatchAssignmentLog;
+import com.gooddaytaxi.dispatch.domain.model.entity.DispatchHistory;
+import com.gooddaytaxi.dispatch.domain.model.enums.ChangedBy;
+import com.gooddaytaxi.dispatch.domain.model.enums.DispatchDomainEventType;
 import com.gooddaytaxi.dispatch.infrastructure.outbox.publisher.DispatchRequestedEventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,24 +38,27 @@ public class PassengerDispatchService {
 
     private final DispatchCommandPort dispatchCommandPort;
     private final DispatchHistoryCommandPort dispatchHistoryCommandPort;
-    private final DispatchAssignmentLogCommandPort dispatchAssignmentCommandPort;
+    private final DispatchRequestedCommandPort dispatchRequestedCommandPort;
 
     private final DispatchQueryPort dispatchQueryPort;
+    private final DriverSelectionQueryPort driverSelectionQueryPort;
 
-    private final DispatchCreatedEventPublisher dispatchCreatedEventPublisher;
-    private final DispatchRequestedEventPublisher dispatchRequestedEventPublisher;
-    private final RoleValidator roleValidator;
+
+    private final DispatchCreatePermissionValidator dispatchCreatePermissionValidator;
+    private final DispatchPassengerPermissionValidator dispatchPassengerPermissionValidator;
+
     /**
      * 콜 생성 (승객)
+     *
      * @param command
      * @return
      */
     public DispatchCreateResult create(DispatchCreateCommand command) {
 
-        roleValidator.validate(command.getRole());
+        dispatchCreatePermissionValidator.validate(command.getRole());
 
         log.info("DispatchService.create() 호출됨 - passengerId={}, pickup={}, destination={}",
-               command.getPassengerId(), command.getPickupAddress(), command.getDestinationAddress());
+                command.getPassengerId(), command.getPickupAddress(), command.getDestinationAddress());
 
         Dispatch entity = Dispatch.create
                 (command.getPassengerId(), command.getPickupAddress(), command.getDestinationAddress());
@@ -59,34 +67,41 @@ public class PassengerDispatchService {
         Dispatch saved = dispatchCommandPort.save(entity);
 
         // 4. 히스토리 기록 (REQUESTED)
-        dispatchHistoryCommandPort.recordStatusChange(saved);
+        dispatchHistoryCommandPort.save(
+                DispatchHistory.recordStatusChange(
+                        saved.getDispatchId(),
+                        DispatchDomainEventType.CREATED.name(),
+                        null,                      // fromStatus
+                        saved.getDispatchStatus(), // toStatus = REQUESTED
+                        ChangedBy.PASSENGER,
+                        null
+                )
+        );
 
-        // 5. 시도 로그 저장
-        dispatchAssignmentCommandPort.createAssignmentLog(saved);
 
         log.info("저장 완료: dispatchId={} / status={}",
                 saved.getDispatchId(), saved.getDispatchStatus());
 
-        // 6. 콜 생성 내부 이벤트 발행
-        dispatchCreatedEventPublisher.save(
-                DispatchCreatedPayload.from(saved)
-        );
 
-        // 6. 기사 확인 내부 이벤트 발행
+        // 6. 기사 조회 -> 페인 entity 조회로 로직 변경 (이벤트 x)
+//        driverSelectionQueryPort.selectCandidateDriver(saved);
 
         //임시로 기사 id 발생
         UUID randomDriverId = UUID.randomUUID();
 
+        // 시도 로그 저장
+        DispatchAssignmentLog.create(saved.getDispatchId(), saved.getDriverId());
+
         // 7. support 쪽에 '콜 생성했으니 기사에게 알림을 보내세요'용 Requested 이벤트 발행
-        dispatchRequestedEventPublisher.save(
-            DispatchRequestedPayload.from(
-                saved.getDispatchId(),
-                saved.getPassengerId(),
-                randomDriverId,
-                saved.getPickupAddress(),
-                saved.getDestinationAddress(),
-                "새로운 콜 요청이 도착했습니다."
-            )
+        dispatchRequestedCommandPort.publishRequested(
+                DispatchRequestedPayload.from(
+                        saved.getDispatchId(),
+                        saved.getPassengerId(),
+                        randomDriverId,
+                        saved.getPickupAddress(),
+                        saved.getDestinationAddress(),
+                        "새로운 콜 요청이 도착했습니다."
+                )
         );
 
         //  응답 DTO 생성
@@ -104,22 +119,38 @@ public class PassengerDispatchService {
 
     /**
      * 콜 전체 조회 (승객)
+     *
      * @param
      * @return
      */
     @Transactional(readOnly = true)
-    public DispatchListResult getDispatchList (UUID userId) {
-        List<Dispatch> dispatches = dispatchQueryPort.findAllByFilter();
-        return DispatchListResult.builder().build();
+    public List<DispatchSummaryResult> getDispatchList(UUID userId, UserRole role) {
+        dispatchPassengerPermissionValidator.validate(role);
+
+        List<Dispatch> dispatches = dispatchQueryPort.findAllByFilter(userId);
+        return dispatches.stream()
+                .map(d -> DispatchSummaryResult.builder()
+                        .dispatchId(d.getDispatchId())
+                        .pickupAddress(d.getPickupAddress())
+                        .destinationAddress(d.getDestinationAddress())
+                        .dispatchStatus(d.getDispatchStatus())
+                        .createdAt(d.getCreatedAt())
+                        .build()
+                )
+                .toList();
+
     }
 
     /**
      * 콜 상세조회 (승객)
+     *
      * @param dispatchId
      * @return
      */
     @Transactional(readOnly = true)
-    public DispatchDetailResult getDispatchDetail(UUID dispatchId) {
+    public DispatchDetailResult getDispatchDetail( UserRole role , UUID dispatchId) {
+
+        dispatchPassengerPermissionValidator.validate(role);
 
         Dispatch dispatch = dispatchQueryPort.findById(dispatchId);
 
@@ -142,6 +173,7 @@ public class PassengerDispatchService {
 
     /**
      * 콜 취소 (승객)
+     *
      * @param command
      * @return
      */

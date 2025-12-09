@@ -4,9 +4,7 @@ import com.gooddaytaxi.dispatch.application.exception.DispatchPermissionDeniedEx
 import org.springframework.stereotype.Component;
 
 @Component
-public class DispatchCreatePermissionValidator implements RoleValidator {
-
-    @Override
+public class DispatchCreatePermissionValidator {
     public void validate(UserRole role) {
         // PASSENGER / ADMIN / SYSTEM allowed
         if (role == UserRole.DRIVER) {
@@ -14,4 +12,3 @@ public class DispatchCreatePermissionValidator implements RoleValidator {
         }
     }
 }
-

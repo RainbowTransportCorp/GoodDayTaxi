@@ -45,3 +45,5 @@ management:
   metrics:
     tags:
       application: payment-service
+toss:
+  secret-key: ${toss.test-secret-key}

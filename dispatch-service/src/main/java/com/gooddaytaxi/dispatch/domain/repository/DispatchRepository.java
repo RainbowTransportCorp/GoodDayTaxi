@@ -6,7 +6,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.UUID;
 
-@Repository //명시적 Repo
 public interface DispatchRepository extends JpaRepository<Dispatch, UUID>, DispatchRepositoryCustom {
 }
 
