@@ -8,14 +8,14 @@ import java.util.UUID;
  * CallRequest Command - 콜 요청하는 Event
  */
 @Getter
-public class CreateCallCommand extends Command{
+public class CreateDispatchInfoCommand extends Command{
 //    private final UUID dispatchId;
     private final UUID driverId;
     private final UUID passengerId;
     private final String pickupAddress;
     private final String destinationAddress;
 
-    private CreateCallCommand(
+    private CreateDispatchInfoCommand(
             UUID notificationOriginId, UUID notifierId,
             UUID driverId, UUID passengerId,
             String pickupAddress, String destinationAddress,
@@ -28,12 +28,12 @@ public class CreateCallCommand extends Command{
         this.pickupAddress = pickupAddress;
         this.destinationAddress = destinationAddress;
     }
-    public static CreateCallCommand create(
+    public static CreateDispatchInfoCommand create(
             UUID notificationOriginId, UUID notifierId,
             UUID driverId, UUID passengerId,
             String pickupAddress, String destinationAddress,
             String message
     ) {
-        return new CreateCallCommand(notificationOriginId, notifierId, driverId, passengerId, pickupAddress, destinationAddress, message);
+        return new CreateDispatchInfoCommand(notificationOriginId, notifierId, driverId, passengerId, pickupAddress, destinationAddress, message);
     }
 }

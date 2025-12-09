@@ -43,9 +43,6 @@ public class RabbitMQConfig {
     public static final String TRIP_QUEUE = "gooddaytaxi.trip.queue";
     public static final String PAYMENT_QUEUE = "gooddaytaxi.payment.queue";
 
-    private final RabbitTemplate rabbitTemplate;
-
-    public RabbitMQConfig(RabbitTemplate rabbitTemplate) { this.rabbitTemplate = rabbitTemplate; }
     /* Exchange
      *
      */
@@ -73,10 +70,14 @@ public class RabbitMQConfig {
     /* RabbitTemplate
      *
      */
-    @PostConstruct
-    public void rabbitTemplateBasedInApplicationYML() {
+    @Bean
+    public RabbitTemplate rabbitTemplateBasedInApplicationYML(ConnectionFactory connectionFactory,
+                                                    Jackson2JsonMessageConverter converter) {
+
+        RabbitTemplate template = new RabbitTemplate(connectionFactory);
+
         // 브로커가 메시지를 정상 수신했는지 여부
-        rabbitTemplate.setConfirmCallback((correlationData, ack, cause) -> {
+        template.setConfirmCallback((correlationData, ack, cause) -> {
             if (ack) {
                 // 로깅 or 모니터링
                 log.info("Message confirmed(successfully delivered). correlation: {}", correlationData);
@@ -87,11 +88,13 @@ public class RabbitMQConfig {
         });
 
         // 라우팅 실패 시 메시지가 되돌아 올 때(publisher-returns:true 일 때만 동작)
-        rabbitTemplate.setReturnsCallback(returned -> {
+        template.setReturnsCallback(returned -> {
             // DLQ로 보내거나, 모니터링/알림
             log.warn("Message Routing Failed. Returned message: {}, replyText: {}, routingKey: {}",
                     returned.getMessage(), returned.getReplyText(), returned.getRoutingKey());
         });
+
+        return template;
     }
 
 

@@ -1,8 +1,8 @@
 package com.gooddaytaxi.support.adapter.in.kafka.endpoint;
 
-import com.gooddaytaxi.support.adapter.in.kafka.dto.DispatchCallRequestReq;
-import com.gooddaytaxi.support.application.dto.CreateCallCommand;
-import com.gooddaytaxi.support.application.port.in.dispatch.RequestCallUsecase;
+import com.gooddaytaxi.support.adapter.in.kafka.dto.DispatchRequestReq;
+import com.gooddaytaxi.support.application.dto.CreateDispatchInfoCommand;
+import com.gooddaytaxi.support.application.port.in.dispatch.NotifyDispatchUsecase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
@@ -14,18 +14,18 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class DispatchEndpoint {
 
-    private final RequestCallUsecase requestCallUsecase;
+    private final NotifyDispatchUsecase notifyDispatchUsecase;
 
-    @KafkaListener(topics = "dispatch.call.request", groupId = "support-service")
-    public void onCallRequest(DispatchCallRequestReq req) {
-//        DispatchCallRequestReq req = DispatchCallRequestReq.from(message);
-        CreateCallCommand command = CreateCallCommand.create(
+    @KafkaListener(topics = "dispatch.requested", groupId = "support-service")
+    public void onCallRequest(DispatchRequestReq req) {
+//        DispatchRequestReq req = DispatchRequestReq.from(message);
+        CreateDispatchInfoCommand command = CreateDispatchInfoCommand.create(
                 req.notificationOriginId(), req.notifierId(),
                 req.driverId(), req.passengerId(),
                 req.pickupAddress(), req.destinationAddress(),
                 req.message());
 
-        requestCallUsecase.request(command);
+        notifyDispatchUsecase.request(command);
     }
 
 //    @KafkaListener(topics = "dispatch.dispatch-accepted", groupId = "support-service")

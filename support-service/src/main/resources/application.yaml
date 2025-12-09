@@ -24,7 +24,7 @@ spring:
         show_sql: true
 
   kafka:
-    bootstrap-servers: localhost:${KAFKA_PORT}
+    bootstrap-servers: ${kafka.external.host}:${kafka.external.port}
     consumer:
       auto-offset-reset: earliest
       enable-auto-commit: false
@@ -38,10 +38,10 @@ spring:
 
 
   rabbitmq:
-    host: gd_rabbitmq                     # RabbitMQ Docker container name
-    port: ${RABBITMQ_PORT}
-    username: ${RABBITMQ_USER}
-    password: ${RABBITMQ_PASSWORD}
+    host: ${rabbitmq.external.host}:${rabbitmq.external.port}
+    port: ${rabbitmq.port}
+    username: ${rabbitmq.user}
+    password: ${rabbitmq.password}
     virtual-host: /
     publisher-confirm-type: correlated
     template:
@@ -67,8 +67,19 @@ management:
   zipkin:
     tracing:
       endpoint: "http://localhost:${zipkin.port}/api/v2/spans"
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+
+  metrics:
+    tags:
+      application: support-service
+
 
 # Slack App 연동
 slack:
   api-url: https://slack.com
   bot-token: ${slack.bot-token}
+
+

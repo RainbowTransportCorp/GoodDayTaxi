@@ -1,11 +1,11 @@
 package com.gooddaytaxi.support.application.service;
 
 import com.gooddaytaxi.support.adapter.out.internal.account.dto.UserInfo;
-import com.gooddaytaxi.support.application.dto.CreateCallCommand;
+import com.gooddaytaxi.support.application.dto.CreateDispatchInfoCommand;
 import com.gooddaytaxi.support.application.dto.DispatchAcceptCommand;
 import com.gooddaytaxi.support.application.port.out.internal.account.AccountDomainCommunicationPort;
 import com.gooddaytaxi.support.application.port.in.dispatch.AcceptDispatchUsecase;
-import com.gooddaytaxi.support.application.port.in.dispatch.RequestCallUsecase;
+import com.gooddaytaxi.support.application.port.in.dispatch.NotifyDispatchUsecase;
 import com.gooddaytaxi.support.application.port.out.external.NotificationAlertExternalPort;
 import com.gooddaytaxi.support.application.port.out.messaging.NotificationPushMessagingPort;
 import com.gooddaytaxi.support.application.port.out.persistence.NotificationCommandPersistencePort;
@@ -28,7 +28,7 @@ import java.util.UUID;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class DispatchNotificationService implements RequestCallUsecase, AcceptDispatchUsecase {
+public class DispatchNotificationService implements NotifyDispatchUsecase, AcceptDispatchUsecase {
 
     private final NotificationCommandPersistencePort notificationCommandPersistencePort;
     private final NotificationQueryPersistencePort notificationQueryPersistencePort;
@@ -39,11 +39,11 @@ public class DispatchNotificationService implements RequestCallUsecase, AcceptDi
 
     @Transactional
     @Override
-    public void request(CreateCallCommand command) {
+    public void request(CreateDispatchInfoCommand command) {
 
         // Notification 생성
-        Notification noti = Notification.from(command, NotificationType.CALL_REQUEST);
-        noti.assignIds(command.getDispatchId(), command.getDriverId(), command.getPassengerId(), null, null);
+        Notification noti = Notification.from(command, NotificationType.DISPATCH_REQUESTED);
+        noti.assignIds(null, command.getDriverId(), command.getPassengerId(), null, null);
         notificationCommandPersistencePort.save(noti);
 
         List<UUID> receivers = new ArrayList<>();
@@ -63,8 +63,8 @@ public class DispatchNotificationService implements RequestCallUsecase, AcceptDi
         notificationAlertExternalPort.sendCallRequest(slackReceivers, messageTitle, noti.getMessage());
 
         // 로그
-        log.info("\uD83D\uDCE2 [CALL-REQUEST] dispatchId={}, driverId={}, passengerId={} >>> {}",
-                command.getDispatchId(),
+        log.info("\uD83D\uDCE2 [CALL-REQUEST] driverId={}, passengerId={} >>> {}",
+//                command.getDispatchId(),
                 command.getDriverId(),
                 command.getPassengerId(),
                 command.getMessage());
