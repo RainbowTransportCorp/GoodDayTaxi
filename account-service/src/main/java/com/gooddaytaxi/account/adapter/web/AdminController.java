@@ -34,7 +34,7 @@ public class AdminController {
     private final ChangeUserStatusUseCase changeUserStatusUseCase;
     private final AdminDeleteUserUseCase adminDeleteUserUseCase;
     
-    @Operation(summary = "전체 사용자 조회", description = "관리자가 전체 사용자 목록을 조회합니다.")
+    @Operation(summary = "전체 사용자 조회", description = "관리자 전용 API. 전체 사용자(승객/기사/관리자) 목록을 조회합니다. 사용자 기본 정보를 포함합니다.")
     @GetMapping("/users")
     public ResponseEntity<ApiResponse<List<AdminUserListResponse>>> getAllUsers(
             @RequestHeader("X-User-Role") String requestUserRole) {
@@ -48,7 +48,7 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.success(response, "전체 사용자 조회가 완료되었습니다."));
     }
     
-    @Operation(summary = "사용자 상세 조회", description = "관리자가 특정 사용자의 상세 정보를 조회합니다.")
+    @Operation(summary = "사용자 상세 조회", description = "관리자 전용 API. 특정 사용자(승객/기사/관리자)의 상세 정보를 조회합니다. 생성/수정 시간 포함.")
     @GetMapping("/users/{userId}")
     public ResponseEntity<ApiResponse<AdminUserDetailResponse>> getUserDetail(
             @RequestHeader("X-User-Role") String requestUserRole,
@@ -64,7 +64,7 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.success(response, "사용자 상세 조회가 완료되었습니다."));
     }
     
-    @Operation(summary = "사용자 상태 변경", description = "관리자가 사용자의 활성/비활성 상태를 변경합니다.")
+    @Operation(summary = "사용자 상태 변경", description = "관리자 전용 API. 특정 사용자(승객/기사/관리자)의 활성/비활성 상태를 변경합니다. 정지/해제 처리에 사용.")
     @PatchMapping("/users/{userId}/status")
     public ResponseEntity<ApiResponse<ChangeUserStatusResponse>> changeUserStatus(
             @RequestHeader("X-User-Role") String requestUserRole,
@@ -82,7 +82,7 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.success(response, "사용자 상태 변경이 완료되었습니다."));
     }
     
-    @Operation(summary = "사용자 삭제", description = "관리자가 사용자를 삭제 처리합니다.")
+    @Operation(summary = "사용자 삭제", description = "관리자 전용 API. 특정 사용자(승객/기사/관리자)를 삭제 처리합니다. 삭제 사유 필수, Soft Delete로 처리됩니다.")
     @PatchMapping("/users/{userId}/delete")
     public ResponseEntity<ApiResponse<DeleteUserResponse>> deleteUser(
             @RequestHeader("X-User-Role") String requestUserRole,
