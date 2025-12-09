@@ -63,6 +63,11 @@ public class UserRepositoryImpl implements UserRepository {
     }
     
     @Override
+    public List<User> findByRoleAndStatusAndDeletedAtIsNull(UserRole role, UserStatus status) {
+        return userJpaRepository.findByRoleAndStatusAndDeletedAtIsNull(role, status);
+    }
+    
+    @Override
     public User save(User user) {
         return userJpaRepository.save(user);
     }
