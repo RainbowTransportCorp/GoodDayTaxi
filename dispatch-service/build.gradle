@@ -41,6 +41,10 @@ dependencies {
     // Feign Client
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 
+    //kafka
+    implementation 'org.springframework.kafka:spring-kafka'
+    testImplementation 'org.springframework.kafka:spring-kafka-test'
+
     // Common module
     implementation 'com.gooddaytaxi:common-core:0.0.5-SNAPSHOT'
     implementation 'com.gooddaytaxi:common-jpa:0.0.5-SNAPSHOT'
