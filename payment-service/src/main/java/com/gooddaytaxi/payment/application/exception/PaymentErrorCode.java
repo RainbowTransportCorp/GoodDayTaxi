@@ -49,10 +49,14 @@ public enum PaymentErrorCode {
 
     //403 — FORBIDDEN
     REFUND_REQUEST_NOT_PASSENGER(HttpStatus.FORBIDDEN, "RR002", "해당 환불 요청의 작성자가 아닙니다"),
-    REFUND_REQUEST_NOT_DRIVER(HttpStatus.FORBIDDEN, "RR002", "해당 환불 요청의 담당 기사가 아닙니다"),
+    REFUND_REQUEST_NOT_DRIVER(HttpStatus.FORBIDDEN, "RR003", "해당 환불 요청의 담당 기사가 아닙니다"),
 
     //409 — CONFLICT
-    REFUND_REQUEST_STATUS_INVALID(HttpStatus.CONFLICT, "P017", "현재 환불 요청의 상태에서는 요청한 작업을 수행할 수 없습니다"),
+    REFUND_REQUEST_STATUS_INVALID(HttpStatus.CONFLICT, "RR004", "현재 환불 요청의 상태에서는 요청한 작업을 수행할 수 없습니다"),
+
+    //Refund
+    //409 — CONFLICT
+    REFUND_REQUEST_PAYMENT_MISMATCH(HttpStatus.CONFLICT, "R001", "해당 환불 요청의 결제와 실제 결제가 맞지 않습니다."),
 
 
     //공통요청
