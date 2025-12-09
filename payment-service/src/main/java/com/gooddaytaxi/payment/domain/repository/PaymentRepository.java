@@ -1,6 +1,7 @@
 package com.gooddaytaxi.payment.domain.repository;
 
 import com.gooddaytaxi.payment.domain.entity.Payment;
+import com.gooddaytaxi.payment.domain.entity.Refund;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -29,4 +30,6 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> , Paymen
       AND p.status IN ('PENDING', 'IN_PROCESS', 'FAILED', 'COMPLETED')
     ORDER BY p.createdAt DESC""")
     Payment findLastByTripIdAndStatusForCreate(@Param("tripId") UUID tripId);
+
+    Page<Refund> searchRefunds(String status, String reason, Boolean existRequest, UUID passeangerId, UUID driverId, UUID tripId, String method, Long minAmount, Long maxAmount, LocalDateTime startDay, LocalDateTime endDay, Pageable pageable);
 }
