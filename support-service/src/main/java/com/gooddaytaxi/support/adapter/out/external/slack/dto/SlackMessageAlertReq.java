@@ -26,7 +26,7 @@ public record SlackMessageAlertReq(
         try {
             return mapper.readValue(data, SlackMessageAlertReq.class);
         } catch (Exception e) {
-            throw new RuntimeException("Invalid JSON for DispatchCallRequestReq", e);
+            throw new RuntimeException("Invalid JSON for DispatchRequestReq", e);
         }
     }
 }
