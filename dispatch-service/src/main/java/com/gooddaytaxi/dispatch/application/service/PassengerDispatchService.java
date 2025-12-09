@@ -2,12 +2,13 @@ package com.gooddaytaxi.dispatch.application.service;
 
 import com.gooddaytaxi.dispatch.application.commend.DispatchCancelCommand;
 import com.gooddaytaxi.dispatch.application.commend.DispatchCreateCommand;
+import com.gooddaytaxi.dispatch.application.event.payload.DispatchCanceledPayload;
 import com.gooddaytaxi.dispatch.application.event.payload.DispatchRequestedPayload;
+import com.gooddaytaxi.dispatch.application.port.out.command.DispatchCanceledCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.command.DispatchCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.command.DispatchHistoryCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.command.DispatchRequestedCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
-import com.gooddaytaxi.dispatch.application.port.out.query.DriverSelectionQueryPort;
 import com.gooddaytaxi.dispatch.application.result.DispatchCancelResult;
 import com.gooddaytaxi.dispatch.application.result.DispatchCreateResult;
 import com.gooddaytaxi.dispatch.application.result.DispatchDetailResult;
@@ -20,12 +21,12 @@ import com.gooddaytaxi.dispatch.domain.model.entity.DispatchAssignmentLog;
 import com.gooddaytaxi.dispatch.domain.model.entity.DispatchHistory;
 import com.gooddaytaxi.dispatch.domain.model.enums.ChangedBy;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchDomainEventType;
-import com.gooddaytaxi.dispatch.infrastructure.outbox.publisher.DispatchRequestedEventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -39,10 +40,9 @@ public class PassengerDispatchService {
     private final DispatchCommandPort dispatchCommandPort;
     private final DispatchHistoryCommandPort dispatchHistoryCommandPort;
     private final DispatchRequestedCommandPort dispatchRequestedCommandPort;
+    private final DispatchCanceledCommandPort dispatchCanceledCommandPort;
 
     private final DispatchQueryPort dispatchQueryPort;
-    private final DriverSelectionQueryPort driverSelectionQueryPort;
-
 
     private final DispatchCreatePermissionValidator dispatchCreatePermissionValidator;
     private final DispatchPassengerPermissionValidator dispatchPassengerPermissionValidator;
@@ -124,10 +124,10 @@ public class PassengerDispatchService {
      * @return
      */
     @Transactional(readOnly = true)
-    public List<DispatchSummaryResult> getDispatchList(UUID userId, UserRole role) {
+    public List<DispatchSummaryResult> getDispatchList(UUID passengerId, UserRole role) {
         dispatchPassengerPermissionValidator.validate(role);
 
-        List<Dispatch> dispatches = dispatchQueryPort.findAllByFilter(userId);
+        List<Dispatch> dispatches = dispatchQueryPort.findAllByFilter(passengerId);
         return dispatches.stream()
                 .map(d -> DispatchSummaryResult.builder()
                         .dispatchId(d.getDispatchId())
@@ -179,16 +179,40 @@ public class PassengerDispatchService {
      */
     public DispatchCancelResult cancel(DispatchCancelCommand command) {
 
-        Dispatch dispatch = dispatchQueryPort.findById(command.getDispatchId());
+        log.info("[Cancel] 콜 취소 요청 수신 - passengerId={}, dispatchId={}",
+                command.getPassengerId(), command.getDispatchId());
 
+        dispatchPassengerPermissionValidator.validate(command.getRole());
+
+        Dispatch dispatch = dispatchQueryPort.findById(command.getDispatchId());
+        log.debug("[Cancel] 조회된 Dispatch 엔티티 - id={}, status={}",
+                dispatch.getDispatchId(), dispatch.getDispatchStatus());
+
+        // 상태 전이
         dispatch.cancel();
+        log.info("[Cancel] Dispatch 상태 전이 완료 - id={}, newStatus={}",
+                dispatch.getDispatchId(), dispatch.getDispatchStatus());
 
         dispatchCommandPort.save(dispatch);
 
-        return DispatchCancelResult.builder()
+        LocalDateTime cancelledAt = dispatch.getCancelledAt();
+
+        // 취소 이벤트 발행
+        dispatchCanceledCommandPort.publishCanceled(
+                DispatchCanceledPayload.fromPassenger(dispatch)
+        );
+
+        // 결과 반환
+        DispatchCancelResult result = DispatchCancelResult.builder()
                 .dispatchId(dispatch.getDispatchId())
                 .dispatchStatus(dispatch.getDispatchStatus())
-                .cancelledAt(dispatch.getCancelledAt())
+                .cancelledAt(cancelledAt)
                 .build();
+
+        log.info("[Cancel] 콜 취소 처리 완료 - dispatchId={}, cancelledAt={}",
+                result.getDispatchId(), result.getCancelledAt());
+
+        return result;
     }
+
 }

@@ -14,6 +14,7 @@ import com.gooddaytaxi.dispatch.presentation.external.dto.response.DispatchCance
 import com.gooddaytaxi.dispatch.presentation.external.dto.response.DispatchCreateResponseDto;
 import com.gooddaytaxi.dispatch.presentation.external.dto.response.DispatchDetailResponseDto;
 import com.gooddaytaxi.dispatch.presentation.external.dto.response.DispatchListResponseDto;
+import com.gooddaytaxi.dispatch.presentation.external.mapper.command.DispatchCancelCommandMapper;
 import com.gooddaytaxi.dispatch.presentation.external.mapper.command.DispatchCreateCommandMapper;
 import com.gooddaytaxi.dispatch.presentation.external.mapper.response.DispatchCancelResponseMapper;
 import com.gooddaytaxi.dispatch.presentation.external.mapper.response.DispatchCreateResponseMapper;
@@ -36,15 +37,16 @@ public class DispatchController {
 
     /**
      * 콜 생성 (승객)
+     *
      * @param requestDto
      * @return
      */
     @PostMapping
     public ResponseEntity<ApiResponse<DispatchCreateResponseDto>> create(
             @RequestBody DispatchCreateRequestDto requestDto,
-            @RequestHeader(value = "x-user-UUID", required = false) UUID userId,
-            @RequestHeader(value = "x-user-role", required = false) String role
-            ) {
+            @RequestHeader(value = "X-User-UUID", required = false) UUID userId,
+            @RequestHeader(value = "X-User-Role", required = false) String role
+    ) {
         DispatchCreateCommand createCommand = DispatchCreateCommandMapper.toCommand(userId, role, requestDto);
         DispatchCreateResult createResult = passengerDispatchService.create(createCommand);
         DispatchCreateResponseDto responseDto = DispatchCreateResponseMapper.toCreateResponse(createResult);
@@ -54,16 +56,17 @@ public class DispatchController {
 
     /**
      * 콜 전체 조회 (승객)
+     *
      * @return
      */
     @GetMapping
     public ResponseEntity<ApiResponse<List<DispatchListResponseDto>>> getDispatches(
-            @RequestHeader(value = "x-user-uuid", required = false) UUID userId,
-            @RequestHeader(value = "x-user-role") String role
+            @RequestHeader(value = "X-User-UUID", required = false) UUID passengerId,
+            @RequestHeader(value = "X-User-Role", required = false) String role
 
     ) {
         List<DispatchSummaryResult> summaries =
-                passengerDispatchService.getDispatchList(userId, UserRole.valueOf(role));
+                passengerDispatchService.getDispatchList(passengerId, UserRole.valueOf(role));
 
         List<DispatchListResponseDto> response =
                 DispatchListResponseMapper.toDispatchListResponseList(summaries);
@@ -74,17 +77,16 @@ public class DispatchController {
 
     /**
      * 콜 상세조회(승객)
-     * 감사에 대한 uuid는 자동으로 들어가고 있으므로 uuid는 헤더에서 생략하고
-     * role정보만 헤더에서 받아옵니다.
+     *
      * @param dispatchId
      * @return
      */
     @GetMapping("/{dispatchId}")
-    public ResponseEntity<ApiResponse<DispatchDetailResponseDto>> getDispatchDetail (
+    public ResponseEntity<ApiResponse<DispatchDetailResponseDto>> getDispatchDetail(
             @PathVariable UUID dispatchId,
-            @RequestHeader(value = "x-user-role") String role
+            @RequestHeader(value = "X-User-Role", required = false) String role
     ) {
-        DispatchDetailResult dispatchDetailResult = passengerDispatchService.getDispatchDetail( UserRole.valueOf(role), dispatchId);
+        DispatchDetailResult dispatchDetailResult = passengerDispatchService.getDispatchDetail(UserRole.valueOf(role), dispatchId);
         DispatchDetailResponseDto responseDto = DispatchDetailResponseMapper.toDispatchDetailResponse(dispatchDetailResult);
 
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
@@ -92,15 +94,17 @@ public class DispatchController {
 
     /**
      * 콜 취소 (승객)
+     *
      * @param dispatchId
      * @return
      */
     @PatchMapping("/{dispatchId}/cancel")
     public ResponseEntity<ApiResponse<DispatchCancelResponseDto>> cancel(
-            @PathVariable UUID dispatchId
-            //            ,@RequestHeader(value = "x-user-uuid", required = false) UUID userId
+            @PathVariable UUID dispatchId,
+            @RequestHeader(value = "X-User-UUID", required = false) UUID passengerId,
+            @RequestHeader(value = "X-User-Role", required = false) String role
     ) {
-        DispatchCancelCommand command = new DispatchCancelCommand(dispatchId);
+        DispatchCancelCommand command = DispatchCancelCommandMapper.toCommand(passengerId, role, dispatchId);
         DispatchCancelResult result = passengerDispatchService.cancel(command);
         DispatchCancelResponseDto responseDto = DispatchCancelResponseMapper.toCancelResponse(result);
 

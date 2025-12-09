@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <title>Good day Taxi – Passenger</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header class="header">
+    <div class="brand">
+        <div class="brand-main">Good day Taxi</div>
+        <div class="brand-sub">승객용 서비스</div>
+    </div>
+</header>
+
+<div class="page-container">
+
+    <!-- [1] 콜 생성 화면 -->
+    <section id="create-section" class="card">
+        <h2 class="section-title">콜 요청하기</h2>
+
+        <div class="form-group">
+            <label>출발지</label>
+            <input id="pickup" placeholder="예: 서울 강남구 테헤란로 12">
+        </div>
+
+        <div class="form-group">
+            <label>도착지</label>
+            <input id="destination" placeholder="예: 서울 서초구 반포대로 55">
+        </div>
+
+        <button class="btn-primary" onclick="createDispatch()">콜 요청하기</button>
+    </section>
+
+    <!-- [2] 배차 대기 화면 -->
+    <section id="waiting-section" class="card hidden">
+        <h2 class="section-title">배차 요청 중...</h2>
+        <p id="waiting-text">기사님을 찾고 있습니다...</p>
+        <div class="loader"></div>
+    </section>
+
+    <!-- [3] 배차 상세 화면 -->
+    <section id="detail-section" class="card hidden">
+        <h2 class="section-title">배차 상세 정보</h2>
+        <div id="detail-container"></div>
+
+        <button class="btn-primary" onclick="backToHome()">홈으로 돌아가기</button>
+    </section>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

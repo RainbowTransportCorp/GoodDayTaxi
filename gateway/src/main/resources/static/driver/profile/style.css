@@ -1,0 +1,98 @@
+:root {
+    --primary: #8A5DF6;
+    --primary-soft: #E0D2FF;
+    --dark: #22223B;
+    --bg: #f7f7fb;
+    --radius: 16px;
+}
+
+body {
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 0;
+}
+
+.header {
+    background: white;
+    padding: 18px;
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid #eee;
+}
+
+.btn-back {
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.container {
+    max-width: 900px;
+    width: 92%;
+    margin: 24px auto;
+}
+
+.card {
+    background: white;
+    padding: 22px;
+    margin-bottom: 20px;
+    border-radius: var(--radius);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 16px;
+}
+
+.form-group {
+    margin-bottom: 14px;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid #ddd;
+}
+
+.btn-primary {
+    width: 100%;
+    padding: 14px;
+    border-radius: 999px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.status-box {
+    padding: 12px 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-online {
+    flex: 1;
+    padding: 12px;
+    background: #53F5C9;
+    border-radius: 12px;
+    border: none;
+    font-weight: 600;
+}
+
+.btn-offline {
+    flex: 1;
+    padding: 12px;
+    background: #ddd;
+    border-radius: 12px;
+    border: none;
+    font-weight: 600;
+}
