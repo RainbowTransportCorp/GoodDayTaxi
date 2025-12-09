@@ -28,7 +28,7 @@ public class PassengerTripHistoryResponseMapper {
 
     private TripHistoryItemResponse toTripHistoryItemResponse(TripHistoryItem item) {
         return new TripHistoryItemResponse(
-                item.tripId().toString(),
+                item.tripId(),
                 item.status(),
                 item.pickupAddress(),
                 item.destinationAddress(),

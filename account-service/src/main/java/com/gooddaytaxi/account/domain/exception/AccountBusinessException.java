@@ -56,6 +56,7 @@ public class AccountBusinessException extends BusinessException {
                 case MISSING_VEHICLE_INFO -> com.gooddaytaxi.common.core.exception.ErrorCode.INVALID_INPUT_VALUE;
                 case DRIVER_LICENSE_EXPIRED -> com.gooddaytaxi.common.core.exception.ErrorCode.INVALID_INPUT_VALUE;
                 case VEHICLE_REGISTRATION_REQUIRED -> com.gooddaytaxi.common.core.exception.ErrorCode.INVALID_INPUT_VALUE;
+                case SLACK_ID_REQUIRED -> com.gooddaytaxi.common.core.exception.ErrorCode.INVALID_INPUT_VALUE;
             };
         }
         
