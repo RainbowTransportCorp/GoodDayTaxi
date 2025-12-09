@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 public class TossFeignConfig {
 
-    @Value("${toss.test-secret-key}")
+    @Value("${toss.secret-key}")
     private String secretKey;
 
     @Bean
