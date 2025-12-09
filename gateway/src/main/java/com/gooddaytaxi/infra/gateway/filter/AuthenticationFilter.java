@@ -30,7 +30,7 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
     private static final String SYSTEM_UUID = "99999999-9999-9999-9999-999999999999";
     private static final String BEARER = "Bearer ";
 
-    private static final String USER_UUID_HEADER = "x-user-UUID";
+    private static final String USER_UUID_HEADER = "X-User-UUID";
     private static final String ROLE_HEADER = "X-User-Role";
 
     @Value("${jwt.secret-key}")
