@@ -2,11 +2,18 @@ package com.gooddaytaxi.dispatch.application.service;
 
 import com.gooddaytaxi.dispatch.application.commend.DispatchAcceptCommand;
 import com.gooddaytaxi.dispatch.application.commend.DispatchRejectCommand;
+import com.gooddaytaxi.dispatch.application.event.payload.DispatchAcceptedPayload;
+import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchAssignmentCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchCommandPort;
+import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchHistoryCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
 import com.gooddaytaxi.dispatch.application.result.*;
 import com.gooddaytaxi.dispatch.application.validator.DispatchDriverPermissionValidator;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
+import com.gooddaytaxi.dispatch.domain.model.entity.DispatchAssignmentLog;
+import com.gooddaytaxi.dispatch.domain.model.entity.DispatchHistory;
+import com.gooddaytaxi.dispatch.domain.model.enums.ChangedBy;
+import com.gooddaytaxi.dispatch.domain.model.enums.DispatchDomainEventType;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,10 +31,13 @@ import java.util.UUID;
 public class DriverDispatchService {
 
     private final DispatchCommandPort dispatchCommandPort;
+    private final DispatchHistoryCommandPort dispatchHistoryCommandPort;
+    private final DispatchAssignmentCommandPort dispatchAssignmentCommandPort;
 
     private final DispatchQueryPort dispatchQueryPort;
 
     private final DispatchDriverPermissionValidator dispatchDriverPermissionValidator;
+
 
     /**
      * 배차 대기 (ASSIGNING) 상태 콜 조회 (기사)
@@ -77,28 +87,50 @@ public class DriverDispatchService {
         log.debug("[Accept] 조회된 Dispatch 엔티티 - id={}, status={}",
                 dispatch.getDispatchId(), dispatch.getDispatchStatus());
 
-        // 상태 전이 (도메인 규칙 내부에서 검증)
+        // === from 상태 저장 ===
+        DispatchStatus from = dispatch.getDispatchStatus();
+
+        // === 상태 전이 ===
         dispatch.accept();
-        log.info("[Accept] Dispatch 상태 전이 완료 - id={}, newStatus={}",
-                dispatch.getDispatchId(), dispatch.getDispatchStatus());
+        DispatchStatus to = dispatch.getDispatchStatus();
 
+        log.info("[Accept] 상태 전이 완료 - id={}, newStatus={}", dispatch.getDispatchId(), to);
+
+        // === 히스토리 기록 ===
+        dispatchHistoryCommandPort.save(
+                DispatchHistory.recordStatusChange(
+                        dispatch.getDispatchId(),
+                        String.valueOf(DispatchDomainEventType.ACCEPTED),
+                        from,
+                        to,
+                        ChangedBy.DRIVER,
+                        null
+                )
+        );
+
+        // === 배차 시도 로그 업데이트 ===
+        dispatchAssignmentCommandPort.save(
+                DispatchAssignmentLog.create(dispatch.getDispatchId(),
+                        command.getDriverId())
+        );
+
+        // === 저장 ===
         dispatchCommandPort.save(dispatch);
-        log.info("[Accept] Dispatch 저장 완료 - id={}", dispatch.getDispatchId());
 
-        LocalDateTime acceptedAt = LocalDateTime.now();
+        // === 이벤트 발행 (Outbox) ===
+        dispatchAcceptedEventPublisher.save(
+                DispatchAcceptedPayload.from(dispatch, command.getDriverId())
+        );
 
-        DispatchAcceptResult result = DispatchAcceptResult.builder()
+        // === 응답 DTO 생성 ===
+        return DispatchAcceptResult.builder()
                 .dispatchId(command.getDispatchId())
                 .driverId(command.getDriverId())
-                .dispatchStatus(DispatchStatus.ACCEPTED)
-                .acceptedAt(acceptedAt)
+                .dispatchStatus(to)
+                .acceptedAt(LocalDateTime.now())
                 .build();
-
-        log.info("[Accept] 콜 수락 처리 완료 - dispatchId={}, acceptedAt={}",
-                result.getDispatchId(), result.getAcceptedAt());
-
-        return result;
     }
+
 
     /**
      * 콜 거절

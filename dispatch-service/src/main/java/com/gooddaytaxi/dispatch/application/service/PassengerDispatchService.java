@@ -2,10 +2,11 @@ package com.gooddaytaxi.dispatch.application.service;
 
 import com.gooddaytaxi.dispatch.application.commend.DispatchCancelCommand;
 import com.gooddaytaxi.dispatch.application.commend.DispatchCreateCommand;
-import com.gooddaytaxi.dispatch.application.event.payload.DispatchCreatedPayload;
 import com.gooddaytaxi.dispatch.application.event.payload.DispatchRequestedPayload;
 import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchCommandPort;
+import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchHistoryCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
+import com.gooddaytaxi.dispatch.application.port.out.query.DriverSelectionQueryPort;
 import com.gooddaytaxi.dispatch.application.result.DispatchCancelResult;
 import com.gooddaytaxi.dispatch.application.result.DispatchCreateResult;
 import com.gooddaytaxi.dispatch.application.result.DispatchDetailResult;
@@ -18,7 +19,6 @@ import com.gooddaytaxi.dispatch.domain.model.entity.DispatchAssignmentLog;
 import com.gooddaytaxi.dispatch.domain.model.entity.DispatchHistory;
 import com.gooddaytaxi.dispatch.domain.model.enums.ChangedBy;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchDomainEventType;
-import com.gooddaytaxi.dispatch.infrastructure.outbox.publisher.DispatchCreatedEventPublisher;
 import com.gooddaytaxi.dispatch.infrastructure.outbox.publisher.DispatchRequestedEventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,10 +36,11 @@ import java.util.UUID;
 public class PassengerDispatchService {
 
     private final DispatchCommandPort dispatchCommandPort;
+    private final DispatchHistoryCommandPort dispatchHistoryCommandPort;
 
     private final DispatchQueryPort dispatchQueryPort;
+    private final DriverSelectionQueryPort driverSelectionQueryPort;
 
-    private final DispatchCreatedEventPublisher dispatchCreatedEventPublisher;
     private final DispatchRequestedEventPublisher dispatchRequestedEventPublisher;
 
     private final DispatchCreatePermissionValidator dispatchCreatePermissionValidator;
@@ -65,25 +66,24 @@ public class PassengerDispatchService {
         Dispatch saved = dispatchCommandPort.save(entity);
 
         // 4. 히스토리 기록 (REQUESTED)
-        DispatchHistory.recordStatusChange(
-                saved.getDispatchId(),
-                DispatchDomainEventType.CREATED.name(),
-                null,                      // fromStatus
-                saved.getDispatchStatus(), // toStatus = REQUESTED
-                ChangedBy.PASSENGER,
-                null
-                );
+        dispatchHistoryCommandPort.save(
+                DispatchHistory.recordStatusChange(
+                        saved.getDispatchId(),
+                        DispatchDomainEventType.CREATED.name(),
+                        null,                      // fromStatus
+                        saved.getDispatchStatus(), // toStatus = REQUESTED
+                        ChangedBy.PASSENGER,
+                        null
+                )
+        );
 
 
         log.info("저장 완료: dispatchId={} / status={}",
                 saved.getDispatchId(), saved.getDispatchStatus());
 
-        // 6. 콜 생성 내부 이벤트 발행
-        dispatchCreatedEventPublisher.save(
-                DispatchCreatedPayload.from(saved)
-        );
 
-        // 6. 기사 확인 내부 이벤트 발행
+        // 6. 기사 조회 -> 페인 entity 조회로 로직 변경 (이벤트 x)
+        driverSelectionQueryPort.selectCandidateDriver(saved);
 
         //임시로 기사 id 발생
         UUID randomDriverId = UUID.randomUUID();
