@@ -29,7 +29,7 @@ async function signup() {
 
     if (json.success) {
         alert("회원가입이 완료되었습니다!");
-        window.location.href = "/login/index.html";
+        window.location.href = "/index.html";
     } else {
         alert("오류: " + (json.message || "회원가입 실패"));
     }

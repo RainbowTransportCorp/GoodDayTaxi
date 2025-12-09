@@ -123,10 +123,10 @@ public class PassengerDispatchService {
      * @return
      */
     @Transactional(readOnly = true)
-    public List<DispatchSummaryResult> getDispatchList(UUID userId, UserRole role) {
+    public List<DispatchSummaryResult> getDispatchList(UUID passengerId, UserRole role) {
         dispatchPassengerPermissionValidator.validate(role);
 
-        List<Dispatch> dispatches = dispatchQueryPort.findAllByFilter(userId);
+        List<Dispatch> dispatches = dispatchQueryPort.findAllByFilter(passengerId);
         return dispatches.stream()
                 .map(d -> DispatchSummaryResult.builder()
                         .dispatchId(d.getDispatchId())
@@ -177,6 +177,8 @@ public class PassengerDispatchService {
      * @return
      */
     public DispatchCancelResult cancel(DispatchCancelCommand command) {
+
+        dispatchPassengerPermissionValidator.validate(command.getRole());
 
         Dispatch dispatch = dispatchQueryPort.findById(command.getDispatchId());
 
