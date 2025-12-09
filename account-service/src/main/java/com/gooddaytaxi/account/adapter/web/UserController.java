@@ -53,6 +53,7 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(response, "내 정보 조회가 완료되었습니다."));
     }
     
+    @Operation(summary = "내 정보 수정", description = "현재 로그인된 사용자의 프로필 정보를 수정합니다")
     @PatchMapping("/me")
     public ResponseEntity<ApiResponse<UpdateUserProfileResponse>> updateMyProfile(
             @RequestHeader("X-User-UUID") String userUuidHeader,
@@ -68,6 +69,7 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(response, "내 정보 수정이 완료되었습니다."));
     }
     
+    @Operation(summary = "회원 탈퇴", description = "현재 로그인된 사용자의 계정을 삭제합니다")
     @DeleteMapping("/me")
     public ResponseEntity<ApiResponse<Void>> deleteMyAccount(
             @RequestHeader("X-User-UUID") String userUuidHeader) {
