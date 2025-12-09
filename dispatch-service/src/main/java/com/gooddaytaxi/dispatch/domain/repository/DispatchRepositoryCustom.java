@@ -8,7 +8,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface DispatchRepositoryCustom {
-    List<Dispatch> findAllByCondition();
+    List<Dispatch> findAllByCondition(UUID passengerId);
     List<Dispatch> findByStatus(DispatchStatus status);
     Optional<Dispatch> findByDispatchId(UUID id);
 }

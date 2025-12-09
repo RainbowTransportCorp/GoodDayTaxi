@@ -11,11 +11,11 @@ import java.util.UUID;
 @Getter
 @Builder
 @AllArgsConstructor
-public class DispatchListResult {
+public class DispatchSummaryResult {
     private final UUID dispatchId;
     private final String pickupAddress;
     private final String destinationAddress;
     private final DispatchStatus dispatchStatus;
     private final UUID driverId;
-    private final LocalDateTime CreatedAt;
+    private final LocalDateTime createdAt;
 }
