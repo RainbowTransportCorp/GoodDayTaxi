@@ -19,6 +19,7 @@ public class UserSignupCommand {
     private String password;
     private String name;
     private String phoneNumber;
+    private String slackId;
     private UserRole role;
     private String vehicleNumber;
     private String vehicleType;

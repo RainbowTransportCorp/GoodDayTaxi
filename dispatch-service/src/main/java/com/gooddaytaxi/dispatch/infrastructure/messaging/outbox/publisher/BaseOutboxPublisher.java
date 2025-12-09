@@ -1,4 +1,4 @@
-package com.gooddaytaxi.dispatch.infrastructure.outbox.publisher;
+package com.gooddaytaxi.dispatch.infrastructure.messaging.outbox.publisher;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,7 +35,7 @@ public abstract class BaseOutboxPublisher<T> {
         try {
             payloadJson = objectMapper.writeValueAsString(envelope);
         } catch (JsonProcessingException e) {
-            log.error("[OUTBOX-ERROR] eventType={} aggregateId={} error={}",
+            log.error("[DISPATCH-OUTBOX-ERROR] eventType={} aggregateId={} error={}",
                     eventType, aggregateId, e.getMessage());
             throw new IllegalArgumentException("Outbox payload serialization failed", e);
         }
@@ -54,7 +54,7 @@ public abstract class BaseOutboxPublisher<T> {
         // 4. 포트에 전달 (infra adapter에서 실제 outbox entity 생성)
         outboxPort.save(model);
 
-        log.info("[OUTBOX-SAVED] eventType={} aggregateId={} topic={}",
+        log.info("[DISPATCH-OUTBOX-SAVED] eventType={} aggregateId={} topic={}",
                 eventType, aggregateId, topic);
     }
 }

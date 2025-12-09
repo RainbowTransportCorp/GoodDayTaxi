@@ -31,7 +31,6 @@ public class DriverDispatchController {
 
     /**
      * (기사) 배차 시도 중인 콜 목록 조회
-     *
      * @return
      */
     @GetMapping("/pending")
@@ -50,7 +49,6 @@ public class DriverDispatchController {
 
     /**
      * (기사) 콜 수락
-     *
      * @param dispatchId
      * @return
      */
@@ -68,7 +66,6 @@ public class DriverDispatchController {
 
     /**
      * (기사) 콜 거절
-     *
      * @param dispatchId
      * @return
      */

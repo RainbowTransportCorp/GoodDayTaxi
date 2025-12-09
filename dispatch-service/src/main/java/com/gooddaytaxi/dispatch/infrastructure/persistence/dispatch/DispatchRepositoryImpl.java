@@ -1,4 +1,4 @@
-package com.gooddaytaxi.dispatch.infrastructure.repository.dispatch;
+package com.gooddaytaxi.dispatch.infrastructure.persistence.dispatch;
 
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;

@@ -22,11 +22,6 @@ public class DriverProfile extends BaseEntity {
     @Column(name = "user_id")
     private UUID userId;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @MapsId
-    @JoinColumn(name = "user_id")
-    private User user;
-
     @Column(name = "vehicle_number", nullable = false, unique = true, length = 20)
     private String vehicleNumber;
 
@@ -45,15 +40,15 @@ public class DriverProfile extends BaseEntity {
     /**
      * 기사 프로필 엔티티 생성
      *
-     * @param user 연결된 사용자 엔티티
+     * @param userId 연결된 사용자 ID
      * @param vehicleNumber 차량 번호
      * @param vehicleType 차량 유형
      * @param vehicleColor 차량 색상
+     * @param slackUserId 슬랙 사용자 ID
      */
     @Builder
-    public DriverProfile(User user, String vehicleNumber, String vehicleType, String vehicleColor, String slackUserId) {
-        this.user = user;
-        this.userId = user.getUserUuid();
+    public DriverProfile(UUID userId, String vehicleNumber, String vehicleType, String vehicleColor, String slackUserId) {
+        this.userId = userId;
         this.vehicleNumber = vehicleNumber;
         this.vehicleType = vehicleType;
         this.vehicleColor = vehicleColor;
