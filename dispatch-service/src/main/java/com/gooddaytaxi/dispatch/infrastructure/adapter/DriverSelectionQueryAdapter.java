@@ -27,7 +27,7 @@ public class DriverSelectionQueryAdapter implements DriverSelectionQueryPort {
             throw new IllegalStateException("가용 기사 없음");
         }
 
-        // GIS 없으면 랜덤 선택 or 정책 기반 선택
+        //랜덤 선택
         DriverInfo candidate =
             availableDrivers.get(random.nextInt(availableDrivers.size()));
 

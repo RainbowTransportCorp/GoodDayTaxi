@@ -5,6 +5,7 @@ import com.gooddaytaxi.account.domain.model.UserRole;
 import com.gooddaytaxi.account.domain.model.UserStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -25,4 +26,6 @@ public interface UserJpaRepository extends JpaRepository<User, UUID> {
     Optional<User> findByEmailAndDeletedAtIsNull(String email);
     
     Optional<User> findByUserIdAndRoleAndDeletedAtIsNull(UUID userId, UserRole role);
+    
+    List<User> findByRoleAndStatusAndDeletedAtIsNull(UserRole role, UserStatus status);
 }

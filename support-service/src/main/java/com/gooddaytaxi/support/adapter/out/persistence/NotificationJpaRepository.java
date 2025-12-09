@@ -1,6 +1,7 @@
 package com.gooddaytaxi.support.adapter.out.persistence;
 
 import com.gooddaytaxi.support.domain.notification.model.Notification;
+import com.gooddaytaxi.support.domain.notification.model.NotificationType;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;
@@ -23,7 +24,7 @@ interface NotificationJpaRepository extends JpaRepository<Notification, UUID> {
      */
     Optional<Notification> findById(UUID notificationId);
     Notification findByNotificationOriginId(UUID id);
-    List<Notification> findAllByNotificiationType(UUID id);
+    List<Notification> findAllByNotificationType(NotificationType type);
     List<Notification> findByNotifiedAtBetween(LocalDateTime start, LocalDateTime end);
     List<Notification> findByNotifiedAtAfter(LocalDateTime start);
     List<Notification> findByNotifiedAtBefore(LocalDateTime end);
