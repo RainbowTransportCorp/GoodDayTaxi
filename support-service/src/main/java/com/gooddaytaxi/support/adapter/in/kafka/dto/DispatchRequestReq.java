@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.UUID;
 
 /**
- * 배차 콜 요청 DTO
- * 클라이언트로부터 수신한 요청 정보를 담는 객체
+ * 배차 콜 요청 DTO - 클라이언트로부터 수신한 요청 정보를 담는 객체
+ * 배차 수락 DTO - 클라이언트로부터 수락된 배차 정보를 담는 객체
  */
 public record DispatchRequestReq(
     UUID notificationOriginId,
