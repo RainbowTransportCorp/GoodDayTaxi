@@ -7,7 +7,7 @@ import java.util.Arrays;
  */
 public enum NotificationType {
 
-    CALL_REQUEST, // 콜 요청 알림
+    DISPATCH_REQUESTED, // 콜 요청 알림
     DISPATCH_ACCEPTED, // 배차 수락 알림
 
     TRIP_STARTED,      // 운행 시작 알림

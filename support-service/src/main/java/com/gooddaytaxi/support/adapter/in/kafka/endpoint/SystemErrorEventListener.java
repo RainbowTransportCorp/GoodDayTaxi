@@ -15,8 +15,8 @@ class SystemErrorEventListener {
 
     private final LogService service;
 
-    @KafkaListener(topics = "system.error-domain-events", groupId = "support-service")
-    public void onErrorEvent(String message) {
-        service.handleErrorDomainEvent(message);
-    }
+//    @KafkaListener(topics = "system.error-domain-events", groupId = "support-service")
+//    public void onErrorEvent(String message) {
+//        service.handleErrorDomainEvent(message);
+//    }
 }
