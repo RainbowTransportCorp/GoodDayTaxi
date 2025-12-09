@@ -2,12 +2,12 @@ package com.gooddaytaxi.dispatch.application.service;
 
 import com.gooddaytaxi.dispatch.application.commend.DispatchCancelCommand;
 import com.gooddaytaxi.dispatch.application.commend.DispatchCreateCommand;
-import com.gooddaytaxi.dispatch.application.event.payload.DispatchCreatedPayload;
 import com.gooddaytaxi.dispatch.application.event.payload.DispatchRequestedPayload;
-import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchAssignmentLogCommandPort;
-import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchCommandPort;
-import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchHistoryCommandPort;
+import com.gooddaytaxi.dispatch.application.port.out.command.DispatchCommandPort;
+import com.gooddaytaxi.dispatch.application.port.out.command.DispatchHistoryCommandPort;
+import com.gooddaytaxi.dispatch.application.port.out.command.DispatchRequestedCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
+import com.gooddaytaxi.dispatch.application.port.out.query.DriverSelectionQueryPort;
 import com.gooddaytaxi.dispatch.application.result.DispatchCancelResult;
 import com.gooddaytaxi.dispatch.application.result.DispatchCreateResult;
 import com.gooddaytaxi.dispatch.application.result.DispatchDetailResult;
@@ -16,7 +16,10 @@ import com.gooddaytaxi.dispatch.application.validator.DispatchCreatePermissionVa
 import com.gooddaytaxi.dispatch.application.validator.DispatchPassengerPermissionValidator;
 import com.gooddaytaxi.dispatch.application.validator.UserRole;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
-import com.gooddaytaxi.dispatch.infrastructure.outbox.publisher.DispatchCreatedEventPublisher;
+import com.gooddaytaxi.dispatch.domain.model.entity.DispatchAssignmentLog;
+import com.gooddaytaxi.dispatch.domain.model.entity.DispatchHistory;
+import com.gooddaytaxi.dispatch.domain.model.enums.ChangedBy;
+import com.gooddaytaxi.dispatch.domain.model.enums.DispatchDomainEventType;
 import com.gooddaytaxi.dispatch.infrastructure.outbox.publisher.DispatchRequestedEventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,12 +38,11 @@ public class PassengerDispatchService {
 
     private final DispatchCommandPort dispatchCommandPort;
     private final DispatchHistoryCommandPort dispatchHistoryCommandPort;
-    private final DispatchAssignmentLogCommandPort dispatchAssignmentCommandPort;
+    private final DispatchRequestedCommandPort dispatchRequestedCommandPort;
 
     private final DispatchQueryPort dispatchQueryPort;
+    private final DriverSelectionQueryPort driverSelectionQueryPort;
 
-    private final DispatchCreatedEventPublisher dispatchCreatedEventPublisher;
-    private final DispatchRequestedEventPublisher dispatchRequestedEventPublisher;
 
     private final DispatchCreatePermissionValidator dispatchCreatePermissionValidator;
     private final DispatchPassengerPermissionValidator dispatchPassengerPermissionValidator;
@@ -65,26 +67,33 @@ public class PassengerDispatchService {
         Dispatch saved = dispatchCommandPort.save(entity);
 
         // 4. 히스토리 기록 (REQUESTED)
-        dispatchHistoryCommandPort.recordStatusChange(saved);
+        dispatchHistoryCommandPort.save(
+                DispatchHistory.recordStatusChange(
+                        saved.getDispatchId(),
+                        DispatchDomainEventType.CREATED.name(),
+                        null,                      // fromStatus
+                        saved.getDispatchStatus(), // toStatus = REQUESTED
+                        ChangedBy.PASSENGER,
+                        null
+                )
+        );
 
-        // 5. 시도 로그 저장
-        dispatchAssignmentCommandPort.createAssignmentLog(saved);
 
         log.info("저장 완료: dispatchId={} / status={}",
                 saved.getDispatchId(), saved.getDispatchStatus());
 
-        // 6. 콜 생성 내부 이벤트 발행
-        dispatchCreatedEventPublisher.save(
-                DispatchCreatedPayload.from(saved)
-        );
 
-        // 6. 기사 확인 내부 이벤트 발행
+        // 6. 기사 조회 -> 페인 entity 조회로 로직 변경 (이벤트 x)
+//        driverSelectionQueryPort.selectCandidateDriver(saved);
 
         //임시로 기사 id 발생
         UUID randomDriverId = UUID.randomUUID();
 
+        // 시도 로그 저장
+        DispatchAssignmentLog.create(saved.getDispatchId(), saved.getDriverId());
+
         // 7. support 쪽에 '콜 생성했으니 기사에게 알림을 보내세요'용 Requested 이벤트 발행
-        dispatchRequestedEventPublisher.save(
+        dispatchRequestedCommandPort.publishRequested(
                 DispatchRequestedPayload.from(
                         saved.getDispatchId(),
                         saved.getPassengerId(),

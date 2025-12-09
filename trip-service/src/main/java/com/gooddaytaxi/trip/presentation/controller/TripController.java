@@ -35,6 +35,7 @@ public class TripController {
     private final TripStartResponseMapper tripStartResponseMapper;
     private final EndTripRequestMapper endTripRequestMapper;
     private final TripEndResponseMapper tripEndResponseMapper;
+    private final PassengerTripHistoryResponseMapper passengerTripHistoryResponseMapper;
 
 
 
@@ -109,6 +110,24 @@ public class TripController {
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
+
+    @GetMapping("/passengers/{passengerId}")
+    public ResponseEntity<ApiResponse<PassengerTripHistoryResponse>> getPassengerTripHistory(
+            @PathVariable UUID passengerId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+
+        PassengerTripHistoryResult result =
+                tripService.getPassengerTripHistory(passengerId, page, size);
+
+        PassengerTripHistoryResponse response =
+                passengerTripHistoryResponseMapper.toResponse(result);
+
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+
 
 
 }

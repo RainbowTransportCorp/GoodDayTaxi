@@ -2,6 +2,7 @@ package com.gooddaytaxi.payment.application.service;
 
 import com.gooddaytaxi.payment.application.command.refund.ExternalPaymentCancelCommand;
 import com.gooddaytaxi.payment.application.command.refund.RefundCreateCommand;
+import com.gooddaytaxi.payment.application.command.refund.RefundSearchCommand;
 import com.gooddaytaxi.payment.application.exception.PaymentErrorCode;
 import com.gooddaytaxi.payment.application.exception.PaymentException;
 import com.gooddaytaxi.payment.application.port.out.ExternalPaymentPort;
@@ -18,8 +19,13 @@ import com.gooddaytaxi.payment.domain.entity.Refund;
 import com.gooddaytaxi.payment.domain.entity.RefundRequest;
 import com.gooddaytaxi.payment.domain.enums.RefundReason;
 import com.gooddaytaxi.payment.domain.enums.UserRole;
+import com.gooddaytaxi.payment.domain.vo.RefundSortBy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,10 +54,12 @@ public class RefundService {
         validator.checkMethodTossPay(payment.getMethod());
         //결제상태가 완료 상태인지 확인
         validator.checkPaymentStatusCompleted(payment.getStatus());
-        //환불 요청이 있다면 해당 요청이 승인된 상태인지 확인
+        //환불 요청이 있다면 해당 요청이 승인된 상태인지 확인 + 해당 요청의 결제  실제결제가 일치하는지 확인
         if(command.requestId() != null) {
             RefundRequest request = requestQueryPort.findById(command.requestId()).orElseThrow(() -> new PaymentException(PaymentErrorCode.REFUND_REQUEST_NOT_FOUND));
             validator.checkRefundRequestApproved(request.getStatus());
+            if(!request.getPaymentId().equals(payment.getId()))
+                throw new PaymentException(PaymentErrorCode.REFUND_REQUEST_PAYMENT_MISMATCH);
         }
 
         //해당 결제으 마지막 시도의 pamentKey 가져오기
@@ -89,7 +97,7 @@ public class RefundService {
 
         paymentCommandPort.save(payment);
 
-        return new RefundCreateResult(refund.getId(), "환불이 완료되었습니다!");
+        return new RefundCreateResult(paymentId, "환불이 완료되었습니다!");
     }
 
     //디버그용 - 토스페이 외부결제 정보 조회
@@ -129,4 +137,116 @@ public class RefundService {
                 refund.getUpdatedAt()
         );
     }
+
+    //환불 검색
+    public Page<RefundReadResult> searchRefund(RefundSearchCommand command, UUID userId, String role) {
+        UUID passeangerId = command.passengerId();
+        UUID driverId = command.driverId();
+        //승객인 경우 본인 승객아이디로 승객아이디 고정
+            if (UserRole.of(role) == UserRole.PASSENGER) {
+            passeangerId = userId;
+            //기사인 경우 본인 기사아이디로 기사 아이디 고정
+        } else if (UserRole.of(role) == UserRole.DRIVER) {
+            driverId = userId;
+        }
+        //정렬조건 체크
+        RefundSortBy.checkValid(command.sortBy()); //enum 검증용
+        //오름차순/내림차순
+        Sort.Direction direction = command.sortAscending() ? Sort.Direction.ASC : Sort.Direction.DESC;
+
+        //데이터 조회
+        Pageable pageable = PageRequest.of(command.page()-1, command.size(), Sort.by(direction, command.sortBy()));
+
+        Page<Refund> refunds = paymentQueryPort.searchRefunds(
+                command.status(),
+                command.reason(),
+                command.existRequest(),
+                passeangerId,
+                driverId,
+                command.tripId(),
+                command.method(),
+                command.minAmount(),
+                command.maxAmount(),
+                command.startDay(),
+                command.endDay(),
+                pageable
+        );
+
+        return refunds.map(
+                refund -> new RefundReadResult(
+                        refund.getId(),
+                        refund.getStatus().name(),
+                        refund.getReason().getDescription(),
+                        refund.getDetailReason(),
+                        refund.getRequestId(),
+                        refund.getCanceledAt(),
+                        refund.getTransactionKey(),
+                        refund.getPgFailReason(),
+                        refund.getPayment().getId(),
+                        refund.getPayment().getAmount().value(),
+                        refund.getCreatedAt(),
+                        refund.getUpdatedAt()
+                )
+        );
+    }
+
+//    UUID passeangerId = command.passengerId();
+//    UUID driverId = command.driverId();
+//    //승객인 경우 본인 승객아이디로 승객아이디 고정
+//        if (UserRole.of(role) == UserRole.PASSENGER) {
+//        passeangerId = userId;
+//        //기사인 경우 본인 기사아이디로 기사 아이디 고정
+//    } else if (UserRole.of(role) == UserRole.DRIVER) {
+//        driverId = userId;
+//    }
+//    //매니저이면 모두 가능
+//
+//    //정렬조건 체크
+//        PaymentSortBy.checkValid(command.sortBy()); //enum 검증용
+//    //오름차순/내림차순
+//    Sort.Direction direction = command.sortAscending() ? Sort.Direction.ASC : Sort.Direction.DESC;
+//
+//    //데이터 조회
+//    Pageable pageable = PageRequest.of(command.page()-1, command.size(), Sort.by(direction, command.sortBy()));
+//    Page<Payment> payments = paymentQueryPort.searchPayments(
+//            command.method(),
+//            command.status(),
+//            passeangerId,
+//            driverId,
+//            command.tripId(),
+//            command.startDay(),
+//            command.endDay(),
+//            pageable
+//    );
+//
+//    //결과값 반환
+//        return payments.map(payment -> {
+//        AttemptReadResult attemptResult = null;
+//        if(payment.getMethod() == PaymentMethod.TOSS_PAY) {
+//            //아직 결제 전이면 시도 없음
+//            if(!(payment.getStatus() == PaymentStatus.PENDING ||payment.getStatus() == PaymentStatus.IN_PROCESS) ){
+//                PaymentAttempt lastAttempt = payment.getAttempts().get(0);
+//                attemptResult = new AttemptReadResult(
+//                        lastAttempt.getStatus().toString(),
+//                        lastAttempt.getPgMethod(),
+//                        lastAttempt.getPgProvider(),
+//                        lastAttempt.getApprovedAt(),
+//                        lastAttempt.getFailDetail()
+//                );
+//            }
+//
+//        }
+//        return new PaymentReadResult(
+//                payment.getId(),
+//                payment.getAmount().value(),
+//                payment.getStatus().name(),
+//                payment.getMethod().name(),
+//                payment.getPassengerId(),
+//                payment.getDriverId(),
+//                payment.getTripId(),
+//                attemptResult,
+//                payment.getCreatedAt(),
+//                payment.getUpdatedAt()
+//        );
+//    });
 }

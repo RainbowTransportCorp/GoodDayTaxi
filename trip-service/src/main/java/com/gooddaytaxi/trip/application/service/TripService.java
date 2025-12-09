@@ -4,10 +4,7 @@ package com.gooddaytaxi.trip.application.service;
 import com.gooddaytaxi.trip.application.command.EndTripCommand;
 import com.gooddaytaxi.trip.application.command.StartTripCommand;
 import com.gooddaytaxi.trip.application.command.TripCreateCommand;
-import com.gooddaytaxi.trip.application.port.out.CreateTripPort;
-import com.gooddaytaxi.trip.application.port.out.LoadTripByIdPort;
-import com.gooddaytaxi.trip.application.port.out.LoadTripsPort;
-import com.gooddaytaxi.trip.application.port.out.UpdateTripPort;
+import com.gooddaytaxi.trip.application.port.out.*;
 import com.gooddaytaxi.trip.application.result.*;
 import com.gooddaytaxi.trip.domain.model.Trip;
 import com.gooddaytaxi.trip.domain.model.enums.TripStatus;
@@ -26,6 +23,7 @@ public class TripService {
     private final LoadTripsPort loadTripsPort;
     private final LoadTripByIdPort loadTripByIdPort;
     private final UpdateTripPort updateTripPort;
+    private final LoadTripsByPassengerPort loadTripsByPassengerPort;
 
 
     @Transactional
@@ -106,6 +104,25 @@ public class TripService {
                 updated.getEndTime(),
                 updated.getFinalFare(),
                 "운행 종료, 요금 산정 완료 및 결제 요청 이벤트 발행 완료"
+        );
+    }
+
+    @Transactional
+    public PassengerTripHistoryResult getPassengerTripHistory(UUID passengerId, int page, int size) {
+
+        LoadTripsByPassengerPort.PassengerTripsPage tripsPage =
+                loadTripsByPassengerPort.loadTripsByPassengerId(passengerId, page, size);
+
+        List<TripHistoryItem> items = tripsPage.trips().stream()
+                .map(TripHistoryItem::from)  // 이미 Trip -> TripItem 변환 메서드 있다고 가정
+                .toList();
+
+        return new PassengerTripHistoryResult(
+                passengerId,
+                tripsPage.totalCount(),
+                page,
+                size,
+                items
         );
     }
 
