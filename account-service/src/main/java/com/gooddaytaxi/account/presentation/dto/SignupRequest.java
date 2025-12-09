@@ -31,6 +31,9 @@ public class SignupRequest {
     @NotBlank(message = "전화번호는 필수입니다.")
     @JsonProperty("phone_number")
     private String phoneNumber;
+    
+    @JsonProperty("slack_id")
+    private String slackId;
 
     @NotNull(message = "역할은 필수입니다.")
     private UserRole role;

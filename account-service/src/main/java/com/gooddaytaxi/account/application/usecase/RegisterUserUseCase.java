@@ -45,6 +45,7 @@ public class RegisterUserUseCase {
                 .password(passwordEncoder.encode(command.getPassword()))
                 .name(command.getName())
                 .phoneNumber(command.getPhoneNumber())
+                .slackId(command.getSlackId())
                 .role(command.getRole())
                 .build();
 
@@ -68,12 +69,15 @@ public class RegisterUserUseCase {
      */
     private void createDriverProfile(User user, UserSignupCommand command) {
         DriverProfile driverProfile = DriverProfile.builder()
-                .user(user)
+                .userId(user.getUserUuid())
                 .vehicleNumber(command.getVehicleNumber())
                 .vehicleType(command.getVehicleType())
                 .vehicleColor(command.getVehicleColor())
+                .slackUserId(command.getSlackId())
                 .build();
 
-        driverProfileRepository.save(driverProfile);
+        DriverProfile savedProfile = driverProfileRepository.save(driverProfile);
+        log.debug("기사 프로필 생성 완료: userId={}, vehicleNumber={}", 
+                savedProfile.getUserId(), savedProfile.getVehicleNumber());
     }
 }

@@ -17,8 +17,13 @@ public class PassengerRoleValidationStrategy implements RoleValidationStrategy {
     }
     
     @Override
-    public void validate(UserRole userRole, String vehicleNumber, String vehicleType, String vehicleColor) {
-        log.debug("승객 역할 검증 (추가 검증 없음)");
-        // PASSENGER는 추가 검증 없음
+    public void validate(UserRole userRole, String vehicleNumber, String vehicleType, String vehicleColor, String slackId) {
+        log.debug("승객 역할 검증: slackId present={}", slackId != null);
+        
+        // 승객은 슬랙 ID 필수
+        if (slackId == null || slackId.trim().isEmpty()) {
+            throw new com.gooddaytaxi.account.domain.exception.AccountBusinessException(
+                com.gooddaytaxi.account.domain.exception.AccountErrorCode.SLACK_ID_REQUIRED);
+        }
     }
 }
