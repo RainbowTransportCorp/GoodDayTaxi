@@ -11,7 +11,7 @@ async function signup() {
         email: document.getElementById("email").value,
         password: document.getElementById("password").value,
         name: document.getElementById("name").value,
-        phoneNumber: document.getElementById("phone").value,
+        phone_number: document.getElementById("phone").value,
         slackId: document.getElementById("slackId").value || null,
         role: document.getElementById("role").value,
         vehicleNumber: document.getElementById("vehicleNumber")?.value || null,
