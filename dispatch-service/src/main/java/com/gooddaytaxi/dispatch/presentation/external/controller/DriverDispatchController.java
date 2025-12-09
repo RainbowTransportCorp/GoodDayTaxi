@@ -71,9 +71,9 @@ public class DriverDispatchController {
     @PatchMapping("/{dispatchId}/reject")
     public ResponseEntity<ApiResponse<DispatchRejectResponseDto>> reject(
             @PathVariable UUID dispatchId
-            //            ,@RequestHeader(value = "x-user-uuid", required = false) UUID userId
+            ,@RequestHeader(value = "x-user-uuid", required = false) UUID userId
     ) {
-        UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000011");
+        userId = UUID.fromString("00000000-0000-0000-0000-000000000011");
         DispatchRejectCommand command = DispatchRejectCommandMapper.toCommand(userId, dispatchId);
         DispatchRejectResult result = driverDispatchService.reject(command);
         DispatchRejectResponseDto responseDto = DispatchRejectResponseMapper.toResponse(result);
