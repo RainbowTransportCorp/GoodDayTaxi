@@ -22,7 +22,7 @@ repositories {
 
 // Spring Cloud BOM 버전 (Eureka 쓰니까 필요)
 ext {
-    set('springCloudVersion', "2023.0.4")
+    set('springCloudVersion', "2025.0.0")
 }
 
 
@@ -58,8 +58,8 @@ dependencies {
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 
     // Common module
-    implementation 'com.gooddaytaxi:common-core:0.0.4-SNAPSHOT'
-    implementation 'com.gooddaytaxi:common-jpa:0.0.4-SNAPSHOT'
+    implementation 'com.gooddaytaxi:common-core:0.0.5-SNAPSHOT'
+    implementation 'com.gooddaytaxi:common-jpa:0.0.5-SNAPSHOT'
 
     // Lombok
     compileOnly 'org.projectlombok:lombok'

@@ -19,7 +19,7 @@ repositories {
 
 // Spring Cloud BOM 버전 (Eureka 쓰니까 필요)
 ext {
-    set('springCloudVersion', "2023.0.4")
+    set('springCloudVersion', "2025.0.0")
 }
 
 dependencies {
