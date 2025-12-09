@@ -10,8 +10,8 @@ import java.util.UUID;
 
 @Getter
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 public class DispatchCreateCommand {
     private UUID passengerId;
     private UserRole role;
