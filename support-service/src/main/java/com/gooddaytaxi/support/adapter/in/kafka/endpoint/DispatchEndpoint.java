@@ -42,6 +42,6 @@ public class DispatchEndpoint {
                 req.driverId(), req.passengerId(),
                 req.pickupAddress(), req.destinationAddress(),
                 req.message());
-        acceptDispatchUsecase.accepted(message);
+//        acceptDispatchUsecase.accepted(message);
     }
 }
