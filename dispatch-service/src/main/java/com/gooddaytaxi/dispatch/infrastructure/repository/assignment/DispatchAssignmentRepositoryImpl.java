@@ -1,4 +1,4 @@
-package com.gooddaytaxi.dispatch.infrastructure.repository;
+package com.gooddaytaxi.dispatch.infrastructure.repository.assignment;
 
 import com.gooddaytaxi.dispatch.domain.repository.DispatchAssignmentRepositoryCustom;
 import lombok.RequiredArgsConstructor;

@@ -1,61 +1,39 @@
 package com.gooddaytaxi.dispatch.infrastructure.outbox.publisher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gooddaytaxi.dispatch.application.event.EventEnvelope;
 import com.gooddaytaxi.dispatch.application.event.payload.DispatchRequestedPayload;
-import com.gooddaytaxi.dispatch.application.port.out.commend.DispatchEventRepository;
-import com.gooddaytaxi.dispatch.infrastructure.outbox.entity.DispatchEvent;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import com.gooddaytaxi.dispatch.application.outbox.DispatchEventOutboxPort;
+import com.gooddaytaxi.dispatch.application.port.out.command.DispatchRequestedCommandPort;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
-@Slf4j
 @Component
-@RequiredArgsConstructor
-public class DispatchRequestedEventPublisher {
-
-    private final DispatchEventRepository outboxRepository;
-    private final ObjectMapper mapper;
+public class DispatchRequestedEventPublisher
+        extends BaseOutboxPublisher<DispatchRequestedPayload>
+        implements DispatchRequestedCommandPort {
 
     private static final String EVENT_TYPE = "DISPATCH_REQUESTED";
     private static final String TOPIC = "dispatch.requested";
     private static final String AGGREGATE_TYPE = "Dispatch";
-    private static final int PAYLOAD_VERSION = 1;
+    private static final int VERSION = 1;
 
-    @Transactional
-    public void save(DispatchRequestedPayload payload) {
+    public DispatchRequestedEventPublisher(
+            ObjectMapper mapper,
+            DispatchEventOutboxPort outboxPort
+    ) {
+        super(mapper, outboxPort);
+    }
 
-        log.info("[REQUESTED-PREPARE] dispatchId={} driverId={}",
-            payload.notificationOriginId(), payload.driverId());
+    @Override
+    public void publishRequested(DispatchRequestedPayload payload) {
 
-        // 1. Envelope 생성
-        var envelope = EventEnvelope.of(EVENT_TYPE, PAYLOAD_VERSION, payload);
-
-        // 2. JSON 직렬화
-        String json;
-        try {
-            json = mapper.writeValueAsString(envelope);
-        } catch (Exception e) {
-            log.error("[REQUESTED-ERROR] serialize fail: {}", e.getMessage());
-            throw new IllegalStateException(e);
-        }
-
-        // 3. Outbox 저장용 엔티티 생성
-        DispatchEvent event = DispatchEvent.pending(
-            EVENT_TYPE,
-            TOPIC,
-            payload.driverId().toString(),   // partition key
-            AGGREGATE_TYPE,
-            payload.notificationOriginId(),  // dispatchId
-            PAYLOAD_VERSION,
-            json
+        publish(
+                EVENT_TYPE,
+                TOPIC,
+                AGGREGATE_TYPE,
+                payload.notificationOriginId(),  // dispatchId (aggregateId)
+                payload.driverId().toString(),   // partition key (messageKey)
+                VERSION,
+                payload
         );
-
-        outboxRepository.save(event);
-
-        log.info("[REQUESTED-SAVED] eventId={} dispatchId={}",
-            event.getEventId(), payload.notificationOriginId());
     }
 }
-
