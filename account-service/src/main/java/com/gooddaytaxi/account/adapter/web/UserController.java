@@ -33,7 +33,7 @@ public class UserController {
     private final UpdateUserProfileUseCase updateUserProfileUseCase;
     private final DeleteUserUseCase deleteUserUseCase;
     
-    @Operation(summary = "내 정보 조회", description = "현재 로그인된 사용자의 프로필 정보를 조회합니다")
+    @Operation(summary = "내 정보 조회", description = "현재 로그인된 사용자(승객/기사/관리자)의 프로필 정보를 조회합니다")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "사용자 없음")
@@ -53,7 +53,7 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(response, "내 정보 조회가 완료되었습니다."));
     }
     
-    @Operation(summary = "내 정보 수정", description = "현재 로그인된 사용자의 프로필 정보를 수정합니다")
+    @Operation(summary = "내 정보 수정", description = "현재 로그인된 사용자(승객/기사/관리자)의 기본 프로필 정보(이름, 전화번호)를 수정합니다")
     @PatchMapping("/me")
     public ResponseEntity<ApiResponse<UpdateUserProfileResponse>> updateMyProfile(
             @RequestHeader("X-User-UUID") String userUuidHeader,
@@ -69,7 +69,7 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(response, "내 정보 수정이 완료되었습니다."));
     }
     
-    @Operation(summary = "회원 탈퇴", description = "현재 로그인된 사용자의 계정을 삭제합니다")
+    @Operation(summary = "회원 탈퇴", description = "현재 로그인된 사용자(승객/기사/관리자)의 계정을 삭제합니다")
     @DeleteMapping("/me")
     public ResponseEntity<ApiResponse<Void>> deleteMyAccount(
             @RequestHeader("X-User-UUID") String userUuidHeader) {
