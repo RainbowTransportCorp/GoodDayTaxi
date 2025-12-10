@@ -1,5 +1,7 @@
 package com.gooddaytaxi.account.domain.service;
 
+import com.gooddaytaxi.account.domain.exception.AccountBusinessException;
+import com.gooddaytaxi.account.domain.exception.AccountErrorCode;
 import com.gooddaytaxi.account.domain.model.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,10 +22,10 @@ public class UserProfileUpdateServiceImpl implements UserProfileUpdateService {
     
     private void validateUpdateData(String name, String phoneNumber) {
         if (name == null || name.trim().isEmpty()) {
-            throw new IllegalArgumentException("이름은 필수입니다");
+            throw new AccountBusinessException(AccountErrorCode.INVALID_INPUT_VALUE);
         }
         if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
-            throw new IllegalArgumentException("전화번호는 필수입니다");
+            throw new AccountBusinessException(AccountErrorCode.INVALID_INPUT_VALUE);
         }
     }
 }
