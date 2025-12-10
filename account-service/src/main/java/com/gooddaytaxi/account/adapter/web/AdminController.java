@@ -12,6 +12,7 @@ import com.gooddaytaxi.account.application.usecase.GetAllUsersUseCase;
 import com.gooddaytaxi.account.application.usecase.GetUserDetailUseCase;
 import com.gooddaytaxi.common.core.dto.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +38,7 @@ public class AdminController {
     @Operation(summary = "전체 사용자 조회", description = "관리자 전용 API. 전체 사용자(승객/기사/관리자) 목록을 조회합니다. 사용자 기본 정보를 포함합니다.")
     @GetMapping("/users")
     public ResponseEntity<ApiResponse<List<AdminUserListResponse>>> getAllUsers(
+            @Parameter(description = "요청자 역할 (ADMIN만 허용)", required = true, example = "ADMIN")
             @RequestHeader("X-User-Role") String requestUserRole) {
         
         log.debug("전체 사용자 조회 요청: requestUserRole={}", requestUserRole);
@@ -51,7 +53,9 @@ public class AdminController {
     @Operation(summary = "사용자 상세 조회", description = "관리자 전용 API. 특정 사용자(승객/기사/관리자)의 상세 정보를 조회합니다. 생성/수정 시간 포함.")
     @GetMapping("/users/{userId}")
     public ResponseEntity<ApiResponse<AdminUserDetailResponse>> getUserDetail(
+            @Parameter(description = "요청자 역할 (ADMIN만 허용)", required = true, example = "ADMIN")
             @RequestHeader("X-User-Role") String requestUserRole,
+            @Parameter(description = "조회할 사용자 UUID", required = true, example = "550e8400-e29b-41d4-a716-446655440001")
             @PathVariable("userId") String userId) {
         
         log.debug("사용자 상세 조회 요청: requestUserRole={}, userId={}", requestUserRole, userId);
@@ -67,7 +71,9 @@ public class AdminController {
     @Operation(summary = "사용자 상태 변경", description = "관리자 전용 API. 특정 사용자(승객/기사/관리자)의 활성/비활성 상태를 변경합니다. 정지/해제 처리에 사용.")
     @PatchMapping("/users/{userId}/status")
     public ResponseEntity<ApiResponse<ChangeUserStatusResponse>> changeUserStatus(
+            @Parameter(description = "요청자 역할 (ADMIN만 허용)", required = true, example = "ADMIN")
             @RequestHeader("X-User-Role") String requestUserRole,
+            @Parameter(description = "조회할 사용자 UUID", required = true, example = "550e8400-e29b-41d4-a716-446655440003")
             @PathVariable("userId") String userId,
             @Valid @RequestBody ChangeUserStatusCommand command) {
         
@@ -85,7 +91,9 @@ public class AdminController {
     @Operation(summary = "사용자 삭제", description = "관리자 전용 API. 특정 사용자(승객/기사/관리자)를 삭제 처리합니다. 삭제 사유 필수, Soft Delete로 처리됩니다.")
     @PatchMapping("/users/{userId}/delete")
     public ResponseEntity<ApiResponse<DeleteUserResponse>> deleteUser(
+            @Parameter(description = "요청자 역할 (ADMIN만 허용)", required = true, example = "ADMIN")
             @RequestHeader("X-User-Role") String requestUserRole,
+            @Parameter(description = "삭제할 사용자 UUID", required = true, example = "550e8400-e29b-41d4-a716-446655440001")
             @PathVariable("userId") String userId,
             @Valid @RequestBody DeleteUserCommand command) {
         

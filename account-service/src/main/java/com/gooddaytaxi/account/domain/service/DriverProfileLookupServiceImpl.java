@@ -39,7 +39,7 @@ public class DriverProfileLookupServiceImpl implements DriverProfileLookupServic
         return driverProfileRepository.findByUserId(userId)
                 .orElseThrow(() -> {
                     log.warn("기사 프로필을 찾을 수 없음: userId={}", userId);
-                    return new AccountBusinessException(AccountErrorCode.USER_NOT_FOUND);
+                    return new AccountBusinessException(AccountErrorCode.DRIVER_PROFILE_NOT_FOUND);
                 });
     }
 }
