@@ -33,7 +33,7 @@ public class PaymentAttempt extends BaseEntity {
 
     private LocalDateTime requestedAt; //toss 결제 요청 시간
 
-    private LocalDateTime approvedAt;  //toss 결제 승인 시간
+    private LocalDateTime pgApprovedAt;  //toss 결제 승인 시간
 
     @Column(length = 50)
     private String pgMethod; //결제 승인된 결제 수단  //CARD, EASE_PAY, VIRTUAL_ACCOUNT
@@ -61,7 +61,7 @@ public class PaymentAttempt extends BaseEntity {
     public void registerApproveTosspay(LocalDateTime requestedAt, LocalDateTime approvedAt, String pgMethod, String provider) {
         this.status = PaymentAttemptStatus.SUCCESS;
         this.requestedAt = requestedAt;
-        this.approvedAt = approvedAt;
+        this.pgApprovedAt = approvedAt;
         this.pgMethod = pgMethod;
         this.pgProvider = provider;
     }

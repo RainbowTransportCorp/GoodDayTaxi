@@ -3,7 +3,7 @@ package com.gooddaytaxi.payment.infrastructure.adapter.out;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gooddaytaxi.payment.application.command.payment.ExternalPaymentConfirmCommand;
 import com.gooddaytaxi.payment.application.command.refund.ExternalPaymentCancelCommand;
-import com.gooddaytaxi.payment.application.port.out.ExternalPaymentPort;
+import com.gooddaytaxi.payment.application.port.out.core.ExternalPaymentPort;
 import com.gooddaytaxi.payment.application.result.payment.ExternalPaymentConfirmResult;
 import com.gooddaytaxi.payment.application.result.payment.ExternalPaymentError;
 import com.gooddaytaxi.payment.application.result.refund.ExternalPaymentCancelResult;
