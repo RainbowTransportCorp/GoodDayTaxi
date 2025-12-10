@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class DispatchCreatePermissionValidator {
+
     public void validate(UserRole role) {
         // PASSENGER / ADMIN / SYSTEM allowed
         if (role == UserRole.DRIVER) {

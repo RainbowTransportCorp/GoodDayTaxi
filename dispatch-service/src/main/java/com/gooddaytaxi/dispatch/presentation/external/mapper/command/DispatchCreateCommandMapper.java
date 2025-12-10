@@ -1,7 +1,7 @@
 package com.gooddaytaxi.dispatch.presentation.external.mapper.command;
 
 import com.gooddaytaxi.dispatch.application.validator.UserRole;
-import com.gooddaytaxi.dispatch.application.commend.DispatchCreateCommand;
+import com.gooddaytaxi.dispatch.application.command.DispatchCreateCommand;
 import com.gooddaytaxi.dispatch.presentation.external.dto.request.DispatchCreateRequestDto;
 import org.springframework.stereotype.Component;
 

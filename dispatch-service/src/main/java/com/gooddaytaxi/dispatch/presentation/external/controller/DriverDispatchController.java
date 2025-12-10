@@ -1,8 +1,8 @@
 package com.gooddaytaxi.dispatch.presentation.external.controller;
 
 import com.gooddaytaxi.common.core.dto.ApiResponse;
-import com.gooddaytaxi.dispatch.application.commend.DispatchAcceptCommand;
-import com.gooddaytaxi.dispatch.application.commend.DispatchRejectCommand;
+import com.gooddaytaxi.dispatch.application.command.DispatchAcceptCommand;
+import com.gooddaytaxi.dispatch.application.command.DispatchRejectCommand;
 import com.gooddaytaxi.dispatch.application.result.DispatchAcceptResult;
 import com.gooddaytaxi.dispatch.application.result.DispatchPendingListResult;
 import com.gooddaytaxi.dispatch.application.result.DispatchRejectResult;

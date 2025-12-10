@@ -12,7 +12,7 @@ async function signup() {
         password: document.getElementById("password").value,
         name: document.getElementById("name").value,
         phone_number: document.getElementById("phone").value,
-        slackId: document.getElementById("slackId").value || null,
+        slack_id: document.getElementById("slackId").value || null,
         role: document.getElementById("role").value,
         vehicleNumber: document.getElementById("vehicleNumber")?.value || null,
         vehicleType: document.getElementById("vehicleType")?.value || null,
