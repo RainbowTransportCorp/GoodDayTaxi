@@ -27,6 +27,7 @@ spring:
 
   kafka:
     bootstrap-servers: ${kafka.external.host}:${kafka.external.port}
+    # Consumer 설정
     consumer:
       auto-offset-reset: earliest
       enable-auto-commit: false
@@ -37,6 +38,11 @@ spring:
       ack-mode: record
       concurrency: 3
       poll-timeout: 3000
+    # Producer 설정
+#    producer:
+#      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+#      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
 
   rabbitmq:
     host: ${rabbitmq.external.host}
