@@ -1,5 +1,7 @@
 package com.gooddaytaxi.account.domain.service;
 
+import com.gooddaytaxi.account.domain.exception.AccountBusinessException;
+import com.gooddaytaxi.account.domain.exception.AccountErrorCode;
 import com.gooddaytaxi.account.domain.model.DriverProfile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,13 +28,13 @@ public class DriverProfileUpdateServiceImpl implements DriverProfileUpdateServic
         log.debug("기사 프로필 업데이트 검증 실행");
         
         if (vehicleNumber == null || vehicleNumber.trim().isEmpty()) {
-            throw new IllegalArgumentException("차량번호는 필수입니다");
+            throw new AccountBusinessException(AccountErrorCode.INVALID_INPUT_VALUE);
         }
         if (vehicleType == null || vehicleType.trim().isEmpty()) {
-            throw new IllegalArgumentException("차량 유형은 필수입니다");
+            throw new AccountBusinessException(AccountErrorCode.INVALID_INPUT_VALUE);
         }
         if (vehicleColor == null || vehicleColor.trim().isEmpty()) {
-            throw new IllegalArgumentException("차량 색상은 필수입니다");
+            throw new AccountBusinessException(AccountErrorCode.INVALID_INPUT_VALUE);
         }
         
         log.debug("기사 프로필 업데이트 검증 완료");

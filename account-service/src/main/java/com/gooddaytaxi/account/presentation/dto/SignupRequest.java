@@ -38,7 +38,7 @@ public class SignupRequest {
     private String email;
 
     @NotBlank(message = "비밀번호는 필수입니다.")
-    @Schema(description = "비밀번호", example = "password123!")
+    @Schema(description = "비밀번호 (8자 이상, 영문 대소문자, 숫자, 특수문자 포함)", example = "Password123!")
     private String password;
 
     @NotBlank(message = "이름은 필수입니다.")

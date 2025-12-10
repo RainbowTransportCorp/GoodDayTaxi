@@ -17,6 +17,7 @@ import java.util.List;
 public class UserValidationService {
 
     private final EmailValidator emailValidator;
+    private final PasswordValidationService passwordValidationService;
     private final List<RoleValidationStrategy> roleValidationStrategies;
 
     /**
@@ -29,6 +30,7 @@ public class UserValidationService {
         log.debug("회원가입 검증 시작: email={}, role={}", command.getEmail(), command.getRole());
         
         emailValidator.validateEmailNotDuplicated(command.getEmail());
+        passwordValidationService.validatePassword(command.getPassword());
         validateRoleSpecificInfo(command);
         
         log.debug("회원가입 검증 완료: email={}, role={}", command.getEmail(), command.getRole());
