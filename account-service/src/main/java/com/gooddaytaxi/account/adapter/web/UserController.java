@@ -40,7 +40,7 @@ public class UserController {
     })
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<UserProfileResponse>> getMyProfile(
-            @Parameter(description = "사용자 UUID", required = true)
+            @Parameter(description = "사용자 UUID", required = true, example = "550e8400-e29b-41d4-a716-446655440001")
             @RequestHeader("X-User-UUID") String userUuidHeader) {
         
         log.debug("내 정보 조회 요청: userUuid={}", userUuidHeader);
@@ -56,6 +56,7 @@ public class UserController {
     @Operation(summary = "내 정보 수정", description = "현재 로그인된 사용자(승객/기사/관리자)의 기본 프로필 정보(이름, 전화번호)를 수정합니다")
     @PatchMapping("/me")
     public ResponseEntity<ApiResponse<UpdateUserProfileResponse>> updateMyProfile(
+            @Parameter(description = "사용자 UUID", required = true, example = "550e8400-e29b-41d4-a716-446655440001")
             @RequestHeader("X-User-UUID") String userUuidHeader,
             @Valid @RequestBody UpdateUserProfileCommand command) {
         
@@ -72,6 +73,7 @@ public class UserController {
     @Operation(summary = "회원 탈퇴", description = "현재 로그인된 사용자(승객/기사/관리자)의 계정을 삭제합니다")
     @DeleteMapping("/me")
     public ResponseEntity<ApiResponse<Void>> deleteMyAccount(
+            @Parameter(description = "사용자 UUID", required = true, example = "550e8400-e29b-41d4-a716-446655440001")
             @RequestHeader("X-User-UUID") String userUuidHeader) {
         
         log.debug("회원 탈퇴 요청: userUuid={}", userUuidHeader);

@@ -2,7 +2,7 @@ package com.gooddaytaxi.support.application.service;
 
 import com.gooddaytaxi.support.adapter.out.internal.account.dto.UserInfo;
 import com.gooddaytaxi.support.application.dto.CreateDispatchInfoCommand;
-import com.gooddaytaxi.support.application.dto.DispatchAcceptCommand;
+import com.gooddaytaxi.support.application.dto.GetDispatchInfoCommand;
 import com.gooddaytaxi.support.application.port.out.internal.account.AccountDomainCommunicationPort;
 import com.gooddaytaxi.support.application.port.in.dispatch.AcceptDispatchUsecase;
 import com.gooddaytaxi.support.application.port.in.dispatch.NotifyDispatchUsecase;
@@ -43,7 +43,7 @@ public class DispatchNotificationService implements NotifyDispatchUsecase, Accep
 
         // Notification 생성
         Notification noti = Notification.from(command, NotificationType.DISPATCH_REQUESTED);
-        noti.assignIds(null, command.getDriverId(), command.getPassengerId(), null, null);
+        noti.assignIds(command.getDispatchId(), command.getDriverId(), command.getPassengerId(), null, null);
         notificationCommandPersistencePort.save(noti);
 
         List<UUID> receivers = new ArrayList<>();
@@ -72,7 +72,14 @@ public class DispatchNotificationService implements NotifyDispatchUsecase, Accep
 
     @Transactional
     @Override
-    public void handle(DispatchAcceptCommand command) {
+    public void accept(GetDispatchInfoCommand command) {
+        // Notification 생성
+        Notification noti = Notification.from(command, NotificationType.DISPATCH_ACCEPTED);
+        noti.assignIds(command.getDispatchId(), command.getDriverId(), command.getPassengerId(), null, null);
+        notificationCommandPersistencePort.save(noti);
 
+        List<UUID> receivers = new ArrayList<>();
+        receivers.add(command.getDriverId());
+        receivers.add(command.getPassengerId());
     }
 }

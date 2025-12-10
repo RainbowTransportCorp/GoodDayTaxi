@@ -1,4 +1,4 @@
-package com.gooddaytaxi.dispatch.application.commend;
+package com.gooddaytaxi.dispatch.application.command;
 
 import com.gooddaytaxi.dispatch.application.validator.UserRole;
 import lombok.AllArgsConstructor;

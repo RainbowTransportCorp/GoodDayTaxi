@@ -1,8 +1,8 @@
 package com.gooddaytaxi.dispatch.presentation.external.controller;
 
 import com.gooddaytaxi.common.core.dto.ApiResponse;
-import com.gooddaytaxi.dispatch.application.commend.DispatchCancelCommand;
-import com.gooddaytaxi.dispatch.application.commend.DispatchCreateCommand;
+import com.gooddaytaxi.dispatch.application.command.DispatchCancelCommand;
+import com.gooddaytaxi.dispatch.application.command.DispatchCreateCommand;
 import com.gooddaytaxi.dispatch.application.result.DispatchCancelResult;
 import com.gooddaytaxi.dispatch.application.result.DispatchCreateResult;
 import com.gooddaytaxi.dispatch.application.result.DispatchDetailResult;

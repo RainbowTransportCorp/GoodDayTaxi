@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 @Schema(description = "로그인 요청", example = """
     {
       "email": "driver1@goodday.com",
-      "password": "password123!"
+      "password": "Password123!"
     }
     """)
 public class LoginRequest {
@@ -30,6 +30,6 @@ public class LoginRequest {
     
     @NotBlank(message = "비밀번호는 필수입니다")
     @Size(min = 8, message = "비밀번호는 최소 8자 이상이어야 합니다")
-    @Schema(description = "비밀번호", example = "password123!")
+    @Schema(description = "비밀번호", example = "Password123!")
     private String password;
 }

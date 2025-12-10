@@ -57,7 +57,7 @@ public class AdminDeleteUserUseCase {
     private void validateUserNotAlreadyDeleted(User user) {
         if (user.isDeleted()) {
             log.warn("이미 삭제된 사용자 삭제 시도: userId={}", user.getUserUuid());
-            throw new AccountBusinessException(AccountErrorCode.INVALID_INPUT_VALUE);
+            throw new AccountBusinessException(AccountErrorCode.USER_ALREADY_DELETED);
         }
     }
     
