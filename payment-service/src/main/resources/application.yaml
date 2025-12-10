@@ -23,6 +23,17 @@ spring:
         format_sql: true
         show_sql: true
 
+  kafka:
+    bootstrap-servers: host.docker.internal:${kafka.port}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      group-id: payment-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest  # 컨슈머가 처음 시작할 때 오프셋을 처음부터 읽음
+
 
 eureka:
   client:

@@ -1,4 +1,4 @@
-package com.gooddaytaxi.payment.application.port.out;
+package com.gooddaytaxi.payment.application.port.out.core;
 
 import com.gooddaytaxi.payment.application.command.payment.ExternalPaymentConfirmCommand;
 import com.gooddaytaxi.payment.application.command.refund.ExternalPaymentCancelCommand;
