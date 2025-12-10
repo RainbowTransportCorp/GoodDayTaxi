@@ -1,6 +1,7 @@
 package com.gooddaytaxi.dispatch.domain.model.entity;
 
 import com.gooddaytaxi.common.jpa.model.BaseEntity;
+import com.gooddaytaxi.dispatch.application.event.payload.DispatchTimeoutPayload;
 import com.gooddaytaxi.dispatch.domain.exception.InvalidDispatchStateException;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
 import jakarta.persistence.*;
@@ -94,6 +95,8 @@ public class Dispatch extends BaseEntity {
     }
 
     public void timeout() {
+        if (!this.dispatchStatus.isWaiting()) return;
+
         this.dispatchStatus = DispatchStatus.TIMEOUT;
         this.timeoutAt = LocalDateTime.now();
     }

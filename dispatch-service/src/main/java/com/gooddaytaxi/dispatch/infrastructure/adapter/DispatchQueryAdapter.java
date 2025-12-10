@@ -32,4 +32,9 @@ public class DispatchQueryAdapter implements DispatchQueryPort {
     public List<Dispatch> findByStatus(DispatchStatus status) {
         return dispatchRepository.findByStatus(status);
     }
+
+    @Override
+    public List<Dispatch> findTimeoutTargets(int seconds) {
+        return dispatchRepository.findTimeoutTargets(seconds);
+    }
 }

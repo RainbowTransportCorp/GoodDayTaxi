@@ -1,5 +1,6 @@
-package com.gooddaytaxi.dispatch.application.commend;
+package com.gooddaytaxi.dispatch.application.command;
 
+import com.gooddaytaxi.dispatch.application.validator.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -11,8 +12,8 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class DispatchRejectCommand {
+public class DispatchAcceptCommand {
     private UUID dispatchId;
     private UUID driverId;
-    private String reason;
+    private UserRole role;
 }

@@ -1,7 +1,7 @@
 package com.gooddaytaxi.dispatch.application.service;
 
-import com.gooddaytaxi.dispatch.application.commend.DispatchAcceptCommand;
-import com.gooddaytaxi.dispatch.application.commend.DispatchRejectCommand;
+import com.gooddaytaxi.dispatch.application.command.DispatchAcceptCommand;
+import com.gooddaytaxi.dispatch.application.command.DispatchRejectCommand;
 import com.gooddaytaxi.dispatch.application.event.payload.DispatchAcceptedPayload;
 import com.gooddaytaxi.dispatch.application.event.payload.DispatchRejectedPayload;
 import com.gooddaytaxi.dispatch.application.port.out.command.*;

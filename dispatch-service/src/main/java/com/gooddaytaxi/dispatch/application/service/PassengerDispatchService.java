@@ -1,7 +1,7 @@
 package com.gooddaytaxi.dispatch.application.service;
 
-import com.gooddaytaxi.dispatch.application.commend.DispatchCancelCommand;
-import com.gooddaytaxi.dispatch.application.commend.DispatchCreateCommand;
+import com.gooddaytaxi.dispatch.application.command.DispatchCancelCommand;
+import com.gooddaytaxi.dispatch.application.command.DispatchCreateCommand;
 import com.gooddaytaxi.dispatch.application.event.payload.DispatchCanceledPayload;
 import com.gooddaytaxi.dispatch.application.event.payload.DispatchRequestedPayload;
 import com.gooddaytaxi.dispatch.application.port.out.command.DispatchCanceledCommandPort;
@@ -87,7 +87,7 @@ public class PassengerDispatchService {
 //        driverSelectionQueryPort.selectCandidateDriver(saved);
 
         //임시로 기사 id 발생
-        UUID randomDriverId = UUID.randomUUID();
+        UUID randomDriverId = UUID.fromString("f200c63e-e0af-4864-b551-b7f92a1c4ede");
 
         // 시도 로그 저장
         DispatchAssignmentLog.create(saved.getDispatchId(), saved.getDriverId());
