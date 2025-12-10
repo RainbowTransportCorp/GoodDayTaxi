@@ -39,7 +39,7 @@ public enum DispatchEventMetadata {
 
     TRIP_CREATE_REQUEST(
             "TRIP_CREATE_REQUEST",
-            "dispatch.trip.create",
+            "trip.create.request",
             "Dispatch",
             1
     );
