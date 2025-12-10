@@ -1,6 +1,6 @@
-package com.gooddaytaxi.dispatch.application.command;
+package com.gooddaytaxi.dispatch.application.usecase.accept;
 
-import com.gooddaytaxi.dispatch.application.validator.UserRole;
+import com.gooddaytaxi.dispatch.application.exception.auth.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

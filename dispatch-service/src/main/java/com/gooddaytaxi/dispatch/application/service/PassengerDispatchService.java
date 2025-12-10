@@ -1,7 +1,7 @@
 package com.gooddaytaxi.dispatch.application.service;
 
-import com.gooddaytaxi.dispatch.application.command.DispatchCancelCommand;
-import com.gooddaytaxi.dispatch.application.command.DispatchCreateCommand;
+import com.gooddaytaxi.dispatch.application.usecase.cancel.DispatchCancelCommand;
+import com.gooddaytaxi.dispatch.application.usecase.create.DispatchCreateCommand;
 import com.gooddaytaxi.dispatch.application.event.payload.DispatchCanceledPayload;
 import com.gooddaytaxi.dispatch.application.event.payload.DispatchRequestedPayload;
 import com.gooddaytaxi.dispatch.application.port.out.command.DispatchCanceledCommandPort;
@@ -9,13 +9,13 @@ import com.gooddaytaxi.dispatch.application.port.out.command.DispatchCommandPort
 import com.gooddaytaxi.dispatch.application.port.out.command.DispatchHistoryCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.command.DispatchRequestedCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
-import com.gooddaytaxi.dispatch.application.result.DispatchCancelResult;
-import com.gooddaytaxi.dispatch.application.result.DispatchCreateResult;
-import com.gooddaytaxi.dispatch.application.result.DispatchDetailResult;
-import com.gooddaytaxi.dispatch.application.result.DispatchSummaryResult;
-import com.gooddaytaxi.dispatch.application.validator.DispatchCreatePermissionValidator;
-import com.gooddaytaxi.dispatch.application.validator.DispatchPassengerPermissionValidator;
-import com.gooddaytaxi.dispatch.application.validator.UserRole;
+import com.gooddaytaxi.dispatch.application.usecase.cancel.DispatchCancelResult;
+import com.gooddaytaxi.dispatch.application.usecase.create.DispatchCreateResult;
+import com.gooddaytaxi.dispatch.application.query.DispatchDetailResult;
+import com.gooddaytaxi.dispatch.application.query.DispatchSummaryResult;
+import com.gooddaytaxi.dispatch.application.usecase.create.DispatchCreatePermissionValidator;
+import com.gooddaytaxi.dispatch.application.exception.auth.DispatchPassengerPermissionValidator;
+import com.gooddaytaxi.dispatch.application.exception.auth.UserRole;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
 import com.gooddaytaxi.dispatch.domain.model.entity.DispatchAssignmentLog;
 import com.gooddaytaxi.dispatch.domain.model.entity.DispatchHistory;

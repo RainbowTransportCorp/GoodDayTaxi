@@ -1,13 +1,15 @@
 package com.gooddaytaxi.dispatch.application.service;
 
-import com.gooddaytaxi.dispatch.application.command.DispatchAcceptCommand;
-import com.gooddaytaxi.dispatch.application.command.DispatchRejectCommand;
+import com.gooddaytaxi.dispatch.application.query.DispatchPendingListResult;
+import com.gooddaytaxi.dispatch.application.usecase.accept.DispatchAcceptCommand;
+import com.gooddaytaxi.dispatch.application.usecase.accept.DispatchAcceptResult;
+import com.gooddaytaxi.dispatch.application.usecase.reject.DispatchRejectCommand;
 import com.gooddaytaxi.dispatch.application.event.payload.DispatchAcceptedPayload;
 import com.gooddaytaxi.dispatch.application.event.payload.DispatchRejectedPayload;
 import com.gooddaytaxi.dispatch.application.port.out.command.*;
 import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
-import com.gooddaytaxi.dispatch.application.result.*;
-import com.gooddaytaxi.dispatch.application.validator.DispatchDriverPermissionValidator;
+import com.gooddaytaxi.dispatch.application.usecase.reject.DispatchRejectResult;
+import com.gooddaytaxi.dispatch.application.exception.auth.DispatchDriverPermissionValidator;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
 import com.gooddaytaxi.dispatch.domain.model.entity.DispatchAssignmentLog;
 import com.gooddaytaxi.dispatch.domain.model.entity.DispatchHistory;

@@ -1,6 +1,6 @@
 package com.gooddaytaxi.dispatch.application.exception;
 
-import com.gooddaytaxi.dispatch.application.validator.UserRole;
+import com.gooddaytaxi.dispatch.application.exception.auth.UserRole;
 import lombok.Getter;
 
 @Getter

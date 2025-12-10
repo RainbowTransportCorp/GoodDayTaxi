@@ -1,7 +1,7 @@
 package com.gooddaytaxi.dispatch.presentation.external.mapper.response;
 
 
-import com.gooddaytaxi.dispatch.application.result.DispatchSummaryResult;
+import com.gooddaytaxi.dispatch.application.query.DispatchSummaryResult;
 import com.gooddaytaxi.dispatch.presentation.external.dto.response.DispatchListResponseDto;
 
 import java.util.List;

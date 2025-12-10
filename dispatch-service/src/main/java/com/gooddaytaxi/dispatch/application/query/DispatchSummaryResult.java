@@ -1,4 +1,4 @@
-package com.gooddaytaxi.dispatch.application.result;
+package com.gooddaytaxi.dispatch.application.query;
 
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
 import lombok.AllArgsConstructor;
@@ -11,9 +11,11 @@ import java.util.UUID;
 @Getter
 @Builder
 @AllArgsConstructor
-public class DispatchAcceptResult {
+public class DispatchSummaryResult {
     private final UUID dispatchId;
+    private final String pickupAddress;
+    private final String destinationAddress;
+    private final DispatchStatus dispatchStatus;
     private final UUID driverId;
-    private final DispatchStatus dispatchStatus;   // ACCEPTED
-    private final LocalDateTime acceptedAt;
+    private final LocalDateTime createdAt;
 }

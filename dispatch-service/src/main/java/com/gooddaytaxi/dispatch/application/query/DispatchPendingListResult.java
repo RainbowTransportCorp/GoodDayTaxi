@@ -1,4 +1,4 @@
-package com.gooddaytaxi.dispatch.application.result;
+package com.gooddaytaxi.dispatch.application.query;
 
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
 import lombok.AllArgsConstructor;
@@ -11,11 +11,10 @@ import java.util.UUID;
 @Getter
 @Builder
 @AllArgsConstructor
-public class DispatchSummaryResult {
+public class DispatchPendingListResult {
     private final UUID dispatchId;
     private final String pickupAddress;
     private final String destinationAddress;
     private final DispatchStatus dispatchStatus;
-    private final UUID driverId;
-    private final LocalDateTime createdAt;
+    private final LocalDateTime requestCreatedAt;
 }

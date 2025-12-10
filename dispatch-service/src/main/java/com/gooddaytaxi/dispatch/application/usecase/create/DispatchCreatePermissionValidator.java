@@ -1,6 +1,7 @@
-package com.gooddaytaxi.dispatch.application.validator;
+package com.gooddaytaxi.dispatch.application.usecase.create;
 
 import com.gooddaytaxi.dispatch.application.exception.DispatchPermissionDeniedException;
+import com.gooddaytaxi.dispatch.application.exception.auth.UserRole;
 import org.springframework.stereotype.Component;
 
 @Component
