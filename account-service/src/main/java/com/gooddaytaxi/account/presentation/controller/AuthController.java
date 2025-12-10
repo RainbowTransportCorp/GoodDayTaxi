@@ -41,7 +41,7 @@ public class AuthController {
     private final LoginUserUseCase loginUserUseCase;
     private final RefreshTokenUseCase refreshTokenUseCase;
 
-    @Operation(summary = "회원가입", description = "새 사용자를 등록합니다. 기사인 경우 차량 정보가 필수입니다.")
+    @Operation(summary = "회원가입", description = "새 사용자(승객/기사/관리자)를 등록합니다. 기사: 차량정보+슬랙ID 필수, 승객: 슬랙ID 필수, 관리자: 슬랙ID 불필요")
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<SignupResponse>> signup(@Valid @RequestBody SignupRequest request) {
         UserSignupCommand command = UserSignupCommand.builder()
@@ -63,7 +63,7 @@ public class AuthController {
                 .body(ApiResponse.success(response, "회원가입이 완료되었습니다."));
     }
 
-    @Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인하여 JWT 토큰을 발급받습니다.")
+    @Operation(summary = "로그인", description = "모든 사용자(승객/기사/관리자)가 이메일과 비밀번호로 로그인하여 JWT 토큰(액세스+리프레시)을 발급받습니다.")
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
         UserLoginCommand command = new UserLoginCommand(request.getEmail(), request.getPassword());
@@ -74,7 +74,7 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success(response, "로그인이 완료되었습니다."));
     }
 
-    @Operation(summary = "토큰 재발급", description = "리프레시 토큰을 사용해 새로운 액세스 토큰과 리프레시 토큰을 발급받습니다.")
+    @Operation(summary = "토큰 재발급", description = "모든 사용자가 리프레시 토큰을 사용해 새로운 액세스 토큰과 리프레시 토큰을 발급받습니다. 토큰 만료 시 사용합니다.")
     @PostMapping("/refresh-token")
     public ResponseEntity<ApiResponse<RefreshTokenResponse>> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
         RefreshTokenCommand command = new RefreshTokenCommand(request.getRefreshToken());
