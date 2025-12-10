@@ -1,6 +1,6 @@
 package com.gooddaytaxi.dispatch.presentation.external.mapper.response;
 
-import com.gooddaytaxi.dispatch.application.result.DispatchAcceptResult;
+import com.gooddaytaxi.dispatch.application.usecase.accept.DispatchAcceptResult;
 import com.gooddaytaxi.dispatch.presentation.external.dto.response.DispatchAcceptResponseDto;
 
 public class DispatchAcceptResponseMapper {

@@ -1,4 +1,4 @@
-package com.gooddaytaxi.dispatch.application.scheduler;
+package com.gooddaytaxi.dispatch.application.usecase.timeout;
 
 import com.gooddaytaxi.dispatch.application.event.payload.DispatchTimeoutPayload;
 import com.gooddaytaxi.dispatch.application.port.out.command.DispatchCommandPort;

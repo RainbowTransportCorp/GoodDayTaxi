@@ -1,4 +1,4 @@
-package com.gooddaytaxi.dispatch.application.validator;
+package com.gooddaytaxi.dispatch.application.exception.auth;
 
 public enum UserRole {
     PASSENGER,

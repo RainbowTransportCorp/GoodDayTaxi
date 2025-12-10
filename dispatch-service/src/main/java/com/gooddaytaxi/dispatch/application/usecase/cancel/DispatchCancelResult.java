@@ -1,4 +1,4 @@
-package com.gooddaytaxi.dispatch.application.result;
+package com.gooddaytaxi.dispatch.application.usecase.cancel;
 
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
 import lombok.AllArgsConstructor;
@@ -11,10 +11,9 @@ import java.util.UUID;
 @Getter
 @Builder
 @AllArgsConstructor
-public class DispatchRejectResult {
+public class DispatchCancelResult {
     private final UUID dispatchId;
-    private final UUID driverId;
-    private final DispatchStatus dispatchStatus;   // REJECTED
-    private final LocalDateTime rejectedAt;
+    private final DispatchStatus dispatchStatus;
+    private final LocalDateTime cancelledAt;
 }
 

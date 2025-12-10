@@ -1,7 +1,7 @@
 package com.gooddaytaxi.dispatch.domain.model.entity;
 
 import com.gooddaytaxi.common.jpa.model.BaseEntity;
-import com.gooddaytaxi.dispatch.application.event.payload.DispatchTimeoutPayload;
+import com.gooddaytaxi.dispatch.domain.exception.DispatchAlreadyAcceptedException;
 import com.gooddaytaxi.dispatch.domain.exception.InvalidDispatchStateException;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
 import jakarta.persistence.*;
@@ -84,6 +84,10 @@ public class Dispatch extends BaseEntity {
     }
 
     public void accept() {
+        if (this.dispatchStatus != DispatchStatus.ASSIGNING) {
+            throw new DispatchAlreadyAcceptedException();
+        }
+
         this.dispatchStatus = DispatchStatus.ACCEPTED;
         this.acceptedAt = LocalDateTime.now();
     }

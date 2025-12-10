@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @FeignClient(name = "account-service")
 public interface AccountDriverClient {
 
-    @GetMapping("/internal/v1/drivers/available")
-    List<DriverInfo> getAvailableDrivers(@RequestParam String pickupAddress);
+    @GetMapping("/internal/v1/account/drivers/available")
+    DriverInfo getAvailableDrivers(@RequestParam String pickupAddress);
 }
 

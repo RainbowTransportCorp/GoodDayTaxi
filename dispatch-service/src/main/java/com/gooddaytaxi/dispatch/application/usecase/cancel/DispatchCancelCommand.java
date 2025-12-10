@@ -1,6 +1,6 @@
-package com.gooddaytaxi.dispatch.application.command;
+package com.gooddaytaxi.dispatch.application.usecase.cancel;
 
-import com.gooddaytaxi.dispatch.application.validator.UserRole;
+import com.gooddaytaxi.dispatch.application.exception.auth.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,9 +12,8 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class DispatchCreateCommand {
+public class DispatchCancelCommand {
+    private UUID dispatchId;
     private UUID passengerId;
     private UserRole role;
-    private String pickupAddress;
-    private String destinationAddress;
 }

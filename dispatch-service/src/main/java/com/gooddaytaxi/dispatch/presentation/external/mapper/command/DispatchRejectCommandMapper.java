@@ -1,6 +1,6 @@
 package com.gooddaytaxi.dispatch.presentation.external.mapper.command;
 
-import com.gooddaytaxi.dispatch.application.command.DispatchRejectCommand;
+import com.gooddaytaxi.dispatch.application.usecase.reject.DispatchRejectCommand;
 
 import java.util.UUID;
 
