@@ -1,11 +1,11 @@
 package com.gooddaytaxi.dispatch.presentation.external.controller;
 
 import com.gooddaytaxi.common.core.dto.ApiResponse;
-import com.gooddaytaxi.dispatch.application.commend.DispatchAcceptCommand;
-import com.gooddaytaxi.dispatch.application.commend.DispatchRejectCommand;
-import com.gooddaytaxi.dispatch.application.result.DispatchAcceptResult;
-import com.gooddaytaxi.dispatch.application.result.DispatchPendingListResult;
-import com.gooddaytaxi.dispatch.application.result.DispatchRejectResult;
+import com.gooddaytaxi.dispatch.application.usecase.accept.DispatchAcceptCommand;
+import com.gooddaytaxi.dispatch.application.usecase.reject.DispatchRejectCommand;
+import com.gooddaytaxi.dispatch.application.usecase.accept.DispatchAcceptResult;
+import com.gooddaytaxi.dispatch.application.query.DispatchPendingListResult;
+import com.gooddaytaxi.dispatch.application.usecase.reject.DispatchRejectResult;
 import com.gooddaytaxi.dispatch.application.service.DriverDispatchService;
 import com.gooddaytaxi.dispatch.presentation.external.dto.response.DispatchAcceptResponseDto;
 import com.gooddaytaxi.dispatch.presentation.external.dto.response.DispatchPendingListResponseDto;
@@ -35,7 +35,8 @@ public class DriverDispatchController {
      */
     @GetMapping("/pending")
     public ResponseEntity<ApiResponse<List<DispatchPendingListResponseDto>>> getPendingDispatches(
-                        @RequestHeader(value = "x-user-uuid", required = false) UUID userId
+            @RequestHeader(value = "X-User-UUID", required = false) UUID userId,
+            @RequestHeader(value = "X-User-Role", required = false) String role
     ) {
         List<DispatchPendingListResult> dispatchPendingListResults =
                 driverDispatchService.getDriverPendingDispatch(userId);
@@ -54,8 +55,8 @@ public class DriverDispatchController {
     @PatchMapping("/{dispatchId}/accept")
     public ResponseEntity<ApiResponse<DispatchAcceptResponseDto>> accept(
             @PathVariable UUID dispatchId,
-            @RequestHeader(value = "x-user-uuid", required = false) UUID userId,
-            @RequestHeader(value = "x-user-role", required = false) String role
+            @RequestHeader(value = "X-User-UUID", required = false) UUID userId,
+            @RequestHeader(value = "X-User-Role", required = false) String role
     ) {
         DispatchAcceptCommand command = DispatchAcceptCommandMapper.toCommand(userId, role, dispatchId);
         DispatchAcceptResult result = driverDispatchService.accept(command);
@@ -70,10 +71,10 @@ public class DriverDispatchController {
      */
     @PatchMapping("/{dispatchId}/reject")
     public ResponseEntity<ApiResponse<DispatchRejectResponseDto>> reject(
-            @PathVariable UUID dispatchId
-            ,@RequestHeader(value = "x-user-uuid", required = false) UUID userId
+            @PathVariable UUID dispatchId,
+            @RequestHeader(value = "X-User-UUID", required = false) UUID userId,
+            @RequestHeader(value = "X-User-Role", required = false) String role
     ) {
-        userId = UUID.fromString("00000000-0000-0000-0000-000000000011");
         DispatchRejectCommand command = DispatchRejectCommandMapper.toCommand(userId, dispatchId);
         DispatchRejectResult result = driverDispatchService.reject(command);
         DispatchRejectResponseDto responseDto = DispatchRejectResponseMapper.toResponse(result);

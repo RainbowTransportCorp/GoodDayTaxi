@@ -9,7 +9,7 @@ import java.util.UUID;
  */
 @Getter
 public class CreateDispatchInfoCommand extends Command{
-//    private final UUID dispatchId;
+    private final UUID dispatchId;
     private final UUID driverId;
     private final UUID passengerId;
     private final String pickupAddress;
@@ -22,7 +22,7 @@ public class CreateDispatchInfoCommand extends Command{
             String message
     ) {
         super(notificationOriginId, notifierId, message);
-//        this.dispatchId = dispatchId;
+        this.dispatchId = notificationOriginId;
         this.driverId = driverId;
         this.passengerId = passengerId;
         this.pickupAddress = pickupAddress;

@@ -64,5 +64,25 @@
       "name": "rabbitmq.internalhost",
       "type": "java.lang.String",
       "description": "Description for rabbitmq.internalhost."
+    },
+    {
+      "name": "kafka.internal.port",
+      "type": "java.lang.String",
+      "description": "Description for kafka.internal.port."
+    },
+    {
+      "name": "kafka.internal.host",
+      "type": "java.lang.String",
+      "description": "Description for kafka.internal.host."
+    },
+    {
+      "name": "rabbitmq.internal.host",
+      "type": "java.lang.String",
+      "description": "Description for rabbitmq.internal.host."
+    },
+    {
+      "name": "rabbitmq.internal.port",
+      "type": "java.lang.String",
+      "description": "Description for rabbitmq.internal.port."
     }
   ] }

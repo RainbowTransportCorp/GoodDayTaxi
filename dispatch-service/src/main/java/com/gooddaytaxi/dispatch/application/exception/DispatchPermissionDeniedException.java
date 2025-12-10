@@ -1,6 +1,6 @@
 package com.gooddaytaxi.dispatch.application.exception;
 
-import com.gooddaytaxi.dispatch.application.validator.UserRole;
+import com.gooddaytaxi.dispatch.application.exception.auth.UserRole;
 import lombok.Getter;
 
 @Getter
@@ -16,8 +16,9 @@ public class DispatchPermissionDeniedException extends RuntimeException {
 
     private static String makeMessage(UserRole role) {
         return switch (role) {
-            case DRIVER -> "드라이버는 호출을 생성할 수 없습니다.";
-            default -> "호출 생성 권한이 없습니다.";
+            case DRIVER -> "passenger 권한이 필요합니다.";
+            case PASSENGER -> "driver 권한이 필요합니다.";
+            default -> "권한이 없습니다.";
         };
     }
 }

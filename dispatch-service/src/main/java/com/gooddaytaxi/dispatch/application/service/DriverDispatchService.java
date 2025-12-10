@@ -1,13 +1,16 @@
 package com.gooddaytaxi.dispatch.application.service;
 
-import com.gooddaytaxi.dispatch.application.commend.DispatchAcceptCommand;
-import com.gooddaytaxi.dispatch.application.commend.DispatchRejectCommand;
+import com.gooddaytaxi.dispatch.application.event.payload.TripCreateRequestPayload;
+import com.gooddaytaxi.dispatch.application.query.DispatchPendingListResult;
+import com.gooddaytaxi.dispatch.application.usecase.accept.DispatchAcceptCommand;
+import com.gooddaytaxi.dispatch.application.usecase.accept.DispatchAcceptResult;
+import com.gooddaytaxi.dispatch.application.usecase.reject.DispatchRejectCommand;
 import com.gooddaytaxi.dispatch.application.event.payload.DispatchAcceptedPayload;
 import com.gooddaytaxi.dispatch.application.event.payload.DispatchRejectedPayload;
 import com.gooddaytaxi.dispatch.application.port.out.command.*;
 import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
-import com.gooddaytaxi.dispatch.application.result.*;
-import com.gooddaytaxi.dispatch.application.validator.DispatchDriverPermissionValidator;
+import com.gooddaytaxi.dispatch.application.usecase.reject.DispatchRejectResult;
+import com.gooddaytaxi.dispatch.application.exception.auth.DispatchDriverPermissionValidator;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
 import com.gooddaytaxi.dispatch.domain.model.entity.DispatchAssignmentLog;
 import com.gooddaytaxi.dispatch.domain.model.entity.DispatchHistory;
@@ -37,12 +40,14 @@ public class DriverDispatchService {
 
     private final DispatchAcceptedCommandPort dispatchAcceptedCommandPort;
     private final DispatchRejectedCommandPort dispatchRejectedCommandPort;
+    private final TripCreateRequestCommandPort tripCreateRequestCommandPort;
 
     private final DispatchDriverPermissionValidator dispatchDriverPermissionValidator;
 
 
     /**
      * 배차 대기 (ASSIGNING) 상태 콜 조회 (기사)
+     *
      * @param userID
      * @return
      */
@@ -75,6 +80,7 @@ public class DriverDispatchService {
 
     /**
      * 콜 수락
+     *
      * @param command
      * @return
      */
@@ -120,9 +126,16 @@ public class DriverDispatchService {
         dispatchCommandPort.save(dispatch);
 
         // === 이벤트 발행 (Outbox) ===
+        // Support 이벤트
         dispatchAcceptedCommandPort.publishAccepted(
                 DispatchAcceptedPayload.from(dispatch, command.getDriverId())
         );
+
+        // Trip 생성 요청 이벤트 추가
+        tripCreateRequestCommandPort.publishTripCreateRequest(
+                TripCreateRequestPayload.from(dispatch)
+        );
+
 
         // === 응답 DTO 생성 ===
         return DispatchAcceptResult.builder()
@@ -136,6 +149,7 @@ public class DriverDispatchService {
 
     /**
      * 콜 거절
+     *
      * @param command
      * @return
      */

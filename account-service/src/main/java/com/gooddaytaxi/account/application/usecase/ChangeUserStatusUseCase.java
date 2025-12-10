@@ -60,7 +60,7 @@ public class ChangeUserStatusUseCase {
             return UserStatus.valueOf(status);
         } catch (IllegalArgumentException e) {
             log.error("유효하지 않은 사용자 상태: status={}", status);
-            throw new AccountBusinessException(AccountErrorCode.INVALID_INPUT_VALUE);
+            throw new AccountBusinessException(AccountErrorCode.INVALID_USER_STATUS);
         }
     }
     

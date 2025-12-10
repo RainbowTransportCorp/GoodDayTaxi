@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <title>Good day Taxi – 회원가입</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+<div class="signup-container">
+
+    <div class="brand">Good day Taxi</div>
+    <div class="subtitle">회원가입</div>
+
+    <div class="form-group">
+        <label>이메일</label>
+        <input id="email" type="email" placeholder="example@goodday.com">
+    </div>
+
+    <div class="form-group">
+        <label>비밀번호</label>
+        <input id="password" type="password" placeholder="8자 이상 입력">
+    </div>
+
+    <div class="form-group">
+        <label>이름</label>
+        <input id="name" placeholder="홍길동">
+    </div>
+
+    <div class="form-group">
+        <label>전화번호</label>
+        <input id="phone" type="text" placeholder="010-1234-5678">
+    </div>
+
+    <div class="form-group">
+        <label>슬랙 ID (선택)</label>
+        <input id="slackId" type="text" placeholder="@goodday">
+    </div>
+
+    <div class="form-group">
+        <label>역할 선택</label>
+        <select id="role">
+            <option value="PASSENGER">승객</option>
+            <option value="DRIVER">기사</option>
+        </select>
+    </div>
+
+    <!-- 기사일 때만 보여줄 차량정보 -->
+    <div id="vehicle-section" style="display:none;">
+        <div class="form-group">
+            <label>차량 번호</label>
+            <input id="vehicleNumber" placeholder="12가 3456">
+        </div>
+
+        <div class="form-group">
+            <label>차량 종류</label>
+            <input id="vehicleType" placeholder="세단 / SUV 등">
+        </div>
+
+        <div class="form-group">
+            <label>차량 색상</label>
+            <input id="vehicleColor" placeholder="화이트 / 블랙">
+        </div>
+    </div>
+
+    <button class="btn-primary" onclick="signup()">회원가입</button>
+
+    <div class="link">
+        이미 계정이 있으신가요? <a href="/index.html">로그인</a>
+    </div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

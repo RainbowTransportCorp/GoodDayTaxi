@@ -1,0 +1,113 @@
+/* ===========================
+   BRAND COLOR SYSTEM
+=========================== */
+:root {
+    --primary: #8A5DF6;
+    --primary-soft: #E0D2FF;
+    --dark: #22223B;
+    --accent: #53F5C9;
+    --bg: #F6F6FA;
+    --radius: 14px;
+    --shadow: 0 4px 14px rgba(0,0,0,0.08);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #222;
+}
+
+/* PAGE LAYOUT */
+.page-container {
+    max-width: 420px;
+    width: 90%;
+    margin: 60px auto;
+    text-align: center;
+}
+
+.page-title {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--primary);
+}
+
+.page-subtitle {
+    margin-top: 4px;
+    color: #777;
+}
+
+/* CARD BOX */
+.card {
+    background: #fff;
+    padding: 28px;
+    margin-top: 24px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+/* FORM */
+.form-group {
+    margin-bottom: 18px;
+    text-align: left;
+}
+
+label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+input {
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    border: 1px solid #ddd;
+    font-size: 15px;
+}
+
+input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 6px rgba(138,93,246,0.4);
+}
+
+/* BUTTON */
+.btn-primary {
+    width: 100%;
+    padding: 14px;
+    border-radius: 999px;
+    border: none;
+    background: var(--primary);
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(138,93,246,0.35);
+    transition: .15s;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(138,93,246,0.45);
+}
+
+.link-area {
+    margin-top: 16px;
+}
+
+.link-area a {
+    color: var(--primary);
+    font-size: 14px;
+    text-decoration: none;
+}
+
+.link-area a:hover {
+    text-decoration: underline;
+}
