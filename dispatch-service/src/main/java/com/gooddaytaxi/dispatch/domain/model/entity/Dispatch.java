@@ -125,6 +125,10 @@ public class Dispatch extends BaseEntity {
         this.timeoutAt = LocalDateTime.now();
     }
 
+    public boolean isRequested() {
+        return this.dispatchStatus != DispatchStatus.REQUESTED;
+    }
+
     private boolean isCancelableStatus() {
         return this.dispatchStatus == DispatchStatus.REQUESTED
                 || this.dispatchStatus == DispatchStatus.ASSIGNING

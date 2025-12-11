@@ -36,8 +36,6 @@ public class DriverAssignmentService {
     private final DispatchAssignmentCommandPort assignmentLogPort;
     private final DispatchHistoryCommandPort historyPort;
 
-    private final DispatchAssignmentLogRepository dispatchAssignmentLogRepository;
-
     private final DispatchRequestedCommandPort requestedEventPort;
 
     /**
