@@ -35,12 +35,19 @@ public class NotificationAlertSlackAdapter implements NotificationAlertExternalP
         String body = message.body();
         String formattedMessage = "*%s*\n%s".formatted(title, body);
 
-        log.info("‼️‼️‼️‼️ Account FeignClient 사용 전");
         // 메시지 수신자 Slack ID 추출
-        List<UUID> receivers = message.receivers();
-        UserInfo driver = accountDomainCommunicationPort.getUserInfo(receivers.get(0));
+        UserInfo driver = null;
 
-        log.info("‼️‼️‼️‼️ Account FeignClient 사용 후");
+        try {
+            log.info("‼️‼️‼️‼️ Account FeignClient 사용 전");
+            List<UUID> receivers = message.receivers();
+            driver = accountDomainCommunicationPort.getUserInfo(receivers.get(0));
+            log.info("‼️‼️‼️‼️ Account FeignClient 사용 후");
+
+        } catch (Exception e) {
+            log.error("❌ [Account] API Feing Client Error: message={}, error={}", message, e.getMessage());
+        }
+
         List<String> slackTargets = new ArrayList<>();
         slackTargets.add(driver.slackUserId());
             // Driver
