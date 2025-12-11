@@ -3,11 +3,13 @@ package com.gooddaytaxi.payment.application.service;
 import com.gooddaytaxi.payment.application.command.refundRequest.RefundReqeustSearchCommand;
 import com.gooddaytaxi.payment.application.command.refundRequest.RefundRequestCreateCommand;
 import com.gooddaytaxi.payment.application.command.refundRequest.RefundRequestResponseCreateCommand;
+import com.gooddaytaxi.payment.application.event.RefundRequestCreatePayload;
 import com.gooddaytaxi.payment.application.exception.PaymentErrorCode;
 import com.gooddaytaxi.payment.application.exception.PaymentException;
 import com.gooddaytaxi.payment.application.port.out.core.PaymentQueryPort;
 import com.gooddaytaxi.payment.application.port.out.core.RefundRequestCommandPort;
 import com.gooddaytaxi.payment.application.port.out.core.RefundRequestQueryPort;
+import com.gooddaytaxi.payment.application.port.out.event.PaymentEventCommandPort;
 import com.gooddaytaxi.payment.application.result.refundRequest.RefundRequestCancelResult;
 import com.gooddaytaxi.payment.application.result.refundRequest.RefundRequestCreateResult;
 import com.gooddaytaxi.payment.application.result.refundRequest.RefundRequestReadResult;
@@ -33,6 +35,7 @@ public class RefundRequestService {
     private final RefundRequestCommandPort requestCommandPort;
     private final RefundRequestQueryPort requestQueryPort;
     private final PaymentQueryPort paymentQueryPort;
+    private final PaymentEventCommandPort eventCommandPort;
 
     @Transactional
     public RefundRequestCreateResult createRefundRequest(RefundRequestCreateCommand command, UUID userId, String role) {
@@ -48,6 +51,9 @@ public class RefundRequestService {
         //환불 생성
         RefundRequest request = new RefundRequest(command.paymentId(), command.reason());
         requestCommandPort.save(request);
+
+        //이벤트 발행
+        eventCommandPort.publishRefundRequestCreated(RefundRequestCreatePayload.from(payment, request));
 
         return new RefundRequestCreateResult(request.getId(), "환불 요청이 접수되었습니다.");
     }

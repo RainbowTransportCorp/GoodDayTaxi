@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -25,6 +26,14 @@ public class RefundRequest extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private RefundRequestStatus status;
 
+    @Column(nullable = false)
+    private LocalDateTime requestedAt;  //요청시각
+
+    private LocalDateTime approvedAt;  //승인시각
+    private LocalDateTime rejectedAt;  //기각시각
+
+
+
     private String reason;  //요청 내용
 
     private String response;  //응답 내용
@@ -32,6 +41,7 @@ public class RefundRequest extends BaseEntity {
     public RefundRequest (UUID paymentId, String reason) {
         this.paymentId = paymentId;
         this.status = RefundRequestStatus.REQUESTED;
+        this.requestedAt = LocalDateTime.now();
         this.reason = reason;
     }
 
@@ -40,8 +50,10 @@ public class RefundRequest extends BaseEntity {
         this.response = response;
         if(approve) {
             this.status = RefundRequestStatus.APPROVED;
+            this.approvedAt = LocalDateTime.now();
         }else {
             this.status = RefundRequestStatus.REJECTED;
+            this.rejectedAt = LocalDateTime.now();
         }
     }
     public void cancel() {
