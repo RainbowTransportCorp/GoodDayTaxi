@@ -57,7 +57,7 @@ public class DriverDispatchController {
             @PathVariable UUID dispatchId,
             @RequestHeader(value = "X-User-UUID", required = false) UUID userId,
             @RequestHeader(value = "X-User-Role", required = false) String role
-    ) {
+    ) throws InterruptedException {
         DispatchAcceptCommand command = DispatchAcceptCommandMapper.toCommand(userId, role, dispatchId);
         DispatchAcceptResult result = driverDispatchService.accept(command);
         DispatchAcceptResponseDto responseDto = DispatchAcceptResponseMapper.toResponse(result);

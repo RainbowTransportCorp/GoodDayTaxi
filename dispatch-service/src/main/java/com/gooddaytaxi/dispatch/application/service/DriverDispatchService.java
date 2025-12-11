@@ -11,6 +11,7 @@ import com.gooddaytaxi.dispatch.application.port.out.command.*;
 import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
 import com.gooddaytaxi.dispatch.application.usecase.reject.DispatchRejectResult;
 import com.gooddaytaxi.dispatch.application.exception.auth.DispatchDriverPermissionValidator;
+import com.gooddaytaxi.dispatch.domain.exception.DispatchAlreadyAssignedByOthersException;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
 import com.gooddaytaxi.dispatch.domain.model.entity.DispatchAssignmentLog;
 import com.gooddaytaxi.dispatch.domain.model.entity.DispatchHistory;
@@ -18,6 +19,7 @@ import com.gooddaytaxi.dispatch.domain.model.enums.ChangedBy;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchDomainEventType;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
 import com.gooddaytaxi.dispatch.domain.repository.DispatchAssignmentLogRepository;
+import com.gooddaytaxi.dispatch.infrastructure.redis.DispatchLockManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -46,6 +48,7 @@ public class DriverDispatchService {
 
     private final DispatchDriverPermissionValidator dispatchDriverPermissionValidator;
 
+    private final DispatchLockManager dispatchLockManager;
 
     /**
      * 배차 대기 (ASSIGNING) 상태 콜 조회 (기사)
@@ -86,74 +89,102 @@ public class DriverDispatchService {
      * @param command
      * @return
      */
-    public DispatchAcceptResult accept(DispatchAcceptCommand command) {
+    public DispatchAcceptResult accept(DispatchAcceptCommand command) throws InterruptedException {
 
         dispatchDriverPermissionValidator.validate(command.getRole());
 
         log.info("[Accept] 콜 수락 요청 수신 - driverId={}, dispatchId={}",
                 command.getDriverId(), command.getDispatchId());
 
-        Dispatch dispatch = dispatchQueryPort.findById(command.getDispatchId());
-        log.debug("[Accept] 조회된 Dispatch 엔티티 - id={}, status={}",
-                dispatch.getDispatchId(), dispatch.getDispatchStatus());
+        String lockKey = command.getDispatchId().toString();
 
-        // === from 상태 저장 ===
-        DispatchStatus from = dispatch.getDispatchStatus();
+        if (!dispatchLockManager.tryLock(lockKey, command.getDriverId())) {
+            log.warn("[Accept] 락 획득 실패 - 이미 다른 기사가 먼저 수락했을 가능성 있음 - dispatchId={}",
+                    command.getDispatchId());
+            throw new DispatchAlreadyAssignedByOthersException();
+        }
 
-        // === 기사 배차 요청 로그 상태 전이 ===
-        DispatchAssignmentLog assignmentLog =
-                dispatchAssignmentLogRepository.findLatest(command.getDispatchId(), command.getDriverId())
-                        .orElseThrow(() -> new IllegalStateException("No assignment log found"));
+        try {
+            Dispatch dispatch = dispatchQueryPort.findById(command.getDispatchId());
 
-        assignmentLog.accept(); // SENT → ACCEPTED
-        dispatchAssignmentLogRepository.save(assignmentLog);
+            log.debug("[Accept] Dispatch 조회 - id={}, status={}",
+                    dispatch.getDispatchId(), dispatch.getDispatchStatus());
 
-        // === Dispatch 상태 전이 ===
-        dispatch.accept();
-        DispatchStatus to = dispatch.getDispatchStatus();
-        dispatchCommandPort.save(dispatch);
+            DispatchStatus from = dispatch.getDispatchStatus();
 
+            // ================================================
+            // 1) AssignmentLog 조회 (내부에서 상태 검증)
+            // ================================================
+            DispatchAssignmentLog assignmentLog =
+                    dispatchAssignmentLogRepository.findLatest(
+                            command.getDispatchId(),
+                            command.getDriverId()
+                    ).orElseThrow(() -> new IllegalStateException("AssignmentLog 없음"));
 
-        log.info("[Accept] 상태 전이 완료 - id={}, newStatus={}", dispatch.getDispatchId(), to);
+            // ================================================
+            // 2) ASSIGNING → ASSIGNED
+            // ================================================
+            log.info("[Accept] 배차 확정 진행 (ASSIGNING → ASSIGNED) - dispatchId={}, driverId={}",
+                    dispatch.getDispatchId(), command.getDriverId());
 
+            dispatch.assignedTo(command.getDriverId());
 
-        // === 히스토리 기록 ===
-        dispatchHistoryCommandPort.save(
-                DispatchHistory.recordStatusChange(
-                        dispatch.getDispatchId(),
-                        DispatchDomainEventType.ACCEPTED.name(),
-                        from,
-                        to,
-                        ChangedBy.DRIVER,
-                        null
-                )
-        );
+            // ================================================
+            // 3) ASSIGNED → ACCEPTED
+            // ================================================
+            dispatch.accept();
 
+            // ================================================
+            // 4) AssignmentLog SENT → ACCEPTED
+            //    (여기서 SENT인지 자동 검증됨!)
+            // ================================================
+            assignmentLog.accept();
+            dispatchAssignmentLogRepository.save(assignmentLog);
 
-        // === 이벤트 발행 (Outbox) ===
-        // Support 이벤트
-        dispatchAcceptedCommandPort.publishAccepted(
-                DispatchAcceptedPayload.from(dispatch, command.getDriverId())
-        );
+            log.info("[Accept] AssignmentLog 업데이트 완료 - dispatchId={}, newStatus=ACCEPTED",
+                    dispatch.getDispatchId());
 
-        // Trip 생성 요청 이벤트 추가
-        tripCreateRequestCommandPort.publishTripCreateRequest(
-                TripCreateRequestPayload.from(dispatch)
-        );
+            // ================================================
+            // 5) Dispatch 저장 + 히스토리
+            // ================================================
+            dispatchCommandPort.save(dispatch);
 
-        DispatchAcceptResult result = DispatchAcceptResult.builder()
-                .dispatchId(command.getDispatchId())
-                .driverId(command.getDriverId())
-                .dispatchStatus(to)
-                .acceptedAt(LocalDateTime.now())
-                .build();
+            dispatchHistoryCommandPort.save(
+                    DispatchHistory.recordStatusChange(
+                            dispatch.getDispatchId(),
+                            DispatchDomainEventType.ACCEPTED.name(),
+                            from,
+                            dispatch.getDispatchStatus(),
+                            ChangedBy.DRIVER,
+                            null
+                    )
+            );
 
-        log.info("[Accept] 콜 수락 처리 완료 - dispatchId={}, acceptedAt={}",
-                result.getDispatchId(), result.getAcceptedAt());
+            // ================================================
+            // 6) 이벤트 발행
+            // ================================================
+            dispatchAcceptedCommandPort.publishAccepted(
+                    DispatchAcceptedPayload.from(dispatch, command.getDriverId())
+            );
 
-        return result;
+            tripCreateRequestCommandPort.publishTripCreateRequest(
+                    TripCreateRequestPayload.from(dispatch)
+            );
+
+            // ================================================
+            // 7) 응답 생성
+            // ================================================
+            return DispatchAcceptResult.builder()
+                    .dispatchId(dispatch.getDispatchId())
+                    .driverId(command.getDriverId())
+                    .dispatchStatus(dispatch.getDispatchStatus())
+                    .acceptedAt(dispatch.getAcceptedAt())
+                    .build();
+
+        } finally {
+            dispatchLockManager.unlock(lockKey);
+        }
     }
-
 
     /**
      * 콜 거절
@@ -177,14 +208,18 @@ public class DriverDispatchService {
 
         // === AssignmentLog 상태 전이 ===
         DispatchAssignmentLog assignmentLog =
-                dispatchAssignmentLogRepository.findLatest(command.getDispatchId(), command.getDriverId())
-                        .orElseThrow(() -> new IllegalStateException("Assignment log not found"));
+                dispatchAssignmentLogRepository.findLatest(
+                        command.getDispatchId(),
+                        command.getDriverId()
+                ).orElseThrow(
+                        () -> new IllegalStateException("AssignmentLog 업데이트 실패")
+                );
 
         assignmentLog.reject();   // SENT → REJECTED
         dispatchAssignmentLogRepository.save(assignmentLog);
 
         // === Dispatch 상태 전이 ===
-        dispatch.cancel();
+        dispatch.rejectedByDriver(command.getDriverId());
 
         log.info("[Reject] Dispatch 상태 전이 완료 - id={}, newStatus={}",
                 dispatch.getDispatchId(), dispatch.getDispatchStatus());
@@ -213,11 +248,10 @@ public class DriverDispatchService {
                 )
         );
 
-
         DispatchRejectResult result = DispatchRejectResult.builder()
                 .dispatchId(command.getDispatchId())
                 .driverId(command.getDriverId())
-                .dispatchStatus(DispatchStatus.CANCELLED)
+                .dispatchStatus(dispatch.getDispatchStatus())
                 .rejectedAt(LocalDateTime.now())
                 .build();
 

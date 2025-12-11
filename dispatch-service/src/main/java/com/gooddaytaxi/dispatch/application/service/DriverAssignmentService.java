@@ -76,7 +76,8 @@ public class DriverAssignmentService {
         // 3. 상태 전이: REQUESTED -> ASSIGNING
         DispatchStatus from = dispatch.getDispatchStatus(); // REQUESTED
 
-
+        // [기존] dispatch.startAssigning();
+        // [NEW] 도메인 메서드는 그대로 사용하되, 여기에서만 호출
         dispatch.startAssigning();
 
         DispatchStatus to = dispatch.getDispatchStatus();   // ASSIGNING
@@ -104,29 +105,11 @@ public class DriverAssignmentService {
             log.info("[Assign] 기사에게 배차 요청 전송 - dispatchId={} driverId={}",
                     dispatchId, driverId);
 
-            // === AssignmentLog 상태 전이 ===
+            // === [NEW] AssignmentLog 생성 (SENT 상태) ===
             DispatchAssignmentLog assignmentLog =
-                    dispatchAssignmentLogRepository.findLatest(dispatchId, driverId)
-                            .orElseThrow(() -> new IllegalStateException("Assignment log missing"));
+                    DispatchAssignmentLog.create(dispatchId, driverId); // [NEW]
 
-            assignmentLog.timeout(); // SENT → TIMEOUT
             assignmentLogPort.save(assignmentLog);
-
-            // === Dispatch 상태 전이 ===
-            dispatch.timeout();
-            dispatchCommandPort.save(dispatch);
-
-            // === 히스토리 기록 ===
-            historyPort.save(
-                    DispatchHistory.recordStatusChange(
-                            dispatchId,
-                            DispatchDomainEventType.TIMEOUT.name(),
-                            from,
-                            DispatchStatus.TIMEOUT,
-                            ChangedBy.SYSTEM,
-                            "driver did not respond"
-                    )
-            );
 
             // Support-service로 알림 이벤트 발행
             requestedEventPort.publishRequested(
