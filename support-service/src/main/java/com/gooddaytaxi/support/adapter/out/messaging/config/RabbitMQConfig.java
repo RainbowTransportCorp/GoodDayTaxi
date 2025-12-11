@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
@@ -14,8 +15,6 @@ import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import jakarta.annotation.PostConstruct;
-import lombok.extern.slf4j.Slf4j;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -67,14 +66,15 @@ public class RabbitMQConfig {
 
     // TODO: err 관련 binding, queue 작성
 
-    /* RabbitTemplate
-     *
+    /* RabbitTemplate - Producer가 메시지를 보낼 때
+     * based on application.yaml
      */
     @Bean
-    public RabbitTemplate rabbitTemplateBasedInApplicationYML(ConnectionFactory connectionFactory,
+    public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory,
                                                     Jackson2JsonMessageConverter converter) {
 
         RabbitTemplate template = new RabbitTemplate(connectionFactory);
+        template.setMessageConverter(converter);
 
         // 브로커가 메시지를 정상 수신했는지 여부
         template.setConfirmCallback((correlationData, ack, cause) -> {
@@ -98,17 +98,19 @@ public class RabbitMQConfig {
     }
 
 
-    /* Listener Container (Consumer 쪽)
+    /* Listener Container - Consumer가 메시지를 받을 때
      *
      */
     @Bean
-    public SimpleRabbitListenerContainerFactory simpleRabbitListenerContainerFactory(
+    public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(
             ConnectionFactory connectionFactory,
             Jackson2JsonMessageConverter messageConverter
     ) {
         SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
         factory.setMessageConverter(messageConverter);
+        factory.setConcurrentConsumers(1);
+        factory.setMaxConcurrentConsumers(1);
         return factory;
     }
 

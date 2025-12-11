@@ -6,5 +6,6 @@ package com.gooddaytaxi.support.adapter.out.internal.account.dto;
 public enum UserRole {
     PASSENGER,  // 승객
     DRIVER,     // 기사
-    ADMIN       // 관리자
+    ADMIN,      // 관리자
+    MASTER      // 관리자(알림 수신자)
 }
