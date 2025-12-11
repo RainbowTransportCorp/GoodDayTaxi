@@ -70,8 +70,10 @@ public class PaymentController {
     //외부에서 보기엔 toss결제 승인이므로 confirm으로 명명
     @PostMapping("/tosspay/confirm")
     public ResponseEntity<ApiResponse<PaymentApproveResponseDto>> confirmTossPayPayment(@RequestBody @Valid PaymentTossPayRequestDto requestDto) {
+        UUID userId = UUID.fromString("77684a22-090f-45a5-b436-d271db8937e5");
+        String role = "PASSENGER";
         PaymentTossPayCommand command = PaymentTossPayMapper.toCommand(requestDto);
-        PaymentApproveResult result = paymentService.approveTossPayment(command);
+        PaymentApproveResult result = paymentService.approveTossPayment(command,userId, role);
         PaymentApproveResponseDto responseDto = PaymentApproveResponseMapper.toResponse(result);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
     }
