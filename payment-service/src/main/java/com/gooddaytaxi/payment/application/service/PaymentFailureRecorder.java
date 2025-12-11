@@ -1,7 +1,7 @@
 package com.gooddaytaxi.payment.application.service;
 
 import com.gooddaytaxi.payment.application.command.payment.PaymentTossPayCommand;
-import com.gooddaytaxi.payment.application.port.out.PaymentCommandPort;
+import com.gooddaytaxi.payment.application.port.out.core.PaymentCommandPort;
 import com.gooddaytaxi.payment.application.result.payment.ExternalPaymentError;
 import com.gooddaytaxi.payment.domain.entity.Payment;
 import com.gooddaytaxi.payment.domain.entity.PaymentAttempt;

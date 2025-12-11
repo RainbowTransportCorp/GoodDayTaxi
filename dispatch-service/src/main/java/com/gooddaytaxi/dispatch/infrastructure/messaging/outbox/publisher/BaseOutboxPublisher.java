@@ -2,6 +2,7 @@ package com.gooddaytaxi.dispatch.infrastructure.messaging.outbox.publisher;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gooddaytaxi.dispatch.application.event.DispatchEventMetadata;
 import com.gooddaytaxi.dispatch.application.event.EventEnvelope;
 import com.gooddaytaxi.dispatch.application.outbox.DispatchEventOutboxPort;
 import com.gooddaytaxi.dispatch.application.outbox.OutboxEventModel;
@@ -17,45 +18,48 @@ public abstract class BaseOutboxPublisher<T> {
     private final ObjectMapper objectMapper;
     private final DispatchEventOutboxPort outboxPort;
 
+    /**
+     * 메타데이터 기반 Outbox 저장
+     */
     protected void publish(
-            String eventType,
-            String topic,
-            String aggregateType,
+            DispatchEventMetadata metadata,
             UUID aggregateId,
             String messageKey,
-            int version,
             T payload
     ) {
-
         // 1. Envelope 생성
-        EventEnvelope<T> envelope = EventEnvelope.of(eventType, version, payload);
+        EventEnvelope<T> envelope = EventEnvelope.of(
+                metadata.eventType(),
+                metadata.version(),
+                payload
+        );
 
         // 2. JSON 직렬화
         String payloadJson;
         try {
             payloadJson = objectMapper.writeValueAsString(envelope);
         } catch (JsonProcessingException e) {
-            log.error("[DISPATCH-OUTBOX-ERROR] eventType={} aggregateId={} error={}",
-                    eventType, aggregateId, e.getMessage());
+            log.error("[DISPATCH-OUTBOX-ERROR] eventType={} id={} error={}",
+                    metadata.eventType(), aggregateId, e.getMessage());
             throw new IllegalArgumentException("Outbox payload serialization failed", e);
         }
 
-        // 3. 포트에 전달할 application 모델 생성
+        // 3. Outbox 모델 생성
         OutboxEventModel model = new OutboxEventModel(
-                eventType,
-                topic,
+                metadata.eventType(),
+                metadata.topic(),
                 messageKey,
-                aggregateType,
+                metadata.aggregateType(),
                 aggregateId,
-                version,
+                metadata.version(),
                 payloadJson
         );
 
-        // 4. 포트에 전달 (infra adapter에서 실제 outbox entity 생성)
+        // 4. 저장
         outboxPort.save(model);
 
-        log.info("[DISPATCH-OUTBOX-SAVED] eventType={} aggregateId={} topic={}",
-                eventType, aggregateId, topic);
+        log.info("[DISPATCH-OUTBOX-SAVED] type={} id={} topic={}",
+                metadata.eventType(), aggregateId, metadata.topic());
     }
 }
 

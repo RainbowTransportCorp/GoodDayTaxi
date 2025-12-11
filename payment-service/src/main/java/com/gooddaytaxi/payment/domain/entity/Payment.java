@@ -9,6 +9,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -44,6 +45,8 @@ public class Payment extends BaseEntity {
     @Column(nullable = false)
     private UUID tripId;
 
+    private LocalDateTime approvedAt;  //서버 내 승인 시간
+
     @Column(length = 200)
     private String cancelReason;
 
@@ -73,7 +76,10 @@ public class Payment extends BaseEntity {
     }
 
     //결제 청구서의 최종 완료 상태
-    public void updateStatusToComplete() { this.status = PaymentStatus.COMPLETED;}
+    public void updateStatusToComplete() {
+        this.status = PaymentStatus.COMPLETED;
+        this.approvedAt = LocalDateTime.now();
+    }
 
     //결제 청구서의 현재 실패 상태
     public void updateStatusToFailed() {this.status = PaymentStatus.FAILED;}

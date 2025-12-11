@@ -16,6 +16,7 @@ public enum PaymentErrorCode {
     INVALID_SEARCH_PERIOD(HttpStatus.BAD_REQUEST, "P006", "유효하지 않은 검색 기간입니다"),
     INVALID_REFUND_STATUS(HttpStatus.BAD_REQUEST, "P006", "유효하지 않은 환불 상태입니다"),
     INVALID_REFUND_REASON(HttpStatus.BAD_REQUEST, "P006", "유효하지 않은 환불 이유입니다"),
+    INVALID_PAYMENT_EVENT_TYPE(HttpStatus.BAD_REQUEST, "P006", "유효하지 않은 결제 이벤트 타입 입니다"),
     PERIOD_REQUIRED_FOR_SEARCH(HttpStatus.BAD_REQUEST, "P007", "검색기간에 직접 입력 선택시 시작일과 종료일은 필수 값입니다"),
     PAYMENT_METHOD_NOT_TOSSPAY(HttpStatus.BAD_REQUEST, "P008", "결제 수단이 Toss Pay가 아닙니다"),
     PAYMENT_AMOUNT_SAME(HttpStatus.BAD_REQUEST, "P009", "변경하려는 결제 금액이 기존 금액과 동일합니다"),

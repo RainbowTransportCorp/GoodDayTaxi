@@ -1,7 +1,8 @@
 package com.gooddaytaxi.dispatch.domain.model.entity;
 
 import com.gooddaytaxi.common.jpa.model.BaseEntity;
-import com.gooddaytaxi.dispatch.application.event.payload.DispatchTimeoutPayload;
+import com.gooddaytaxi.dispatch.application.exception.CannotAssignDriverException;
+import com.gooddaytaxi.dispatch.domain.exception.DispatchAlreadyAcceptedException;
 import com.gooddaytaxi.dispatch.domain.exception.InvalidDispatchStateException;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
 import jakarta.persistence.*;
@@ -77,20 +78,28 @@ public class Dispatch extends BaseEntity {
         this.cancelledAt = LocalDateTime.now();
     }
 
-    private boolean isCancelableStatus() {
-        return this.dispatchStatus == DispatchStatus.REQUESTED
-                || this.dispatchStatus == DispatchStatus.ASSIGNING
-                || this.dispatchStatus == DispatchStatus.ASSIGNED;
-    }
-
     public void accept() {
+        if (this.dispatchStatus != DispatchStatus.ASSIGNING) {
+            throw new DispatchAlreadyAcceptedException();
+        }
+
         this.dispatchStatus = DispatchStatus.ACCEPTED;
         this.acceptedAt = LocalDateTime.now();
     }
 
-    public void assignTo(UUID driverId) {
-        this.driverId = driverId;
+    public void startAssigning() {
+        if (this.dispatchStatus != DispatchStatus.REQUESTED) {
+            throw new InvalidDispatchStateException();
+        }
+        this.dispatchStatus = DispatchStatus.ASSIGNING;
+    }
+
+    public void assignedTo(UUID driverId) {
+        if (this.dispatchStatus != DispatchStatus.ASSIGNING) {
+            throw new CannotAssignDriverException();
+        }
         this.dispatchStatus = DispatchStatus.ASSIGNED;
+        this.driverId = driverId;
         this.assignedAt = LocalDateTime.now();
     }
 
@@ -99,5 +108,11 @@ public class Dispatch extends BaseEntity {
 
         this.dispatchStatus = DispatchStatus.TIMEOUT;
         this.timeoutAt = LocalDateTime.now();
+    }
+
+    private boolean isCancelableStatus() {
+        return this.dispatchStatus == DispatchStatus.REQUESTED
+                || this.dispatchStatus == DispatchStatus.ASSIGNING
+                || this.dispatchStatus == DispatchStatus.ASSIGNED;
     }
 }
