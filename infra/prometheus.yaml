@@ -75,3 +75,12 @@ scrape_configs:
       - targets: ['gd_support_service:8080']
       # 로컬 개발
       - targets: ['host.docker.internal:8205']
+
+
+  # ========================
+  # Redis Monitoring
+  # ========================
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+
