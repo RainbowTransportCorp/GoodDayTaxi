@@ -75,7 +75,7 @@ public class DriverDispatchController {
             @RequestHeader(value = "X-User-UUID", required = false) UUID userId,
             @RequestHeader(value = "X-User-Role", required = false) String role
     ) {
-        DispatchRejectCommand command = DispatchRejectCommandMapper.toCommand(userId, dispatchId);
+        DispatchRejectCommand command = DispatchRejectCommandMapper.toCommand(userId, role, dispatchId);
         DispatchRejectResult result = driverDispatchService.reject(command);
         DispatchRejectResponseDto responseDto = DispatchRejectResponseMapper.toResponse(result);
         return ResponseEntity.ok(ApiResponse.success(responseDto));

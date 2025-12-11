@@ -17,6 +17,7 @@ import com.gooddaytaxi.dispatch.domain.model.entity.DispatchHistory;
 import com.gooddaytaxi.dispatch.domain.model.enums.ChangedBy;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchDomainEventType;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
+import com.gooddaytaxi.dispatch.domain.repository.DispatchAssignmentLogRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,9 +35,10 @@ public class DriverDispatchService {
 
     private final DispatchCommandPort dispatchCommandPort;
     private final DispatchHistoryCommandPort dispatchHistoryCommandPort;
-    private final DispatchAssignmentCommandPort dispatchAssignmentCommandPort;
 
     private final DispatchQueryPort dispatchQueryPort;
+
+    private final DispatchAssignmentLogRepository dispatchAssignmentLogRepository;
 
     private final DispatchAcceptedCommandPort dispatchAcceptedCommandPort;
     private final DispatchRejectedCommandPort dispatchRejectedCommandPort;
@@ -98,17 +100,28 @@ public class DriverDispatchService {
         // === from 상태 저장 ===
         DispatchStatus from = dispatch.getDispatchStatus();
 
-        // === 상태 전이 ===
+        // === 기사 배차 요청 로그 상태 전이 ===
+        DispatchAssignmentLog assignmentLog =
+                dispatchAssignmentLogRepository.findLatest(command.getDispatchId(), command.getDriverId())
+                        .orElseThrow(() -> new IllegalStateException("No assignment log found"));
+
+        assignmentLog.accept(); // SENT → ACCEPTED
+        dispatchAssignmentLogRepository.save(assignmentLog);
+
+        // === Dispatch 상태 전이 ===
         dispatch.accept();
         DispatchStatus to = dispatch.getDispatchStatus();
+        dispatchCommandPort.save(dispatch);
+
 
         log.info("[Accept] 상태 전이 완료 - id={}, newStatus={}", dispatch.getDispatchId(), to);
+
 
         // === 히스토리 기록 ===
         dispatchHistoryCommandPort.save(
                 DispatchHistory.recordStatusChange(
                         dispatch.getDispatchId(),
-                        String.valueOf(DispatchDomainEventType.ACCEPTED),
+                        DispatchDomainEventType.ACCEPTED.name(),
                         from,
                         to,
                         ChangedBy.DRIVER,
@@ -116,14 +129,6 @@ public class DriverDispatchService {
                 )
         );
 
-        // === 배차 시도 로그 업데이트 ===
-        dispatchAssignmentCommandPort.save(
-                DispatchAssignmentLog.create(dispatch.getDispatchId(),
-                        command.getDriverId())
-        );
-
-        // === 저장 ===
-        dispatchCommandPort.save(dispatch);
 
         // === 이벤트 발행 (Outbox) ===
         // Support 이벤트
@@ -136,14 +141,17 @@ public class DriverDispatchService {
                 TripCreateRequestPayload.from(dispatch)
         );
 
-
-        // === 응답 DTO 생성 ===
-        return DispatchAcceptResult.builder()
+        DispatchAcceptResult result = DispatchAcceptResult.builder()
                 .dispatchId(command.getDispatchId())
                 .driverId(command.getDriverId())
                 .dispatchStatus(to)
                 .acceptedAt(LocalDateTime.now())
                 .build();
+
+        log.info("[Accept] 콜 수락 처리 완료 - dispatchId={}, acceptedAt={}",
+                result.getDispatchId(), result.getAcceptedAt());
+
+        return result;
     }
 
 
@@ -155,36 +163,62 @@ public class DriverDispatchService {
      */
     public DispatchRejectResult reject(DispatchRejectCommand command) {
 
+        dispatchDriverPermissionValidator.validate(command.getRole());
+
         log.info("[Reject] 콜 거절 요청 수신 - driverId={}, dispatchId={}",
                 command.getDriverId(), command.getDispatchId());
 
         Dispatch dispatch = dispatchQueryPort.findById(command.getDispatchId());
+
         log.debug("[Reject] 조회된 Dispatch 엔티티 - id={}, status={}",
                 dispatch.getDispatchId(), dispatch.getDispatchStatus());
 
-        // 상태 전이
+        DispatchStatus from = dispatch.getDispatchStatus();
+
+        // === AssignmentLog 상태 전이 ===
+        DispatchAssignmentLog assignmentLog =
+                dispatchAssignmentLogRepository.findLatest(command.getDispatchId(), command.getDriverId())
+                        .orElseThrow(() -> new IllegalStateException("Assignment log not found"));
+
+        assignmentLog.reject();   // SENT → REJECTED
+        dispatchAssignmentLogRepository.save(assignmentLog);
+
+        // === Dispatch 상태 전이 ===
         dispatch.cancel();
+
         log.info("[Reject] Dispatch 상태 전이 완료 - id={}, newStatus={}",
                 dispatch.getDispatchId(), dispatch.getDispatchStatus());
 
+        DispatchStatus to = dispatch.getDispatchStatus();
         dispatchCommandPort.save(dispatch);
 
-        LocalDateTime rejectedAt = LocalDateTime.now();
+        // === 히스토리 기록 ===
+        dispatchHistoryCommandPort.save(
+                DispatchHistory.recordStatusChange(
+                        dispatch.getDispatchId(),
+                        DispatchDomainEventType.REJECTED.name(),
+                        from,
+                        to,
+                        ChangedBy.DRIVER,
+                        null
+                )
+        );
 
-        //거절 이벤트 발행
+        // === 이벤트 발행 ===
         dispatchRejectedCommandPort.publishRejected(
                 DispatchRejectedPayload.from(
                         dispatch.getDispatchId(),
                         command.getDriverId(),
-                        rejectedAt
+                        LocalDateTime.now()
                 )
         );
+
 
         DispatchRejectResult result = DispatchRejectResult.builder()
                 .dispatchId(command.getDispatchId())
                 .driverId(command.getDriverId())
                 .dispatchStatus(DispatchStatus.CANCELLED)
-                .rejectedAt(rejectedAt)
+                .rejectedAt(LocalDateTime.now())
                 .build();
 
         log.info("[Reject] 콜 거절 처리 완료 - dispatchId={}, rejectedAt={}",

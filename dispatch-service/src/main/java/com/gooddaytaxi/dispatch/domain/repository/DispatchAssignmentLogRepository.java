@@ -5,6 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;
 
-public interface DispatchAssignmentRepository extends JpaRepository<DispatchAssignmentLog, UUID>, DispatchAssignmentRepositoryCustom {
+public interface DispatchAssignmentLogRepository extends JpaRepository<DispatchAssignmentLog, UUID>, DispatchAssignmentLogRepositoryCustom {
 
 }
