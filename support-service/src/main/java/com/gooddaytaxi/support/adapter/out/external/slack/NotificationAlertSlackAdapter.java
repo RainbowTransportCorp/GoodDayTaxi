@@ -24,9 +24,18 @@ public class NotificationAlertSlackAdapter implements NotificationAlertExternalP
     private final AccountDomainCommunicationPort accountDomainCommunicationPort;
     private final SlackFeignClient slackFeignClient;
 
+    // RabbitListener 비활성화 후, 직접 호출 시
+    public void sendCallDirectRequest(QueuePushMessage message) {
+        doSendSlack(message);
+    }
+
     @RabbitListener(queues = RabbitMQConfig.DISPATCH_QUEUE)
     @Override
     public void sendCallRequest(QueuePushMessage message) {
+        doSendSlack(message);
+    }
+
+    private void doSendSlack(QueuePushMessage message) {
         log.info("[Slack] Receive QueuePushMessage. title={}, body={}, receivers={}",
                 message.title(), message.body(), message.receivers());
 
@@ -50,28 +59,29 @@ public class NotificationAlertSlackAdapter implements NotificationAlertExternalP
 
         List<String> slackTargets = new ArrayList<>();
         slackTargets.add(driver.slackUserId());
-            // Driver
+        // Driver
         String driverSlackId = slackTargets.get(0);
 
         log.info("‼️‼️‼️‼️ Slack ID 가져오기 {}", driverSlackId);
 
         // Slack 알림 Push
 //        for (String target : slackTargets) {
-            SlackMessageAlertReq request = SlackMessageAlertReq.builder()
-                    .channel(driverSlackId)  // target : Public Channel(ex. #general, C017L34ABC1 등), Private Channel(ex. C0ABCDEF01 등), DM(사용자 Slack User ID), Multi-person DM(ex. G12345678 등)
-                    .text(formattedMessage)
-                    .mrkdwn(true)            // Slack Markdown 사용
-                    .build();
-            try {
-                SlackMessageAPIRes response = slackFeignClient.postMessage(request);
-                if (!response.ok()) {
-                    log.error("[Slack] API Error: target={}, error={}", driverSlackId, response.error());
-                } else {
-                    log.info("[Slack] Message Sent. target={}, ts={}", driverSlackId, response.ts());
-                }
-            } catch (Exception e) {
-                log.error("[Slack] Failed to send Slack message. target={}, title={}", driverSlackId, title, e);
+        SlackMessageAlertReq request = SlackMessageAlertReq.builder()
+                .channel(driverSlackId)  // target : Public Channel(ex. #general, C017L34ABC1 등), Private Channel(ex. C0ABCDEF01 등), DM(사용자 Slack User ID), Multi-person DM(ex. G12345678 등)
+                .text(formattedMessage)
+                .mrkdwn(true)            // Slack Markdown 사용
+                .build();
+        try {
+            SlackMessageAPIRes response = slackFeignClient.postMessage(request);
+            if (!response.ok()) {
+                log.error("[Slack] API Error: target={}, error={}", driverSlackId, response.error());
+            } else {
+                log.info("[Slack] Message Sent. target={}, ts={}", driverSlackId, response.ts());
             }
+        } catch (Exception e) {
+            log.error("[Slack] Failed to send Slack message. target={}, title={}", driverSlackId, title, e);
+        }
 //        }
     }
+
 }
