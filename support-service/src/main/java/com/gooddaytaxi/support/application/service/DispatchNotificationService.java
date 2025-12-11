@@ -1,13 +1,13 @@
 package com.gooddaytaxi.support.application.service;
 
-import com.gooddaytaxi.support.adapter.out.internal.account.dto.UserInfo;
 import com.gooddaytaxi.support.application.dto.CreateDispatchInfoCommand;
 import com.gooddaytaxi.support.application.dto.GetDispatchInfoCommand;
-import com.gooddaytaxi.support.application.port.out.internal.account.AccountDomainCommunicationPort;
 import com.gooddaytaxi.support.application.port.in.dispatch.AcceptDispatchUsecase;
 import com.gooddaytaxi.support.application.port.in.dispatch.NotifyDispatchUsecase;
 import com.gooddaytaxi.support.application.port.out.external.NotificationAlertExternalPort;
+import com.gooddaytaxi.support.application.port.out.internal.account.AccountDomainCommunicationPort;
 import com.gooddaytaxi.support.application.port.out.messaging.NotificationPushMessagingPort;
+import com.gooddaytaxi.support.application.port.out.messaging.QueuePushMessage;
 import com.gooddaytaxi.support.application.port.out.persistence.NotificationCommandPersistencePort;
 import com.gooddaytaxi.support.application.port.out.persistence.NotificationQueryPersistencePort;
 import com.gooddaytaxi.support.domain.notification.model.Notification;
@@ -34,33 +34,36 @@ public class DispatchNotificationService implements NotifyDispatchUsecase, Accep
     private final NotificationQueryPersistencePort notificationQueryPersistencePort;
     private final NotificationPushMessagingPort notificationPushMessagingPort;
     private final AccountDomainCommunicationPort accountDomainCommunicationPort;
-    private final NotificationAlertExternalPort notificationAlertExternalPort;
+//    private final NotificationAlertExternalPort notificationAlertExternalPort; (RabbitListener로 사용 시, 주석처리)
 
 
     @Transactional
     @Override
     public void request(CreateDispatchInfoCommand command) {
-
+        log.info("‼️‼️‼️‼️Command 내용 확인title={}, body={}, driver={}, passenger={}",
+                "새콜 요청", command.getMessage(), command.getDriverId(), command.getPassengerId());
         // Notification 생성
         Notification noti = Notification.from(command, NotificationType.DISPATCH_REQUESTED);
         noti.assignIds(command.getDispatchId(), command.getDriverId(), command.getPassengerId(), null, null);
+        log.info("‼🤣🤣🤣🤣️ notification 객체={}", noti);
         notificationCommandPersistencePort.save(noti);
+        log.info("‼🤣🤣🤣🤣️ notification 객체 in persistence={}", notificationQueryPersistencePort.findByNotificationOriginId(command.getDispatchId()));
 
         List<UUID> receivers = new ArrayList<>();
         receivers.add(command.getDriverId());
         receivers.add(command.getPassengerId());
         String messageTitle = "\uD83D\uDE95 새로운 콜 요청이 도착했습니다!";
 
-        // RabbitMQ로 driver, passenger에게 알림 Push
-        notificationPushMessagingPort.send(receivers, messageTitle, noti.getMessage());
+
+        // RabbitMQ로 Queue에 Push
+        QueuePushMessage queuePushMessage = QueuePushMessage.create(receivers, messageTitle, noti.getMessage());
+        notificationPushMessagingPort.send(queuePushMessage);
+        log.info("‼️‼️‼️‼️QueuePush Message 내용 확인title={}, body={}, receivers={}",
+                messageTitle, noti.getMessage(), receivers);
+
 
         // Push 알림: Slack, FCM 등
-//        PushMessage message = new PushMessage(receivers, messageTitle, noti.getMessage());
-        UserInfo driver = accountDomainCommunicationPort.getUserInfo(receivers.get(0));
-        List<String> slackReceivers = new ArrayList<>();
-        slackReceivers.add(driver.slackUserId());
-            // slack
-        notificationAlertExternalPort.sendCallRequest(slackReceivers, messageTitle, noti.getMessage());
+//        notificationAlertExternalPort.sendCallDirectRequest(queuePushMessage);// Slack 전송을 위한 RabbitMQ 직접 호출(비동기를 위해 직접 호출은 주석처리). RabbitListener가 알아서 호출
 
         // 로그
         log.info("\uD83D\uDCE2 [CALL-REQUEST] driverId={}, passengerId={} >>> {}",
