@@ -1,13 +1,23 @@
-const API = "/api/v1/drivers/";
+const DRIVER_API = "/api/v1/drivers";
 
-function getDriverId() {
+function getToken() {
+    return localStorage.getItem("accessToken");
+}
+
+function getUserUuid() {
     return localStorage.getItem("userUuid");
 }
 
+function getRole() {
+    return localStorage.getItem("role");
+}
+
+window.addEventListener("DOMContentLoaded", loadProfile);
+
 async function loadProfile() {
-    const uuid = getDriverId();
-    const role = localStorage.getItem("role");
-    const token = localStorage.getItem("accessToken");
+    const uuid = getUserUuid();
+    const role = getRole();
+    const token = getToken();
 
     if (role !== "DRIVER") {
         alert("이 페이지에 접근할 수 있는 권한이 없습니다.");
@@ -15,7 +25,7 @@ async function loadProfile() {
         return;
     }
 
-    const res = await fetch(`${API}${uuid}`, {
+    const res = await fetch(`${DRIVER_API}/${uuid}`, {
         headers: {
             "Authorization": `Bearer ${token}`,
             "X-User-UUID": uuid,
@@ -24,6 +34,11 @@ async function loadProfile() {
     });
 
     const json = await res.json();
+    if (!json.success) {
+        alert(json.message || "프로필 불러오기 실패");
+        return;
+    }
+
     const d = json.data;
 
     document.getElementById("name").value = d.name;
@@ -35,24 +50,27 @@ async function loadProfile() {
         d.onlineStatus === "ONLINE" ? "🟢 온라인" : "⚪ 오프라인";
 }
 
+// ================================
+// 프로필 수정 (PATCH /drivers/me)
+// ================================
 async function updateProfile() {
-    const uuid = getDriverId();
-    const token = localStorage.getItem("accessToken");
-    const role = localStorage.getItem("role");
+    const uuid = getUserUuid();
+    const role = getRole();
+    const token = getToken();
 
     const body = {
-        name: document.getElementById("name").value,
         vehicleNumber: document.getElementById("vehicleNumber").value,
         vehicleColor: document.getElementById("vehicleColor").value,
         vehicleType: document.getElementById("vehicleType").value
     };
 
-    const res = await fetch(`${API}${uuid}`, {
+    const res = await fetch(`${DRIVER_API}/me`, {
         method: "PATCH",
         headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`,
-            "X-User-UUID": uuid
+            "X-User-UUID": uuid,
+            "X-User-Role": role
         },
         body: JSON.stringify(body)
     });
@@ -61,16 +79,21 @@ async function updateProfile() {
     alert(json.message || "프로필이 수정되었습니다.");
 }
 
+// =====================================
+// 온라인 / 오프라인 변경 (PATCH /me/status)
+// =====================================
 async function changeStatus(status) {
-    const uuid = getDriverId();
-    const token = localStorage.getItem("accessToken");
+    const uuid = getUserUuid();
+    const role = getRole();
+    const token = getToken();
 
-    const res = await fetch(`${API}${uuid}/status`, {
+    const res = await fetch(`${DRIVER_API}/me/status`, {
         method: "PATCH",
         headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`,
-            "X-User-UUID": uuid
+            "X-User-UUID": uuid,
+            "X-User-Role": role
         },
         body: JSON.stringify({ onlineStatus: status })
     });
@@ -81,5 +104,3 @@ async function changeStatus(status) {
     document.getElementById("status-text").textContent =
         status === "ONLINE" ? "🟢 온라인" : "⚪ 오프라인";
 }
-
-loadProfile();

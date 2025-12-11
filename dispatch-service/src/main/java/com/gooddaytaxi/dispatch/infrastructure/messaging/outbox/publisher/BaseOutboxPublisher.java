@@ -11,6 +11,15 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.UUID;
 
+/**
+ * Outbox 패턴에서 "이벤트 전송" 대신 "이벤트 저장"만 담당하는 공통 Publisher.
+ *
+ *  - Application 계층이 Kafka에 직접 의존하지 않도록 하기 위해 사용
+ *    (전송 책임은 OutboxRelay가 담당)
+ *  - 여러 이벤트 Publisher의 반복되는 직렬화/메타데이터/저장 로직을 통일하기 위해
+ *
+ * @param <T> 이벤트 역할에 맞는 payload
+ */
 @Slf4j
 @RequiredArgsConstructor
 public abstract class BaseOutboxPublisher<T> {
@@ -19,7 +28,7 @@ public abstract class BaseOutboxPublisher<T> {
     private final DispatchEventOutboxPort outboxPort;
 
     /**
-     * 메타데이터 기반 Outbox 저장
+     * Outbox 전용 저장 로직 (전송은 Relay가 담당)
      */
     protected void publish(
             DispatchEventMetadata metadata,

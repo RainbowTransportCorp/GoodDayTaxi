@@ -36,4 +36,10 @@ public class CreateDispatchInfoCommand extends Command{
     ) {
         return new CreateDispatchInfoCommand(notificationOriginId, notifierId, driverId, passengerId, pickupAddress, destinationAddress, message);
     }
+
+    @Override
+    public String toString() {
+        return "CreateDispatchInfoCommand(driverId=%s, passengerId=%s, message=%s, dispatchId=%s)"
+                .formatted(driverId, passengerId, getMessage(), dispatchId);
+    }
 }

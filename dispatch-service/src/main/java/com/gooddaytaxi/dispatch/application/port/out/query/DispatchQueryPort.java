@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface DispatchQueryPort {
-    List<Dispatch> findAllByFilter(UUID passengerId);
+    List<Dispatch> findAllByPassengerId(UUID passengerId);
     Dispatch findById(UUID dispatchId);
     List<Dispatch> findByStatus(DispatchStatus status);
     List<Dispatch> findTimeoutTargets(int seconds);

@@ -29,7 +29,8 @@ async function loadProfile() {
         const res = await fetch(PROFILE_API, {
             headers: {
                 "Authorization": `Bearer ${getToken()}`,
-                "X-User-UUID": uuid
+                "X-User-UUID": uuid,
+                "X-User-Role": role
             }
         });
 
@@ -52,6 +53,7 @@ async function loadProfile() {
 
 async function updateProfile() {
     const uuid = getUserUuid();
+    const role = getRole();
 
     const body = {
         name: document.getElementById("name").value,
@@ -64,7 +66,8 @@ async function updateProfile() {
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${getToken()}`,
-                "X-User-UUID": uuid
+                "X-User-UUID": uuid,
+                "X-User-Role": role
             },
             body: JSON.stringify(body)
         });
