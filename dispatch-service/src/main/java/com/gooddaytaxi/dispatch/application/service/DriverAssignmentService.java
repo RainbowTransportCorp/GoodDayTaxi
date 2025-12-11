@@ -14,6 +14,7 @@ import com.gooddaytaxi.dispatch.domain.model.entity.DispatchHistory;
 import com.gooddaytaxi.dispatch.domain.model.enums.ChangedBy;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchDomainEventType;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
+import com.gooddaytaxi.dispatch.domain.repository.DispatchAssignmentLogRepository;
 import com.gooddaytaxi.dispatch.infrastructure.client.account.dto.DriverInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +35,8 @@ public class DriverAssignmentService {
     private final AccountDriverSelectionQueryPort driverSelectionPort;
     private final DispatchAssignmentCommandPort assignmentLogPort;
     private final DispatchHistoryCommandPort historyPort;
+
+    private final DispatchAssignmentLogRepository dispatchAssignmentLogRepository;
 
     private final DispatchRequestedCommandPort requestedEventPort;
 
@@ -73,9 +76,9 @@ public class DriverAssignmentService {
         // 3. 상태 전이: REQUESTED -> ASSIGNING
         DispatchStatus from = dispatch.getDispatchStatus(); // REQUESTED
 
-        // 도메인 메서드가 있다면 이걸 권장
-        // ex) dispatch.startAssigning();
-        dispatch.startAssigning(); // ← 이미 너 도메인에 있다고 가정
+        // [기존] dispatch.startAssigning();
+        // [NEW] 도메인 메서드는 그대로 사용하되, 여기에서만 호출
+        dispatch.startAssigning();
 
         DispatchStatus to = dispatch.getDispatchStatus();   // ASSIGNING
 
@@ -98,13 +101,15 @@ public class DriverAssignmentService {
 
         // 5. 각 기사에게 배차 시도 + 로그 + 이벤트 발행
         for (UUID driverId : candidates.driverIds()) {
+
             log.info("[Assign] 기사에게 배차 요청 전송 - dispatchId={} driverId={}",
                     dispatchId, driverId);
 
-            // 배차 시도 로그
-            assignmentLogPort.save(
-                    DispatchAssignmentLog.create(dispatchId, driverId)
-            );
+            // === [NEW] AssignmentLog 생성 (SENT 상태) ===
+            DispatchAssignmentLog assignmentLog =
+                    DispatchAssignmentLog.create(dispatchId, driverId); // [NEW]
+
+            assignmentLogPort.save(assignmentLog);
 
             // Support-service로 알림 이벤트 발행
             requestedEventPort.publishRequested(

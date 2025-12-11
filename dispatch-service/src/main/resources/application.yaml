@@ -23,8 +23,13 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        show_sql: true
+        show_sql: false
 
+  data:
+    redis:
+      host: host.docker.internal
+      port: 6379
+      database: 0
 
   kafka:
     bootstrap-servers: host.docker.internal:${kafka.port} #local
@@ -75,4 +80,5 @@ springdoc:
     path: /api-docs
   swagger-ui:
     path: /swagger-ui
+
 

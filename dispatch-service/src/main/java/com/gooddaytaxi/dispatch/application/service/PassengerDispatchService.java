@@ -107,7 +107,7 @@ public class PassengerDispatchService {
 
         log.debug("[DispatchList] 권한 검증 완료 - role={}", role);
 
-        List<Dispatch> dispatches = dispatchQueryPort.findAllByFilter(passengerId);
+        List<Dispatch> dispatches = dispatchQueryPort.findAllByPassengerId(passengerId);
 
         log.info("[DispatchList] 조회 완료 - count={}", dispatches.size());
 
