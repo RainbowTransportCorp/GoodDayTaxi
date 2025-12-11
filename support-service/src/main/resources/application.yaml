@@ -38,6 +38,7 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       max-poll-records: 1000
+      isolation-level: read_committed
     listener:
       ack-mode: record
       concurrency: 1 # 동일한 Kafka topic에 대해 동시에 1개의 Consumer thread로 처리
