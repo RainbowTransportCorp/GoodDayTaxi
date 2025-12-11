@@ -1,12 +1,12 @@
 package com.gooddaytaxi.support.application.service;
 
-import com.gooddaytaxi.support.adapter.out.internal.account.dto.UserInfo;
+import com.gooddaytaxi.support.application.port.out.messaging.QueuePushMessage;
 import com.gooddaytaxi.support.application.dto.CreateDispatchInfoCommand;
 import com.gooddaytaxi.support.application.dto.GetDispatchInfoCommand;
-import com.gooddaytaxi.support.application.port.out.internal.account.AccountDomainCommunicationPort;
 import com.gooddaytaxi.support.application.port.in.dispatch.AcceptDispatchUsecase;
 import com.gooddaytaxi.support.application.port.in.dispatch.NotifyDispatchUsecase;
 import com.gooddaytaxi.support.application.port.out.external.NotificationAlertExternalPort;
+import com.gooddaytaxi.support.application.port.out.internal.account.AccountDomainCommunicationPort;
 import com.gooddaytaxi.support.application.port.out.messaging.NotificationPushMessagingPort;
 import com.gooddaytaxi.support.application.port.out.persistence.NotificationCommandPersistencePort;
 import com.gooddaytaxi.support.application.port.out.persistence.NotificationQueryPersistencePort;
@@ -40,7 +40,8 @@ public class DispatchNotificationService implements NotifyDispatchUsecase, Accep
     @Transactional
     @Override
     public void request(CreateDispatchInfoCommand command) {
-
+        log.info("‼️‼️‼️‼️Command 내용 확인title={}, body={}, driver={}, passenger={}",
+                "새콜 요청", command.getMessage(), command.getDriverId(), command.getPassengerId());
         // Notification 생성
         Notification noti = Notification.from(command, NotificationType.DISPATCH_REQUESTED);
         noti.assignIds(command.getDispatchId(), command.getDriverId(), command.getPassengerId(), null, null);
@@ -51,16 +52,17 @@ public class DispatchNotificationService implements NotifyDispatchUsecase, Accep
         receivers.add(command.getPassengerId());
         String messageTitle = "\uD83D\uDE95 새로운 콜 요청이 도착했습니다!";
 
-        // RabbitMQ로 driver, passenger에게 알림 Push
-        notificationPushMessagingPort.send(receivers, messageTitle, noti.getMessage());
+
+        // RabbitMQ로 Queue에 Push
+        QueuePushMessage queuePushMessage = QueuePushMessage.create(receivers, messageTitle, noti.getMessage());
+        notificationPushMessagingPort.send(queuePushMessage);
+        log.info("‼️‼️‼️‼️QueuePush Message 내용 확인title={}, body={}, receivers={}",
+                messageTitle, noti.getMessage(), receivers);
+
 
         // Push 알림: Slack, FCM 등
-//        PushMessage message = new PushMessage(receivers, messageTitle, noti.getMessage());
-        UserInfo driver = accountDomainCommunicationPort.getUserInfo(receivers.get(0));
-        List<String> slackReceivers = new ArrayList<>();
-        slackReceivers.add(driver.slackUserId());
-            // slack
-        notificationAlertExternalPort.sendCallRequest(slackReceivers, messageTitle, noti.getMessage());
+            // Slack
+        notificationAlertExternalPort.sendCallRequest(queuePushMessage);
 
         // 로그
         log.info("\uD83D\uDCE2 [CALL-REQUEST] driverId={}, passengerId={} >>> {}",

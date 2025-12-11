@@ -13,7 +13,7 @@ import java.util.UUID;
 @FeignClient(name = "account-service")
 public interface AccountFeignClient {
 
-    @GetMapping("/internal/users/{driverId}")
-    UserInfo getUserInfo(@PathVariable("driverId") UUID userId);
+    @GetMapping("/internal/api/v1/users/{userId}")
+    UserInfo getUserInfo(@PathVariable("userId") String userId);
 }
 
