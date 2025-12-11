@@ -1,11 +1,13 @@
 package com.gooddaytaxi.payment.application.service;
 
 import com.gooddaytaxi.payment.application.command.payment.*;
+import com.gooddaytaxi.payment.application.event.PaymentCompletePayload;
 import com.gooddaytaxi.payment.application.exception.PaymentErrorCode;
 import com.gooddaytaxi.payment.application.exception.PaymentException;
-import com.gooddaytaxi.payment.application.port.out.ExternalPaymentPort;
-import com.gooddaytaxi.payment.application.port.out.PaymentCommandPort;
-import com.gooddaytaxi.payment.application.port.out.PaymentQueryPort;
+import com.gooddaytaxi.payment.application.port.out.core.ExternalPaymentPort;
+import com.gooddaytaxi.payment.application.port.out.core.PaymentCommandPort;
+import com.gooddaytaxi.payment.application.port.out.event.PaymentEventCommandPort;
+import com.gooddaytaxi.payment.application.port.out.core.PaymentQueryPort;
 import com.gooddaytaxi.payment.application.result.payment.*;
 import com.gooddaytaxi.payment.application.validator.PaymentValidator;
 import com.gooddaytaxi.payment.domain.entity.Payment;
@@ -34,6 +36,7 @@ public class PaymentService {
     private final PaymentCommandPort paymentCommandPort;
     private final PaymentQueryPort paymentQueryPort;
     private final ExternalPaymentPort externalPaymentPort;
+    private final PaymentEventCommandPort eventCommandPort;
     private final PaymentFailureRecorder failureRecorder;
     private final PaymentValidator validator;
 
@@ -142,6 +145,9 @@ public class PaymentService {
 
         log.info("TossPay Payment approved successfully for orderId={}, requestedAt={}, approveAt={}", command.orderId(), result.requestedAt(), result.approvedAt());
 
+        //이벤트 발행
+        eventCommandPort.publishPaymentCompleted(PaymentCompletePayload.from(payment));
+
         return new PaymentApproveResult(
                 payment.getId(),
                 payment.getAmount().value(),
@@ -173,6 +179,10 @@ public class PaymentService {
 
         //해당 결제 청구서의 상태를 결제 완료로 변경
         payment.updateStatusToComplete();
+
+        //이벤트 발행
+        eventCommandPort.publishPaymentCompleted(PaymentCompletePayload.from(payment));
+
         return new PaymentApproveResult(
                 payment.getId(),
                 payment.getAmount().value(),
@@ -192,7 +202,7 @@ public class PaymentService {
                     lastAttempt.getStatus().toString(),
                     lastAttempt.getPgMethod(),
                     lastAttempt.getPgProvider(),
-                    lastAttempt.getApprovedAt(),
+                    lastAttempt.getPgApprovedAt(),
                     lastAttempt.getFailDetail()
             );
         }
@@ -253,7 +263,7 @@ public class PaymentService {
                             lastAttempt.getStatus().toString(),
                             lastAttempt.getPgMethod(),
                             lastAttempt.getPgProvider(),
-                            lastAttempt.getApprovedAt(),
+                            lastAttempt.getPgApprovedAt(),
                             lastAttempt.getFailDetail()
                     );
                 }

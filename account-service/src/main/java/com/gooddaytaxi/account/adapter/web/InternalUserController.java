@@ -28,7 +28,7 @@ import java.util.UUID;
 @Tag(name = "내부 API", description = "서비스 간 통신용 내부 API")
 @Slf4j
 @RestController
-@RequestMapping("/internal/api/v1")
+@RequestMapping("/internal/v1/account") //내부 호출에는 api를 생략하고 바로 버전을 표기합니다.
 @RequiredArgsConstructor
 public class InternalUserController {
     

@@ -4,6 +4,11 @@
     --dark: #22223B;
     --bg: #f7f7fb;
     --radius: 16px;
+    --shadow: 0 4px 14px rgba(0,0,0,0.08);
+}
+
+* {
+    box-sizing: border-box;   /* 🔥 input 잘리는 문제의 핵심 해결 요소 */
 }
 
 body {
@@ -20,6 +25,17 @@ body {
     border-bottom: 1px solid #eee;
 }
 
+.brand-main {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.brand-sub {
+    font-size: 12px;
+    color: #888;
+}
+
 .btn-back {
     background: none;
     border: none;
@@ -28,17 +44,24 @@ body {
 }
 
 .container {
-    max-width: 900px;
+    max-width: 700px;
     width: 92%;
     margin: 24px auto;
+    overflow: visible; /* 🔥 박스 그림자가 절대 안 짤림 */
 }
 
 .card {
     background: white;
-    padding: 22px;
-    margin-bottom: 20px;
+    padding: 28px;
     border-radius: var(--radius);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    box-shadow: var(--shadow);
+    border: 1px solid #eee;
+    margin-bottom: 24px;
+    overflow: visible; /* 🔥 input focus shadow가 절대 안 짤림 */
+}
+
+.hidden {
+    display: none;
 }
 
 .section-title {
@@ -56,6 +79,13 @@ input {
     padding: 12px;
     border-radius: 12px;
     border: 1px solid #ddd;
+    font-size: 15px;
+}
+
+input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 6px rgba(138,93,246,0.4); /* 🔥 focus 시에도 절대 안 잘림 */
 }
 
 .btn-primary {

@@ -1,14 +1,14 @@
 package com.gooddaytaxi.dispatch.presentation.external.controller;
 
 import com.gooddaytaxi.common.core.dto.ApiResponse;
-import com.gooddaytaxi.dispatch.application.command.DispatchCancelCommand;
-import com.gooddaytaxi.dispatch.application.command.DispatchCreateCommand;
-import com.gooddaytaxi.dispatch.application.result.DispatchCancelResult;
-import com.gooddaytaxi.dispatch.application.result.DispatchCreateResult;
-import com.gooddaytaxi.dispatch.application.result.DispatchDetailResult;
-import com.gooddaytaxi.dispatch.application.result.DispatchSummaryResult;
+import com.gooddaytaxi.dispatch.application.usecase.cancel.DispatchCancelCommand;
+import com.gooddaytaxi.dispatch.application.usecase.create.DispatchCreateCommand;
+import com.gooddaytaxi.dispatch.application.usecase.cancel.DispatchCancelResult;
+import com.gooddaytaxi.dispatch.application.usecase.create.DispatchCreateResult;
+import com.gooddaytaxi.dispatch.application.query.DispatchDetailResult;
+import com.gooddaytaxi.dispatch.application.query.DispatchSummaryResult;
 import com.gooddaytaxi.dispatch.application.service.PassengerDispatchService;
-import com.gooddaytaxi.dispatch.application.validator.UserRole;
+import com.gooddaytaxi.dispatch.application.exception.auth.UserRole;
 import com.gooddaytaxi.dispatch.presentation.external.dto.request.DispatchCreateRequestDto;
 import com.gooddaytaxi.dispatch.presentation.external.dto.response.DispatchCancelResponseDto;
 import com.gooddaytaxi.dispatch.presentation.external.dto.response.DispatchCreateResponseDto;

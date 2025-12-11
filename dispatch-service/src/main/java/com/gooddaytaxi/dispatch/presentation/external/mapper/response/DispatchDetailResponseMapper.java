@@ -1,6 +1,6 @@
 package com.gooddaytaxi.dispatch.presentation.external.mapper.response;
 
-import com.gooddaytaxi.dispatch.application.result.DispatchDetailResult;
+import com.gooddaytaxi.dispatch.application.query.DispatchDetailResult;
 import com.gooddaytaxi.dispatch.presentation.external.dto.response.DispatchDetailResponseDto;
 
 public class DispatchDetailResponseMapper {

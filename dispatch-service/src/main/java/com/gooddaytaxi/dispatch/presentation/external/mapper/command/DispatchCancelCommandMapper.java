@@ -1,7 +1,7 @@
 package com.gooddaytaxi.dispatch.presentation.external.mapper.command;
 
-import com.gooddaytaxi.dispatch.application.command.DispatchCancelCommand;
-import com.gooddaytaxi.dispatch.application.validator.UserRole;
+import com.gooddaytaxi.dispatch.application.usecase.cancel.DispatchCancelCommand;
+import com.gooddaytaxi.dispatch.application.exception.auth.UserRole;
 
 import java.util.UUID;
 

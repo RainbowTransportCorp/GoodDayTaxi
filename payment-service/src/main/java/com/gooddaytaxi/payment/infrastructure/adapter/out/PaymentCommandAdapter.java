@@ -1,6 +1,6 @@
 package com.gooddaytaxi.payment.infrastructure.adapter.out;
 
-import com.gooddaytaxi.payment.application.port.out.PaymentCommandPort;
+import com.gooddaytaxi.payment.application.port.out.core.PaymentCommandPort;
 import com.gooddaytaxi.payment.domain.entity.Payment;
 import com.gooddaytaxi.payment.domain.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;

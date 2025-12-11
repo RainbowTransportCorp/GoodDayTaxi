@@ -14,30 +14,32 @@ spring:
   cloud:
     gateway:
       routes:
-        - id: trip-service
-          uri: http://host.docker.internal:8205
+        - id: account-service
+          uri: http://host.docker.internal:8201
           predicates:
-            - Path=/api/v*/trips/**,/api/v*/policies/**
+            - Path=/api/v*/account/**,/api/v*/auth/**,/internal/v*/account/**
 
         - id: dispatch-service
           uri: http://host.docker.internal:8202
           predicates:
-            - Path=/api/v*/dispatches/**
+            - Path=/api/v*/dispatches/**,/internal/v*/dispatch/**
+
+        - id: trip-service
+          uri: http://host.docker.internal:8205
+          predicates:
+            - Path=/api/v*/trips/**,/api/v*/policies/**,/internal/v*/trip/**
 
         - id: payment-service
           uri: http://host.docker.internal:8204
           predicates:
-            - Path=/api/v*/payments/**
-
-        - id: account-service
-          uri: http://host.docker.internal:8201
-          predicates:
-            - Path=/api/v*/account/**,/api/v*/auth/**
+            - Path=/api/v*/payments/**,/internal/v*/payment/**
 
         - id: support-service
           uri: http://host.docker.internal:8203
           predicates:
-            - Path=/api/v*/support/**
+            - Path=/api/v*/support/**,/internal/v*/support/**
+
+
 springdoc:
   swagger-ui:
     path: /docs
