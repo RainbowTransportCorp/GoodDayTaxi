@@ -1,9 +1,13 @@
 server:
   port: ${service.port}
+  shutdown: graceful
 
 spring:
   profiles:
     active: ${profiles.active}
+
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
 
   config:
     import: secrets.yaml
@@ -36,7 +40,7 @@ spring:
       max-poll-records: 1000
     listener:
       ack-mode: record
-      concurrency: 3
+      concurrency: 1 # 동일한 Kafka topic에 대해 동시에 1개의 Consumer thread로 처리
       poll-timeout: 3000
     # Producer 설정
 #    producer:
@@ -59,6 +63,11 @@ spring:
         initial-interval: 1000ms
         multiplier: 2.0
         max-interval: 5000ms
+    listener:
+      simple:
+        acknowledge-mode: auto
+        default-requeue-rejected: false
+        auto-startup: false
 
 eureka:
   client:

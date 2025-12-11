@@ -1,8 +1,8 @@
 package com.gooddaytaxi.support.application.port.out.messaging;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gooddaytaxi.support.application.port.out.dto.Message;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.UUID;
 
@@ -16,7 +16,7 @@ public record QueuePushMessage(
         List<UUID> receivers,
         String title,
         String body
-) {
+) implements Serializable {
 
     private static final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
 

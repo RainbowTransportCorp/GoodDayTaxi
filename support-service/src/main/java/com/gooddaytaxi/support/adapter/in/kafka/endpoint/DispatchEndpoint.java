@@ -3,7 +3,6 @@ package com.gooddaytaxi.support.adapter.in.kafka.endpoint;
 import com.gooddaytaxi.support.adapter.in.kafka.dto.DispatchRequestReq;
 import com.gooddaytaxi.support.adapter.in.kafka.dto.Payload;
 import com.gooddaytaxi.support.application.dto.CreateDispatchInfoCommand;
-import com.gooddaytaxi.support.application.dto.GetDispatchInfoCommand;
 import com.gooddaytaxi.support.application.port.in.dispatch.AcceptDispatchUsecase;
 import com.gooddaytaxi.support.application.port.in.dispatch.NotifyDispatchUsecase;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +23,7 @@ public class DispatchEndpoint {
 
     /** 특정 기사에게 배차 요청이 왔을 때 Driver에 손님의 Call 요청 알림 전송 이벤트 리스너
      */
-    @KafkaListener(topics = "dispatch.requested", groupId = "support-service")
+    @KafkaListener(topics = "dispatch.requested", groupId = "support-service", concurrency = "1")
     public void onDispatchRequested(DispatchRequestReq req) {
 
         Payload p = req.payload();

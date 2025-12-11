@@ -4,9 +4,9 @@ import com.gooddaytaxi.support.adapter.out.external.slack.dto.SlackMessageAPIRes
 import com.gooddaytaxi.support.adapter.out.external.slack.dto.SlackMessageAlertReq;
 import com.gooddaytaxi.support.adapter.out.internal.account.dto.UserInfo;
 import com.gooddaytaxi.support.adapter.out.messaging.config.RabbitMQConfig;
-import com.gooddaytaxi.support.application.port.out.messaging.QueuePushMessage;
 import com.gooddaytaxi.support.application.port.out.external.NotificationAlertExternalPort;
 import com.gooddaytaxi.support.application.port.out.internal.account.AccountDomainCommunicationPort;
+import com.gooddaytaxi.support.application.port.out.messaging.QueuePushMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -17,18 +17,13 @@ import java.util.List;
 import java.util.UUID;
 
 @Slf4j
-//@RequiredArgsConstructor
+@RequiredArgsConstructor
 @Component
 public class NotificationAlertSlackAdapter implements NotificationAlertExternalPort {
 
     private final AccountDomainCommunicationPort accountDomainCommunicationPort;
     private final SlackFeignClient slackFeignClient;
 
-    public NotificationAlertSlackAdapter(AccountDomainCommunicationPort accountDomainCommunicationPort, SlackFeignClient slackFeignClient) {
-        this.accountDomainCommunicationPort = accountDomainCommunicationPort;
-        this.slackFeignClient = slackFeignClient;
-        log.error("🔥 NotificationAlertSlackAdapter CREATED >>> {}", this);
-    }
     @RabbitListener(queues = RabbitMQConfig.DISPATCH_QUEUE)
     @Override
     public void sendCallRequest(QueuePushMessage message) {

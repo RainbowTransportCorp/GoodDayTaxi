@@ -87,7 +87,7 @@ public class PassengerDispatchService {
 //        driverSelectionQueryPort.selectCandidateDriver(saved);
 
         //임시로 기사 id 발생
-        UUID randomDriverId = UUID.fromString("f59e19c4-5716-43ca-a1f0-9b50a6f64f79");
+        UUID randomDriverId = UUID.fromString("849c5f22-ad9d-405a-bab3-17b8deeec3e7");
 
         // 시도 로그 저장
         DispatchAssignmentLog.create(saved.getDispatchId(), saved.getDriverId());
