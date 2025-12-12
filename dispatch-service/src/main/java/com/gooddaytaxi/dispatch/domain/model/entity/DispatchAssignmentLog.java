@@ -4,7 +4,9 @@ import com.gooddaytaxi.common.jpa.model.BaseEntity;
 import com.gooddaytaxi.dispatch.domain.exception.InvalidAssignmentStatusException;
 import com.gooddaytaxi.dispatch.domain.model.enums.AssignmentStatus;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -26,6 +28,15 @@ public class DispatchAssignmentLog extends BaseEntity {
     @Column(name = "candidate_driver_id", nullable = false)
     private UUID candidateDriverId;
 
+    /**
+     * 재배차 attempt 번호
+     * 같은 dispatch 의 n번째 배차 시도인지 구분
+     * 재배차 때 기존 기사 제외 필터링 가능
+     * 재시도 로그 분석 가능
+     */
+    @Column(name = "attempt_no", nullable = false)
+    private int attemptNo;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "assignment_status", nullable = false)
     private AssignmentStatus assignmentStatus;
@@ -36,62 +47,57 @@ public class DispatchAssignmentLog extends BaseEntity {
     @Column(name = "responded_at")
     private LocalDateTime respondedAt;
 
-    // ==== 생성 정팩메 ====
-    public static DispatchAssignmentLog create(UUID dispatchId, UUID driverId) {
+
+    // ==== 생성 정팩메 (attemptNo 추가 버전) ====
+    public static DispatchAssignmentLog create(UUID dispatchId, UUID driverId, int attemptNo) {
         DispatchAssignmentLog log = new DispatchAssignmentLog();
         log.dispatchId = dispatchId;
         log.candidateDriverId = driverId;
         log.assignmentStatus = AssignmentStatus.SENT;
         log.attemptedAt = LocalDateTime.now();
+        log.attemptNo = attemptNo;
         return log;
-    }
-
-    // ==== 공통 검증 ====
-    private void ensureSent() {
-        if (!isSent()) {
-            throw new InvalidAssignmentStatusException(this.assignmentStatus);
-        }
     }
 
     // ==== 상태 전이 ====
 
-    /** 기사 수락 */
     public void accept() {
-        ensureSent();
+        if (!assignmentStatus.isSent()) {
+            throw new InvalidAssignmentStatusException(
+                    "SENT 상태에서만 ACCEPTED로 변경할 수 있습니다. 현재 상태=" + this.assignmentStatus
+            );
+        }
+        if (assignmentStatus.isAccepted()) {
+            throw new InvalidAssignmentStatusException(
+                    "이미 ACCEPTED 상태입니다."
+            );
+        }
         this.assignmentStatus = AssignmentStatus.ACCEPTED;
         this.respondedAt = LocalDateTime.now();
     }
 
-    /** 기사 거절 */
     public void reject() {
-        ensureSent();
+        if (!assignmentStatus.isSent()) {
+            throw new InvalidAssignmentStatusException(
+                    "SENT 상태에서만 REJECTED로 변경할 수 있습니다. 현재 상태=" + this.assignmentStatus
+            );
+        }
+        if (assignmentStatus.isRejected()) {
+            throw new InvalidAssignmentStatusException(
+                    "이미 REJECTED 상태입니다."
+            );
+        }
         this.assignmentStatus = AssignmentStatus.REJECTED;
         this.respondedAt = LocalDateTime.now();
     }
 
-    /** 응답 없음 → TIMEOUT */
     public void timeout() {
-        ensureSent();
+        if (assignmentStatus.isSent()) {
+            throw new InvalidAssignmentStatusException(
+                    "SENT 상태에서만 TIMEOUT으로 변경할 수 있습니다. 현재 상태=" + this.assignmentStatus
+            );
+        }
         this.assignmentStatus = AssignmentStatus.TIMEOUT;
         this.respondedAt = LocalDateTime.now();
     }
-
-
-    // ==== 상태 조회 ====
-    public boolean isSent() {
-        return this.assignmentStatus == AssignmentStatus.SENT;
-    }
-
-    public boolean isAccepted() {
-        return this.assignmentStatus == AssignmentStatus.ACCEPTED;
-    }
-
-    public boolean isRejected() {
-        return this.assignmentStatus == AssignmentStatus.REJECTED;
-    }
-
-    public boolean isTimeout() {
-        return this.assignmentStatus == AssignmentStatus.TIMEOUT;
-    }
-
 }

@@ -6,6 +6,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -31,5 +32,15 @@ public class DispatchAssignmentLogRepositoryImpl implements DispatchAssignmentLo
                         .fetchOne()
         );
     }
+
+    @Override
+    public List<UUID> findAllDriverIdsByDispatchId(UUID dispatchId) {
+        return queryFactory
+                .select(dispatchAssignmentLog.candidateDriverId)
+                .from(dispatchAssignmentLog)
+                .where(dispatchAssignmentLog.dispatchId.eq(dispatchId))
+                .fetch();
+    }
+
 }
 

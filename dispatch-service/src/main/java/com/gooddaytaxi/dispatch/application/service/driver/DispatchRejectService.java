@@ -4,7 +4,7 @@ import com.gooddaytaxi.dispatch.application.event.payload.DispatchRejectedPayloa
 import com.gooddaytaxi.dispatch.application.port.out.command.DispatchCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.command.DispatchRejectedCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
-import com.gooddaytaxi.dispatch.application.service.dispatch.DispatchAssignmentLogService;
+import com.gooddaytaxi.dispatch.application.service.assignmentLog.AssignmentLogLifecycleService;
 import com.gooddaytaxi.dispatch.application.service.dispatch.DispatchHistoryService;
 import com.gooddaytaxi.dispatch.application.usecase.reject.DispatchRejectCommand;
 import com.gooddaytaxi.dispatch.application.usecase.reject.DispatchRejectResult;
@@ -13,7 +13,7 @@ import com.gooddaytaxi.dispatch.domain.model.entity.DispatchAssignmentLog;
 import com.gooddaytaxi.dispatch.domain.model.enums.ChangedBy;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchDomainEventType;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
-import com.gooddaytaxi.dispatch.domain.service.DispatchDomainService;
+import com.gooddaytaxi.dispatch.domain.model.enums.HistoryEventType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,11 +28,10 @@ public class DispatchRejectService {
     private final DispatchQueryPort queryPort;
     private final DispatchCommandPort commandPort;
 
-    private final DispatchAssignmentLogService assignmentLogService;
+    private final AssignmentLogLifecycleService assignmentLogService;
     private final DispatchHistoryService historyService;
 
     private final DispatchRejectedCommandPort eventPort;
-    private final DispatchDomainService domainService;
 
     public DispatchRejectResult reject(DispatchRejectCommand command) {
 
@@ -45,8 +44,9 @@ public class DispatchRejectService {
         DispatchAssignmentLog logEntry =
                 assignmentLogService.findLatest(command.getDispatchId(), command.getDriverId());
 
-        // 도메인 처리
-        domainService.processReject(dispatch, logEntry, command.getDriverId());
+        // 엔티티 상태전이
+        dispatch.rejectedByDriver(command.getDriverId());
+        logEntry.reject();
 
         // 상태 저장
         assignmentLogService.save(logEntry);
@@ -65,7 +65,7 @@ public class DispatchRejectService {
         try {
             historyService.saveStatusChange(
                     dispatch.getDispatchId(),
-                    DispatchDomainEventType.REJECTED,
+                    HistoryEventType.DRIVER_REJECTED,
                     before,
                     dispatch.getDispatchStatus(),
                     ChangedBy.DRIVER

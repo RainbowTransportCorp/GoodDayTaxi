@@ -1,4 +1,4 @@
-package com.gooddaytaxi.dispatch.application.service.dispatch;
+package com.gooddaytaxi.dispatch.application.service.assignmentLog;
 
 import com.gooddaytaxi.dispatch.application.port.out.command.DispatchAssignmentCommandPort;
 import com.gooddaytaxi.dispatch.domain.exception.InvalidAssignmentStatusException;
@@ -14,28 +14,13 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class DispatchAssignmentLogService {
+public class AssignmentLogLifecycleService {
 
     private final DispatchAssignmentLogRepository repository;
     private final DispatchAssignmentCommandPort commandPort;
 
     /**
-     * 배차 시도 로그 생성 (SENT)
-     */
-    public DispatchAssignmentLog create(UUID dispatchId, UUID driverId) {
-
-        DispatchAssignmentLog logEntity = DispatchAssignmentLog.create(dispatchId, driverId);
-
-        commandPort.save(logEntity);
-
-        log.debug("[AssignmentLog] 생성 - dispatchId={} driverId={} status={}",
-                dispatchId, driverId, logEntity.getAssignmentStatus());
-
-        return logEntity;
-    }
-
-    /**
-     * 특정 dispatchId + driverId 기준 최신 AssignmentLog 조회
+     * 특정 dispatchId + driverId 기준 최신 assignmentLog 조회
      * - Accept/Reject 시 필수
      */
     public DispatchAssignmentLog findLatest(UUID dispatchId, UUID driverId) {
@@ -56,7 +41,7 @@ public class DispatchAssignmentLogService {
 
         commandPort.save(logEntry);
 
-        log.debug("[AssignmentLog] 저장 - dispatchId={} driverId={} status={}",
+        log.debug("[assignmentLog] 저장 - dispatchId={} driverId={} status={}",
                 logEntry.getDispatchId(),
                 logEntry.getCandidateDriverId(),
                 logEntry.getAssignmentStatus()
