@@ -1,10 +1,10 @@
 package com.gooddaytaxi.support.application.service;
 
-import com.gooddaytaxi.support.application.dto.CreateDispatchInfoCommand;
-import com.gooddaytaxi.support.application.dto.GetDispatchInfoCommand;
-import com.gooddaytaxi.support.application.port.in.dispatch.AcceptDispatchUsecase;
+import com.gooddaytaxi.support.application.Metadata;
+import com.gooddaytaxi.support.application.dto.NotifyDispatchAcceptedCommand;
+import com.gooddaytaxi.support.application.dto.NotifyDispatchInformationCommand;
+import com.gooddaytaxi.support.application.port.in.dispatch.NotifyAcceptedCallUsecase;
 import com.gooddaytaxi.support.application.port.in.dispatch.NotifyDispatchUsecase;
-import com.gooddaytaxi.support.application.port.out.external.NotificationAlertExternalPort;
 import com.gooddaytaxi.support.application.port.out.internal.account.AccountDomainCommunicationPort;
 import com.gooddaytaxi.support.application.port.out.messaging.NotificationPushMessagingPort;
 import com.gooddaytaxi.support.application.port.out.messaging.QueuePushMessage;
@@ -28,7 +28,7 @@ import java.util.UUID;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class DispatchNotificationService implements NotifyDispatchUsecase, AcceptDispatchUsecase {
+public class DispatchNotificationService implements NotifyDispatchUsecase, NotifyAcceptedCallUsecase {
 
     private final NotificationCommandPersistencePort notificationCommandPersistencePort;
     private final NotificationQueryPersistencePort notificationQueryPersistencePort;
@@ -39,31 +39,34 @@ public class DispatchNotificationService implements NotifyDispatchUsecase, Accep
 
     @Transactional
     @Override
-    public void request(CreateDispatchInfoCommand command) {
+    public void execute(NotifyDispatchInformationCommand command) {
         log.info("‼️‼️‼️‼️Command 내용 확인title={}, body={}, driver={}, passenger={}",
                 "새콜 요청", command.getMessage(), command.getDriverId(), command.getPassengerId());
-        // Notification 생성
+        // Notification 생성 및 저장
         Notification noti = Notification.from(command, NotificationType.DISPATCH_REQUESTED);
         noti.assignIds(command.getDispatchId(), command.getDriverId(), command.getPassengerId(), null, null);
         log.info("‼🤣🤣🤣🤣️ notification 객체={}", noti);
         notificationCommandPersistencePort.save(noti);
         log.info("‼🤣🤣🤣🤣️ notification 객체 in persistence={}", notificationQueryPersistencePort.findByNotificationOriginId(command.getDispatchId()));
 
+        // 수신자: [ 기사, 승객 ]
         List<UUID> receivers = new ArrayList<>();
         receivers.add(command.getDriverId());
-        receivers.add(command.getPassengerId());
-        String messageTitle = "\uD83D\uDE95 새로운 콜 요청이 도착했습니다!";
+        receivers.add(null);
+        String messageTitle = "\uD83D\uDE95 콜 요청을 수락하시겠습니까?";
 
 
-        // RabbitMQ로 Queue에 Push
-        QueuePushMessage queuePushMessage = QueuePushMessage.create(receivers, messageTitle, noti.getMessage());
+        // RabbitMQ: Queue에 Push
+        QueuePushMessage queuePushMessage = QueuePushMessage.create(receivers, command.getMetadata(), messageTitle, noti.getMessage());
         notificationPushMessagingPort.send(queuePushMessage);
         log.info("‼️‼️‼️‼️QueuePush Message 내용 확인title={}, body={}, receivers={}",
                 messageTitle, noti.getMessage(), receivers);
 
-
-        // Push 알림: Slack, FCM 등
-//        notificationAlertExternalPort.sendCallDirectRequest(queuePushMessage);// Slack 전송을 위한 RabbitMQ 직접 호출(비동기를 위해 직접 호출은 주석처리). RabbitListener가 알아서 호출
+        /**
+         * Push 알림: Slack, FCM 등
+         * - RabbitMQ Listener 없이 직접 호출 시 사용
+         */
+//        notificationAlertExternalPort.sendCallDirectRequest(queuePushMessage);
 
         // 로그
         log.info("\uD83D\uDCE2 [CALL-REQUEST] driverId={}, passengerId={} >>> {}",
@@ -75,14 +78,61 @@ public class DispatchNotificationService implements NotifyDispatchUsecase, Accep
 
     @Transactional
     @Override
-    public void accept(GetDispatchInfoCommand command) {
-        // Notification 생성
+    public void execute(NotifyDispatchAcceptedCommand command) {
+        // Notification 생성 및 저장
         Notification noti = Notification.from(command, NotificationType.DISPATCH_ACCEPTED);
         noti.assignIds(command.getDispatchId(), command.getDriverId(), command.getPassengerId(), null, null);
-        notificationCommandPersistencePort.save(noti);
+        log.debug("[Check] Notification 생성: dispatchId={}, driverId={}, message={}", noti.getNotificationOriginId(), noti.getNotifierId(), noti.getMessage());
 
+        Notification savedNoti = notificationCommandPersistencePort.save(noti);
+//        Notification savedNoti = notificationQueryPersistencePort.findById(noti.getId());
+        log.debug("[Check] Notification Persistence 조회: dispatchId={}, driverId={}, message={}", savedNoti.getDispatchId(), savedNoti.getDriverId(), savedNoti.getMessage());
+
+        // 수신자: [ 기사, 승객 ]
         List<UUID> receivers = new ArrayList<>();
-        receivers.add(command.getDriverId());
+        receivers.add(null);
         receivers.add(command.getPassengerId());
+
+        // 알림 메시지 구성
+        String messageTitle = command.getMessage();
+        Metadata metadata = command.getMetadata();
+
+        // TODO: Account Feign Client: 기사 정보 조회( /internal/v1/account/drivers/{userId} )
+        String driverName = "홍기사";
+        String phoneNumber = "010-1234-5678";
+        String vehicleType = "소나타";  // ✓ vehicle_type
+        String vehicleNumber =  "12가3456"; // ✓ vehicle_number
+        String vehicleColor = "흰색";   // ✓ vehicle_color
+        log.debug("[Connection] Driver 프로필 조회(Account Feign): driverName: {}, vehicleType: {}, vehicleNumber: {},", driverName, vehicleType, vehicleNumber);
+
+        String messageBody = """
+        %s 기사님이 콜을 수락했습니다
+        %s >>> %s로
+        안전하게 운행해주실 예정이오니, 차량 정보를 참고하여 대기하여 주십시오
+        \uD83D\uDE95 탑승 차량:  %s의 %s(%s)
+        Call: %s
+        """.formatted(
+                driverName,
+                command.getPickupAddress(),
+                command.getDestinationAddress(),
+                vehicleColor,
+                vehicleType,
+                vehicleNumber,
+                phoneNumber
+        );
+
+        // RabbitMQ: Queue에 Push
+        QueuePushMessage queuePushMessage = QueuePushMessage.create(receivers, metadata, messageTitle, messageBody);
+        notificationPushMessagingPort.send(queuePushMessage);
+        log.debug("[Push] RabbitMQ 메시지: {}", messageTitle);
+
+        /**
+         * Push 알림: Slack, FCM 등
+         * - RabbitMQ Listener 없이 직접 호출 시 사용
+         */
+//        notificationAlertExternalPort.sendCallDirectRequest(queuePushMessage);
+
+        // 로그
+        log.info("\uD83D\uDCE2 [CALL] driverId={}, passengerId={}: {} >>> {}",command.getDriverId(), queuePushMessage.receivers().get(1), command.getPickupAddress(), command.getDestinationAddress());
     }
 }
