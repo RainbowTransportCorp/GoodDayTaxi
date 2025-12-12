@@ -1,0 +1,73 @@
+package com.gooddaytaxi.dispatch.application.service.passenger;
+
+import com.gooddaytaxi.dispatch.application.port.out.command.DispatchCommandPort;
+import com.gooddaytaxi.dispatch.application.port.out.command.DispatchHistoryCommandPort;
+import com.gooddaytaxi.dispatch.application.service.dispatch.DispatchDriverAssignmentService;
+import com.gooddaytaxi.dispatch.application.usecase.create.DispatchCreateCommand;
+import com.gooddaytaxi.dispatch.application.usecase.create.DispatchCreatePermissionValidator;
+import com.gooddaytaxi.dispatch.application.usecase.create.DispatchCreateResult;
+import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
+import com.gooddaytaxi.dispatch.domain.model.entity.DispatchHistory;
+import com.gooddaytaxi.dispatch.domain.model.enums.ChangedBy;
+import com.gooddaytaxi.dispatch.domain.model.enums.DispatchDomainEventType;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class DispatchCreateService {
+
+    private final DispatchCommandPort dispatchCommandPort;
+    private final DispatchHistoryCommandPort historyPort;
+    private final DispatchDriverAssignmentService assignService;
+
+    private final DispatchCreatePermissionValidator permissionValidator;
+
+    public DispatchCreateResult create(DispatchCreateCommand command) {
+
+        log.info("[DispatchCreate] 요청 수신 - passengerId={}, pickup={}, destination={}",
+                command.getPassengerId(), command.getPickupAddress(), command.getDestinationAddress());
+
+        permissionValidator.validate(command.getRole());
+
+        Dispatch dispatch = Dispatch.create(
+                command.getPassengerId(),
+                command.getPickupAddress(),
+                command.getDestinationAddress()
+        );
+
+        Dispatch saved = dispatchCommandPort.save(dispatch);
+
+        // 히스토리는 실패해도 흐름 유지
+        try {
+            historyPort.save(
+                    DispatchHistory.recordStatusChange(
+                            saved.getDispatchId(),
+                            DispatchDomainEventType.CREATED.name(),
+                            null,
+                            saved.getDispatchStatus(),
+                            ChangedBy.PASSENGER,
+                            null
+                    )
+            );
+        } catch (Exception e) {
+            log.error("[DispatchCreate] 히스토리 기록 실패 - dispatchId={} err={}",
+                    saved.getDispatchId(), e.getMessage());
+        }
+
+        assignService.assign(saved.getDispatchId());
+
+        return DispatchCreateResult.builder()
+                .dispatchId(saved.getDispatchId())
+                .passengerId(saved.getPassengerId())
+                .pickupAddress(saved.getPickupAddress())
+                .destinationAddress(saved.getDestinationAddress())
+                .dispatchStatus(saved.getDispatchStatus())
+                .requestCreatedAt(saved.getRequestCreatedAt())
+                .createdAt(saved.getCreatedAt())
+                .updatedAt(saved.getUpdatedAt())
+                .build();
+    }
+}
