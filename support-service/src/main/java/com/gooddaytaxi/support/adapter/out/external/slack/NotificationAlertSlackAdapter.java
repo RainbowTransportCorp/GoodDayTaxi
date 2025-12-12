@@ -47,6 +47,7 @@ public class NotificationAlertSlackAdapter implements NotificationAlertExternalP
     private void doSendSlack(QueuePushMessage queuePushMessage) {
         // 메타데이터
         EventMetadata emData = EventMetadata.from(queuePushMessage.metadata());
+        log.debug("[Mapping] Metadata >>> EventMetaData ➡️ {}", emData);
 
         // 메시지
         String messageTitle = queuePushMessage.title();

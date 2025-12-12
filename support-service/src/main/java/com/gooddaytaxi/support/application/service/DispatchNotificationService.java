@@ -84,8 +84,8 @@ public class DispatchNotificationService implements NotifyDispatchUsecase, Notif
         noti.assignIds(command.getDispatchId(), command.getDriverId(), command.getPassengerId(), null, null);
         log.debug("[Check] Notification 생성: dispatchId={}, driverId={}, message={}", noti.getNotificationOriginId(), noti.getNotifierId(), noti.getMessage());
 
-        notificationCommandPersistencePort.save(noti);
-        Notification savedNoti = notificationQueryPersistencePort.findById(noti.getId());
+        Notification savedNoti = notificationCommandPersistencePort.save(noti);
+//        Notification savedNoti = notificationQueryPersistencePort.findById(noti.getId());
         log.debug("[Check] Notification Persistence 조회: dispatchId={}, driverId={}, message={}", savedNoti.getDispatchId(), savedNoti.getDriverId(), savedNoti.getMessage());
 
         // 수신자: [ 기사, 승객 ]
@@ -136,10 +136,3 @@ public class DispatchNotificationService implements NotifyDispatchUsecase, Notif
         log.info("\uD83D\uDCE2 [CALL] driverId={}, passengerId={}: {} >>> {}",command.getDriverId(), queuePushMessage.receivers().get(1), command.getPickupAddress(), command.getDestinationAddress());
     }
 }
-
-
-
-
-//EventMetadata emData = EventMetadata.from(req.metadata());
-//        log.debug("[Mapping] Metadata >>> EventMetaData ➡️ {}", emData);
-
