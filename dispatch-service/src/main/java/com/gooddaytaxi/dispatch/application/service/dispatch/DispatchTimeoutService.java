@@ -1,4 +1,4 @@
-package com.gooddaytaxi.dispatch.application.service;
+package com.gooddaytaxi.dispatch.application.service.dispatch;
 
 import com.gooddaytaxi.dispatch.application.event.payload.DispatchTimeoutPayload;
 import com.gooddaytaxi.dispatch.application.port.out.command.DispatchCommandPort;

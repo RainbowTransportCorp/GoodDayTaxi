@@ -1,29 +1,28 @@
-package com.gooddaytaxi.dispatch.application.service;
+package com.gooddaytaxi.dispatch.application.service.driver;
 
 import com.gooddaytaxi.dispatch.application.event.payload.DispatchAcceptedPayload;
 import com.gooddaytaxi.dispatch.application.event.payload.TripCreateRequestPayload;
 import com.gooddaytaxi.dispatch.application.port.out.command.DispatchAcceptedCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.command.DispatchCommandPort;
-import com.gooddaytaxi.dispatch.application.port.out.command.DispatchHistoryCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.command.TripCreateRequestCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
+import com.gooddaytaxi.dispatch.application.service.dispatch.DispatchAssignmentLogService;
+import com.gooddaytaxi.dispatch.application.service.dispatch.DispatchHistoryService;
 import com.gooddaytaxi.dispatch.application.usecase.accept.DispatchAcceptCommand;
 import com.gooddaytaxi.dispatch.application.usecase.accept.DispatchAcceptResult;
 import com.gooddaytaxi.dispatch.domain.exception.DispatchAlreadyAssignedByOthersException;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
 import com.gooddaytaxi.dispatch.domain.model.entity.DispatchAssignmentLog;
-import com.gooddaytaxi.dispatch.domain.model.entity.DispatchHistory;
 import com.gooddaytaxi.dispatch.domain.model.enums.ChangedBy;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchDomainEventType;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
-import com.gooddaytaxi.dispatch.domain.repository.DispatchAssignmentLogRepository;
 import com.gooddaytaxi.dispatch.domain.service.DispatchDomainService;
 import com.gooddaytaxi.dispatch.infrastructure.redis.DispatchLockManager;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DispatchAcceptService {
@@ -39,8 +38,6 @@ public class DispatchAcceptService {
 
     private final DispatchLockManager lockManager;
     private final DispatchDomainService domainService;
-
-    private static final Logger log = LoggerFactory.getLogger(DispatchAcceptService.class);
 
     public DispatchAcceptResult accept(DispatchAcceptCommand command) throws InterruptedException {
 
@@ -60,19 +57,14 @@ public class DispatchAcceptService {
             DispatchAssignmentLog logEntry =
                     assignmentLogService.findLatest(command.getDispatchId(), command.getDriverId());
 
+            // 도메인 처리
             domainService.processAccept(dispatch, logEntry, command.getDriverId());
 
+            // 상태 저장
             assignmentLogService.save(logEntry);
             commandPort.save(dispatch);
 
-            historyService.saveStatusChange(
-                    dispatch.getDispatchId(),
-                    DispatchDomainEventType.ACCEPTED,
-                    before,
-                    dispatch.getDispatchStatus(),
-                    ChangedBy.DRIVER
-            );
-
+            // 이벤트 발행 (핵심)
             acceptedEventPort.publishAccepted(
                     DispatchAcceptedPayload.from(dispatch, command.getDriverId())
             );
@@ -81,7 +73,22 @@ public class DispatchAcceptService {
                     TripCreateRequestPayload.from(dispatch)
             );
 
+            // 히스토리는 실패해도 흐름 유지
+            try {
+                historyService.saveStatusChange(
+                        dispatch.getDispatchId(),
+                        DispatchDomainEventType.ACCEPTED,
+                        before,
+                        dispatch.getDispatchStatus(),
+                        ChangedBy.DRIVER
+                );
+            } catch (Exception e) {
+                log.error("[Accept] 히스토리 기록 실패 - dispatchId={} err={}",
+                        dispatch.getDispatchId(), e.getMessage());
+            }
+
             log.info("[Accept] 완료 - dispatchId={}", dispatch.getDispatchId());
+
             return DispatchAcceptResult.builder()
                     .dispatchId(dispatch.getDispatchId())
                     .driverId(command.getDriverId())

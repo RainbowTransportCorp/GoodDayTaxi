@@ -1,4 +1,4 @@
-package com.gooddaytaxi.dispatch.application.service;
+package com.gooddaytaxi.dispatch.application.service.dispatch;
 
 import com.gooddaytaxi.dispatch.application.port.out.command.DispatchHistoryCommandPort;
 import com.gooddaytaxi.dispatch.domain.model.entity.DispatchHistory;

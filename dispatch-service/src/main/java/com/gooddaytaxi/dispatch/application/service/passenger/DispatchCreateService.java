@@ -1,7 +1,8 @@
-package com.gooddaytaxi.dispatch.application.service;
+package com.gooddaytaxi.dispatch.application.service.passenger;
 
 import com.gooddaytaxi.dispatch.application.port.out.command.DispatchCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.command.DispatchHistoryCommandPort;
+import com.gooddaytaxi.dispatch.application.service.dispatch.DispatchDriverAssignmentService;
 import com.gooddaytaxi.dispatch.application.usecase.create.DispatchCreateCommand;
 import com.gooddaytaxi.dispatch.application.usecase.create.DispatchCreatePermissionValidator;
 import com.gooddaytaxi.dispatch.application.usecase.create.DispatchCreateResult;
@@ -20,19 +21,16 @@ public class DispatchCreateService {
 
     private final DispatchCommandPort dispatchCommandPort;
     private final DispatchHistoryCommandPort historyPort;
-    private final DispatchAssignService dispatchAssignService;
+    private final DispatchDriverAssignmentService assignService;
 
-    private final DispatchCreatePermissionValidator dispatchCreatePermissionValidator;
+    private final DispatchCreatePermissionValidator permissionValidator;
 
     public DispatchCreateResult create(DispatchCreateCommand command) {
 
         log.info("[DispatchCreate] 요청 수신 - passengerId={}, pickup={}, destination={}",
                 command.getPassengerId(), command.getPickupAddress(), command.getDestinationAddress());
 
-        dispatchCreatePermissionValidator.validate(command.getRole());
-
-        log.debug("[DispatchCreate] 권한 검증 완료 - role={}", command.getRole());
-
+        permissionValidator.validate(command.getRole());
 
         Dispatch dispatch = Dispatch.create(
                 command.getPassengerId(),
@@ -40,38 +38,33 @@ public class DispatchCreateService {
                 command.getDestinationAddress()
         );
 
-        log.debug("[DispatchCreate] Dispatch 엔티티 생성 완료 - status={}", dispatch.getDispatchStatus());
-
         Dispatch saved = dispatchCommandPort.save(dispatch);
 
-        log.info("[DispatchCreate] Dispatch 저장 완료 - dispatchId={} status={}",
-                saved.getDispatchId(), saved.getDispatchStatus());
+        // 히스토리는 실패해도 흐름 유지
+        try {
+            historyPort.save(
+                    DispatchHistory.recordStatusChange(
+                            saved.getDispatchId(),
+                            DispatchDomainEventType.CREATED.name(),
+                            null,
+                            saved.getDispatchStatus(),
+                            ChangedBy.PASSENGER,
+                            null
+                    )
+            );
+        } catch (Exception e) {
+            log.error("[DispatchCreate] 히스토리 기록 실패 - dispatchId={} err={}",
+                    saved.getDispatchId(), e.getMessage());
+        }
 
-
-        historyPort.save(
-                DispatchHistory.recordStatusChange(
-                        saved.getDispatchId(),
-                        DispatchDomainEventType.CREATED.name(),
-                        null,
-                        saved.getDispatchStatus(),
-                        ChangedBy.PASSENGER,
-                        null
-                )
-        );
-
-        log.debug("[DispatchCreate] 히스토리 기록 완료 - dispatchId={}", saved.getDispatchId());
-
-        dispatchAssignService.assign(saved.getDispatchId());
-
-        log.info("[DispatchCreate] 배차 시도 서비스 호출 완료 - dispatchId={}", saved.getDispatchId());
-
+        assignService.assign(saved.getDispatchId());
 
         return DispatchCreateResult.builder()
                 .dispatchId(saved.getDispatchId())
                 .passengerId(saved.getPassengerId())
                 .pickupAddress(saved.getPickupAddress())
                 .destinationAddress(saved.getDestinationAddress())
-                .dispatchStatus(saved.getDispatchStatus())   // REQUESTED
+                .dispatchStatus(saved.getDispatchStatus())
                 .requestCreatedAt(saved.getRequestCreatedAt())
                 .createdAt(saved.getCreatedAt())
                 .updatedAt(saved.getUpdatedAt())

@@ -1,13 +1,15 @@
 package com.gooddaytaxi.dispatch.presentation.external.controller;
 
 import com.gooddaytaxi.common.core.dto.ApiResponse;
+import com.gooddaytaxi.dispatch.application.service.passenger.DispatchCancelService;
+import com.gooddaytaxi.dispatch.application.service.passenger.DispatchCreateService;
+import com.gooddaytaxi.dispatch.application.service.passenger.PassengerDispatchQueryService;
 import com.gooddaytaxi.dispatch.application.usecase.cancel.DispatchCancelCommand;
 import com.gooddaytaxi.dispatch.application.usecase.create.DispatchCreateCommand;
 import com.gooddaytaxi.dispatch.application.usecase.cancel.DispatchCancelResult;
 import com.gooddaytaxi.dispatch.application.usecase.create.DispatchCreateResult;
 import com.gooddaytaxi.dispatch.application.query.DispatchDetailResult;
 import com.gooddaytaxi.dispatch.application.query.DispatchSummaryResult;
-import com.gooddaytaxi.dispatch.application.service.PassengerDispatchService;
 import com.gooddaytaxi.dispatch.application.exception.auth.UserRole;
 import com.gooddaytaxi.dispatch.presentation.external.dto.request.DispatchCreateRequestDto;
 import com.gooddaytaxi.dispatch.presentation.external.dto.response.DispatchCancelResponseDto;
@@ -33,7 +35,9 @@ import java.util.UUID;
 @RequestMapping("/api/v1/dispatches")
 public class DispatchController {
 
-    private final PassengerDispatchService passengerDispatchService;
+    private final PassengerDispatchQueryService passengerDispatchQueryService;
+    private final DispatchCreateService dispatchCreateService;
+    private final DispatchCancelService dispatchCancelService;
 
     /**
      * 콜 생성 (승객)
@@ -48,7 +52,7 @@ public class DispatchController {
             @RequestHeader(value = "X-User-Role", required = false) String role
     ) {
         DispatchCreateCommand createCommand = DispatchCreateCommandMapper.toCommand(userId, role, requestDto);
-        DispatchCreateResult createResult = passengerDispatchService.create(createCommand);
+        DispatchCreateResult createResult = dispatchCreateService.create(createCommand);
         DispatchCreateResponseDto responseDto = DispatchCreateResponseMapper.toCreateResponse(createResult);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(responseDto));
@@ -66,7 +70,7 @@ public class DispatchController {
 
     ) {
         List<DispatchSummaryResult> summaries =
-                passengerDispatchService.getDispatchList(passengerId, UserRole.valueOf(role));
+                passengerDispatchQueryService.getDispatchList(passengerId, UserRole.valueOf(role));
 
         List<DispatchListResponseDto> response =
                 DispatchListResponseMapper.toDispatchListResponseList(summaries);
@@ -86,7 +90,7 @@ public class DispatchController {
             @PathVariable UUID dispatchId,
             @RequestHeader(value = "X-User-Role", required = false) String role
     ) {
-        DispatchDetailResult dispatchDetailResult = passengerDispatchService.getDispatchDetail(UserRole.valueOf(role), dispatchId);
+        DispatchDetailResult dispatchDetailResult = passengerDispatchQueryService.getDispatchDetail(UserRole.valueOf(role), dispatchId);
         DispatchDetailResponseDto responseDto = DispatchDetailResponseMapper.toDispatchDetailResponse(dispatchDetailResult);
 
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
@@ -105,7 +109,7 @@ public class DispatchController {
             @RequestHeader(value = "X-User-Role", required = false) String role
     ) {
         DispatchCancelCommand command = DispatchCancelCommandMapper.toCommand(passengerId, role, dispatchId);
-        DispatchCancelResult result = passengerDispatchService.cancel(command);
+        DispatchCancelResult result = dispatchCancelService.cancel(command);
         DispatchCancelResponseDto responseDto = DispatchCancelResponseMapper.toCancelResponse(result);
 
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));

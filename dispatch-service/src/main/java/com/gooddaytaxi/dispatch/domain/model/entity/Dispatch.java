@@ -117,16 +117,13 @@ public class Dispatch extends BaseEntity {
         }
     }
 
-
     public void timeout() {
-        if (!this.dispatchStatus.isWaiting()) return;
+        if (this.dispatchStatus != DispatchStatus.ASSIGNED) {
+            throw new InvalidDispatchStateException();
+        }
 
         this.dispatchStatus = DispatchStatus.TIMEOUT;
         this.timeoutAt = LocalDateTime.now();
-    }
-
-    public boolean isRequested() {
-        return this.dispatchStatus != DispatchStatus.REQUESTED;
     }
 
     private boolean isCancelableStatus() {
