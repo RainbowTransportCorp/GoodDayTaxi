@@ -25,7 +25,7 @@ public class PaymentEventCommandAdapter extends PaymentBaseOutboxPublisher imple
                 "payment.complete",
                 AGGREGATE_TYPE,
                 payload.notificationOriginId(),
-                payload.passeangerId().toString(),
+                payload.notificationOriginId().toString(),
                 VERSION,
                 payload
         );
@@ -38,7 +38,7 @@ public class PaymentEventCommandAdapter extends PaymentBaseOutboxPublisher imple
                 "refund.request.created",
                 AGGREGATE_TYPE,
                 payload.notificationOriginId(),
-                payload.paymentId().toString(),
+                payload.notificationOriginId().toString(),
                 VERSION,
                 payload
         );
