@@ -49,19 +49,58 @@ public class DispatchAssignmentLog extends BaseEntity {
 
     /** 기사 수락 */
     public void accept() {
+
+        if (!isSent()) {
+            throw new IllegalStateException(
+                    "SENT 상태에서만 ACCEPTED로 상태 전이가 가능합니다. 현재 상태: " + this.assignmentStatus
+            );
+        }
+
         this.assignmentStatus = AssignmentStatus.ACCEPTED;
         this.respondedAt = LocalDateTime.now();
     }
 
     /** 기사 거절 */
     public void reject() {
+
+        if (!isSent()) {
+            throw new IllegalStateException(
+                    "SENT 상태에서만 REJECTED로 상태 전이가 가능합니다. 현재 상태: " + this.assignmentStatus
+            );
+        }
+
         this.assignmentStatus = AssignmentStatus.REJECTED;
         this.respondedAt = LocalDateTime.now();
     }
 
     /** 응답 없음 → 타임아웃 */
     public void timeout() {
+
+        if (!isSent()) {
+            throw new IllegalStateException(
+                    "SENT 상태에서만 TIMEOUT으로 상태 전이가 가능합니다. 현재 상태: " + this.assignmentStatus
+            );
+        }
+
         this.assignmentStatus = AssignmentStatus.TIMEOUT;
         this.respondedAt = LocalDateTime.now();
     }
+
+
+    public boolean isSent() {
+        return this.assignmentStatus == AssignmentStatus.SENT;
+    }
+
+    public boolean isAccepted() {
+        return this.assignmentStatus == AssignmentStatus.ACCEPTED;
+    }
+
+    public boolean isRejected() {
+        return this.assignmentStatus == AssignmentStatus.REJECTED;
+    }
+
+    public boolean isTimeout() {
+        return this.assignmentStatus == AssignmentStatus.TIMEOUT;
+    }
+
 }

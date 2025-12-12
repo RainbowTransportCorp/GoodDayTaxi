@@ -1,4 +1,4 @@
-package com.gooddaytaxi.dispatch.infrastructure.config;
+package com.gooddaytaxi.dispatch.infrastructure.messaging.kafka.config;
 
 import java.util.HashMap;
 import java.util.Map;

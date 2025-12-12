@@ -23,8 +23,13 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        show_sql: true
+        show_sql: false
 
+  data:
+    redis:
+      host: host.docker.internal
+      port: 6379
+      database: 0
 
   kafka:
     bootstrap-servers: host.docker.internal:${kafka.port} #local
@@ -37,6 +42,8 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      properties:
+        enable.idempotence: true
 
 kafka:
   topic:
@@ -73,4 +80,5 @@ springdoc:
     path: /api-docs
   swagger-ui:
     path: /swagger-ui
+
 

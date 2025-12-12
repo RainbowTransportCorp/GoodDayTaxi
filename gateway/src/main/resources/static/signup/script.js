@@ -1,4 +1,4 @@
-const BASE_URL = "/api/v1/auth/signup";
+const BASE_URL = "http://localhost:8000/api/v1/auth/signup";
 
 // 역할 선택 시 차량 정보 보이기/숨기기
 document.getElementById("role").addEventListener("change", function () {

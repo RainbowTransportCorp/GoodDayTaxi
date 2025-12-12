@@ -2,7 +2,7 @@ package com.gooddaytaxi.dispatch.domain.model.entity;
 
 import com.gooddaytaxi.common.jpa.model.BaseEntity;
 import com.gooddaytaxi.dispatch.application.exception.CannotAssignDriverException;
-import com.gooddaytaxi.dispatch.domain.exception.DispatchAlreadyAcceptedException;
+import com.gooddaytaxi.dispatch.domain.exception.DispatchAlreadyAssignedByOthersException;
 import com.gooddaytaxi.dispatch.domain.exception.InvalidDispatchStateException;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
 import jakarta.persistence.*;
@@ -70,23 +70,6 @@ public class Dispatch extends BaseEntity {
 
     // ======== 상태 전이 ========
 
-    public void cancel() {
-        if (!isCancelableStatus()) {
-            throw new InvalidDispatchStateException();
-        }
-        this.dispatchStatus = DispatchStatus.CANCELLED;
-        this.cancelledAt = LocalDateTime.now();
-    }
-
-    public void accept() {
-        if (this.dispatchStatus != DispatchStatus.ASSIGNING) {
-            throw new DispatchAlreadyAcceptedException();
-        }
-
-        this.dispatchStatus = DispatchStatus.ACCEPTED;
-        this.acceptedAt = LocalDateTime.now();
-    }
-
     public void startAssigning() {
         if (this.dispatchStatus != DispatchStatus.REQUESTED) {
             throw new InvalidDispatchStateException();
@@ -102,6 +85,38 @@ public class Dispatch extends BaseEntity {
         this.driverId = driverId;
         this.assignedAt = LocalDateTime.now();
     }
+
+    public void accept() {
+        if (this.dispatchStatus != DispatchStatus.ASSIGNED) {
+            throw new DispatchAlreadyAssignedByOthersException();
+        }
+
+        this.dispatchStatus = DispatchStatus.ACCEPTED;
+        this.acceptedAt = LocalDateTime.now();
+    }
+
+    public void cancel() {
+        if (!isCancelableStatus()) {
+            throw new InvalidDispatchStateException();
+        }
+        this.dispatchStatus = DispatchStatus.CANCELLED;
+        this.cancelledAt = LocalDateTime.now();
+    }
+
+
+
+    /**
+     * 기사 1명이 배차 요청을 거절할 때 호출되는 도메인 행동 메서드
+     * - 다수 기사들에게 배차 시도가 있는 로직이기 때문에 상태 전이는 생략된다.
+     * - 단, ASSIGNING 상태가 아니면 거절 불가
+     */
+    public void rejectedByDriver(UUID driverId) {
+
+        if (this.dispatchStatus != DispatchStatus.ASSIGNING) {
+            throw new InvalidDispatchStateException();
+        }
+    }
+
 
     public void timeout() {
         if (!this.dispatchStatus.isWaiting()) return;

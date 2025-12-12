@@ -23,7 +23,7 @@ public class PaymentEventCommandAdapter extends PaymentBaseOutboxPublisher imple
                 "PAYMENT_COMPLETE",
                 "payment.complete",
                 AGGREGATE_TYPE,
-                payload.paymentId(),
+                payload.notificationOriginId(),
                 payload.passeangerId().toString(),
                 VERSION,
                 payload
