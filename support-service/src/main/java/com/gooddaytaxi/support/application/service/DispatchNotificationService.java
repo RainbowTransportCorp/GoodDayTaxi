@@ -105,7 +105,7 @@ public class DispatchNotificationService implements NotifyDispatchUsecase, Notif
         // 알림 메시지 구성
         String messageTitle = command.getMessage();
         Metadata metadata = command.getMetadata();
-        String messageBody = null;
+        String messageBody;
 
         if (driverProfile != null) {
             String driverName = driverProfile.name();
