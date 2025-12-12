@@ -1,5 +1,7 @@
 package com.gooddaytaxi.support.application.service;
 
+import com.gooddaytaxi.support.adapter.out.internal.account.dto.DriverProfile;
+import com.gooddaytaxi.support.adapter.out.internal.account.dto.VehicleInfo;
 import com.gooddaytaxi.support.application.Metadata;
 import com.gooddaytaxi.support.application.dto.NotifyDispatchAcceptedCommand;
 import com.gooddaytaxi.support.application.dto.NotifyDispatchInformationCommand;
@@ -17,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.sql.DriverPropertyInfo;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -62,10 +65,7 @@ public class DispatchNotificationService implements NotifyDispatchUsecase, Notif
         log.info("‼️‼️‼️‼️QueuePush Message 내용 확인title={}, body={}, receivers={}",
                 messageTitle, noti.getMessage(), receivers);
 
-        /**
-         * Push 알림: Slack, FCM 등
-         * - RabbitMQ Listener 없이 직접 호출 시 사용
-         */
+        // Push 알림: Slack, FCM 등 - RabbitMQ Listener 없이 직접 호출 시 사용
 //        notificationAlertExternalPort.sendCallDirectRequest(queuePushMessage);
 
         // 로그
@@ -93,43 +93,55 @@ public class DispatchNotificationService implements NotifyDispatchUsecase, Notif
         receivers.add(null);
         receivers.add(command.getPassengerId());
 
+        // Account Feign Client: 기사 정보 조회
+        DriverProfile driverProfile = null;
+        try {
+            log.debug("[Connect] Support Service >>> Account Feign Starting . . . ");
+            driverProfile = accountDomainCommunicationPort.getDriverInfo(savedNoti.getDriverId());
+            log.debug("[Connection] DriverProfile from Account Feign: driverName={}, vehicleType={}, vehicleNumber={}", driverProfile.name(), driverProfile.vehicleInfo().vehicleType(), driverProfile.vehicleInfo().vehicleNumber());
+        } catch (Exception e) {
+            log.error("❌ [Error] Account API Feign Client Error: message={}, error={}", "Driver 조회 실패", e.getMessage());
+        }
+
         // 알림 메시지 구성
         String messageTitle = command.getMessage();
         Metadata metadata = command.getMetadata();
+        String messageBody = null;
 
-        // TODO: Account Feign Client: 기사 정보 조회( /internal/v1/account/drivers/{userId} )
-        String driverName = "홍기사";
-        String phoneNumber = "010-1234-5678";
-        String vehicleType = "소나타";  // ✓ vehicle_type
-        String vehicleNumber =  "12가3456"; // ✓ vehicle_number
-        String vehicleColor = "흰색";   // ✓ vehicle_color
-        log.debug("[Connection] Driver 프로필 조회(Account Feign): driverName: {}, vehicleType: {}, vehicleNumber: {},", driverName, vehicleType, vehicleNumber);
+        if (driverProfile != null) {
+            String driverName = driverProfile.name();
+            String phoneNumber = driverProfile.phoneNumber();
+            VehicleInfo vehicle = driverProfile.vehicleInfo();
+            String vehicleType = vehicle.vehicleType();
+            String vehicleNumber = vehicle.vehicleNumber();
+            String vehicleColor = vehicle.vehicleColor();
 
-        String messageBody = """
-        %s 기사님이 콜을 수락했습니다
-        %s >>> %s로
-        안전하게 운행해주실 예정이오니, 차량 정보를 참고하여 대기하여 주십시오
-        \uD83D\uDE95 탑승 차량:  %s의 %s(%s)
-        Call: %s
-        """.formatted(
-                driverName,
-                command.getPickupAddress(),
-                command.getDestinationAddress(),
-                vehicleColor,
-                vehicleType,
-                vehicleNumber,
-                phoneNumber
-        );
+            messageBody = """
+                %s 기사님이 콜을 수락했습니다
+                %s >>> %s로
+                안전하게 운행해주실 예정이오니, 차량 정보를 참고하여 대기하여 주십시오
+                \uD83D\uDE95 탑승 차량:  %s의 %s(%s)
+                Call: %s
+                """.formatted(
+                            driverName,
+                            command.getPickupAddress(),
+                            command.getDestinationAddress(),
+                            vehicleColor,
+                            vehicleType,
+                            vehicleNumber,
+                            phoneNumber
+                    );
+        } else {
+            messageBody = "택시 차량 정보를 가져오지 못했습니다. 다시 한 번 새로고침 해주세요";
+        }
+
 
         // RabbitMQ: Queue에 Push
         QueuePushMessage queuePushMessage = QueuePushMessage.create(receivers, metadata, messageTitle, messageBody);
         notificationPushMessagingPort.send(queuePushMessage);
         log.debug("[Push] RabbitMQ 메시지: {}", messageTitle);
 
-        /**
-         * Push 알림: Slack, FCM 등
-         * - RabbitMQ Listener 없이 직접 호출 시 사용
-         */
+         // Push 알림: Slack, FCM 등 - RabbitMQ Listener 없이 직접 호출 시 사용
 //        notificationAlertExternalPort.sendCallDirectRequest(queuePushMessage);
 
         // 로그
