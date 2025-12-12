@@ -101,9 +101,12 @@ public class PaymentService {
 
     //토스페이 결제 승인
     @Transactional
-    public PaymentApproveResult approveTossPayment(PaymentTossPayCommand command) {
+    public PaymentApproveResult approveTossPayment(PaymentTossPayCommand command, UUID userId, String role) {
         log.info("TossPay External Confirm Payment requested: paymentKey={}, orderId={}, amount={}",
                 command.paymentKey(), command.orderId(), command.amount());
+
+        //유저의 역할이 승객인지 확인
+        validator.checkRolePassenger(UserRole.of(role));
 
         //해당 결제 청구서 조회
         Payment payment = paymentQueryPort.findLastByTripIdAndStatusForCreate(UUID.fromString(command.orderId().substring(6)));
@@ -146,7 +149,7 @@ public class PaymentService {
         log.info("TossPay Payment approved successfully for orderId={}, requestedAt={}, approveAt={}", command.orderId(), result.requestedAt(), result.approvedAt());
 
         //이벤트 발행
-        eventCommandPort.publishPaymentCompleted(PaymentCompletePayload.from(payment));
+        eventCommandPort.publishPaymentCompleted(PaymentCompletePayload.from(payment,userId));
 
         return new PaymentApproveResult(
                 payment.getId(),
@@ -181,7 +184,7 @@ public class PaymentService {
         payment.updateStatusToComplete();
 
         //이벤트 발행
-        eventCommandPort.publishPaymentCompleted(PaymentCompletePayload.from(payment));
+        eventCommandPort.publishPaymentCompleted(PaymentCompletePayload.from(payment, userId));
 
         return new PaymentApproveResult(
                 payment.getId(),
