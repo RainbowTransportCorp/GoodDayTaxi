@@ -38,7 +38,9 @@ public class DispatchNotificationService implements NotifyDispatchUsecase, Notif
     private final AccountDomainCommunicationPort accountDomainCommunicationPort;
 //    private final NotificationAlertExternalPort notificationAlertExternalPort; (RabbitListener로 사용 시, 주석처리)
 
-
+    /**
+     * 수신자에게 배차 정보 알림 서비스
+     */
     @Transactional
     @Override
     public void execute(NotifyDispatchInformationCommand command) {
@@ -55,7 +57,7 @@ public class DispatchNotificationService implements NotifyDispatchUsecase, Notif
         List<UUID> receivers = new ArrayList<>();
         receivers.add(command.getDriverId());
         receivers.add(null);
-        String messageTitle = "\uD83D\uDE95 콜 요청을 수락하시겠습니까?";
+        String messageTitle = "\uD83D\uDCE2 콜 요청을 수락하시겠습니까?";
 
 
         // RabbitMQ: Queue에 Push
@@ -75,6 +77,9 @@ public class DispatchNotificationService implements NotifyDispatchUsecase, Notif
                 command.getMessage());
     }
 
+    /**
+    * 수신자에게 수락된 콜 알림 서비스
+    * */
     @Transactional
     @Override
     public void execute(NotifyDispatchAcceptedCommand command) {
@@ -97,13 +102,13 @@ public class DispatchNotificationService implements NotifyDispatchUsecase, Notif
         try {
             log.debug("[Connect] Support Service >>> Account Feign Starting . . . ");
             driverProfile = accountDomainCommunicationPort.getDriverInfo(savedNoti.getDriverId());
-            log.debug("[Connection] DriverProfile from Account Feign: driverName={}, vehicleType={}, vehicleNumber={}", driverProfile.name(), driverProfile.vehicleInfo().vehicleType(), driverProfile.vehicleInfo().vehicleNumber());
+            log.debug("[Connect] DriverProfile from Account Feign: driverName={}, vehicleType={}, vehicleNumber={}", driverProfile.name(), driverProfile.vehicleInfo().vehicleType(), driverProfile.vehicleInfo().vehicleNumber());
         } catch (Exception e) {
             log.error("❌ [Error] Account API Feign Client Error: message={}, error={}", "Driver 조회 실패", e.getMessage());
         }
 
         // 알림 메시지 구성
-        String messageTitle = command.getMessage();
+        String messageTitle = "\uD83D\uDCE2" + command.getMessage();
         Metadata metadata = command.getMetadata();
         String messageBody;
 
@@ -122,18 +127,17 @@ public class DispatchNotificationService implements NotifyDispatchUsecase, Notif
                 \uD83D\uDE95 탑승 차량:  %s의 %s(%s)
                 Call: %s
                 """.formatted(
-                            driverName,
-                            command.getPickupAddress(),
-                            command.getDestinationAddress(),
-                            vehicleColor,
-                            vehicleType,
-                            vehicleNumber,
-                            phoneNumber
-                    );
+                        driverName,
+                        command.getPickupAddress(),
+                        command.getDestinationAddress(),
+                        vehicleColor,
+                        vehicleType,
+                        vehicleNumber,
+                        phoneNumber
+                  );
         } else {
             messageBody = "택시 차량 정보를 가져오지 못했습니다. 다시 한 번 새로고침 해주세요";
         }
-
 
         // RabbitMQ: Queue에 Push
         QueuePushMessage queuePushMessage = QueuePushMessage.create(receivers, metadata, messageTitle, messageBody);
