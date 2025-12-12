@@ -8,8 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
-/* RabbitMQ에 메시지 Push하는 Port를 구현한 Adapter
-*
+/**
+* RabbitMQ에 메시지 Push하는 Port를 구현한 Adapter
 */
 @Slf4j
 @RequiredArgsConstructor
@@ -20,7 +20,7 @@ public class NotificationPushRabbitMQAdapter implements NotificationPushMessagin
 
     @Override
     public void send(QueuePushMessage queuePushMessage) {
-        // RabbitMQ Queue에 메시지 Push
+        // RabbitMQ: 메시지 Push
         rabbitTemplate.convertAndSend(
                 RabbitMQConfig.EXCHANGE,
                 RabbitMQConfig.DISPATCH_ROUTING_KEY,

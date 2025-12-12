@@ -70,9 +70,10 @@ public class RefundRequestController {
     //환불 요청 응답
     @PostMapping("/response")
     public ResponseEntity<ApiResponse<RefundReqeustCreateResponseDto>> respondToRefundRequest(@RequestBody @Valid RefundRequestResponseRequestDto requestDto,
+                                                                                              @RequestParam UUID userId,
                                                                                               @RequestParam String role) {
         RefundRequestResponseCreateCommand command = RefundRequestCreateMapper.toResponseCommand(requestDto);
-        RefundRequestCreateResult result = requestService.respondToRefundRequest(command, role);
+        RefundRequestCreateResult result = requestService.respondToRefundRequest(command, userId, role);
         RefundReqeustCreateResponseDto responseDto = RefundRequestCreateResponseMapper.toResponse(result);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
     }
