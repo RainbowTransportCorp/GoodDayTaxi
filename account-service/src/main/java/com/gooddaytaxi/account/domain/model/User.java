@@ -62,7 +62,7 @@ public class User extends BaseEntity {
      * @param name 사용자 이름
      * @param phoneNumber 전화번호
      * @param slackId 슬랙 ID (선택)
-     * @param role 사용자 역할 (PASSENGER/DRIVER/ADMIN)
+     * @param role 사용자 역할 (PASSENGER/DRIVER/ADMIN/MASTER_ADMIN)
      */
     @Builder
     public User(String email, String password, String name, String phoneNumber, String slackId, UserRole role) {
@@ -141,12 +141,12 @@ public class User extends BaseEntity {
     }
 
     /**
-     * 관리자 역할인지 확인
+     * 관리자 역할인지 확인 (일반 관리자 + 최고 관리자)
      *
      * @return 관리자인 경우 true, 아니면 false
      */
     public boolean isAdmin() {
-        return this.role == UserRole.ADMIN;
+        return this.role == UserRole.ADMIN || this.role == UserRole.MASTER_ADMIN;
     }
 
     /**
