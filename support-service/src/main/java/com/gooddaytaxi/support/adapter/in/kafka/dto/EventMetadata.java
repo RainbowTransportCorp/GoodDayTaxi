@@ -10,7 +10,7 @@ public record EventMetadata (
         String eventType,
         LocalDateTime occuredAt
 ){
-    public static final EventMetadata from(Metadata metadata){
+    public static EventMetadata from(Metadata metadata){
         return new EventMetadata(metadata.getEventId(), metadata.getEventType(), metadata.getOccuredAt());
     }
 }
