@@ -40,7 +40,7 @@ public class KafkaConsumerConfig {
         factory.setConsumerFactory(consumerFactory);
         // String JSON -> Object 변환
         factory.setRecordMessageConverter(new StringJsonMessageConverter());
-
+        factory.setConcurrency(1);
         return factory;
     }
 }

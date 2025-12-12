@@ -1,6 +1,6 @@
 package com.gooddaytaxi.support.application.port.out.external;
 
-import java.util.List;
+import com.gooddaytaxi.support.application.port.out.messaging.QueuePushMessage;
 
 /** 메시지 전송 알림 External API Port
  *
@@ -8,11 +8,17 @@ import java.util.List;
 public interface NotificationAlertExternalPort {
 
     /**
-     * 특정 Slack 대상(유저 DM or 채널)에 알림 전송
+     * 특정 Slack 대상(유저 DM or 채널)에 알림 전송 (RabbitListener 호출)
      *
-     * @param slackTargets Slack User Id (Uxxx) | 채널명 (#channel-name)
-     * @param title        Slack에 표시될 제목
-     * @param body         Slack에 표시될 전체 텍스트 (포매팅 포함)
+     * @param queuePushMessage
+     *  - slackTargets  Slack User Id (Uxxx) | 채널명 (#channel-name)
+     *  - title         Slack에 표시될 제목
+     *  - body          Slack에 표시될 전체 텍스트 (포매팅 포함)
      */
-    void sendCallRequest(List<String> slackTargets, String title, String body);
+    void sendCallRequest(QueuePushMessage queuePushMessage);
+
+    /**
+    * 직접 호출
+    */
+    void sendCallDirectRequest(QueuePushMessage queuePushMessage);
 }

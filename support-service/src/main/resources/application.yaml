@@ -1,9 +1,13 @@
 server:
   port: ${service.port}
+  shutdown: graceful
 
 spring:
   profiles:
     active: ${profiles.active}
+
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
 
   config:
     import: secrets.yaml
@@ -27,16 +31,23 @@ spring:
 
   kafka:
     bootstrap-servers: ${kafka.external.host}:${kafka.external.port}
+    # Consumer 설정
     consumer:
       auto-offset-reset: earliest
       enable-auto-commit: false
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       max-poll-records: 1000
+      isolation-level: read_committed
     listener:
       ack-mode: record
-      concurrency: 3
+      concurrency: 1 # 동일한 Kafka topic에 대해 동시에 1개의 Consumer thread로 처리
       poll-timeout: 3000
+    # Producer 설정
+#    producer:
+#      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+#      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
 
   rabbitmq:
     host: ${rabbitmq.external.host}
@@ -53,6 +64,11 @@ spring:
         initial-interval: 1000ms
         multiplier: 2.0
         max-interval: 5000ms
+    listener:
+      simple:
+        acknowledge-mode: auto
+        default-requeue-rejected: false
+        auto-startup: false
 
 eureka:
   client:
