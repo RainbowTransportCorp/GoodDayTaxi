@@ -28,7 +28,7 @@ public class AdminDeleteUserUseCase {
         log.debug("관리자 사용자 삭제 시작: requestUserRole={}, userId={}, reason={}", 
                 requestUserRole, userId, command.getReason());
         
-        validateAdminPermission(requestUserRole);
+        validateMasterAdminPermission(requestUserRole);
         User user = findUserById(userId);
         validateUserNotAlreadyDeleted(user);
         performSoftDelete(user, command.getReason());
@@ -39,9 +39,9 @@ public class AdminDeleteUserUseCase {
         return deleteUserMapper.toResponse(user);
     }
     
-    private void validateAdminPermission(String requestUserRole) {
-        if (!UserRole.ADMIN.name().equals(requestUserRole)) {
-            log.warn("ADMIN 권한 없이 사용자 삭제 시도: requestRole={}", requestUserRole);
+    private void validateMasterAdminPermission(String requestUserRole) {
+        if (!UserRole.MASTER_ADMIN.name().equals(requestUserRole)) {
+            log.warn("최고 관리자 권한 없이 사용자 삭제 시도: requestRole={}", requestUserRole);
             throw new AccountBusinessException(AccountErrorCode.ACCESS_DENIED);
         }
     }

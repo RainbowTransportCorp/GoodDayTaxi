@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
 @Schema(description = "회원가입 요청", example = """
     {
       "email": "driver1@goodday.com",
-      "password": "password123!",
+      "password": "Password123!",
       "name": "김기사",
       "phone_number": "010-1234-5678",
       "slack_id": "U01234ABCDE",
@@ -51,11 +51,11 @@ public class SignupRequest {
     private String phoneNumber;
     
     @JsonProperty("slack_id")
-    @Schema(description = "슬랙 사용자 ID (승객/기사 필수)", example = "U01234ABCDE")
+    @Schema(description = "슬랙 사용자 ID (승객/기사/MASTER_ADMIN 필수, ADMIN 불필요)", example = "U01234ABCDE")
     private String slackId;
 
     @NotNull(message = "역할은 필수입니다.")
-    @Schema(description = "사용자 역할", example = "DRIVER")
+    @Schema(description = "사용자 역할 (PASSENGER/DRIVER/ADMIN/MASTER_ADMIN)", example = "DRIVER")
     private UserRole role;
 
     @JsonProperty("vehicle_number")

@@ -1,8 +1,10 @@
 package com.gooddaytaxi.account.adapter.web;
 
 import com.gooddaytaxi.account.application.dto.AvailableDriversResponse;
+import com.gooddaytaxi.account.application.dto.DispatchDriverInfoResponse;
 import com.gooddaytaxi.account.application.dto.InternalUserInfoResponse;
 import com.gooddaytaxi.account.application.usecase.GetAvailableDriversUseCase;
+import com.gooddaytaxi.account.application.usecase.GetDispatchDriverInfoUseCase;
 import com.gooddaytaxi.account.application.usecase.GetInternalUserInfoUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -34,6 +36,7 @@ public class InternalUserController {
     
     private final GetInternalUserInfoUseCase getInternalUserInfoUseCase;
     private final GetAvailableDriversUseCase getAvailableDriversUseCase;
+    private final GetDispatchDriverInfoUseCase getDispatchDriverInfoUseCase;
     
     @Operation(summary = "사용자 정보 조회 (내부)", description = "마이크로서비스 간 통신용 API. 특정 사용자(승객/기사/관리자)의 정보를 조회합니다. support-service 등에서 사용, 슬랙 알림용 데이터 포함.")
     @GetMapping("/users/{userId}")
@@ -63,6 +66,22 @@ public class InternalUserController {
         
         log.debug("배차 가능 기사 조회 완료: region={}, count={}", 
                 response.getRegion(), response.getTotalCount());
+        
+        return ResponseEntity.ok(response);
+    }
+    
+    @Operation(summary = "기사 정보 조회", description = "마이크로서비스 간 통신용 API. 배차 시 기사 정보(이름, 차량정보) 조회용. 콜 수락 알림 등에서 사용.")
+    @GetMapping("/drivers/{userId}")
+    public ResponseEntity<DispatchDriverInfoResponse> getDriverInfo(
+            @Parameter(description = "조회할 기사 UUID", required = true, example = "550e8400-e29b-41d4-a716-446655440002")
+            @PathVariable UUID userId) {
+        
+        log.debug("Internal API 기사 정보 조회 요청: userId={}", userId);
+        
+        DispatchDriverInfoResponse response = getDispatchDriverInfoUseCase.execute(userId);
+        
+        log.debug("Internal API 기사 정보 조회 성공: userId={}, name={}", 
+                userId, response.getName());
         
         return ResponseEntity.ok(response);
     }
