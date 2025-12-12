@@ -4,6 +4,7 @@ import com.gooddaytaxi.payment.application.command.refundRequest.RefundReqeustSe
 import com.gooddaytaxi.payment.application.command.refundRequest.RefundRequestCreateCommand;
 import com.gooddaytaxi.payment.application.command.refundRequest.RefundRequestResponseCreateCommand;
 import com.gooddaytaxi.payment.application.event.RefundRequestCreatePayload;
+import com.gooddaytaxi.payment.application.event.RefundRequestRejectedPayload;
 import com.gooddaytaxi.payment.application.exception.PaymentErrorCode;
 import com.gooddaytaxi.payment.application.exception.PaymentException;
 import com.gooddaytaxi.payment.application.port.out.core.PaymentQueryPort;
@@ -100,13 +101,18 @@ public class RefundRequestService {
     }
 
     @Transactional
-    public RefundRequestCreateResult respondToRefundRequest(RefundRequestResponseCreateCommand command, String role) {
+    public RefundRequestCreateResult respondToRefundRequest(RefundRequestResponseCreateCommand command, UUID userId, String role) {
         //환불 요청 응답은 관리지만 가능
         if(!UserRole.of(role).equals(UserRole.ADMIN)) throw new PaymentException(PaymentErrorCode.ADMIN_ROLE_REQUIRED);
 
         RefundRequest request = requestQueryPort.findById(command.requestId()).orElseThrow(()-> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
         if(request.getStatus() != RefundRequestStatus.REQUESTED) throw new PaymentException(PaymentErrorCode.REFUND_REQUEST_STATUS_INVALID);
         request.respond(command.approve(), command.response());
+        if(!command.approve()) {
+            //기각시 이벤트 발행
+            Payment payment = paymentQueryPort.findById(request.getPaymentId()).orElseThrow(()-> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+            eventCommandPort.publishRefundRequestRejected(RefundRequestRejectedPayload.from(payment, request, userId) );
+        }
 
         return new RefundRequestCreateResult(request.getId(), "환불 요청에 대한 응답이 처리되었습니다.");
     }
