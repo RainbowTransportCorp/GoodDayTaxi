@@ -12,8 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
-import java.util.UUID;
-
 /**
  * Dispatch 엔드포인트 - Dispatch로부터 발생하는 이벤트에 대한 리스너
  */
