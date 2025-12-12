@@ -1,10 +1,9 @@
 package com.gooddaytaxi.support.adapter.in.kafka.endpoint;
 
 import com.gooddaytaxi.support.adapter.in.kafka.dto.EventRequest;
-import com.gooddaytaxi.support.adapter.in.kafka.dto.DispatchEventPayload;
+import com.gooddaytaxi.support.adapter.in.kafka.dto.TripEndedEventPayload;
 import com.gooddaytaxi.support.adapter.in.kafka.dto.TripStartedEventPayload;
 import com.gooddaytaxi.support.application.Metadata;
-import com.gooddaytaxi.support.application.dto.NotifyDispatchAcceptedCommand;
 import com.gooddaytaxi.support.application.dto.NotifyTripStartedCommand;
 import com.gooddaytaxi.support.application.port.in.trip.NotifyStartedTripUsecase;
 import lombok.RequiredArgsConstructor;
@@ -56,7 +55,7 @@ public class TripEndpoint {
         // Metadata
         Metadata metadata = req.eventMetadata().to();
         // Payload
-        TripEndedEventPayload pl = req.convertPayload(TripStartedEventPayload.class);
+        TripEndedEventPayload pl = req.convertPayload(TripEndedEventPayload.class);
         log.debug("[Check] Trip Started EventRequest 데이터: tripId={}, notifierId={}, occuredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.getOccuredAt());
 
         // EventRequest DTO > Command 변환

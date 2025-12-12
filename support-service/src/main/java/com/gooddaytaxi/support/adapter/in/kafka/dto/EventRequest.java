@@ -1,7 +1,6 @@
 package com.gooddaytaxi.support.adapter.in.kafka.dto;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gooddaytaxi.support.application.Metadata;
 
 import java.util.Map;
 
