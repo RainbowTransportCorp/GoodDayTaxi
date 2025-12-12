@@ -1,5 +1,6 @@
 package com.gooddaytaxi.support.adapter.out.internal.account;
 
+import com.gooddaytaxi.support.adapter.out.internal.account.dto.DriverProfile;
 import com.gooddaytaxi.support.adapter.out.internal.account.dto.UserProfile;
 import com.gooddaytaxi.support.application.port.out.internal.account.AccountDomainCommunicationPort;
 import lombok.RequiredArgsConstructor;
@@ -20,9 +21,11 @@ public class AccountFeignClientAdapter implements AccountDomainCommunicationPort
 
     @Override
     public UserProfile getUserInfo(UUID userId) {
-        log.info("‼️‼️‼️‼️ AccountFeingClientAdapter에서: userId={},", userId);
-        UserProfile userProfile = accountFeignClient.getUserInfo(userId.toString());
-        log.info("‼️‼️‼️‼️ AccountFeingClientAdapter에서: userInfo={},", userProfile);
-        return userProfile;
+        return accountFeignClient.getUserInfo(userId.toString());
+    }
+
+    @Override
+    public DriverProfile getDriverInfo(UUID driverId) {
+        return accountFeignClient.getDriverInfo(driverId.toString());
     }
 }
