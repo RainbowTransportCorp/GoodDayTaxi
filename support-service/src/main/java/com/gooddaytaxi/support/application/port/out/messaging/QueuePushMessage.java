@@ -1,6 +1,7 @@
 package com.gooddaytaxi.support.application.port.out.messaging;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gooddaytaxi.support.application.Metadata;
 
 import java.io.Serializable;
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.UUID;
 
 public record QueuePushMessage(
         List<UUID> receivers,
+        Metadata metadata,
         String title,
         String body
 ) implements Serializable {
@@ -29,7 +31,7 @@ public record QueuePushMessage(
     }
 
     // 필요하다면 팩토리 메서드
-    public static QueuePushMessage create(List<UUID> receivers, String title, String body) {
-        return new QueuePushMessage(receivers, title, body);
+    public static QueuePushMessage create(List<UUID> receivers, Metadata metadata, String title, String body) {
+        return new QueuePushMessage(receivers, metadata, title, body);
     }
 }

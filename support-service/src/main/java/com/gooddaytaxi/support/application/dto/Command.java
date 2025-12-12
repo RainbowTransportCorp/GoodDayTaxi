@@ -1,5 +1,6 @@
 package com.gooddaytaxi.support.application.dto;
 
+import com.gooddaytaxi.support.application.Metadata;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,4 +13,5 @@ public class Command {
     private UUID notificationOriginId;
     private UUID notifierId;
     private String message;
+    private Metadata metadata;
 }

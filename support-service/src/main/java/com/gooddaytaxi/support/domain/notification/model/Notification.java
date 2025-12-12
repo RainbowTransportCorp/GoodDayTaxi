@@ -95,7 +95,6 @@ public class Notification extends BaseEntity {
         this.notificationType = notificationType;
         this.message = (message == null || message.isBlank()) ? null : message;
         this.isRead = false;
-        this.notifiedAt = LocalDateTime.now();
     }
     public static Notification from(Command command, NotificationType notificationType) {
         return new Notification(command.getNotifierId(), command.getNotificationOriginId(), notificationType, command.getMessage());
@@ -132,6 +131,10 @@ public class Notification extends BaseEntity {
         this.driverId = driverId;
         this.tripId = tripId;
         this.paymentId = paymentId;
+    }
+
+    public void setMessageSendingTime(LocalDateTime sendingTime) {
+        this.notifiedAt = sendingTime;
     }
 
 

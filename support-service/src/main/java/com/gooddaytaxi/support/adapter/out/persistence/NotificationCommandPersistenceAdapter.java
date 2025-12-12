@@ -18,7 +18,7 @@ public class NotificationCommandPersistenceAdapter implements NotificationComman
     */
     @Override
     public Notification save(Notification notification) {
-        return null;
+        return notificationJpaRepository.save(notification);
     }
 }
 
