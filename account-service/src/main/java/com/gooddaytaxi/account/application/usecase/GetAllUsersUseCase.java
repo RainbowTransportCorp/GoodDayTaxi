@@ -35,8 +35,9 @@ public class GetAllUsersUseCase {
     }
     
     private void validateAdminPermission(String requestUserRole) {
-        if (!UserRole.ADMIN.name().equals(requestUserRole)) {
-            log.warn("ADMIN 권한 없이 전체 사용자 조회 시도: requestRole={}", requestUserRole);
+        if (!UserRole.ADMIN.name().equals(requestUserRole) && 
+            !UserRole.MASTER_ADMIN.name().equals(requestUserRole)) {
+            log.warn("관리자 권한 없이 전체 사용자 조회 시도: requestRole={}", requestUserRole);
             throw new AccountBusinessException(AccountErrorCode.ACCESS_DENIED);
         }
     }

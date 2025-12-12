@@ -41,7 +41,7 @@ public class AuthController {
     private final LoginUserUseCase loginUserUseCase;
     private final RefreshTokenUseCase refreshTokenUseCase;
 
-    @Operation(summary = "회원가입", description = "새 사용자(승객/기사/관리자)를 등록합니다. 기사: 차량정보+슬랙ID 필수, 승객: 슬랙ID 필수, 관리자: 슬랙ID 불필요")
+    @Operation(summary = "회원가입", description = "새 사용자(승객/기사/관리자)를 등록합니다. 기사: 차량정보+슬랙ID 필수, 승객: 슬랙ID 필수, 일반관리자(ADMIN): 슬랙ID 불필요, 최고관리자(MASTER_ADMIN): 슬랙ID 필수")
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<SignupResponse>> signup(@Valid @RequestBody SignupRequest request) {
         UserSignupCommand command = UserSignupCommand.builder()
