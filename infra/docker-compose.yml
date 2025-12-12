@@ -93,6 +93,18 @@ services:
     networks:
       - gd-network
 
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: gd_redis_exporter
+    ports:
+      - "9121:9121"
+    environment:
+      REDIS_ADDR: "redis:6379"
+    depends_on:
+      - redis
+    networks:
+      - gd-network
+
 
   # ============================
   # ZIPKIN
