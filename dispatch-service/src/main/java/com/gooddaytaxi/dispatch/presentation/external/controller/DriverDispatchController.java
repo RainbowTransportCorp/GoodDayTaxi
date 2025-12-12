@@ -1,12 +1,14 @@
 package com.gooddaytaxi.dispatch.presentation.external.controller;
 
 import com.gooddaytaxi.common.core.dto.ApiResponse;
+import com.gooddaytaxi.dispatch.application.service.driver.DispatchAcceptService;
+import com.gooddaytaxi.dispatch.application.service.driver.DispatchRejectService;
+import com.gooddaytaxi.dispatch.application.service.driver.DriverDispatchQueryService;
 import com.gooddaytaxi.dispatch.application.usecase.accept.DispatchAcceptCommand;
 import com.gooddaytaxi.dispatch.application.usecase.reject.DispatchRejectCommand;
 import com.gooddaytaxi.dispatch.application.usecase.accept.DispatchAcceptResult;
 import com.gooddaytaxi.dispatch.application.query.DispatchPendingListResult;
 import com.gooddaytaxi.dispatch.application.usecase.reject.DispatchRejectResult;
-import com.gooddaytaxi.dispatch.application.service.DriverDispatchService;
 import com.gooddaytaxi.dispatch.presentation.external.dto.response.DispatchAcceptResponseDto;
 import com.gooddaytaxi.dispatch.presentation.external.dto.response.DispatchPendingListResponseDto;
 import com.gooddaytaxi.dispatch.presentation.external.dto.response.DispatchRejectResponseDto;
@@ -27,7 +29,9 @@ import java.util.UUID;
 @RequestMapping("/api/v1/dispatches/driver")
 public class DriverDispatchController {
 
-    private final DriverDispatchService driverDispatchService;
+    private final DriverDispatchQueryService driverDispatchQueryService;
+    private final DispatchAcceptService dispatchAcceptService;
+    private final DispatchRejectService dispatchRejectService;
 
     /**
      * (기사) 배차 시도 중인 콜 목록 조회
@@ -39,7 +43,7 @@ public class DriverDispatchController {
             @RequestHeader(value = "X-User-Role", required = false) String role
     ) {
         List<DispatchPendingListResult> dispatchPendingListResults =
-                driverDispatchService.getDriverPendingDispatch(userId);
+                driverDispatchQueryService.getDriverPendingDispatch(userId);
 
         List<DispatchPendingListResponseDto> responseDto =
                 DispatchPendingListResponseMapper.toDtoList(dispatchPendingListResults);
@@ -57,9 +61,9 @@ public class DriverDispatchController {
             @PathVariable UUID dispatchId,
             @RequestHeader(value = "X-User-UUID", required = false) UUID userId,
             @RequestHeader(value = "X-User-Role", required = false) String role
-    ) {
+    ) throws InterruptedException {
         DispatchAcceptCommand command = DispatchAcceptCommandMapper.toCommand(userId, role, dispatchId);
-        DispatchAcceptResult result = driverDispatchService.accept(command);
+        DispatchAcceptResult result = dispatchAcceptService.accept(command);
         DispatchAcceptResponseDto responseDto = DispatchAcceptResponseMapper.toResponse(result);
         return ResponseEntity.ok(ApiResponse.success(responseDto));
     }
@@ -75,8 +79,8 @@ public class DriverDispatchController {
             @RequestHeader(value = "X-User-UUID", required = false) UUID userId,
             @RequestHeader(value = "X-User-Role", required = false) String role
     ) {
-        DispatchRejectCommand command = DispatchRejectCommandMapper.toCommand(userId, dispatchId);
-        DispatchRejectResult result = driverDispatchService.reject(command);
+        DispatchRejectCommand command = DispatchRejectCommandMapper.toCommand(userId, role, dispatchId);
+        DispatchRejectResult result = dispatchRejectService.reject(command);
         DispatchRejectResponseDto responseDto = DispatchRejectResponseMapper.toResponse(result);
         return ResponseEntity.ok(ApiResponse.success(responseDto));
     }

@@ -1,6 +1,7 @@
 package com.gooddaytaxi.dispatch.domain.model.entity;
 
 import com.gooddaytaxi.common.jpa.model.BaseEntity;
+import com.gooddaytaxi.dispatch.domain.exception.InvalidAssignmentStatusException;
 import com.gooddaytaxi.dispatch.domain.model.enums.AssignmentStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -45,23 +46,52 @@ public class DispatchAssignmentLog extends BaseEntity {
         return log;
     }
 
+    // ==== 공통 검증 ====
+    private void ensureSent() {
+        if (!isSent()) {
+            throw new InvalidAssignmentStatusException(this.assignmentStatus);
+        }
+    }
+
     // ==== 상태 전이 ====
 
     /** 기사 수락 */
     public void accept() {
+        ensureSent();
         this.assignmentStatus = AssignmentStatus.ACCEPTED;
         this.respondedAt = LocalDateTime.now();
     }
 
     /** 기사 거절 */
     public void reject() {
+        ensureSent();
         this.assignmentStatus = AssignmentStatus.REJECTED;
         this.respondedAt = LocalDateTime.now();
     }
 
-    /** 응답 없음 → 타임아웃 */
+    /** 응답 없음 → TIMEOUT */
     public void timeout() {
+        ensureSent();
         this.assignmentStatus = AssignmentStatus.TIMEOUT;
         this.respondedAt = LocalDateTime.now();
     }
+
+
+    // ==== 상태 조회 ====
+    public boolean isSent() {
+        return this.assignmentStatus == AssignmentStatus.SENT;
+    }
+
+    public boolean isAccepted() {
+        return this.assignmentStatus == AssignmentStatus.ACCEPTED;
+    }
+
+    public boolean isRejected() {
+        return this.assignmentStatus == AssignmentStatus.REJECTED;
+    }
+
+    public boolean isTimeout() {
+        return this.assignmentStatus == AssignmentStatus.TIMEOUT;
+    }
+
 }

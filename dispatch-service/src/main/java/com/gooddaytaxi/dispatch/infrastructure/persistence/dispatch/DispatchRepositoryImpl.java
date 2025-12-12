@@ -22,7 +22,7 @@ public class DispatchRepositoryImpl implements DispatchRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public List<Dispatch> findAllByCondition(UUID passengerId) {
+    public List<Dispatch> findAllByPassengerId(UUID passengerId) {
         return queryFactory
                 .selectFrom(dispatch)
                 .where(dispatch.createdBy.eq(passengerId))

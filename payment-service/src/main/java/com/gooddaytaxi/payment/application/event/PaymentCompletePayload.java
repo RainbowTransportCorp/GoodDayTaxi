@@ -6,7 +6,8 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record PaymentCompletePayload(
-        UUID paymentId,
+        UUID notificationOriginId,
+        UUID notifierId,   //이벤트 발동 유저 Id
         UUID passeangerId,
         UUID driverId,
         UUID tripId,
@@ -15,9 +16,10 @@ public record PaymentCompletePayload(
         LocalDateTime approvedAt
 ){
 
-    public static PaymentCompletePayload from(Payment payment) {
+    public static PaymentCompletePayload from(Payment payment, UUID notifierId) {
         return new PaymentCompletePayload(
                 payment.getId(),
+                notifierId,
                 payment.getPassengerId(),
                 payment.getDriverId(),
                 payment.getTripId(),
