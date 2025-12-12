@@ -57,7 +57,7 @@ public class DispatchCreateService {
                     saved.getDispatchId(), e.getMessage());
         }
 
-        assignService.assign(saved.getDispatchId());
+        assignService.assignInitial(saved.getDispatchId());
 
         return DispatchCreateResult.builder()
                 .dispatchId(saved.getDispatchId())

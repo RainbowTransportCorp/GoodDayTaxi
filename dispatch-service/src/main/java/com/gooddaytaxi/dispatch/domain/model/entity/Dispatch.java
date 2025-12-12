@@ -34,6 +34,11 @@ public class Dispatch extends BaseEntity {
     @Column(name = "destination_address", nullable = false, length = 255)
     private String destinationAddress;
 
+    // 재배차 정책을 위해 Dispatch 전체의 재배차 시도를 저장
+    // 1) 동일 기사 반복 선택 방지 2) 재시도 횟수 제한 정책 가능 3) attemptNo 부여 기준
+    @Column(name = "reassign_attempt_count", nullable = false)
+    private int reassignAttemptCount = 0;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "dispatch_status", nullable = false)
     private DispatchStatus dispatchStatus;
@@ -68,7 +73,9 @@ public class Dispatch extends BaseEntity {
         return d;
     }
 
+
     // ======== 상태 전이 ========
+    //상태 전이 관련 예외처리 디테일하게 리팩토링 예정
 
     public void startAssigning() {
         if (this.dispatchStatus != DispatchStatus.REQUESTED) {
@@ -96,14 +103,12 @@ public class Dispatch extends BaseEntity {
     }
 
     public void cancel() {
-        if (!isCancelableStatus()) {
+        if (!dispatchStatus.isCancelableStatus()) {
             throw new InvalidDispatchStateException();
         }
         this.dispatchStatus = DispatchStatus.CANCELLED;
         this.cancelledAt = LocalDateTime.now();
     }
-
-
 
     /**
      * 기사 1명이 배차 요청을 거절할 때 호출되는 도메인 행동 메서드
@@ -117,6 +122,10 @@ public class Dispatch extends BaseEntity {
         }
     }
 
+    public void increaseReassignAttempt() {
+        this.reassignAttemptCount++;
+    }
+
     public void timeout() {
         if (this.dispatchStatus != DispatchStatus.ASSIGNED) {
             throw new InvalidDispatchStateException();
@@ -126,9 +135,21 @@ public class Dispatch extends BaseEntity {
         this.timeoutAt = LocalDateTime.now();
     }
 
-    private boolean isCancelableStatus() {
-        return this.dispatchStatus == DispatchStatus.REQUESTED
-                || this.dispatchStatus == DispatchStatus.ASSIGNING
-                || this.dispatchStatus == DispatchStatus.ASSIGNED;
+    public void resetToAssigning(){
+        if(this.dispatchStatus != DispatchStatus.TIMEOUT) {
+            throw new InvalidDispatchStateException();
+        }
+        this.dispatchStatus = DispatchStatus.ASSIGNING;
+        this.assignedAt = LocalDateTime.now();
+    }
+
+    public void terminateByRetryLimit() {
+        if (dispatchStatus == DispatchStatus.TIMEOUT ||
+                dispatchStatus == DispatchStatus.CANCELLED) {
+            throw new InvalidDispatchStateException();
+        }
+
+        this.dispatchStatus = DispatchStatus.TIMEOUT;
+        this.timeoutAt = LocalDateTime.now();
     }
 }

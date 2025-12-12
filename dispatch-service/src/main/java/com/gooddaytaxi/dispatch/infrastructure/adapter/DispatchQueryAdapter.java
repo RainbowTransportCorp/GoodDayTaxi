@@ -37,4 +37,9 @@ public class DispatchQueryAdapter implements DispatchQueryPort {
     public List<Dispatch> findTimeoutTargets(int seconds) {
         return dispatchRepository.findTimeoutTargets(seconds);
     }
+
+    @Override
+    public List<Dispatch> findTimeoutCandidates() {
+        return dispatchRepository.findTimeoutCandidates();
+    }
 }

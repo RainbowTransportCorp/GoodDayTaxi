@@ -20,7 +20,6 @@ public class OutboxRelay {
 
     /**
      * Outbox 패턴에서 실제 Kafka 전송(Producer) 역할을 담당하는 컴포넌트.
-     *
      *  - Application은 Outbox DB에 이벤트만 기록한다. (트랜잭션 안정성)
      *  - 메시지 전송은 별도 프로세스로 분리하여 실패 시 재시도 가능하도록 함.
      *  - 따라서 KafkaProducer 클래스를 따로 두지 않고

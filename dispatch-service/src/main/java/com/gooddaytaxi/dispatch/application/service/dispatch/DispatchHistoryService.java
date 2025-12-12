@@ -5,6 +5,7 @@ import com.gooddaytaxi.dispatch.domain.model.entity.DispatchHistory;
 import com.gooddaytaxi.dispatch.domain.model.enums.ChangedBy;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchDomainEventType;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
+import com.gooddaytaxi.dispatch.domain.model.enums.HistoryEventType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +18,7 @@ public class DispatchHistoryService {
     private final DispatchHistoryCommandPort historyPort;
 
     public void saveStatusChange(UUID dispatchId,
-                                 DispatchDomainEventType eventType,
+                                 HistoryEventType eventType,
                                  DispatchStatus from,
                                  DispatchStatus to,
                                  ChangedBy changedBy) {
