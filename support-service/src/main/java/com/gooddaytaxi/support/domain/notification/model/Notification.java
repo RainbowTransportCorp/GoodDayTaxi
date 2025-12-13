@@ -12,7 +12,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-
 /**
  * 알림 Entity - 시스템에서 발생하는 주요 이벤트 기반 알림
  */
