@@ -3,6 +3,7 @@ package com.gooddaytaxi.payment.application.service;
 import com.gooddaytaxi.payment.application.command.refund.ExternalPaymentCancelCommand;
 import com.gooddaytaxi.payment.application.command.refund.RefundCreateCommand;
 import com.gooddaytaxi.payment.application.command.refund.RefundSearchCommand;
+import com.gooddaytaxi.payment.application.event.RefundCompletedEvent;
 import com.gooddaytaxi.payment.application.exception.PaymentErrorCode;
 import com.gooddaytaxi.payment.application.exception.PaymentException;
 import com.gooddaytaxi.payment.application.port.out.core.ExternalPaymentPort;
@@ -22,6 +23,7 @@ import com.gooddaytaxi.payment.domain.enums.UserRole;
 import com.gooddaytaxi.payment.domain.vo.RefundSortBy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -40,11 +42,12 @@ public class RefundService {
     private final PaymentQueryPort paymentQueryPort;
     private final ExternalPaymentPort externalPaymentPort;
     private final RefundRequestQueryPort requestQueryPort;
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final PaymentFailureRecorder failureRecorder;
     private final PaymentValidator validator;
 
     @Transactional
-    public RefundCreateResult confirmTosspayRefund(UUID paymentId, RefundCreateCommand command, String role) {
+    public RefundCreateResult confirmTosspayRefund(UUID paymentId, RefundCreateCommand command, UUID userId, String role) {
         //해당 결제가 있는지 확인
         Payment payment = paymentQueryPort.findById(paymentId).orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
@@ -69,9 +72,10 @@ public class RefundService {
         //환불 사유 매핑
         RefundReason reason = RefundReason.of(command.reason());
 
+
         Refund refund = new Refund(
                 reason,
-                command.detailReason(),
+                command.incidentAt()+"|"+command.incidentSummary(),
                 command.requestId()
         );
         //토스에 환불 요청
@@ -96,6 +100,56 @@ public class RefundService {
         payment.registerRefund(refund, true);
 
         paymentCommandPort.save(payment);
+
+        //환불 완료 이벤트 발행
+        //여기서 이벤트 발행시 refundId가 존재하지 않으므로 트랜잭션 커밋 이후에 이벤트가 발행되도록 구현
+        applicationEventPublisher.publishEvent(
+                new RefundCompletedEvent(payment.getId(), userId)
+        );
+
+        return new RefundCreateResult(paymentId, "환불이 완료되었습니다!");
+    }
+
+    @Transactional
+    public RefundCreateResult registerPhysicalRefund(UUID paymentId, RefundCreateCommand command, UUID userId, String role) {
+        //해당 결제가 있는지 확인
+        Payment payment = paymentQueryPort.findById(paymentId).orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+
+        //롤이 관리자인지 확인
+        validator.checkRoleAdmin(UserRole.of(role));
+        //결제 수단이 실물결제인지 확인
+        validator.checkMethodPhysicalPayment(payment.getMethod());
+        //결제상태가 완료 상태인지 확인
+        validator.checkPaymentStatusCompleted(payment.getStatus());
+        //환불 요청이 있다면 해당 요청이 승인된 상태인지 확인 + 해당 요청의 결제  실제결제가 일치하는지 확인
+        if(command.requestId() != null) {
+            RefundRequest request = requestQueryPort.findById(command.requestId()).orElseThrow(() -> new PaymentException(PaymentErrorCode.REFUND_REQUEST_NOT_FOUND));
+            validator.checkRefundRequestApproved(request.getStatus());
+            if(!request.getPaymentId().equals(payment.getId()))
+                throw new PaymentException(PaymentErrorCode.REFUND_REQUEST_PAYMENT_MISMATCH);
+        }
+
+        //환불 사유 매핑
+        RefundReason reason = RefundReason.of(command.reason());
+
+        //객체 생성
+        Refund refund = new Refund(
+                reason,
+                command.incidentAt()+"|"+command.incidentSummary(),
+                command.requestId()
+        );
+
+        //실물 환불 집행 시간 기록
+        refund.markExecuted(command.executedAt());
+        payment.registerRefund(refund, true);
+
+        paymentCommandPort.save(payment);
+
+        //환불 완료 이벤트 발행
+        //여기서 이벤트 발행시 refundId가 존재하지 않으므로 트랜잭션 커밋 이후에 이벤트가 발행되도록 구현
+        applicationEventPublisher.publishEvent(
+                new RefundCompletedEvent(payment.getId(), userId)
+        );
 
         return new RefundCreateResult(paymentId, "환불이 완료되었습니다!");
     }
@@ -189,64 +243,4 @@ public class RefundService {
                 )
         );
     }
-
-//    UUID passeangerId = command.passengerId();
-//    UUID driverId = command.driverId();
-//    //승객인 경우 본인 승객아이디로 승객아이디 고정
-//        if (UserRole.of(role) == UserRole.PASSENGER) {
-//        passeangerId = userId;
-//        //기사인 경우 본인 기사아이디로 기사 아이디 고정
-//    } else if (UserRole.of(role) == UserRole.DRIVER) {
-//        driverId = userId;
-//    }
-//    //매니저이면 모두 가능
-//
-//    //정렬조건 체크
-//        PaymentSortBy.checkValid(command.sortBy()); //enum 검증용
-//    //오름차순/내림차순
-//    Sort.Direction direction = command.sortAscending() ? Sort.Direction.ASC : Sort.Direction.DESC;
-//
-//    //데이터 조회
-//    Pageable pageable = PageRequest.of(command.page()-1, command.size(), Sort.by(direction, command.sortBy()));
-//    Page<Payment> payments = paymentQueryPort.searchPayments(
-//            command.method(),
-//            command.status(),
-//            passeangerId,
-//            driverId,
-//            command.tripId(),
-//            command.startDay(),
-//            command.endDay(),
-//            pageable
-//    );
-//
-//    //결과값 반환
-//        return payments.map(payment -> {
-//        AttemptReadResult attemptResult = null;
-//        if(payment.getMethod() == PaymentMethod.TOSS_PAY) {
-//            //아직 결제 전이면 시도 없음
-//            if(!(payment.getStatus() == PaymentStatus.PENDING ||payment.getStatus() == PaymentStatus.IN_PROCESS) ){
-//                PaymentAttempt lastAttempt = payment.getAttempts().get(0);
-//                attemptResult = new AttemptReadResult(
-//                        lastAttempt.getStatus().toString(),
-//                        lastAttempt.getPgMethod(),
-//                        lastAttempt.getPgProvider(),
-//                        lastAttempt.getApprovedAt(),
-//                        lastAttempt.getFailDetail()
-//                );
-//            }
-//
-//        }
-//        return new PaymentReadResult(
-//                payment.getId(),
-//                payment.getAmount().value(),
-//                payment.getStatus().name(),
-//                payment.getMethod().name(),
-//                payment.getPassengerId(),
-//                payment.getDriverId(),
-//                payment.getTripId(),
-//                attemptResult,
-//                payment.getCreatedAt(),
-//                payment.getUpdatedAt()
-//        );
-//    });
 }
