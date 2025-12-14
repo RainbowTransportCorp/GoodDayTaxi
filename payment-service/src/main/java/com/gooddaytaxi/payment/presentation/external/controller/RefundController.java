@@ -33,9 +33,10 @@ public class RefundController {
     @PostMapping("/tosspay/{paymentId}")
     public ResponseEntity<ApiResponse<RefundCreateResponseDto>> ConfirmTosspayRefund(@PathVariable UUID paymentId,
                                                                                      @RequestBody @Valid RefundCreateRequestDto requestDto,
+                                                                                     @RequestParam UUID userId,
                                                                                      @RequestParam String role) {
         RefundCreateCommand command = RefundCreateMapper.toCommand(requestDto);
-        RefundCreateResult result = refundService.confirmTosspayRefund(paymentId, command, role);
+        RefundCreateResult result = refundService.confirmTosspayRefund(paymentId, command, userId, role);
         RefundCreateResponseDto responseDto = RefundCreateResponseMapper.toResponse(result);
         return ResponseEntity.status(201).body(ApiResponse.success(responseDto));
     }

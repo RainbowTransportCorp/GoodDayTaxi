@@ -30,14 +30,16 @@ public class Refund extends BaseEntity {
 
     private String detailReason;
 
+
     private UUID requestId;  //환불 요청 ID
 
-    private LocalDateTime canceledAt; //환불 승인 시간
+    private LocalDateTime refundedAt; //서버 내부의 환불 완료 시간
+
+    private LocalDateTime canceledAt; //토스페이에서 환불 승인 시간
 
     private String transactionKey; //환불 거래 고유 키
 
     private String pgFailReason; //환불 실패 사유
-
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payment_id", nullable = false)
@@ -57,6 +59,7 @@ public class Refund extends BaseEntity {
         this.status = RefundStatus.SUCCESS;
         this.canceledAt = canceledAt;
         this.transactionKey = transactionKey;
+        this.refundedAt = LocalDateTime.now();
     }
 
     public void registerFailReason(String failReason) {
