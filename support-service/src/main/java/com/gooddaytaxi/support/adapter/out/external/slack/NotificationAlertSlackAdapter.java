@@ -30,29 +30,41 @@ public class NotificationAlertSlackAdapter implements NotificationAlertExternalP
     private final SlackFeignClient slackFeignClient;
 
     // RabbitListener 메서드 삭제 후, 직접 호출 시
-    public void sendCallDirectRequest(QueuePushMessage queueMessage) {
-        doSendSlack(queueMessage);
+    public void sendDirectRequest(QueuePushMessage queuePushMessage) {
+        doSendSlack(queuePushMessage);
     }
 
     @RabbitListener(queues = RabbitMQConfig.DISPATCH_QUEUE)
     @Override
-    public void sendCallRequest(QueuePushMessage queueMessage) {
-        doSendSlack(queueMessage);
+    public void sendFromDispatch(QueuePushMessage queuePushMessage) {
+        doSendSlack(queuePushMessage);
+    }
+
+    @RabbitListener(queues = RabbitMQConfig.TRIP_QUEUE)
+    @Override
+    public void sendFromTrip(QueuePushMessage queuePushMessage) {
+        doSendSlack(queuePushMessage);
+    }
+
+    @RabbitListener(queues = RabbitMQConfig.PAYMENT_QUEUE)
+    @Override
+    public void sendFromPayment(QueuePushMessage queuePushMessage) {
+        doSendSlack(queuePushMessage);
     }
 
 
     /**
     * Slack에 Push 알림을 보내는 메서드
     * */
-    private void doSendSlack(QueuePushMessage queueMessage) {
+    private void doSendSlack(QueuePushMessage queuePushMessage) {
         // 메타데이터
-        EventMetadata emData = EventMetadata.from(queueMessage.metadata());
+        EventMetadata emData = EventMetadata.from(queuePushMessage.metadata());
         log.debug("[Mapping] Metadata >>> EventMetaData ➡️ {}", emData);
 
         // 메시지
-        String messageTitle = queueMessage.title();
-        String messageBody = queueMessage.body();
-        List<UUID> messageReceivers = queueMessage.receivers();
+        String messageTitle = queuePushMessage.title();
+        String messageBody = queuePushMessage.body();
+        List<UUID> messageReceivers = queuePushMessage.receivers();
         log.debug("[Check] Slack으로 보내는 QueueMessage 데이터: title={}, body={}, receivers={}", messageTitle, messageBody, messageReceivers);
 
         // 메시지 포맷
@@ -73,7 +85,7 @@ public class NotificationAlertSlackAdapter implements NotificationAlertExternalP
             log.debug("[Connect] Support Service >>> Account Feign Completed! ");
 
         } catch (Exception e) {
-            log.error("❌ [Error] Account API Feign Client Error: message={}, error={}", queueMessage, e.getMessage());
+            log.error("❌ [Error] Account API Feign Client Error: message={}, error={}", queuePushMessage, e.getMessage());
         }
 
         // 메시지 수신자 Slack ID 추출
