@@ -4,5 +4,5 @@ package com.gooddaytaxi.support.application.port.out.messaging;
 *
 */
 public interface NotificationPushMessagingPort {
-    void send(QueuePushMessage queuePushMessage);
+    void push(QueuePushMessage queuePushMessage, String Key);
 }

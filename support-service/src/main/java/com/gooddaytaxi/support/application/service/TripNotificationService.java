@@ -1,8 +1,9 @@
 package com.gooddaytaxi.support.application.service;
 
 import com.gooddaytaxi.support.application.Metadata;
+import com.gooddaytaxi.support.application.dto.NotifyTripEndedCommand;
 import com.gooddaytaxi.support.application.dto.NotifyTripStartedCommand;
-import com.gooddaytaxi.support.application.port.in.trip.EndTripUsecase;
+import com.gooddaytaxi.support.application.port.in.trip.NotifyEndedTripUsecase;
 import com.gooddaytaxi.support.application.port.in.trip.NotifyStartedTripUsecase;
 import com.gooddaytaxi.support.application.port.out.messaging.NotificationPushMessagingPort;
 import com.gooddaytaxi.support.application.port.out.messaging.QueuePushMessage;
@@ -26,7 +27,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Service
 @Transactional
-public class TripNotificationService implements NotifyStartedTripUsecase, EndTripUsecase {
+public class TripNotificationService implements NotifyStartedTripUsecase, NotifyEndedTripUsecase {
 
     private final NotificationCommandPersistencePort notificationCommandPersistencePort;
     private final NotificationPushMessagingPort notificationPushMessagingPort;
@@ -39,12 +40,12 @@ public class TripNotificationService implements NotifyStartedTripUsecase, EndTri
     public void execute(NotifyTripStartedCommand command) {
         // Notification 생성 및 저장
         Notification noti = Notification.from(command, NotificationType.TRIP_STARTED);
-        noti.assignIds(command.getDispatchId(), command.getDriverId(), command.getPassengerId(), command.getTripId(), null);
-        log.debug("[Check] Notification 생성: tripId={}, driverId={}, message={}", noti.getNotificationOriginId(), noti.getNotifierId(), noti.getMessage());
+        noti.assignIds(command.getDispatchId(), command.getTripId(), null, command.getDriverId(), command.getPassengerId());
+        log.debug("[Check] Notification 생성: tripId={}, driverId={}, passengerId={}, message={}", noti.getNotificationOriginId(), noti.getDriverId(), noti.getPassengerId(), noti.getMessage());
 
         Notification savedNoti = notificationCommandPersistencePort.save(noti);
 //        Notification savedNoti = notificationQueryPersistencePort.findById(noti.getId());
-        log.debug("[Check] Notification Persistence 조회: tripId={}, driverId={}, message={}", savedNoti.getTripId(), savedNoti.getDriverId(), savedNoti.getMessage());
+        log.debug("[Check] Notification Persistence 조회: tripId={}, driverId={}, passengerId={}, message={}", savedNoti.getTripId(), savedNoti.getDriverId(), savedNoti.getPassengerId(), savedNoti.getMessage());
 
         // 수신자: [ 기사, 승객 ]
         List<UUID> receivers = new ArrayList<>();
@@ -63,13 +64,54 @@ public class TripNotificationService implements NotifyStartedTripUsecase, EndTri
 
         // RabbitMQ: Queue에 Push
         QueuePushMessage queuePushMessage = QueuePushMessage.create(receivers, metadata, messageTitle, messageBody);
-        notificationPushMessagingPort.send(queuePushMessage);
+        notificationPushMessagingPort.push(queuePushMessage, "TRIP");
         log.debug("[Push] RabbitMQ 메시지: {}", queuePushMessage.title());
 
         // Push 알림: Slack, FCM 등 - RabbitMQ Listener 없이 직접 호출 시 사용
-//        notificationAlertExternalPort.sendCallDirectRequest(queuePushMessage);
+//        notificationAlertExternalPort.sendDirectRequest(queuePushMessage);
 
         // 로그
         log.info("\uD83D\uDCE2 [Trip] Started! driverId={}, passengerId={}: {} >>> {}",queuePushMessage.receivers().get(0), queuePushMessage.receivers().get(1), command.getPickupAddress(), command.getDestinationAddress());
+    }
+
+    /**
+     * 수신자에게 운행 종료 알림 서비스
+     */
+    @Override
+    public void execute(NotifyTripEndedCommand command) {
+        // Notification 생성 및 저장
+        Notification noti = Notification.from(command, NotificationType.TRIP_ENDED);
+        noti.assignIds(command.getDispatchId(), command.getTripId(), null, command.getDriverId(), command.getPassengerId());
+        log.debug("[Check] Notification 생성: tripId={}, driverId={}, passengerId={}, message={}", noti.getNotificationOriginId(), noti.getDriverId(), noti.getPassengerId(), noti.getMessage());
+
+        Notification savedNoti = notificationCommandPersistencePort.save(noti);
+//        Notification savedNoti = notificationQueryPersistencePort.findById(noti.getId());
+        log.debug("[Check] Notification Persistence 조회: tripId={}, driverId={}, passengerId={}, message={}", savedNoti.getTripId(), savedNoti.getDriverId(), savedNoti.getPassengerId(), savedNoti.getMessage());
+
+        // 수신자: [ 기사, 승객 ]
+        List<UUID> receivers = new ArrayList<>();
+        receivers.add(command.getDriverId());
+        receivers.add(command.getPassengerId());
+
+        // 알림 메시지 구성
+        String messageTitle = "\uD83D\uDCE2 운행이 종료되었습니다";
+        Metadata metadata = command.getMetadata();
+        String messageBody = """
+                %s >>> %s에 도착했습니다
+                """.formatted(
+                command.getPickupAddress(),
+                command.getDestinationAddress()
+        );
+
+        // RabbitMQ: Queue에 Push
+        QueuePushMessage queuePushMessage = QueuePushMessage.create(receivers, metadata, messageTitle, messageBody);
+        notificationPushMessagingPort.push(queuePushMessage, "TRIP");
+        log.debug("[Push] RabbitMQ 메시지: {}", queuePushMessage.title());
+
+        // Push 알림: Slack, FCM 등 - RabbitMQ Listener 없이 직접 호출 시 사용
+//        notificationAlertExternalPort.sendDirectRequest(queuePushMessage);
+
+        // 로그
+        log.info("\uD83D\uDCE2 [Trip] Ended! driverId={}, passengerId={}: {} >>> {}",queuePushMessage.receivers().get(0), queuePushMessage.receivers().get(1), command.getPickupAddress(), command.getDestinationAddress());
     }
 }

@@ -48,7 +48,7 @@ public class DispatchNotificationService implements NotifyDispatchUsecase, Notif
                 "새콜 요청", command.getMessage(), command.getDriverId(), command.getPassengerId());
         // Notification 생성 및 저장
         Notification noti = Notification.from(command, NotificationType.DISPATCH_REQUESTED);
-        noti.assignIds(command.getDispatchId(), command.getDriverId(), command.getPassengerId(), null, null);
+        noti.assignIds(command.getDispatchId(), null, null, command.getDriverId(), command.getPassengerId());
         log.info("‼🤣🤣🤣🤣️ notification 객체={}", noti);
         notificationCommandPersistencePort.save(noti);
         log.info("‼🤣🤣🤣🤣️ notification 객체 in persistence={}", notificationQueryPersistencePort.findByNotificationOriginId(command.getDispatchId()));
@@ -62,12 +62,12 @@ public class DispatchNotificationService implements NotifyDispatchUsecase, Notif
 
         // RabbitMQ: Queue에 Push
         QueuePushMessage queuePushMessage = QueuePushMessage.create(receivers, command.getMetadata(), messageTitle, noti.getMessage());
-        notificationPushMessagingPort.send(queuePushMessage);
+        notificationPushMessagingPort.push(queuePushMessage, "DISPATCH");
         log.info("‼️‼️‼️‼️QueuePush Message 내용 확인title={}, body={}, receivers={}",
                 messageTitle, noti.getMessage(), receivers);
 
         // Push 알림: Slack, FCM 등 - RabbitMQ Listener 없이 직접 호출 시 사용
-//        notificationAlertExternalPort.sendCallDirectRequest(queuePushMessage);
+//        notificationAlertExternalPort.sendDirectRequest(queuePushMessage);
 
         // 로그
         log.info("\uD83D\uDCE2 [CALL-REQUEST] driverId={}, passengerId={} >>> {}",
@@ -85,12 +85,12 @@ public class DispatchNotificationService implements NotifyDispatchUsecase, Notif
     public void execute(NotifyDispatchAcceptedCommand command) {
         // Notification 생성 및 저장
         Notification noti = Notification.from(command, NotificationType.DISPATCH_ACCEPTED);
-        noti.assignIds(command.getDispatchId(), command.getDriverId(), command.getPassengerId(), null, null);
-        log.debug("[Check] Notification 생성: dispatchId={}, driverId={}, message={}", noti.getNotificationOriginId(), noti.getNotifierId(), noti.getMessage());
+        noti.assignIds(command.getDispatchId(), null, null, command.getDriverId(), command.getPassengerId());
+        log.debug("[Check] Notification 생성: dispatchId={}, driverId={}, passengerId={}, message={}", noti.getNotificationOriginId(), noti.getDriverId(), noti.getPassengerId(), noti.getMessage());
 
         Notification savedNoti = notificationCommandPersistencePort.save(noti);
 //        Notification savedNoti = notificationQueryPersistencePort.findById(noti.getId());
-        log.debug("[Check] Notification Persistence 조회: dispatchId={}, driverId={}, message={}", savedNoti.getDispatchId(), savedNoti.getDriverId(), savedNoti.getMessage());
+        log.debug("[Check] Notification Persistence 조회: dispatchId={}, driverId={}, passengeId={}, message={}", savedNoti.getDispatchId(), savedNoti.getDriverId(), savedNoti.getPassengerId(), savedNoti.getMessage());
 
         // 수신자: [ 기사, 승객 ]
         List<UUID> receivers = new ArrayList<>();
@@ -141,11 +141,11 @@ public class DispatchNotificationService implements NotifyDispatchUsecase, Notif
 
         // RabbitMQ: Queue에 Push
         QueuePushMessage queuePushMessage = QueuePushMessage.create(receivers, metadata, messageTitle, messageBody);
-        notificationPushMessagingPort.send(queuePushMessage);
+        notificationPushMessagingPort.push(queuePushMessage, "DISPATCH");
         log.debug("[Push] RabbitMQ 메시지: {}", messageTitle);
 
          // Push 알림: Slack, FCM 등 - RabbitMQ Listener 없이 직접 호출 시 사용
-//        notificationAlertExternalPort.sendCallDirectRequest(queuePushMessage);
+//        notificationAlertExternalPort.sendDirectRequest(queuePushMessage);
 
         // 로그
         log.info("\uD83D\uDCE2 [CALL] driverId={}, passengerId={}: {} >>> {}",command.getDriverId(), queuePushMessage.receivers().get(1), command.getPickupAddress(), command.getDestinationAddress());

@@ -4,7 +4,9 @@ import com.gooddaytaxi.support.adapter.in.kafka.dto.EventRequest;
 import com.gooddaytaxi.support.adapter.in.kafka.dto.TripEndedEventPayload;
 import com.gooddaytaxi.support.adapter.in.kafka.dto.TripStartedEventPayload;
 import com.gooddaytaxi.support.application.Metadata;
+import com.gooddaytaxi.support.application.dto.NotifyTripEndedCommand;
 import com.gooddaytaxi.support.application.dto.NotifyTripStartedCommand;
+import com.gooddaytaxi.support.application.port.in.trip.NotifyEndedTripUsecase;
 import com.gooddaytaxi.support.application.port.in.trip.NotifyStartedTripUsecase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Component;
 public class TripEndpoint {
 
     private final NotifyStartedTripUsecase notifyStartedTripUsecase;
+    private final NotifyEndedTripUsecase notifyEndedTripUsecase;
 
     /**
      * 운행이 시작될 때 기사, 손님에게 알림을 전송하는 이벤트 리스너
@@ -56,21 +59,23 @@ public class TripEndpoint {
         Metadata metadata = req.eventMetadata().to();
         // Payload
         TripEndedEventPayload pl = req.convertPayload(TripEndedEventPayload.class);
-        log.debug("[Check] Trip Started EventRequest 데이터: tripId={}, notifierId={}, occuredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.getOccuredAt());
+        log.debug("[Check] Trip Ended EventRequest 데이터: tripId={}, notifierId={}, occuredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.getOccuredAt());
 
         // EventRequest DTO > Command 변환
-        NotifyTripStartedCommand command = NotifyTripStartedCommand.create(
+        NotifyTripEndedCommand command = NotifyTripEndedCommand.create(
                 pl.notificationOriginId(), pl.notifierId(),
                 pl.dispatchId(),
                 pl.driverId(), pl.passengerId(),
                 pl.pickupAddress(), pl.destinationAddress(),
-                pl.startTime(),
+                pl.startTime(), pl.endTime(),
+                pl.totalDuration(), pl.totalDistance(),
+                pl.finalFare(),
                 metadata
         );
         log.debug("[Transform] EventRequest >>> Command ➡️ {}", command);
 
-        // 운행 시작 알림 전송 서비스 호출
-        notifyStartedTripUsecase.execute(command);
+        // 운행 종료 알림 전송 서비스 호출
+        notifyEndedTripUsecase.execute(command);
     }
 
 }
