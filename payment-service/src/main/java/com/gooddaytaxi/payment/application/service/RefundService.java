@@ -110,6 +110,50 @@ public class RefundService {
         return new RefundCreateResult(paymentId, "환불이 완료되었습니다!");
     }
 
+    @Transactional
+    public RefundCreateResult registerPhysicalRefund(UUID paymentId, RefundCreateCommand command, UUID userId, String role) {
+        //해당 결제가 있는지 확인
+        Payment payment = paymentQueryPort.findById(paymentId).orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+
+        //롤이 관리자인지 확인
+        validator.checkRoleAdmin(UserRole.of(role));
+        //결제 수단이 실물결제인지 확인
+        validator.checkMethodPhysicalPayment(payment.getMethod());
+        //결제상태가 완료 상태인지 확인
+        validator.checkPaymentStatusCompleted(payment.getStatus());
+        //환불 요청이 있다면 해당 요청이 승인된 상태인지 확인 + 해당 요청의 결제  실제결제가 일치하는지 확인
+        if(command.requestId() != null) {
+            RefundRequest request = requestQueryPort.findById(command.requestId()).orElseThrow(() -> new PaymentException(PaymentErrorCode.REFUND_REQUEST_NOT_FOUND));
+            validator.checkRefundRequestApproved(request.getStatus());
+            if(!request.getPaymentId().equals(payment.getId()))
+                throw new PaymentException(PaymentErrorCode.REFUND_REQUEST_PAYMENT_MISMATCH);
+        }
+
+        //환불 사유 매핑
+        RefundReason reason = RefundReason.of(command.reason());
+
+        //객체 생성
+        Refund refund = new Refund(
+                reason,
+                command.incidentAt()+"|"+command.incidentSummary(),
+                command.requestId()
+        );
+
+        //실물 환불 집행 시간 기록
+        refund.markExecuted(command.executedAt());
+        payment.registerRefund(refund, true);
+
+        paymentCommandPort.save(payment);
+
+        //환불 완료 이벤트 발행
+        //여기서 이벤트 발행시 refundId가 존재하지 않으므로 트랜잭션 커밋 이후에 이벤트가 발행되도록 구현
+        applicationEventPublisher.publishEvent(
+                new RefundCompletedEvent(payment.getId(), userId)
+        );
+
+        return new RefundCreateResult(paymentId, "환불이 완료되었습니다!");
+    }
+
     //디버그용 - 토스페이 외부결제 정보 조회
     public String getExternalTossPay(UUID paymentId) {
         Payment payment = paymentQueryPort.findById(paymentId).orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));

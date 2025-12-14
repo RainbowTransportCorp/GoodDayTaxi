@@ -35,8 +35,20 @@ public class RefundController {
                                                                                      @RequestBody @Valid RefundCreateRequestDto requestDto,
                                                                                      @RequestParam UUID userId,
                                                                                      @RequestParam String role) {
-        RefundCreateCommand command = RefundCreateMapper.toCommand(requestDto);
+        RefundCreateCommand command = RefundCreateMapper.toTosspayCommand(requestDto);
         RefundCreateResult result = refundService.confirmTosspayRefund(paymentId, command, userId, role);
+        RefundCreateResponseDto responseDto = RefundCreateResponseMapper.toResponse(result);
+        return ResponseEntity.status(201).body(ApiResponse.success(responseDto));
+    }
+
+    //결제수단이 현금/카드인 경우 환불 내용 등록 - 이미 기사가 환불을 집행하고 관리자가 확인 후 등록
+    @PostMapping("/{paymentId}")
+    public ResponseEntity<ApiResponse<RefundCreateResponseDto>> registerCashCardRefund(@PathVariable UUID paymentId,
+                                                                                       @RequestBody @Valid RefundCreateRequestDto requestDto,
+                                                                                       @RequestParam UUID userId,
+                                                                                       @RequestParam String role) {
+        RefundCreateCommand command = RefundCreateMapper.toPhysicalCommand(requestDto);
+        RefundCreateResult result = refundService.registerPhysicalRefund(paymentId, command, userId, role);
         RefundCreateResponseDto responseDto = RefundCreateResponseMapper.toResponse(result);
         return ResponseEntity.status(201).body(ApiResponse.success(responseDto));
     }

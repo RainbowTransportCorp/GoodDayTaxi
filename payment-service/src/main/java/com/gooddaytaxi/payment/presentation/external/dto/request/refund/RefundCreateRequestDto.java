@@ -3,6 +3,7 @@ package com.gooddaytaxi.payment.presentation.external.dto.request.refund;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record RefundCreateRequestDto(@NotNull String reason,
@@ -16,5 +17,6 @@ public record RefundCreateRequestDto(@NotNull String reason,
                                              message = "incidentSummary는 '~문제'로 끝나야 합니다."
                                      )
                                      @NotNull String incidentSummary,
+                                     LocalDateTime executedAt,
                                      UUID requestId) {
 }
