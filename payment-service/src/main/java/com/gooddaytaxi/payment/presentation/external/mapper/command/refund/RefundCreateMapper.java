@@ -7,7 +7,8 @@ public class RefundCreateMapper {
     public static RefundCreateCommand toCommand(RefundCreateRequestDto requestDto) {
         return new RefundCreateCommand(
                 requestDto.reason(),
-                requestDto.detailReason(),
+                requestDto.incidentAt(),
+                requestDto.incidentSummary(),
                 requestDto.requestId()
         );
     }

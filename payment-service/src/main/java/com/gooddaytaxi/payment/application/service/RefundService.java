@@ -72,9 +72,10 @@ public class RefundService {
         //환불 사유 매핑
         RefundReason reason = RefundReason.of(command.reason());
 
+
         Refund refund = new Refund(
                 reason,
-                command.detailReason(),
+                command.incidentAt()+"|"+command.incidentSummary(),
                 command.requestId()
         );
         //토스에 환불 요청
