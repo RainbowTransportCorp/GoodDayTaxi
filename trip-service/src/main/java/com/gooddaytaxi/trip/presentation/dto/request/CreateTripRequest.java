@@ -16,6 +16,10 @@ public record CreateTripRequest(
         @NotNull(message = "기사 ID는 필수입니다.")
         UUID driverId,
 
+
+        @NotNull(message = "배차 ID는 필수입니다.")
+        UUID dispatchId,
+
         @NotBlank(message = "픽업 주소는 필수 입력 값입니다.")
         @Size(max = 255, message = "픽업 주소는 최대 255자까지 가능합니다.")
         String pickupAddress,

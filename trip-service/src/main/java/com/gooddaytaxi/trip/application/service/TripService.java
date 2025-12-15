@@ -36,6 +36,7 @@ public class TripService {
                 command.policyId(),
                 command.passengerId(),
                 command.driverId(),
+                command.dispatchId(),
                 command.pickupAddress(),
                 command.destinationAddress()
         );

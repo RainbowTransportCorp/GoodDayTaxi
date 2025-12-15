@@ -23,7 +23,7 @@ interface NotificationJpaRepository extends JpaRepository<Notification, UUID> {
      *
      */
     Optional<Notification> findById(UUID notificationId);
-    Notification findByNotificationOriginId(UUID id);
+    Optional<Notification> findByNotificationOriginId(UUID id);
     List<Notification> findAllByNotificationType(NotificationType type);
     List<Notification> findByNotifiedAtBetween(LocalDateTime start, LocalDateTime end);
     List<Notification> findByNotifiedAtAfter(LocalDateTime start);

@@ -6,17 +6,19 @@ import com.gooddaytaxi.dispatch.application.port.out.command.DispatchCommandPort
 import com.gooddaytaxi.dispatch.application.port.out.command.DispatchRequestedCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.query.AccountDriverSelectionQueryPort;
 import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
+import com.gooddaytaxi.dispatch.application.service.assignmentLog.AssignmentLogQueryService;
 import com.gooddaytaxi.dispatch.domain.exception.DriverUnavailableException;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
 import com.gooddaytaxi.dispatch.domain.model.entity.DispatchAssignmentLog;
 import com.gooddaytaxi.dispatch.domain.model.enums.ChangedBy;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchDomainEventType;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
-import com.gooddaytaxi.dispatch.infrastructure.client.account.dto.DriverInfo;
+import com.gooddaytaxi.dispatch.domain.model.enums.HistoryEventType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -29,55 +31,86 @@ public class DispatchDriverAssignmentService {
     private final AccountDriverSelectionQueryPort driverPort;
 
     private final DispatchAssignmentCommandPort assignmentLogPort;
-    private final DispatchHistoryService historyService;
 
+    private final DispatchHistoryService historyService;
     private final DispatchRequestedCommandPort eventPort;
 
-    public void assign(UUID dispatchId) {
+    /**
+     * 최초 배차 시도
+     * @param dispatchId
+     */
+    public void assignInitial(UUID dispatchId) {
 
-        log.info("[Assign] 배차 시도 시작 - dispatchId={}", dispatchId);
-
-        // 1. 조회
         Dispatch dispatch = queryPort.findById(dispatchId);
 
-        // 2. 도메인 규칙에 의해 상태 전이 검증 (서비스는 if 필요 없음)
-        DispatchStatus before = dispatch.getDispatchStatus();
-        dispatch.startAssigning();     // ← Invalid 상태면 도메인이 예외 던짐
-
-        // 저장
+        dispatch.startAssigning(); // 최초 상태 전이
         commandPort.save(dispatch);
 
-        // 3. 히스토리
         historyService.saveStatusChange(
                 dispatchId,
-                DispatchDomainEventType.ASSIGNING,
-                before,
-                dispatch.getDispatchStatus(),
+                HistoryEventType.STATUS_CHANGED,
+                DispatchStatus.REQUESTED,
+                DispatchStatus.ASSIGNING,
                 ChangedBy.SYSTEM
         );
 
-        log.info("[Assign] 상태전이 REQUESTED → ASSIGNING");
+        int attemptNo = 1; // 최초는 무조건 1
 
-        // 4. 기사 후보 조회
-        DriverInfo candidates =
-                driverPort.getAvailableDrivers(dispatch.getPickupAddress());
+        List<UUID> candidates = driverPort.getAvailableDrivers(dispatch.getPickupAddress()).driverIds();
+        if (candidates.isEmpty()) throw new DriverUnavailableException();
 
-        if (candidates.driverIds().isEmpty()) {
-            log.warn("[Assign] 배차 가능한 기사 없음 - dispatchId={}", dispatchId);
-            throw new DriverUnavailableException();
+        sendToDrivers(dispatch, candidates, attemptNo);
+    }
+
+    /**
+     * 재배차 시도
+     * @param dispatchId
+     * @param attemptNo
+     * @param filteredDrivers
+     */
+    public void assignWithFilter(UUID dispatchId, int attemptNo, List<UUID> filteredDrivers) {
+
+        Dispatch dispatch = queryPort.findById(dispatchId);
+        DispatchStatus before = dispatch.getDispatchStatus();
+
+        if (before == DispatchStatus.ASSIGNED) {
+            // ACCEPT 없이 시간이 지나서 재배차하는 경우
+            dispatch.resetToAssigning();
+            commandPort.save(dispatch);
+
+            historyService.saveStatusChange(
+                    dispatchId,
+                    HistoryEventType.STATUS_CHANGED,
+                    DispatchStatus.ASSIGNED,
+                    DispatchStatus.ASSIGNING,
+                    ChangedBy.SYSTEM
+            );
+
+        } else if (before == DispatchStatus.ASSIGNING) {
+            // 이미 ASSIGNING이면 state transition 불필요
+            log.debug("[Assign] ASSIGNING 상태 유지 - resetToAssigning() 생략");
+        } else {
+            // 그 외 상태(REQUESTED, TIMEOUT 등)는 재배차 불가
+            log.warn("[Assign] 재배차 불가 상태={} - dispatchId={}", before, dispatchId);
+            return;
         }
 
-        log.info("[Assign] 후보 기사 수={}, region={}",
-                candidates.driverIds().size(),
-                candidates.region()
-        );
+        // ====================================================
+        // 필터링된 기사 대상 배차 요청
+        // ====================================================
+        if (filteredDrivers.isEmpty()) {
+            log.warn("[Assign] 재배차 대상 기사 없음 - dispatchId={}", dispatchId);
+            return;
+        }
 
-        // 5. 기사별 배차 요청
-        for (UUID driverId : candidates.driverIds()) {
-            log.info("[Assign] 기사에게 배차 요청 전송 - dispatchId={} driverId={}",
-                    dispatchId, driverId);
+        sendToDrivers(dispatch, filteredDrivers, attemptNo);
+    }
 
-            // (1) 이벤트 발행 - 핵심
+
+    private void sendToDrivers(Dispatch dispatch, List<UUID> drivers, int attemptNo) {
+
+        for (UUID driverId : drivers) {
+
             eventPort.publishRequested(
                     new DispatchRequestedPayload(
                             dispatch.getDispatchId(),
@@ -90,21 +123,16 @@ public class DispatchDriverAssignmentService {
                     )
             );
 
-            // (2) assignment log 기록 - 부가적
             try {
                 DispatchAssignmentLog logEntity =
-                        DispatchAssignmentLog.create(dispatchId, driverId);
+                        DispatchAssignmentLog.create(dispatch.getDispatchId(), driverId, attemptNo);
 
                 assignmentLogPort.save(logEntity);
 
             } catch (Exception e) {
-                log.error("[Assign] AssignmentLog 저장 실패 - dispatchId={} driverId={} error={}",
-                        dispatchId, driverId, e.getMessage());
-                // 흐름은 멈추지 않음
+                log.error("[Assign] assignmentLog 저장 실패 - dispatchId={} driverId={} err={}",
+                        dispatch.getDispatchId(), driverId, e.getMessage());
             }
         }
-
-        log.info("[Assign] 배차 요청 이벤트 발행 완료 - dispatchId={} targetDrivers={}",
-                dispatchId, candidates.driverIds().size());
     }
 }

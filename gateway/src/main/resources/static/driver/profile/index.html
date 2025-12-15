@@ -4,6 +4,8 @@
     <meta charset="UTF-8"/>
     <title>Good day Taxi – Driver Profile</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/common/header.css">
+    <script src="/common/header.js" defer></script>
 
     <link rel="stylesheet" href="style.css">
 </head>
@@ -13,10 +15,13 @@
 <header class="header">
     <div class="brand">
         <div class="brand-main">Good day Taxi</div>
-        <div class="brand-sub">기사 프로필</div>
+        <div class="brand-sub" id="brand-sub">마이 페이지</div>
     </div>
 
-    <button class="btn-back" onclick="history.back()">← 뒤로</button>
+    <div class="user-box">
+        <span id="user-name"></span>
+        <button class="btn-logout" onclick="logout()">로그아웃</button>
+    </div>
 </header>
 
 <main class="container">
@@ -62,6 +67,7 @@
 
 </main>
 
+<script src="/common/header.js"></script>
 <script src="script.js"></script>
 </body>
 </html>

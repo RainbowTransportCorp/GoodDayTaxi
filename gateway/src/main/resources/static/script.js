@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:8000/api/v1/auth/login";
+const BASE_URL = "api/v1/auth/login";
 
 async function login() {
     const email = document.getElementById("email").value;
@@ -36,15 +36,19 @@ async function login() {
     // role 별 라우팅
     switch (data.role) {
         case "PASSENGER":
-            window.location.href = "/passenger/index.html";
+            window.location.href = "/passenger/dashboard/index.html";
             break;
 
         case "DRIVER":
-            window.location.href = "/driver/index.html";
+            window.location.href = "/driver/dashboard/index.html";
             break;
 
         case "ADMIN":
-            window.location.href = "/admin.users/index.html";
+            window.location.href = "/admin/dashboard/index.html";
+            break;
+
+        case "MASTER_ADMIN":
+            window.location.href = "/admin/dashboard/index.html";
             break;
 
         default:

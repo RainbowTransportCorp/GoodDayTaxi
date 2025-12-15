@@ -7,7 +7,7 @@ import lombok.Builder;
 import java.util.List;
 import java.util.Map;
 
-/** Slack Message 알림창 내용 구성을 위한 Request
+/** Slack Message 알림창 내용 구성을 위한 EventRequest
  *
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -26,7 +26,7 @@ public record SlackMessageAlertReq(
         try {
             return mapper.readValue(data, SlackMessageAlertReq.class);
         } catch (Exception e) {
-            throw new RuntimeException("Invalid JSON for DispatchRequestReq", e);
+            throw new RuntimeException("Invalid JSON for EventRequest", e);
         }
     }
 }

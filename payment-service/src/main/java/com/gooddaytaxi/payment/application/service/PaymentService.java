@@ -178,7 +178,7 @@ public class PaymentService {
         validator.checkStatusPending(payment.getStatus());
 
         //결제 수단이 외부 결제가 아닌 경우만 가능
-        validator.checkMethodNotExternalPayment(payment.getMethod());
+        validator.checkMethodPhysicalPayment(payment.getMethod());
 
         //해당 결제 청구서의 상태를 결제 완료로 변경
         payment.updateStatusToComplete();

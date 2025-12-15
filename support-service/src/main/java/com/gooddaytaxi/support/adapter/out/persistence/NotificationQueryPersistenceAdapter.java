@@ -2,6 +2,8 @@ package com.gooddaytaxi.support.adapter.out.persistence;
 
 import com.gooddaytaxi.support.application.port.out.persistence.NotificationQueryPersistencePort;
 import com.gooddaytaxi.support.domain.notification.model.Notification;
+import com.gooddaytaxi.support.domain.notification.model.NotificationType;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -22,37 +24,37 @@ public class NotificationQueryPersistenceAdapter implements NotificationQueryPer
     */
     @Override
     public Notification findById(UUID id) {
-        return null;
+        return notificationJpaRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("[Not Found] ⚠️ Notification Entity is not Found"));
     }
 
     @Override
-    public Notification findByNotificationOriginId(UUID id) {
-        return null;
+    public Notification findByNotificationOriginId(UUID notificationOriginId) {
+        return notificationJpaRepository.findByNotificationOriginId(notificationOriginId).orElseThrow(() -> new EntityNotFoundException("[Not Found] ⚠️ Notification Entity is not Found"));
     }
 
     @Override
-    public List<Notification> findAllByNotificiationType(UUID id) {
-        return List.of();
+    public List<Notification> findAllByNotificationType(NotificationType notificationType) {
+        return notificationJpaRepository.findAllByNotificationType(notificationType);
     }
 
     @Override
     public List<Notification> findByNotifiedAtBetween(LocalDateTime start, LocalDateTime end) {
-        return List.of();
+        return notificationJpaRepository.findByNotifiedAtBetween(start, end);
     }
 
     @Override
     public List<Notification> findByNotifiedAtAfter(LocalDateTime start) {
-        return List.of();
+        return notificationJpaRepository.findByNotifiedAtAfter(start);
     }
 
     @Override
     public List<Notification> findByNotifiedAtBefore(LocalDateTime end) {
-        return List.of();
+        return notificationJpaRepository.findByNotifiedAtAfter(end);
     }
 
     @Override
     public List<Notification> findByIsReadFalseAndNotifiedAtAfter(LocalDateTime start) {
-        return List.of();
+        return notificationJpaRepository.findByIsReadFalseAndNotifiedAtAfter(start);
     }
 }
 
