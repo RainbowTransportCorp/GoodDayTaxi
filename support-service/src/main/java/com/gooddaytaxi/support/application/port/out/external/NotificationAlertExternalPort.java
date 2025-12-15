@@ -15,10 +15,12 @@ public interface NotificationAlertExternalPort {
      *  - title         Slack에 표시될 제목
      *  - body          Slack에 표시될 전체 텍스트 (포매팅 포함)
      */
-    void sendCallRequest(QueuePushMessage queuePushMessage);
+    void sendFromDispatch(QueuePushMessage queuePushMessage);
+    void sendFromTrip(QueuePushMessage queuePushMessage);
+    void sendFromPayment(QueuePushMessage queuePushMessage);
 
     /**
     * 직접 호출
     */
-    void sendCallDirectRequest(QueuePushMessage queuePushMessage);
+    void sendDirectRequest(QueuePushMessage queuePushMessage);
 }
