@@ -3,7 +3,6 @@ package com.gooddaytaxi.support.application.dto;
 import com.gooddaytaxi.support.application.Metadata;
 import lombok.Getter;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
