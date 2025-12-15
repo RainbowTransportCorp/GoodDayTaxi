@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>결제 실패 | Good day Taxi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        :root {
+            --primary: #8A5DF6;
+            --danger: #ff5a5a;
+            --bg: #f7f7fb;
+            --radius: 20px;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .card {
+            background: white;
+            padding: 40px 32px;
+            border-radius: var(--radius);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            text-align: center;
+            max-width: 380px;
+            width: 90%;
+        }
+
+        .icon {
+            font-size: 44px;
+            margin-bottom: 14px;
+        }
+
+        h1 {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .reason {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .error-box {
+            background: #fafafa;
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 13px;
+            color: #444;
+            margin-bottom: 24px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 999px;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-retry {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-cancel {
+            background: #eee;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="icon">😢</div>
+    <h1>결제가 실패했습니다</h1>
+    <div class="reason">결제 처리 중 문제가 발생했어요.</div>
+
+    <div class="error-box">
+        <div id="message"></div>
+    </div>
+
+    <div class="actions">
+        <button class="btn btn-retry" onclick="retry()">다시 시도</button>
+        <button class="btn btn-cancel" onclick="goHome()">홈으로</button>
+    </div>
+</div>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const message = params.get("message") || "알 수 없는 오류가 발생했습니다.";
+
+    document.getElementById("message").textContent = message;
+
+    function retry() {
+        history.back();
+    }
+
+    function goHome() {
+        window.location.href = "/passenger/index.html";
+    }
+</script>
+
+</body>
+</html>
