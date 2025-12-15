@@ -3,10 +3,7 @@ package com.gooddaytaxi.support.adapter.in.kafka.endpoint;
 import com.gooddaytaxi.support.adapter.in.kafka.dto.*;
 import com.gooddaytaxi.support.application.Metadata;
 import com.gooddaytaxi.support.application.dto.*;
-import com.gooddaytaxi.support.application.port.in.dispatch.NotifyAcceptedCallUsecase;
-import com.gooddaytaxi.support.application.port.in.dispatch.NotifyDispatchCancelUsecase;
-import com.gooddaytaxi.support.application.port.in.dispatch.NotifyDispatchTimeoutUsecase;
-import com.gooddaytaxi.support.application.port.in.dispatch.NotifyDispatchUsecase;
+import com.gooddaytaxi.support.application.port.in.dispatch.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -24,6 +21,7 @@ public class DispatchEndpoint {
     private final NotifyAcceptedCallUsecase notifyAcceptedCallUsecase;
     private final NotifyDispatchTimeoutUsecase notifyDispatchTimeoutUsecase;
     private final NotifyDispatchCancelUsecase notifyDispatchCancelUsecase;
+    private final NotifyDispatchRejectUsecase notifyDispatchRejectUsecase;
 
     /**
      * 특정 기사에게 배차 요청이 왔을 때 Driver에 손님의 Call 요청 알림 전송 이벤트 리스너
@@ -151,6 +149,6 @@ public class DispatchEndpoint {
         log.debug("[Transform] EventRequest >>> Command ➡️ {}", command);
 
         // 배차 취소 알림 전송 서비스 호출
-        notifyDispatchCancelUsecase.execute(command);
+        notifyDispatchRejectUsecase.execute(command);
     }
 }
