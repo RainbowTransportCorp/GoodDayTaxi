@@ -4,11 +4,30 @@
     <meta charset="UTF-8">
     <title>Good day Taxi – 관리자 사용자 목록</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- 공통 헤더 -->
+    <link rel="stylesheet" href="/common/header.css">
+    <script src="/common/header.js" defer></script>
+
+    <!-- 관리자 페이지 전용 -->
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-<div class="page-container">
+<header class="header">
+    <div class="brand">
+        <div class="brand-main">Good day Taxi</div>
+        <div class="brand-sub" id="brand-sub">관리자</div>
+    </div>
+
+    <div class="user-box">
+        <span id="user-name"></span>
+        <button class="btn-logout" onclick="logout()">로그아웃</button>
+    </div>
+</header>
+
+<main class="page-container">
     <h1 class="page-title">전체 사용자 목록</h1>
 
     <table class="user-table" id="userTable">
@@ -22,7 +41,7 @@
         </thead>
         <tbody></tbody>
     </table>
-</div>
+</main>
 
 <script src="script.js"></script>
 </body>

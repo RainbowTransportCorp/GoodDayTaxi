@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8"/>
+    <title>결제하기 – Good day Taxi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="/common/header.css">
+    <script src="/common/header.js" defer></script>
+
+    <style>
+        body {
+            margin: 0;
+            background: #f7f7fb;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+        }
+
+        .container {
+            max-width: 420px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 28px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+
+        .title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .fare {
+            font-size: 28px;
+            font-weight: 800;
+            color: #8A5DF6;
+            margin: 12px 0;
+        }
+
+        .desc {
+            font-size: 14px;
+            color: #777;
+            margin-bottom: 24px;
+        }
+
+        .btn-pay {
+            width: 100%;
+            padding: 16px;
+            border-radius: 999px;
+            border: none;
+            background: #8A5DF6;
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-pay:hover {
+            background: #7349e5;
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="header">
+    <div class="brand">
+        <div class="brand-main">Good day Taxi</div>
+        <div class="brand-sub">결제</div>
+    </div>
+    <div class="user-box">
+        <span id="user-name"></span>
+        <button class="btn-logout" onclick="logout()">로그아웃</button>
+    </div>
+</header>
+
+<div class="container">
+    <div class="card">
+        <div class="title">🚕 운행 요금 결제</div>
+
+        <div class="fare" id="fare">₩ 0</div>
+
+        <div class="desc">
+            안전한 결제를 위해 Toss Payments를 사용합니다.
+        </div>
+
+        <button class="btn-pay" onclick="goToPayment()">
+            결제하기
+        </button>
+    </div>
+</div>
+
+<script>
+    const tripId = new URLSearchParams(location.search).get("tripId");
+    const userId = localStorage.getItem("userUuid");
+
+    async function loadFare() {
+        const res = await fetch(`/api/v1/payments?tripId=${tripId}`);
+        const json = await res.json();
+        document.getElementById("fare").textContent =
+            `₩ ${json.data.amount.toLocaleString()}`;
+    }
+
+    function goToPayment() {
+        window.location.href =
+            `/api/v1/payments/tosspay/ready?userId=${userId}&role=PASSENGER&tripId=${tripId}`;
+    }
+
+    loadFare();
+</script>
+
+</body>
+</html>

@@ -12,7 +12,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-
 /**
  * 알림 Entity - 시스템에서 발생하는 주요 이벤트 기반 알림
  */
@@ -95,7 +94,6 @@ public class Notification extends BaseEntity {
         this.notificationType = notificationType;
         this.message = (message == null || message.isBlank()) ? null : message;
         this.isRead = false;
-        this.notifiedAt = LocalDateTime.now();
     }
     public static Notification from(Command command, NotificationType notificationType) {
         return new Notification(command.getNotifierId(), command.getNotificationOriginId(), notificationType, command.getMessage());
@@ -126,12 +124,16 @@ public class Notification extends BaseEntity {
      * @param tripId      운행 ID
      * @param paymentId   결제 ID
      */
-    public void assignIds (UUID dispatchId, UUID driverId, UUID passengerId, UUID tripId, UUID paymentId) {
+    public void assignIds (UUID dispatchId, UUID tripId, UUID paymentId, UUID driverId, UUID passengerId) {
         this.dispatchId = dispatchId;
-        this.passengerId = passengerId;
-        this.driverId = driverId;
         this.tripId = tripId;
         this.paymentId = paymentId;
+        this.driverId = driverId;
+        this.passengerId = passengerId;
+    }
+
+    public void setMessageSendingTime(LocalDateTime sendingTime) {
+        this.notifiedAt = sendingTime;
     }
 
 

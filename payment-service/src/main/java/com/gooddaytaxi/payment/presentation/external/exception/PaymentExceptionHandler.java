@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class PaymentExceptionHandler {
-    @ExceptionHandler
+    @ExceptionHandler(PaymentException.class)
     public ResponseEntity<ApiResponse<ErrorResponse>> handlePaymentException(PaymentException e) {
         PaymentErrorCode errorCode = e.getErrorCode();
         ErrorResponse response = new ErrorResponse(

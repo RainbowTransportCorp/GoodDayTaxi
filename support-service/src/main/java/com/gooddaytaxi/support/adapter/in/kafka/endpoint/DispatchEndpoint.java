@@ -1,9 +1,11 @@
 package com.gooddaytaxi.support.adapter.in.kafka.endpoint;
 
-import com.gooddaytaxi.support.adapter.in.kafka.dto.DispatchRequestReq;
-import com.gooddaytaxi.support.adapter.in.kafka.dto.Payload;
-import com.gooddaytaxi.support.application.dto.CreateDispatchInfoCommand;
-import com.gooddaytaxi.support.application.port.in.dispatch.AcceptDispatchUsecase;
+import com.gooddaytaxi.support.adapter.in.kafka.dto.DispatchEventPayload;
+import com.gooddaytaxi.support.adapter.in.kafka.dto.EventRequest;
+import com.gooddaytaxi.support.application.Metadata;
+import com.gooddaytaxi.support.application.dto.NotifyDispatchAcceptedCommand;
+import com.gooddaytaxi.support.application.dto.NotifyDispatchInformationCommand;
+import com.gooddaytaxi.support.application.port.in.dispatch.NotifyAcceptedCallUsecase;
 import com.gooddaytaxi.support.application.port.in.dispatch.NotifyDispatchUsecase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,48 +21,63 @@ import org.springframework.stereotype.Component;
 public class DispatchEndpoint {
 
     private final NotifyDispatchUsecase notifyDispatchUsecase;
-    private final AcceptDispatchUsecase acceptDispatchUsecase;
+    private final NotifyAcceptedCallUsecase notifyAcceptedCallUsecase;
 
-    /** 특정 기사에게 배차 요청이 왔을 때 Driver에 손님의 Call 요청 알림 전송 이벤트 리스너
+    /**
+     * 특정 기사에게 배차 요청이 왔을 때 Driver에 손님의 Call 요청 알림 전송 이벤트 리스너
      */
     @KafkaListener(topics = "dispatch.requested", groupId = "support-service", concurrency = "1")
-    public void onDispatchRequested(DispatchRequestReq req) {
+    public void onDispatchRequested(EventRequest req) {
 
-        Payload p = req.payload();
-        log.info("‼️‼️‼️‼️Payload 내용 content={}", p);
+        DispatchEventPayload pl = req.convertPayload(DispatchEventPayload.class);
+        Metadata metadata = req.eventMetadata().to();
+        log.info("‼️‼️‼️‼️Payload 내용 content={}", pl);
         log.info("‼️‼️‼️‼️Event 수신 내용 eventId={}, evnetType{}, occurredAt={}, payloadVersion={}",
-        req.eventId(),
-        req.eventType(),
-        req.occurredAt(),
+        req.eventMetadata().eventId(),
+        req.eventMetadata().eventType(),
+        req.eventMetadata().occuredAt(),
         req.payloadVersion());
 
         log.info("‼️‼️‼️‼️Request 내용 message={}, driverId={}, passengerId={}",
-                p.message(), p.driverId(), p.passengerId());
+                pl.message(), pl.driverId(), pl.passengerId());
 
 
-//        DispatchRequestReq req = DispatchRequestReq.from(message);
-        CreateDispatchInfoCommand command = CreateDispatchInfoCommand.create(
-                p.notificationOriginId(), p.notifierId(),
-                p.driverId(), p.passengerId(),
-                p.pickupAddress(), p.destinationAddress(),
-                p.message());
+//        EventRequest req = EventRequest.from(message);
+        NotifyDispatchInformationCommand command = NotifyDispatchInformationCommand.create(
+                pl.notificationOriginId(), pl.notifierId(),
+                pl.driverId(), pl.passengerId(),
+                pl.pickupAddress(), pl.destinationAddress(),
+                pl.message());
 
         log.info("‼️‼️‼️‼️Command 내용 message={}, driverId={}, passengerId={}",
                 command.getMessage(), command.getDriverId(), command.getPassengerId());
 
 
-        notifyDispatchUsecase.request(command);
+        notifyDispatchUsecase.execute(command);
     }
 
-    /** 기사가 콜을 수락(배차 완료)했을 때 알림 전송 이벤트 리스너
+    /**
+     * 기사가 배차 요청 수락 후, 손님에게 Call 수락 알림을 전송하는 이벤트 리스너
      */
-//    @KafkaListener(topics = "dispatch.accepted", groupId = "support-service")
-//    public void onDispatchAccepted(DispatchRequestReq req) {
-//        GetDispatchInfoCommand command = GetDispatchInfoCommand.create(
-//                req.notificationOriginId(), req.notifierId(),
-//                req.driverId(), req.passengerId(),
-//                req.pickupAddress(), req.destinationAddress(),
-//                req.message());
-////        acceptDispatchUsecase.accepted(message);
-//    }
+    @KafkaListener(topics = "dispatch.accepted", groupId = "support-service", concurrency = "1")
+    public void onDispatchAccepted(EventRequest req) {
+        // Metadata
+        Metadata metadata = req.eventMetadata().to();
+        // Payload
+        DispatchEventPayload pl = req.convertPayload(DispatchEventPayload.class);
+        log.debug("[Check] Dispatch EventRequest 데이터: dispatchId={}, notifierId={}, message={}, occuredAt={}", pl.notificationOriginId(), pl.notifierId(), pl.message(), metadata.getOccuredAt());
+
+        // EventRequest DTO > Command 변환
+        NotifyDispatchAcceptedCommand command = NotifyDispatchAcceptedCommand.create(
+                pl.notificationOriginId(), pl.notifierId(),
+                pl.driverId(), pl.passengerId(),
+                pl.pickupAddress(), pl.destinationAddress(),
+                pl.message(),
+                metadata
+        );
+        log.debug("[Transform] EventRequest >>> Command ➡️ {}", command);
+
+        // 수락된 콜 알림 전송 서비스 호출
+        notifyAcceptedCallUsecase.execute(command);
+    }
 }

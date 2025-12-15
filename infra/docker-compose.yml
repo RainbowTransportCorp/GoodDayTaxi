@@ -7,7 +7,7 @@ services:
 
   account-db:
     image: postgres:15
-    container_name: gd_account_db
+    container_name: GD-ACCOUNT-DB
     environment:
       POSTGRES_USER: ${ACCOUNT_DB_USER}
       POSTGRES_PASSWORD: ${ACCOUNT_DB_PASS}
@@ -16,13 +16,13 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - account_pgdata:/var/lib/postgresql/data
+      - account-pg-data:/var/lib/postgresql/data
     networks:
       - gd-network
 
   dispatch-db:
     image: postgres:15
-    container_name: gd_dispatch_db
+    container_name: GD-DISPATCH-DB
     environment:
       POSTGRES_USER: ${DISPATCH_DB_USER}
       POSTGRES_PASSWORD: ${DISPATCH_DB_PASS}
@@ -31,13 +31,13 @@ services:
     ports:
       - "5434:5432"
     volumes:
-      - dispatch_pgdata:/var/lib/postgresql/data
+      - dispatch-pg-data:/var/lib/postgresql/data
     networks:
       - gd-network
 
   trip-db:
     image: postgres:15
-    container_name: gd_trip_db
+    container_name: GD-TRIP-DB
     environment:
       POSTGRES_USER: ${TRIP_DB_USER}
       POSTGRES_PASSWORD: ${TRIP_DB_PASS}
@@ -46,13 +46,13 @@ services:
     ports:
       - "5435:5432"
     volumes:
-      - trip_pgdata:/var/lib/postgresql/data
+      - trip-pg-data:/var/lib/postgresql/data
     networks:
       - gd-network
 
   payment-db:
     image: postgres:15
-    container_name: gd_payment_db
+    container_name: GD-PAYMENT-DB
     environment:
       POSTGRES_USER: ${PAYMENT_DB_USER}
       POSTGRES_PASSWORD: ${PAYMENT_DB_PASS}
@@ -61,13 +61,13 @@ services:
     ports:
       - "5436:5432"
     volumes:
-      - payment_pgdata:/var/lib/postgresql/data
+      - payment-pg-data:/var/lib/postgresql/data
     networks:
       - gd-network
 
   support-db:
     image: postgres:15
-    container_name: gd_support_db
+    container_name: GD-SUPPORT-DB
     environment:
       POSTGRES_USER: ${SUPPORT_DB_USER}
       POSTGRES_PASSWORD: ${SUPPORT_DB_PASS}
@@ -76,7 +76,7 @@ services:
     ports:
       - "5437:5432"
     volumes:
-      - support_pgdata:/var/lib/postgresql/data
+      - support-pg-data:/var/lib/postgresql/data
     networks:
       - gd-network
 
@@ -87,9 +87,21 @@ services:
 
   redis:
     image: redis:7
-    container_name: gd_redis
+    container_name: GD-REDIS
     ports:
       - "${REDIS_PORT}:6379"
+    networks:
+      - gd-network
+
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: GD-REDIS-EXPORTER
+    ports:
+      - "9121:9121"
+    environment:
+      REDIS_ADDR: "redis:6379"
+    depends_on:
+      - redis
     networks:
       - gd-network
 
@@ -100,7 +112,7 @@ services:
 
   zipkin:
     image: openzipkin/zipkin:latest
-    container_name: gd_zipkin
+    container_name: GD-ZIPKIN
     ports:
       - "${ZIPKIN_PORT}:9411"
     networks:
@@ -113,7 +125,7 @@ services:
 
   zookeeper:
     image: wurstmeister/zookeeper:latest
-    container_name: gd_zookeeper
+    container_name: GD-ZOOKEEPER
     volumes:
       - zookeeper-data:/var/lib/zookeeper
     ports:
@@ -125,7 +137,7 @@ services:
 
   kafka:
     image: wurstmeister/kafka:latest
-    container_name: gd_kafka
+    container_name: GD-KAFKA
     ports:
       - '${KAFKA_PORT}:9092'
     depends_on:
@@ -138,7 +150,8 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
       KAFKA_LISTENERS: INTERNAL://0.0.0.0:29092,EXTERNAL://0.0.0.0:9092
-      KAFKA_ADVERTISED_LISTENERS: INTERNAL://gd_kafka:29092,EXTERNAL://${KAFKA_EXTERNAL_HOST}:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092,EXTERNAL://${KAFKA_EXTERNAL_HOST}:9092
+
       KAFKA_DEFAULT_REPLICATION_FACTOR: 1
       KAFKA_NUM_PARTITIONS: 1
     volumes:
@@ -149,7 +162,8 @@ services:
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
-    container_name: gd_kafka-ui
+    container_name: GD-KAFKA-UI
+
     volumes:
       - kafka-ui-data:/var/lib/kafka-ui
     depends_on:
@@ -158,7 +172,7 @@ services:
       - "${KAFKA_UI_PORT}:9999"
     environment:
       KAFKA_CLUSTERS_0_NAME: local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: gd_kafka:29092
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
       KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
       KAFKA_CLUSTERS_0_READONLY: "false"
       SERVER_PORT: 9999
@@ -172,7 +186,7 @@ services:
 
   rabbitmq:
     image: rabbitmq:4-management
-    container_name: gd_rabbitmq
+    container_name: GD-RABBITMQ
     restart: unless-stopped
     ports:
       - "${RABBITMQ_PORT}:5672"
@@ -181,7 +195,7 @@ services:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
     volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
+      - rabbitmq-data:/var/lib/rabbitmq
     networks:
       - gd-network
 
@@ -194,7 +208,7 @@ services:
     build:
       context: ../server
       dockerfile: Dockerfile
-    container_name: gd_eureka
+    container_name: GD-EUREKA
     ports:
       - "${EUREKA_PORT}:8761"
     environment:
@@ -206,7 +220,7 @@ services:
     build:
       context: ../gateway
       dockerfile: Dockerfile
-    container_name: gd_gateway
+    container_name: GD-GATEWAY
     ports:
       - "${GATEWAY_PORT}:8080"
     environment:
@@ -224,7 +238,7 @@ services:
 
   prometheus:
     image: prom/prometheus:latest
-    container_name: gd_prometheus
+    container_name: GD-PROMETHEUS
     ports:
       - "9090:9090"
     volumes:
@@ -239,7 +253,7 @@ services:
 
   grafana:
     image: grafana/grafana:latest
-    container_name: gd_grafana
+    container_name: GD-GRAFANA
     ports:
       - "3000:3000"
     environment:
@@ -258,7 +272,7 @@ services:
   #   build:
   #     context: ../account-service
   #     dockerfile: Dockerfile
-  #   container_name: gd_account_service
+  #   container_name: GD-ACCOUNT-SERVICE
   #   ports:
   #     - "${ACCOUNT_SERVICE_PORT}:8080"
   #   depends_on:
@@ -271,7 +285,7 @@ services:
   #   build:
   #     context: ../dispatch-service
   #     dockerfile: Dockerfile
-  #   container_name: gd_dispatch_service
+  #   container_name: GD-DISPATCH-SERVICE
   #   ports:
   #     - "${DISPATCH_SERVICE_PORT}:8080"
   #   depends_on:
@@ -285,7 +299,7 @@ services:
   #   build:
   #     context: ../trip-service
   #     dockerfile: Dockerfile
-  #   container_name: gd_trip_service
+  #   container_name: GD-TRIP-SERVICE
   #   ports:
   #     - "${TRIP_SERVICE_PORT}:8080"
   #   depends_on:
@@ -298,7 +312,7 @@ services:
   #   build:
   #     context: ../payment-service
   #     dockerfile: Dockerfile
-  #   container_name: gd_payment_service
+  #   container_name: GD-PAYMENT-SERVICE
   #   ports:
   #     - "${PAYMENT_SERVICE_PORT}:8080"
   #   depends_on:
@@ -312,7 +326,7 @@ services:
   #   build:
   #     context: ../support-service
   #     dockerfile: Dockerfile
-  #   container_name: gd_support_service
+  #   container_name: GD-SUPPORT-SERVICE
   #   ports:
   #     - "${SUPPORT_SERVICE_PORT}:8080"
   #   depends_on:
@@ -326,15 +340,15 @@ services:
 # VOLUMES
 # ================
 volumes:
-  account_pgdata:
-  dispatch_pgdata:
-  trip_pgdata:
-  payment_pgdata:
-  support_pgdata:
+  account-pg-data:
+  dispatch-pg-data:
+  trip-pg-data:
+  payment-pg-data:
+  support-pg-data:
   kafka-data:
   zookeeper-data:
   kafka-ui-data:
-  rabbitmq_data:
+  rabbitmq-data:
 
 # ================
 # NETWORKS

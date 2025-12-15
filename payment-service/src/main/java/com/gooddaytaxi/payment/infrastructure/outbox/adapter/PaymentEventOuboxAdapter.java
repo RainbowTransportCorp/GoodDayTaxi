@@ -29,15 +29,6 @@ public class PaymentEventOuboxAdapter implements PaymentEventOutboxPort {
                 model.payloadJson()
         );
         repository.save(event);
-//        repository.save(new PaymentEvent(
-//                model.eventType(),
-//                model.topic(),
-//                model.messageKey(),
-//                model.aggregateType(),
-//                model.aggregateId(),
-//                model.version(),
-//                model.payloadJson()
-//        ));
     }
 
     @Override

@@ -2,9 +2,10 @@ package com.gooddaytaxi.support.adapter.in.kafka.dto;
 
 import java.util.UUID;
 
-/** 이벤트 Payload 수신 DTO
+/**
+ * DISPATCH_REQUESTED, DISPATCH_ACCEPTED 이벤트 Payload DTO
  */
-public record Payload(
+public record DispatchEventPayload(
     String message,
     UUID driverId,
     UUID passengerId,
