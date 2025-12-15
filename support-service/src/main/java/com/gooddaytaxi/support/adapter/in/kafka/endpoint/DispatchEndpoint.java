@@ -1,13 +1,16 @@
 package com.gooddaytaxi.support.adapter.in.kafka.endpoint;
 
+import com.gooddaytaxi.support.adapter.in.kafka.dto.DispatchCancelledEventPayload;
 import com.gooddaytaxi.support.adapter.in.kafka.dto.DispatchEventPayload;
 import com.gooddaytaxi.support.adapter.in.kafka.dto.DispatchTimeoutEventPayload;
 import com.gooddaytaxi.support.adapter.in.kafka.dto.EventRequest;
 import com.gooddaytaxi.support.application.Metadata;
 import com.gooddaytaxi.support.application.dto.NotifyDipsatchTimeoutCommand;
 import com.gooddaytaxi.support.application.dto.NotifyDispatchAcceptedCommand;
+import com.gooddaytaxi.support.application.dto.NotifyDispatchCancelledCommand;
 import com.gooddaytaxi.support.application.dto.NotifyDispatchInformationCommand;
 import com.gooddaytaxi.support.application.port.in.dispatch.NotifyAcceptedCallUsecase;
+import com.gooddaytaxi.support.application.port.in.dispatch.NotifyDispatchCancelUsecase;
 import com.gooddaytaxi.support.application.port.in.dispatch.NotifyDispatchTimeoutUsecase;
 import com.gooddaytaxi.support.application.port.in.dispatch.NotifyDispatchUsecase;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +29,7 @@ public class DispatchEndpoint {
     private final NotifyDispatchUsecase notifyDispatchUsecase;
     private final NotifyAcceptedCallUsecase notifyAcceptedCallUsecase;
     private final NotifyDispatchTimeoutUsecase notifyDispatchTimeoutUsecase;
+    private final NotifyDispatchCancelUsecase notifyDispatchCancelUsecase;
 
     /**
      * 특정 기사에게 배차 요청이 왔을 때 Driver에 손님의 Call 요청 알림 전송 이벤트 리스너
@@ -102,5 +106,32 @@ public class DispatchEndpoint {
 
         // 수락된 콜 알림 전송 서비스 호출
         notifyDispatchTimeoutUsecase.execute(command);
+    }
+
+
+    /**
+     * 승객이 콜을 취소했을 때 기사에게 알림을 전송하는 이벤트 리스너
+     */
+    @KafkaListener(topics = "dispatch.cancelled", groupId = "support-service", concurrency = "1")
+    public void onDispatchCancelled(EventRequest req) {
+        // Metadata
+        Metadata metadata = req.eventMetadata().to();
+        // Payload
+        DispatchCancelledEventPayload pl = req.convertPayload(DispatchCancelledEventPayload.class);
+        log.debug("[Check] Dispatch Cancel EventRequest 데이터: dispatchId={}, driverId={}, cancelBy={}, cancelledAt={}", pl.dispatchId(), pl.driverId(), pl.cancelledBy(), pl.cancelledAt());
+
+        // EventRequest DTO > Command 변환
+        NotifyDispatchCancelledCommand command = NotifyDispatchCancelledCommand.create(
+                pl.dispatchId(),
+                pl.driverId(),
+                pl.passengerId(),
+                pl.cancelledBy(),
+                pl.cancelledAt(),
+                metadata
+        );
+        log.debug("[Transform] EventRequest >>> Command ➡️ {}", command);
+
+        // 배차 취소 알림 전송 서비스 호출
+        notifyDispatchCancelUsecase.execute(command);
     }
 }
