@@ -1,15 +1,17 @@
-package com.gooddaytaxi.dispatch.application.exception.auth;
+package com.gooddaytaxi.dispatch.application.usecase.reject;
 
 import com.gooddaytaxi.dispatch.application.exception.DispatchPermissionDeniedException;
+import com.gooddaytaxi.dispatch.application.exception.auth.UserRole;
 import org.springframework.stereotype.Component;
 
+
 @Component
-public class DispatchDriverPermissionValidator {
+public class DispatchRejectPermissionValidator {
 
     public void validate(UserRole role) {
-        // PASSENGER / ADMIN / SYSTEM allowed
         if (role != UserRole.DRIVER) {
             throw new DispatchPermissionDeniedException(role);
         }
     }
 }
+

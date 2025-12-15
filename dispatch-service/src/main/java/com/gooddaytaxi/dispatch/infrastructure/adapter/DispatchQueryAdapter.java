@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -29,12 +30,17 @@ public class DispatchQueryAdapter implements DispatchQueryPort {
     }
 
     @Override
-    public List<Dispatch> findByStatus(DispatchStatus status) {
-        return dispatchRepository.findByStatus(status);
+    public List<Dispatch> findByDriverIdAndStatus(UUID driverId, DispatchStatus status) {
+        return dispatchRepository.findByDriverIdAndStatus(driverId, status);
     }
 
     @Override
     public List<Dispatch> findTimeoutTargets(int seconds) {
         return dispatchRepository.findTimeoutTargets(seconds);
+    }
+
+    @Override
+    public Optional<Dispatch> findByIdAndPassengerId(UUID dispatchId, UUID passengerId) {
+        return dispatchRepository.findByIdAndPassengerId(dispatchId,passengerId);
     }
 }

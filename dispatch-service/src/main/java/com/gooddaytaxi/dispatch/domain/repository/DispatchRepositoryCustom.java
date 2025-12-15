@@ -18,7 +18,10 @@ import java.util.UUID;
  */
 public interface DispatchRepositoryCustom {
     List<Dispatch> findAllByPassengerId(UUID passengerId);
-    List<Dispatch> findByStatus(DispatchStatus status);
     Optional<Dispatch> findByDispatchId(UUID id);
      List<Dispatch> findTimeoutTargets(int seconds);
+
+    List<Dispatch> findByDriverIdAndStatus(UUID driverId, DispatchStatus status);
+
+    Optional<Dispatch> findByIdAndPassengerId(UUID dispatchId, UUID passengerId);
 }
