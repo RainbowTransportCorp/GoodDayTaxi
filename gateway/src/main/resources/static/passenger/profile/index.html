@@ -5,20 +5,26 @@
     <title>Good day Taxi – 내 프로필</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
+    <link rel="stylesheet" href="/common/header.css">
+    <script src="/common/header.js" defer></script>
     <!-- 같은 폴더의 CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
 
 <header class="header">
-    <div>
+    <div class="brand">
         <div class="brand-main">Good day Taxi</div>
-        <div class="brand-sub">마이 페이지</div>
+        <div class="brand-sub" id="brand-sub">마이페이지</div>
     </div>
 
-    <button class="btn-back" type="button" onclick="history.back()">←</button>
+    <div class="user-box">
+        <span id="user-name"></span>
+        <button class="btn-logout" onclick="logout()">로그아웃</button>
+    </div>
 </header>
 
+
+<body>
 <main class="page-container">
     <section class="card">
         <h2 class="section-title">내 정보</h2>

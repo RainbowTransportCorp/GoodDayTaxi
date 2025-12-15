@@ -10,7 +10,7 @@ server:
 
 eureka:
   instance:
-    hostname: gd_eureka                    # 도커 컨테이너명과 일치시킴
+    hostname: GD-EUREKA                    # 도커 컨테이너명과 일치시킴
   client:
     register-with-eureka: false
     fetch-registry: false
