@@ -3,14 +3,8 @@ package com.gooddaytaxi.support.application.service;
 import com.gooddaytaxi.support.adapter.out.internal.account.dto.DriverProfile;
 import com.gooddaytaxi.support.adapter.out.internal.account.dto.VehicleInfo;
 import com.gooddaytaxi.support.application.Metadata;
-import com.gooddaytaxi.support.application.dto.NotifyDipsatchTimeoutCommand;
-import com.gooddaytaxi.support.application.dto.NotifyDispatchAcceptedCommand;
-import com.gooddaytaxi.support.application.dto.NotifyDispatchCancelledCommand;
-import com.gooddaytaxi.support.application.dto.NotifyDispatchInformationCommand;
-import com.gooddaytaxi.support.application.port.in.dispatch.NotifyAcceptedCallUsecase;
-import com.gooddaytaxi.support.application.port.in.dispatch.NotifyDispatchCancelUsecase;
-import com.gooddaytaxi.support.application.port.in.dispatch.NotifyDispatchTimeoutUsecase;
-import com.gooddaytaxi.support.application.port.in.dispatch.NotifyDispatchUsecase;
+import com.gooddaytaxi.support.application.dto.*;
+import com.gooddaytaxi.support.application.port.in.dispatch.*;
 import com.gooddaytaxi.support.application.port.out.internal.account.AccountDomainCommunicationPort;
 import com.gooddaytaxi.support.application.port.out.messaging.NotificationPushMessagingPort;
 import com.gooddaytaxi.support.application.port.out.messaging.QueuePushMessage;
@@ -34,7 +28,7 @@ import java.util.UUID;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class DispatchNotificationService implements NotifyDispatchUsecase, NotifyAcceptedCallUsecase, NotifyDispatchTimeoutUsecase, NotifyDispatchCancelUsecase {
+public class DispatchNotificationService implements NotifyDispatchUsecase, NotifyAcceptedCallUsecase, NotifyDispatchTimeoutUsecase, NotifyDispatchCancelUsecase, NotifyDispatchRejectUsecase {
 
     private final NotificationCommandPersistencePort notificationCommandPersistencePort;
     private final NotificationPushMessagingPort notificationPushMessagingPort;
@@ -250,6 +244,48 @@ public class DispatchNotificationService implements NotifyDispatchUsecase, Notif
 
         // 로그
         log.info("\uD83D\uDCE2 [DISPATCH] Cancelled! dispatchId={}, driverId={}, passengerId={}, cancelledAt={}", command.getDispatchId(), command.getDriverId(), command.getPassengerId(), command.getCancelledAt());
+
+    }
+
+    /**
+     * 배차 거절 알림 서비스
+     * */
+    @Transactional
+    @Override
+    public void execute(NotifyDispatchRejectedCommand command) {
+        // Notification 생성 및 저장
+        Notification noti = Notification.from(command, NotificationType.DISPATCH_REJECTED);
+        noti.assignIds(command.getDispatchId(), null, null, command.getDriverId(), command.getPassengerId());
+
+        Notification savedNoti = notificationCommandPersistencePort.save(noti);
+//        Notification savedNoti = notificationQueryPersistencePort.findById(noti.getId());
+        log.debug("[Check] Notification Persistence 조회: dispatchId={}, driverId={}, passengeId={}", savedNoti.getDispatchId(), savedNoti.getDriverId(), savedNoti.getPassengerId());
+
+        // 수신자: [ 기사, 승객 ]
+        List<UUID> receivers = new ArrayList<>();
+        receivers.add(null);
+        receivers.add(command.getDispatchId());
+
+        // 알림 메시지 구성
+        String messageTitle = "\uD83D\uDCE2 기사님이 콜을 거절하였습니다";
+        Metadata metadata = command.getMetadata();
+        String messageBody = """
+                %s에 기사님이 콜을 거절하였습니다
+                다시 배차를 시도합니다
+                """.formatted(
+                command.getRejectedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+        );
+
+        // RabbitMQ: Queue에 Push
+        QueuePushMessage queuePushMessage = QueuePushMessage.create(receivers, metadata, messageTitle, messageBody);
+        notificationPushMessagingPort.push(queuePushMessage, "DISPATCH");
+        log.debug("[Push] RabbitMQ 메시지: {}", messageTitle);
+
+        // Push 알림: Slack, FCM 등 - RabbitMQ Listener 없이 직접 호출 시 사용
+//        notificationAlertExternalPort.sendDirectRequest(queuePushMessage);
+
+        // 로그
+        log.info("\uD83D\uDCE2 [DISPATCH] Rejected! dispatchId={}, driverId={}, passengerId={}, rejectedAt={}", command.getDispatchId(), command.getDriverId(), command.getPassengerId(), command.getRejectedAt());
 
     }
 }

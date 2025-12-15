@@ -1,14 +1,8 @@
 package com.gooddaytaxi.support.adapter.in.kafka.endpoint;
 
-import com.gooddaytaxi.support.adapter.in.kafka.dto.DispatchCancelledEventPayload;
-import com.gooddaytaxi.support.adapter.in.kafka.dto.DispatchEventPayload;
-import com.gooddaytaxi.support.adapter.in.kafka.dto.DispatchTimeoutEventPayload;
-import com.gooddaytaxi.support.adapter.in.kafka.dto.EventRequest;
+import com.gooddaytaxi.support.adapter.in.kafka.dto.*;
 import com.gooddaytaxi.support.application.Metadata;
-import com.gooddaytaxi.support.application.dto.NotifyDipsatchTimeoutCommand;
-import com.gooddaytaxi.support.application.dto.NotifyDispatchAcceptedCommand;
-import com.gooddaytaxi.support.application.dto.NotifyDispatchCancelledCommand;
-import com.gooddaytaxi.support.application.dto.NotifyDispatchInformationCommand;
+import com.gooddaytaxi.support.application.dto.*;
 import com.gooddaytaxi.support.application.port.in.dispatch.NotifyAcceptedCallUsecase;
 import com.gooddaytaxi.support.application.port.in.dispatch.NotifyDispatchCancelUsecase;
 import com.gooddaytaxi.support.application.port.in.dispatch.NotifyDispatchTimeoutUsecase;
@@ -127,6 +121,31 @@ public class DispatchEndpoint {
                 pl.passengerId(),
                 pl.cancelledBy(),
                 pl.cancelledAt(),
+                metadata
+        );
+        log.debug("[Transform] EventRequest >>> Command ➡️ {}", command);
+
+        // 배차 취소 알림 전송 서비스 호출
+        notifyDispatchCancelUsecase.execute(command);
+    }
+
+    /**
+     * 기사가 콜을 거절했을 때 손님에게 알림을 전송하는 이벤트 리스너
+     */
+    @KafkaListener(topics = "dispatch.rejected", groupId = "support-service", concurrency = "1")
+    public void onDispatchRejected(EventRequest req) {
+        // Metadata
+        Metadata metadata = req.eventMetadata().to();
+        // Payload
+        DispatchRejectedEventPayload pl = req.convertPayload(DispatchRejectedEventPayload.class);
+        log.debug("[Check] Dispatch Reject EventRequest 데이터: dispatchId={}, driverId={}, passengerId={}, rejectedAt={}", pl.dispatchId(), pl.driverId(), pl.passengerId(), pl.rejectedAt());
+
+        // EventRequest DTO > Command 변환
+        NotifyDispatchRejectedCommand command = NotifyDispatchRejectedCommand.create(
+                pl.dispatchId(),
+                pl.driverId(),
+                pl.passengerId(),
+                pl.rejectedAt(),
                 metadata
         );
         log.debug("[Transform] EventRequest >>> Command ➡️ {}", command);

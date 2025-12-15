@@ -36,6 +36,7 @@ public class PaymentNotificationService implements NotifyCompletedPaymentUsecase
     /**
      * 수신자에게 결제 완료 알림 서비스
      */
+    @Transactional
     @Override
     public void execute(NotifyPaymentCompletedCommand command) {
         // Notification 생성 및 저장
@@ -83,6 +84,7 @@ public class PaymentNotificationService implements NotifyCompletedPaymentUsecase
     /**
      * 수신자에게 환불 요청 알림 서비스
      */
+    @Transactional
     @Override
     public void request(NotifyRefundRequestedCommand command) {
         // Notification 생성 및 저장
@@ -136,6 +138,7 @@ public class PaymentNotificationService implements NotifyCompletedPaymentUsecase
     /**
      * 수신자에게 환불 요청 거절 알림 서비스
      */
+    @Transactional
     @Override
     public void reject(NotifyRefundRejectedCommand command) {
         // Notification 생성 및 저장
@@ -187,6 +190,7 @@ public class PaymentNotificationService implements NotifyCompletedPaymentUsecase
     /**
      * 수신자에게 환불 완료 알림 서비스
      */
+    @Transactional
     @Override
     public void complete(NotifyRefundCompletedCommand command) {
         // Notification 생성 및 저장
@@ -299,6 +303,7 @@ public class PaymentNotificationService implements NotifyCompletedPaymentUsecase
     /**
      * 수신자에게 환불 진행 요청 알림 서비스
      */
+    @Transactional
     @Override
     public void createSettlement(NotifyRefundSettlementCreatedCommand command) {
         // Notification 생성 및 저장
