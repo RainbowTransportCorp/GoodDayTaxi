@@ -3,10 +3,7 @@ package com.gooddaytaxi.support.adapter.in.kafka.endpoint;
 
 import com.gooddaytaxi.support.adapter.in.kafka.dto.*;
 import com.gooddaytaxi.support.application.Metadata;
-import com.gooddaytaxi.support.application.dto.NotifyPaymentCompletedCommand;
-import com.gooddaytaxi.support.application.dto.NotifyRefundCompletedCommand;
-import com.gooddaytaxi.support.application.dto.NotifyRefundRejectedCommand;
-import com.gooddaytaxi.support.application.dto.NotifyRefundRequestedCommand;
+import com.gooddaytaxi.support.application.dto.*;
 import com.gooddaytaxi.support.application.port.in.payment.NotifyCompletedPaymentUsecase;
 import com.gooddaytaxi.support.application.port.in.payment.NotifyRefundUsecase;
 import lombok.RequiredArgsConstructor;
@@ -143,5 +140,35 @@ public class PaymentEndpoint {
         notifyRefundUsecase.complete(command);
     }
 
+
+    /**
+     * 기사가 직접 결제했을 경우, 환불 승인 시 기사에게 승객의 환불을 진행하라는 알림을 전송하는 이벤트 리스너
+     */
+    @KafkaListener(topics = "refund.settlement", groupId = "support-service")
+    public void onRefundSettlementCreated(EventRequest req) {
+        // Metadata
+        Metadata metadata = req.eventMetadata().to();
+        // Payload
+        RefundSettlementCreatedEventPayload pl = req.convertPayload(RefundSettlementCreatedEventPayload.class);
+        log.debug("[Check] Refund Request to Driver EventRequest 데이터: tripId={}, paymentId={}, driverId={}, approvedAt={}", pl.tripId(), pl.notificationOriginId(), pl.driverId(), pl.approvedAt());
+
+        // EventRequest DTO > Command 변환
+        NotifyRefundSettlementCreatedCommand command = NotifyRefundSettlementCreatedCommand.create(
+                pl.notificationOriginId(), pl.notifierId(),
+//                pl.dispatchId(),
+                pl.tripId(),
+                pl.paymentId(),
+                pl.driverId(),
+                pl.method(),
+                pl.amount(),
+                pl.reason(),
+                pl.approvedAt(),
+                metadata
+        );
+        log.debug("[Transform] EventRequest >>> Command ➡️ {}", command);
+
+        // 환불 요청 알림 전송 서비스 호출
+        notifyRefundUsecase.createSettlement(command);
+    }
 
 }

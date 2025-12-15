@@ -17,6 +17,7 @@ public enum NotificationType {
     REFUND_REQUEST_CREATED, // 환불 요청 알림
     REFUND_REQUEST_REJECTED, // 환불 거절 알림
     REFUND_COMPLETED, // 환불 완료 알림
+    REFUND_SETTLEMENT_CREATED, // 환불 진행 요청 알림
 
     ERROR_DETECTED;     // 장애 발생 알림
 

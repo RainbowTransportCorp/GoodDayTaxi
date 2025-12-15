@@ -295,4 +295,60 @@ public class PaymentNotificationService implements NotifyCompletedPaymentUsecase
         // 로그
         log.info("\uD83D\uDCE2 [Refund] Completed! refundRequestId={}: {} 처리 완료", command.getNotificationOriginId(), refundReason.getDescription());
     }
+
+    /**
+     * 수신자에게 환불 진행 요청 알림 서비스
+     */
+    @Override
+    public void createSettlement(NotifyRefundSettlementCreatedCommand command) {
+        // Notification 생성 및 저장
+        Notification noti = Notification.from(command, NotificationType.REFUND_SETTLEMENT_CREATED);
+        noti.assignIds(null, command.getTripId(), command.getPaymentId(), command.getDriverId(), null);
+        log.debug("[Check] Notification 생성: paymentId={}, adminId={}, driverId={}, reason={}", noti.getNotificationOriginId(), noti.getNotifierId(), noti.getDriverId(), command.getReason());
+
+        Notification savedNoti = notificationCommandPersistencePort.save(noti);
+//        Notification savedNoti = notificationQueryPersistencePort.findById(noti.getId());
+        log.debug("[Check] Notification Persistence 조회: paymentId={}, adminId={}, driverId={}, message={}", savedNoti.getPaymentId(), savedNoti.getNotifierId(), savedNoti.getDriverId(), savedNoti.getMessage());
+
+        // 수신자: [ 기사, 승객 ]
+        List<UUID> receivers = new ArrayList<>();
+        receivers.add(command.getDriverId());
+        receivers.add(null);
+
+        // 알림 메시지 구성
+
+        String messageTitle = "\uD83D\uDCE2 승객의 환불 절차를 진행해주시기 바랍니다";
+        Metadata metadata = command.getMetadata();
+
+        String messageBody = """
+                이전 운행 이력 중 ID %s인 운행에 대해 승객이 환불을 요청하였습니다
+                'GoodDayTaxi'에서 %s에 아래 사유로 이를 승인하였기에
+                직접 결제한 경우, 결제 이력(%s)에 대해 환불 절차를 진행해주시기 바랍니다
+                
+                [ 환불 승인 사유 ]
+                %s
+                
+                [ 환불 금액 및 수단 ]
+                · 환불 금액: %,d원
+                · 환불 수단: %s
+                """.formatted(
+                command.getTripId(),
+                command.getApprovedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                command.getPaymentId(),
+                command.getReason(),
+                command.getAmount(),
+                command.getMethod()
+        );
+
+        // RabbitMQ: Queue에 Push
+        QueuePushMessage queuePushMessage = QueuePushMessage.create(receivers, metadata, messageTitle, messageBody);
+        notificationPushMessagingPort.push(queuePushMessage, "PAYMENT");
+        log.debug("[Push] RabbitMQ 메시지: {}", queuePushMessage.title());
+
+        // Push 알림: Slack, FCM 등 - RabbitMQ Listener 없이 직접 호출 시 사용
+//        notificationAlertExternalPort.sendDirectRequest(queuePushMessage);
+
+        // 로그
+        log.info("\uD83D\uDCE2 [Refund] Settlement Created! paymentId={}: {}(으)로 {}원 환불 진행 요청", command.getNotificationOriginId(), command.getMethod(), command.getAmount());
+    }
 }
