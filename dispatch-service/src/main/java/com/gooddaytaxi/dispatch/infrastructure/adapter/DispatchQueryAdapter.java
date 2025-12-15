@@ -19,6 +19,16 @@ public class DispatchQueryAdapter implements DispatchQueryPort {
     private final DispatchRepository dispatchRepository;
 
     @Override
+    public List<Dispatch> findAll() {
+        return dispatchRepository.findAll();
+    }
+
+    @Override
+    public List<Dispatch> findByStatus(DispatchStatus status) {
+        return dispatchRepository.findByStatus(status);
+    }
+
+    @Override
     public List<Dispatch> findAllByPassengerId(UUID passengerId) {
         return dispatchRepository.findAllByPassengerId(passengerId);
     }

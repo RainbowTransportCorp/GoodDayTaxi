@@ -64,18 +64,6 @@ public class DispatchRepositoryImpl implements DispatchRepositoryCustom {
                         .fetchOne());
     }
 
-    @Override
-    public List<Dispatch> findTimeoutTargets(int seconds) {
-        LocalDateTime now = LocalDateTime.now();
-
-        return queryFactory
-                .selectFrom(dispatch)
-                .where(
-                        dispatch.dispatchStatus.eq(DispatchStatus.ASSIGNING),
-                        dispatch.timeoutAt.loe(now)
-                )
-                .fetch();
-    }
 
     @Override
     public List<Dispatch> findTimeoutCandidates() {
@@ -85,6 +73,14 @@ public class DispatchRepositoryImpl implements DispatchRepositoryCustom {
                         .in(DispatchStatus.ASSIGNING,
                                 DispatchStatus.ASSIGNED
                         ))
+                .fetch();
+    }
+
+    @Override
+    public List<Dispatch> findByStatus(DispatchStatus status) {
+        return queryFactory
+                .selectFrom(dispatch)
+                .where(dispatch.dispatchStatus.eq(status))
                 .fetch();
     }
 

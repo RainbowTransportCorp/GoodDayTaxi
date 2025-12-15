@@ -3,6 +3,9 @@ package com.gooddaytaxi.dispatch.application.service.admin;
 import com.gooddaytaxi.dispatch.application.exception.DispatchPermissionDeniedException;
 import com.gooddaytaxi.dispatch.application.exception.auth.UserRole;
 import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
+import com.gooddaytaxi.dispatch.application.usecase.admin.AdminDispatchDetailResult;
+import com.gooddaytaxi.dispatch.application.usecase.admin.AdminDispatchListResult;
+import com.gooddaytaxi.dispatch.application.usecase.timeout.AdminPermissionValidator;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
 import lombok.RequiredArgsConstructor;
@@ -19,23 +22,49 @@ public class AdminDispatchQueryService {
 
     private final DispatchQueryPort queryPort;
 
-    public List<Dispatch> findAll(UserRole role, DispatchStatus status) {
-        validateAdmin(role);
+    private final AdminPermissionValidator adminPermissionValidator;
 
-//        if (status == null) {
-//            return queryPort.findAll();
-//        }
-//        return queryPort.findByStatus(status);
+    public List<AdminDispatchListResult> getDispatches(UserRole role, DispatchStatus status) {
+
+        adminPermissionValidator.validateAdminRead(role);
+
+        List<Dispatch> dispatches =
+                (status == null)
+                        ? queryPort.findAll()
+                        : queryPort.findByStatus(status);
+        return dispatches.stream()
+                .map(dispatch -> AdminDispatchListResult.builder()
+                        .dispatchId(dispatch.getDispatchId())
+                        .passengerId(dispatch.getPassengerId())
+                        .driverId(dispatch.getDriverId())
+                        .status(dispatch.getDispatchStatus())
+                        .reassignCount(dispatch.getReassignAttemptCount())
+                        .requestedAt(dispatch.getRequestCreatedAt())
+                        .updatedAt(dispatch.getUpdatedAt())
+                        .build()
+                )
+                .toList();
     }
 
-    public Dispatch findDetail(UserRole role, UUID dispatchId) {
-        validateAdmin(role);
-        return queryPort.findById(dispatchId);
-    }
+    public AdminDispatchDetailResult getDispatchDetail(
+            UserRole role,
+            UUID dispatchId
+    ) {
+        adminPermissionValidator.validateAdminRead(role);
 
-    private void validateAdmin(UserRole role) {
-        if (role != UserRole.ADMIN && role != UserRole.MASTER_ADMIN) {
-            throw new DispatchPermissionDeniedException(role);
-        }
+        Dispatch dispatch = queryPort.findById(dispatchId);
+
+        return AdminDispatchDetailResult.builder()
+                .dispatchId(dispatch.getDispatchId())
+                .passengerId(dispatch.getPassengerId())
+                .driverId(dispatch.getDriverId())
+                .status(dispatch.getDispatchStatus())
+                .pickupAddress(dispatch.getPickupAddress())
+                .destinationAddress(dispatch.getDestinationAddress())
+                .reassignCount(dispatch.getReassignAttemptCount())
+                .assignedAt(dispatch.getAssignedAt())
+                .acceptedAt(dispatch.getAcceptedAt())
+                .timeoutAt(dispatch.getTimeoutAt())
+                .build();
     }
 }

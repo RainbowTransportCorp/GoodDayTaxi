@@ -57,7 +57,8 @@ public class DispatchCancelService {
                     HistoryEventType.USER_CANCELED,
                     before,
                     dispatch.getDispatchStatus(),
-                    ChangedBy.PASSENGER
+                    ChangedBy.PASSENGER,
+                    null
             );
         } catch (Exception e) {
             log.error("[DispatchCancel] 히스토리 기록 실패 - dispatchId={}, error={}",
