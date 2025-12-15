@@ -2,7 +2,6 @@ package com.gooddaytaxi.support.application.service;
 
 import com.gooddaytaxi.support.application.Metadata;
 import com.gooddaytaxi.support.application.dto.NotifyPaymentCompletedCommand;
-import com.gooddaytaxi.support.application.dto.PaymentMethod;
 import com.gooddaytaxi.support.application.port.in.payment.NotifyCompletedPaymentUsecase;
 import com.gooddaytaxi.support.application.port.out.messaging.NotificationPushMessagingPort;
 import com.gooddaytaxi.support.application.port.out.messaging.QueuePushMessage;

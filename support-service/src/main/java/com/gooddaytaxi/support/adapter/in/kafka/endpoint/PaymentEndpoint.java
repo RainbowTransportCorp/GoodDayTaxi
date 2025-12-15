@@ -3,13 +3,9 @@ package com.gooddaytaxi.support.adapter.in.kafka.endpoint;
 
 import com.gooddaytaxi.support.adapter.in.kafka.dto.EventRequest;
 import com.gooddaytaxi.support.adapter.in.kafka.dto.PaymentCompletedEventPayload;
-import com.gooddaytaxi.support.adapter.in.kafka.dto.TripStartedEventPayload;
 import com.gooddaytaxi.support.application.Metadata;
 import com.gooddaytaxi.support.application.dto.NotifyPaymentCompletedCommand;
-import com.gooddaytaxi.support.application.dto.NotifyTripStartedCommand;
 import com.gooddaytaxi.support.application.port.in.payment.NotifyCompletedPaymentUsecase;
-import com.gooddaytaxi.support.application.port.in.trip.NotifyStartedTripUsecase;
-import com.gooddaytaxi.support.application.service.PaymentNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
