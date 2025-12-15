@@ -12,6 +12,7 @@ public class TripCreateRequestMapper {
                 request.policyId(),
                 request.passengerId(),
                 request.driverId(),
+                request.dispatchId(),
                 request.pickupAddress(),
                 request.destinationAddress()
         );

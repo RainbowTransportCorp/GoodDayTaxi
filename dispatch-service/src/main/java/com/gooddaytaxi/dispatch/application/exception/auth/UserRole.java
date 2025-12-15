@@ -4,5 +4,6 @@ public enum UserRole {
     PASSENGER,
     DRIVER,
     ADMIN,
-    SYSTEM
+    SYSTEM,
+    MASTER_ADMIN
 }

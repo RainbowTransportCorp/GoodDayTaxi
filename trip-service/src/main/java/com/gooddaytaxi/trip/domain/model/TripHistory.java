@@ -1,6 +1,6 @@
 package com.gooddaytaxi.trip.domain.model;
 
-import com.gooddaytaxi.trip.domain.model.enums.TripEventType;
+
 import com.gooddaytaxi.common.jpa.model.BaseEntity;
 import com.gooddaytaxi.trip.domain.model.enums.TripHistoryStatus;
 import jakarta.persistence.*;
