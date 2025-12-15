@@ -8,14 +8,21 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface DispatchQueryPort {
+
     List<Dispatch> findAllByPassengerId(UUID passengerId);
+
     Dispatch findById(UUID dispatchId);
+
     List<Dispatch> findByDriverIdAndStatus(
             UUID driverId,
             DispatchStatus status
     );
-    List<Dispatch> findTimeoutTargets(int seconds);
 
-    Optional<Dispatch> findByIdAndPassengerId(UUID dispatchId, UUID passengerId);
+    List<Dispatch> findTimeoutCandidates();
 
+    Optional<Dispatch> findByIdAndPassengerId(
+            UUID dispatchId,
+            UUID passengerId
+    );
 }
+

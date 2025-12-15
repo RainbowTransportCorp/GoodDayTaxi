@@ -35,12 +35,12 @@ public class DispatchQueryAdapter implements DispatchQueryPort {
     }
 
     @Override
-    public List<Dispatch> findTimeoutTargets(int seconds) {
-        return dispatchRepository.findTimeoutTargets(seconds);
+    public Optional<Dispatch> findByIdAndPassengerId(UUID dispatchId, UUID passengerId) {
+        return dispatchRepository.findByIdAndPassengerId(dispatchId,passengerId);
     }
 
     @Override
-    public Optional<Dispatch> findByIdAndPassengerId(UUID dispatchId, UUID passengerId) {
-        return dispatchRepository.findByIdAndPassengerId(dispatchId,passengerId);
+    public List<Dispatch> findTimeoutCandidates() {
+        return dispatchRepository.findTimeoutCandidates();
     }
 }

@@ -51,7 +51,8 @@ public class DispatchDriverAssignmentService {
                 HistoryEventType.STATUS_CHANGED,
                 DispatchStatus.REQUESTED,
                 DispatchStatus.ASSIGNING,
-                ChangedBy.SYSTEM
+                ChangedBy.SYSTEM,
+                null
         );
 
         int attemptNo = 1; // 최초는 무조건 1
@@ -83,7 +84,8 @@ public class DispatchDriverAssignmentService {
                     HistoryEventType.STATUS_CHANGED,
                     DispatchStatus.ASSIGNED,
                     DispatchStatus.ASSIGNING,
-                    ChangedBy.SYSTEM
+                    ChangedBy.SYSTEM,
+                    null
             );
 
         } else if (before == DispatchStatus.ASSIGNING) {
