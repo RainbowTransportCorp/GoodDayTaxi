@@ -43,7 +43,7 @@ public class DispatchCancelService {
         dispatch.cancel();
         commandPort.save(dispatch);
 
-        // 1) 이벤트 발행이 핵심
+        // 1) 이벤트 발행
         eventPort.publishCanceled(
                 DispatchCanceledPayload.fromPassenger(dispatch)
         );

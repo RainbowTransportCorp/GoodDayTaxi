@@ -54,12 +54,7 @@ public class DispatchRejectService {
 
         // ★ 이벤트 발행 우선
         eventPort.publishRejected(
-                DispatchRejectedPayload.from(
-                        dispatch.getDispatchId(),
-                        command.getDriverId(),
-                        LocalDateTime.now()
-                )
-        );
+                DispatchRejectedPayload.from(dispatch));
 
         // ★ 히스토리 기록은 실패해도 흐름 유지
         try {

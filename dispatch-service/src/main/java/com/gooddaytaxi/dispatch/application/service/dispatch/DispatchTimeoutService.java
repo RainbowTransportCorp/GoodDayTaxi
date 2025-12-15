@@ -145,9 +145,9 @@ public class DispatchTimeoutService {
                 ChangedBy.SYSTEM
         );
 
-        eventPort.publishTimeout(
-                new DispatchTimeoutPayload(
+        eventPort.publishTimeout(DispatchTimeoutPayload.from(
                         dispatch.getDispatchId(),
+                        dispatch.getPassengerId(),
                         dispatch.getTimeoutAt()
                 )
         );
