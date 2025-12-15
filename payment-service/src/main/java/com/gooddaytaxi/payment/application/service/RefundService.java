@@ -114,17 +114,19 @@ public class RefundService {
     }
 
     //기사에게 환불 수행 알림
-    public void requestDriverSupportRefund(UUID paymentId, String reason, UUID userId, String role) {
+    public RefundCreateResult requestDriverSupportRefund(UUID paymentId, String reason, UUID userId, String role) {
         Payment payment = paymentQueryPort.findById(paymentId).orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
         //권한 체크 - 관리자만 가능
         validator.checkRoleAdmin(UserRole.of(role));
         //결제 수단이 실물결제인지 확인
-//        validator.checkMethodPhysicalPay(payment.getMethod());
+        validator.checkMethodPhysicalPayment(payment.getMethod());
         //결제상태가 완료 상태인지 확인
         validator.checkPaymentStatusCompleted(payment.getStatus());
         RefundReason refundReason = RefundReason.of(reason);
         //환불 수행 요청 이벤트 발행
         eventCommandPort.publishRefundSettlementCreated(RefundSettlementCreatedPayload.from(payment, refundReason, userId));
+
+        return new RefundCreateResult(paymentId, "기사 환불 수행 요청이 발송되었습니다.");
     }
 
     @Transactional
