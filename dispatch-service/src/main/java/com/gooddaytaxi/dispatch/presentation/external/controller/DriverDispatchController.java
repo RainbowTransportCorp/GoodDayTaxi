@@ -1,6 +1,7 @@
 package com.gooddaytaxi.dispatch.presentation.external.controller;
 
 import com.gooddaytaxi.common.core.dto.ApiResponse;
+import com.gooddaytaxi.dispatch.application.exception.auth.UserRole;
 import com.gooddaytaxi.dispatch.application.service.driver.DispatchAcceptService;
 import com.gooddaytaxi.dispatch.application.service.driver.DispatchRejectService;
 import com.gooddaytaxi.dispatch.application.service.driver.DriverDispatchQueryService;
@@ -43,7 +44,7 @@ public class DriverDispatchController {
             @RequestHeader(value = "X-User-Role", required = false) String role
     ) {
         List<DispatchPendingListResult> dispatchPendingListResults =
-                driverDispatchQueryService.getDriverPendingDispatch(userId);
+                driverDispatchQueryService.getDriverPendingDispatch(userId, UserRole.valueOf(role));
 
         List<DispatchPendingListResponseDto> responseDto =
                 DispatchPendingListResponseMapper.toDtoList(dispatchPendingListResults);
