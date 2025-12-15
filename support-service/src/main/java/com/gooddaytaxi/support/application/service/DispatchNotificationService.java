@@ -227,15 +227,9 @@ public class DispatchNotificationService implements NotifyDispatchUsecase, Notif
         String cancelledBy;
 
         switch(command.getCancelledBy()) {
-            case "PASSENGER" -> {
-                cancelledBy = "승객의 취소";
-            }
-            case "SYSTEM" -> {
-                cancelledBy = "시스템 상";
-            }
-            default -> {
-                cancelledBy = "기타 사유";
-            }
+            case "PASSENGER" -> cancelledBy = "승객의 취소";
+            case "SYSTEM" -> cancelledBy = "시스템 상";
+            default -> cancelledBy = "기타 사유";
 
         }
         String messageBody = """
