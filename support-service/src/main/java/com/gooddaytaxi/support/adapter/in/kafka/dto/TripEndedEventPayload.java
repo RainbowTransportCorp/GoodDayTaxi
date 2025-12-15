@@ -18,7 +18,7 @@ public record TripEndedEventPayload(
         LocalDateTime startTime,
         LocalDateTime endTime,
         Long totalDuration,
-        BigDecimal totalDistance,
+        Long totalDistance,
         Long finalFare
 ) {
 }

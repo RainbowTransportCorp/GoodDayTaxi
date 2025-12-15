@@ -22,7 +22,7 @@ public class NotifyTripEndedCommand extends Command {
     private final LocalDateTime startTime;
     private final LocalDateTime endTime;
     private final Long totalDuration;
-    private final BigDecimal totalDistance;
+    private final Long totalDistance;
     private final Long finalFare;
 
     private NotifyTripEndedCommand(
@@ -31,7 +31,7 @@ public class NotifyTripEndedCommand extends Command {
             UUID driverId, UUID passengerId,
             String pickupAddress, String destinationAddress,
             LocalDateTime startTime, LocalDateTime endTime,
-            Long totalDuration, BigDecimal totalDistance,
+            Long totalDuration, Long totalDistance,
             Long finalFare,
             Metadata metadata
     ) {
@@ -55,7 +55,7 @@ public class NotifyTripEndedCommand extends Command {
             UUID driverId, UUID passengerId,
             String pickupAddress, String destinationAddress,
             LocalDateTime startTime, LocalDateTime endTime,
-            Long totalDuration, BigDecimal totalDistance,
+            Long totalDuration, Long totalDistance,
             Long finalFare,
             Metadata metadata
     ) {
