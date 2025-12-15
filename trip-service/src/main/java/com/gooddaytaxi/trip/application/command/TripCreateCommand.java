@@ -6,6 +6,7 @@ public record TripCreateCommand(
         UUID policyId,
         UUID passengerId,
         UUID driverId,
+        UUID dispatchId,
         String pickupAddress,
         String destinationAddress
 ) {

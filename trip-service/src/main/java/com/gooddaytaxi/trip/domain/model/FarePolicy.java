@@ -36,6 +36,9 @@ public class FarePolicy extends BaseEntity {
     @Column(name = "time_rate", nullable = false)
     private Long timeRate; // 시간당 요금(원/분)
 
+    @Column(nullable = false)
+    private boolean isActive;
+
 
 
     @Builder
@@ -48,6 +51,7 @@ public class FarePolicy extends BaseEntity {
         this.baseFare = baseFare;
         this.distRateKm = distRateKm;
         this.timeRate = timeRate;
+        this.isActive = true;
 
     }
 

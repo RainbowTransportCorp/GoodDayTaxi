@@ -1,6 +1,7 @@
 package com.gooddaytaxi.trip.infrastructure.adapter;
 
 import com.gooddaytaxi.trip.application.port.out.CreateTripPort;
+import com.gooddaytaxi.trip.application.port.out.ExistsTripByDispatchIdPort;
 import com.gooddaytaxi.trip.application.port.out.LoadTripsByPassengerPort;
 import com.gooddaytaxi.trip.application.port.out.UpdateTripPort;
 import com.gooddaytaxi.trip.domain.model.Trip;
@@ -15,7 +16,7 @@ import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
-public class TripPersistenceAdapter implements CreateTripPort, UpdateTripPort, LoadTripsByPassengerPort {
+public class TripPersistenceAdapter implements CreateTripPort, UpdateTripPort, LoadTripsByPassengerPort, ExistsTripByDispatchIdPort {
 
     private final TripJpaRepository tripJpaRepository;
 
@@ -48,4 +49,13 @@ public class TripPersistenceAdapter implements CreateTripPort, UpdateTripPort, L
                 tripPage.getTotalElements()  // 전체 데이터 수
         );
     }
+
+
+    @Override
+    public boolean existsByDispatchId(UUID dispatchId) {
+        return tripJpaRepository.existsByDispatchId(dispatchId);
+    }
+
+
+
 }
