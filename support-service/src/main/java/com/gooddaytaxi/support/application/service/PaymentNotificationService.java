@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -55,10 +56,12 @@ public class PaymentNotificationService implements NotifyCompletedPaymentUsecase
         String messageBody = """
                 · 결제 금액: %,d원
                 · 결제 수단: %s
+                · 승인 일시: %s
                 이용해 주셔서 감사합니다.
                 """.formatted(
                     command.getAmount(),
-                    command.getPaymentMethod()
+                    command.getPaymentMethod(),
+                    command.getApprovedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
                 );
 
         // RabbitMQ: Queue에 Push
