@@ -50,8 +50,18 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
-    // Validation
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    // Kafka
+    implementation 'org.springframework.kafka:spring-kafka'
+
+    // JSON 직렬화용
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+
+    // 스케줄링
+    implementation 'org.springframework.boot:spring-boot-starter'
+
+    // jsonb 지원 (Hibernate 6 / Spring Boot 3)
+    implementation 'com.vladmihalcea:hibernate-types-60:2.21.1'
+
 
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
