@@ -1,5 +1,6 @@
 package com.gooddaytaxi.support.application.dto;
 
+import com.gooddaytaxi.support.application.Metadata;
 import lombok.Getter;
 
 import java.util.UUID;
@@ -20,9 +21,10 @@ public class NotifyDispatchInformationCommand extends Command {
             UUID notificationOriginId, UUID notifierId,
             UUID driverId, UUID passengerId,
             String pickupAddress, String destinationAddress,
-            String message
+            String message,
+            Metadata metadata
     ) {
-        super(notificationOriginId, notifierId, message, null);
+        super(notificationOriginId, notifierId, message, metadata);
         this.dispatchId = notificationOriginId;
         this.driverId = driverId;
         this.passengerId = passengerId;
@@ -33,9 +35,10 @@ public class NotifyDispatchInformationCommand extends Command {
             UUID notificationOriginId, UUID notifierId,
             UUID driverId, UUID passengerId,
             String pickupAddress, String destinationAddress,
-            String message
+            String message,
+            Metadata metadata
     ) {
-        return new NotifyDispatchInformationCommand(notificationOriginId, notifierId, driverId, passengerId, pickupAddress, destinationAddress, message);
+        return new NotifyDispatchInformationCommand(notificationOriginId, notifierId, driverId, passengerId, pickupAddress, destinationAddress, message, metadata);
     }
 
     @Override

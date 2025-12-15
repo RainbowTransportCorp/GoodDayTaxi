@@ -28,32 +28,26 @@ public class DispatchEndpoint {
      */
     @KafkaListener(topics = "dispatch.requested", groupId = "support-service", concurrency = "1")
     public void onDispatchRequested(EventRequest req) {
-
-        DispatchEventPayload pl = req.convertPayload(DispatchEventPayload.class);
+        // Metadata
         Metadata metadata = req.eventMetadata().to();
-        log.info("‼️‼️‼️‼️Payload 내용 content={}", pl);
-        log.info("‼️‼️‼️‼️Event 수신 내용 eventId={}, evnetType{}, occurredAt={}, payloadVersion={}",
-        req.eventMetadata().eventId(),
-        req.eventMetadata().eventType(),
-        req.eventMetadata().occuredAt(),
-        req.payloadVersion());
+        // Payload
+        DispatchEventPayload pl = req.convertPayload(DispatchEventPayload.class);
+        log.debug("[Check] Dispatch EventRequest 데이터: dispatchId={}, notifierId={}, message={}, occuredAt={}", pl.notificationOriginId(), pl.notifierId(), pl.message(), metadata.getOccuredAt());
 
-        log.info("‼️‼️‼️‼️Request 내용 message={}, driverId={}, passengerId={}",
-                pl.message(), pl.driverId(), pl.passengerId());
-
-
-//        EventRequest req = EventRequest.from(message);
+        // EventRequest DTO > Command 변환
         NotifyDispatchInformationCommand command = NotifyDispatchInformationCommand.create(
                 pl.notificationOriginId(), pl.notifierId(),
                 pl.driverId(), pl.passengerId(),
                 pl.pickupAddress(), pl.destinationAddress(),
-                pl.message());
+                pl.message(),
+                metadata
+        );
 
-        log.info("‼️‼️‼️‼️Command 내용 message={}, driverId={}, passengerId={}",
-                command.getMessage(), command.getDriverId(), command.getPassengerId());
+        log.debug("[Transform] EventRequest >>> Command ➡️ {}", command);
 
-
+        // 콜에 대해 배차 시도 알림 전송 서비스 호출
         notifyDispatchUsecase.execute(command);
+
     }
 
     /**
