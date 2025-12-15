@@ -9,6 +9,12 @@ function show(sectionId) {
 
 // 콜 생성
 async function createDispatch() {
+    const role = localStorage.getItem("role");
+    if (role !== "PASSENGER") {
+        alert("승객만 콜을 요청할 수 있습니다.");
+        return;
+    }
+
     const pickup = document.getElementById("pickup").value;
     const destination = document.getElementById("destination").value;
 
@@ -34,12 +40,11 @@ async function createDispatch() {
     const json = await res.json();
 
     if (!json.success) {
-        alert("요청 실패: " + json.message);
+        alert(json.message || "콜 요청 실패");
         return;
     }
 
     const dispatchId = json.data.dispatchId;
-
     document.getElementById("waiting-text").textContent =
         `배차를 요청했습니다. (ID: ${dispatchId})`;
 
@@ -58,7 +63,22 @@ function startPolling(dispatchId) {
             headers: { "Authorization": `Bearer ${token}` }
         });
 
+        if (res.status === 401) {
+            clearInterval(pollingTimer);
+            alert("로그인이 만료되었습니다.");
+            window.location.href = "/login/index.html";
+            return;
+        }
+
         const json = await res.json();
+
+        if (!json.success) {
+            clearInterval(pollingTimer);
+            alert(json.message || "배차 상태 확인 실패");
+            backToHome();
+            return;
+        }
+
         const status = json.data.status;
 
         if (status === "ASSIGNED" || status === "CONFIRMED") {
@@ -67,6 +87,7 @@ function startPolling(dispatchId) {
         }
     }, 3000);
 }
+
 
 // 상세 화면 표시
 function showDetail(data) {

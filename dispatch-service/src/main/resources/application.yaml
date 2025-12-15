@@ -33,7 +33,7 @@ spring:
 
   kafka:
     bootstrap-servers: host.docker.internal:${kafka.port} #local
-#    bootstrap-servers: gd_kafka:${kafka.port} # docker - 서비스 자체를 띄울 때 사용
+#    bootstrap-servers: kafka:${kafka.port} # docker - 서비스 자체를 띄울 때 사용
     consumer:
       group-id: dispatch-group
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
@@ -54,7 +54,7 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:${eureka.port}/eureka/ #local
-#      defaultZone: http://gd_eureka:${eureka.port}/eureka/ # docker - 서비스 자체를 띄울 때 사용
+#      defaultZone: http://server:${eureka.port}/eureka/ # docker - 서비스 자체를 띄울 때 사용
 
 
 management:
@@ -81,4 +81,6 @@ springdoc:
   swagger-ui:
     path: /swagger-ui
 
-
+service:
+  account:
+    url: http://localhost:8201
