@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class DispatchAssignmentCommandAdapter implements DispatchAssignmentCommandPort {
+public class DispatchAssignmentLogCommandAdapter implements DispatchAssignmentCommandPort {
 
     private final DispatchAssignmentLogRepository dispatchAssignmentLogRepository;
 
