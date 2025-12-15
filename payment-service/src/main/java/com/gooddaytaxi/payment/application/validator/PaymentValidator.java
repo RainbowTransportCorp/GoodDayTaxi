@@ -57,8 +57,8 @@ public class PaymentValidator {
             throw new PaymentException(PaymentErrorCode.PAYMENT_METHOD_NOT_TOSSPAY);
     }
 
-    //결제 수단이 외부 결제가 아닌 경우인지 확인
-    public void checkMethodNotExternalPayment(PaymentMethod method) {
+    //결제 수단이 실물결제인지 확인
+    public void checkMethodPhysicalPayment(PaymentMethod method) {
         if(!(method == PaymentMethod.CARD || method == PaymentMethod.CASH)) {
             throw new PaymentException(PaymentErrorCode.INVALID_PAYMENT_METHOD);
         }

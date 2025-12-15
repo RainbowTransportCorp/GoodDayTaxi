@@ -2,6 +2,7 @@ package com.gooddaytaxi.payment.infrastructure.outbox.adapter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gooddaytaxi.payment.application.event.PaymentCompletePayload;
+import com.gooddaytaxi.payment.application.event.RefundCompletedPayload;
 import com.gooddaytaxi.payment.application.event.RefundRequestCreatePayload;
 import com.gooddaytaxi.payment.application.event.RefundRequestRejectedPayload;
 import com.gooddaytaxi.payment.application.port.out.event.PaymentEventOutboxPort;
@@ -50,6 +51,19 @@ public class PaymentEventCommandAdapter extends PaymentBaseOutboxPublisher imple
         publish(
                 "REFUND_REQUEST_REJECTED",
                 "refund.request.rejected",
+                AGGREGATE_TYPE,
+                payload.notificationOriginId(),
+                payload.notificationOriginId().toString(),
+                VERSION,
+                payload
+        );
+    }
+
+    @Override
+    public void publishRefundCompleted(RefundCompletedPayload payload) {
+        publish(
+                "REFUND_COMPLETED",
+                "refund.completed",
                 AGGREGATE_TYPE,
                 payload.notificationOriginId(),
                 payload.notificationOriginId().toString(),
