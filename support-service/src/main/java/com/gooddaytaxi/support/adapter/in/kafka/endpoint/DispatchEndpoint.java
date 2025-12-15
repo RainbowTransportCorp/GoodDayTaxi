@@ -1,11 +1,14 @@
 package com.gooddaytaxi.support.adapter.in.kafka.endpoint;
 
 import com.gooddaytaxi.support.adapter.in.kafka.dto.DispatchEventPayload;
+import com.gooddaytaxi.support.adapter.in.kafka.dto.DispatchTimeoutEventPayload;
 import com.gooddaytaxi.support.adapter.in.kafka.dto.EventRequest;
 import com.gooddaytaxi.support.application.Metadata;
+import com.gooddaytaxi.support.application.dto.NotifyDipsatchTimeoutCommand;
 import com.gooddaytaxi.support.application.dto.NotifyDispatchAcceptedCommand;
 import com.gooddaytaxi.support.application.dto.NotifyDispatchInformationCommand;
 import com.gooddaytaxi.support.application.port.in.dispatch.NotifyAcceptedCallUsecase;
+import com.gooddaytaxi.support.application.port.in.dispatch.NotifyDispatchTimeoutUsecase;
 import com.gooddaytaxi.support.application.port.in.dispatch.NotifyDispatchUsecase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +25,7 @@ public class DispatchEndpoint {
 
     private final NotifyDispatchUsecase notifyDispatchUsecase;
     private final NotifyAcceptedCallUsecase notifyAcceptedCallUsecase;
+    private final NotifyDispatchTimeoutUsecase notifyDispatchTimeoutUsecase;
 
     /**
      * 특정 기사에게 배차 요청이 왔을 때 Driver에 손님의 Call 요청 알림 전송 이벤트 리스너
@@ -73,5 +77,30 @@ public class DispatchEndpoint {
 
         // 수락된 콜 알림 전송 서비스 호출
         notifyAcceptedCallUsecase.execute(command);
+    }
+
+
+    /**
+     * 기사가 배차 요청에 대해 응답하지 않은 지 30초가 경과되면 손님에게 배차 시간 초과(Call 거절) 알림을 전송하는 이벤트 리스너
+     */
+    @KafkaListener(topics = "dispatch.timeout", groupId = "support-service", concurrency = "1")
+    public void onDispatchTimeOut(EventRequest req) {
+        // Metadata
+        Metadata metadata = req.eventMetadata().to();
+        // Payload
+        DispatchTimeoutEventPayload pl = req.convertPayload(DispatchTimeoutEventPayload.class);
+        log.debug("[Check] Dispatch Timeout EventRequest 데이터: dispatchId={}, timeoutAt={}", pl.dispatchId(), pl.timeoutAt());
+
+        // EventRequest DTO > Command 변환
+        NotifyDipsatchTimeoutCommand command = NotifyDipsatchTimeoutCommand.create(
+                pl.dispatchId(),
+                pl.passengerId(),
+                pl.timeoutAt(),
+                metadata
+        );
+        log.debug("[Transform] EventRequest >>> Command ➡️ {}", command);
+
+        // 수락된 콜 알림 전송 서비스 호출
+        notifyDispatchTimeoutUsecase.execute(command);
     }
 }

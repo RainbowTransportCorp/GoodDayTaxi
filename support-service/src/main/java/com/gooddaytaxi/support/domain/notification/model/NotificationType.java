@@ -9,6 +9,7 @@ public enum NotificationType {
 
     DISPATCH_REQUESTED, // 콜 요청 알림
     DISPATCH_ACCEPTED, // 배차 수락 알림
+    DISPATCH_TIMEOUT, // 배차 시도 시간 초과 알림
 
     TRIP_STARTED,      // 운행 시작 알림
     TRIP_ENDED,        // 운행 종료 알림
