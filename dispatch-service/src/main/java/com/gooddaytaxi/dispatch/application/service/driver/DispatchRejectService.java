@@ -7,7 +7,9 @@ import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
 import com.gooddaytaxi.dispatch.application.service.assignmentLog.AssignmentLogLifecycleService;
 import com.gooddaytaxi.dispatch.application.service.dispatch.DispatchHistoryService;
 import com.gooddaytaxi.dispatch.application.usecase.reject.DispatchRejectCommand;
+import com.gooddaytaxi.dispatch.application.usecase.reject.DispatchRejectPermissionValidator;
 import com.gooddaytaxi.dispatch.application.usecase.reject.DispatchRejectResult;
+import com.gooddaytaxi.dispatch.domain.exception.DispatchNotAssignedDriverException;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
 import com.gooddaytaxi.dispatch.domain.model.entity.DispatchAssignmentLog;
 import com.gooddaytaxi.dispatch.domain.model.enums.ChangedBy;
@@ -33,26 +35,41 @@ public class DispatchRejectService {
 
     private final DispatchRejectedCommandPort eventPort;
 
+    private final DispatchRejectPermissionValidator permissionValidator;
+
     public DispatchRejectResult reject(DispatchRejectCommand command) {
 
         log.info("[Reject] 요청 수신 - driverId={} dispatchId={}",
                 command.getDriverId(), command.getDispatchId());
 
         Dispatch dispatch = queryPort.findById(command.getDispatchId());
+
+        // 1. 역할 검증
+        permissionValidator.validate(command.getRole());
+
+        // 2. 후보 기사 여부 검증 (핵심)
+        DispatchAssignmentLog logEntry =
+                assignmentLogService.findLatest(
+                        command.getDispatchId(),
+                        command.getDriverId()
+                );
+
+        if (logEntry == null) {
+            log.warn("[Reject] 후보 기사 아님 - driverId={} dispatchId={}",
+                    command.getDriverId(), command.getDispatchId());
+            throw new DispatchNotAssignedDriverException();
+        }
+
         DispatchStatus before = dispatch.getDispatchStatus();
 
-        DispatchAssignmentLog logEntry =
-                assignmentLogService.findLatest(command.getDispatchId(), command.getDriverId());
+        // 3. 도메인 처리
+        domainService.processReject(dispatch, logEntry, command.getDriverId());
 
-        // 엔티티 상태전이
-        dispatch.rejectedByDriver(command.getDriverId());
-        logEntry.reject();
-
-        // 상태 저장
+        // 4. 상태 저장
         assignmentLogService.save(logEntry);
         commandPort.save(dispatch);
 
-        // ★ 이벤트 발행 우선
+        // 5. 이벤트 발행
         eventPort.publishRejected(
                 DispatchRejectedPayload.from(
                         dispatch.getDispatchId(),
@@ -61,7 +78,7 @@ public class DispatchRejectService {
                 )
         );
 
-        // ★ 히스토리 기록은 실패해도 흐름 유지
+        // 6. 히스토리 (실패해도 흐름 유지)
         try {
             historyService.saveStatusChange(
                     dispatch.getDispatchId(),
