@@ -12,9 +12,9 @@ import java.util.UUID;
  */
 @Getter
 public class NotifyPaymentCompletedCommand extends Command {
-    private final UUID paymentId;
-//    private final UUID dispatchId;
+    //    private final UUID dispatchId;
     private final UUID tripId;
+    private final UUID paymentId;
     private final UUID driverId;
     private final UUID passengerId;
     private final Long amount;
@@ -50,6 +50,6 @@ public class NotifyPaymentCompletedCommand extends Command {
             LocalDateTime approvedAt,
             Metadata metadata
     ) {
-        return new NotifyPaymentCompletedCommand(notificationOriginId, notifierId, driverId, passengerId, tripId, amount, paymentMethod, approvedAt, metadata);
+        return new NotifyPaymentCompletedCommand(notificationOriginId, notifierId, tripId, driverId, passengerId, amount, paymentMethod, approvedAt, metadata);
     }
 }

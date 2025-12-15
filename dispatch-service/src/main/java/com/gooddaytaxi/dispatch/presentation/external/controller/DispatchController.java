@@ -88,9 +88,10 @@ public class DispatchController {
     @GetMapping("/{dispatchId}")
     public ResponseEntity<ApiResponse<DispatchDetailResponseDto>> getDispatchDetail(
             @PathVariable UUID dispatchId,
+            @RequestHeader(value = "X-User-UUID", required = false) UUID passengerId,
             @RequestHeader(value = "X-User-Role", required = false) String role
     ) {
-        DispatchDetailResult dispatchDetailResult = passengerDispatchQueryService.getDispatchDetail(UserRole.valueOf(role), dispatchId);
+        DispatchDetailResult dispatchDetailResult = passengerDispatchQueryService.getDispatchDetail(passengerId, UserRole.valueOf(role), dispatchId);
         DispatchDetailResponseDto responseDto = DispatchDetailResponseMapper.toDispatchDetailResponse(dispatchDetailResult);
 
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));

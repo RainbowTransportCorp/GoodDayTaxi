@@ -1,6 +1,8 @@
 package com.gooddaytaxi.dispatch.infrastructure.persistence.assignment;
 
+import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
 import com.gooddaytaxi.dispatch.domain.model.entity.DispatchAssignmentLog;
+import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
 import com.gooddaytaxi.dispatch.domain.repository.DispatchAssignmentLogRepositoryCustom;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +12,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static com.gooddaytaxi.dispatch.domain.model.entity.QDispatch.dispatch;
 import static com.gooddaytaxi.dispatch.domain.model.entity.QDispatchAssignmentLog.dispatchAssignmentLog;
 
 @Repository
@@ -33,6 +36,20 @@ public class DispatchAssignmentLogRepositoryImpl implements DispatchAssignmentLo
         );
     }
 
+    @Override
+    public List<Dispatch> findPendingByCandidateDriver(UUID driverId) {
+        return queryFactory
+                .select(dispatch)
+                .from(dispatch)
+                .join(dispatchAssignmentLog)
+                .on(dispatchAssignmentLog.dispatchId.eq(dispatch.dispatchId))
+                .where(
+                        dispatchAssignmentLog.candidateDriverId.eq(driverId),
+                        dispatch.dispatchStatus.eq(DispatchStatus.ASSIGNING)
+                )
+                .fetch();
+    }
+  
     @Override
     public List<UUID> findAllDriverIdsByDispatchId(UUID dispatchId) {
         return queryFactory

@@ -13,6 +13,6 @@ public interface TripJpaRepository extends JpaRepository<Trip, UUID> {
 
     Page<Trip> findByDriverIdOrderByStartTimeDesc(UUID driverId, Pageable pageable);
 
-
+    boolean existsByDispatchId(UUID dispatchId);
 
 }

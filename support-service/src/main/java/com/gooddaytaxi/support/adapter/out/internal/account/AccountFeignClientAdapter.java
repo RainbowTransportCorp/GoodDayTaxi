@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.UUID;
 
 /** 메시지 전송 알림을 위한 Slack Adapter - FeignClient
@@ -27,5 +28,10 @@ public class AccountFeignClientAdapter implements AccountDomainCommunicationPort
     @Override
     public DriverProfile getDriverInfo(UUID driverId) {
         return accountFeignClient.getDriverInfo(driverId.toString());
+    }
+
+    @Override
+    public List<UUID> getMasterAdminUuids() {
+        return accountFeignClient.getMasterAdminUuids();
     }
 }

@@ -1,6 +1,5 @@
 package com.gooddaytaxi.support.adapter.in.kafka.dto;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -18,7 +17,7 @@ public record TripEndedEventPayload(
         LocalDateTime startTime,
         LocalDateTime endTime,
         Long totalDuration,
-        BigDecimal totalDistance,
+        Long totalDistance,
         Long finalFare
 ) {
 }

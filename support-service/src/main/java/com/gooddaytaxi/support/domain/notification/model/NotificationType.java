@@ -14,6 +14,9 @@ public enum NotificationType {
     TRIP_ENDED,        // 운행 종료 알림
 
     PAYMENT_COMPLETED, // 결제 완료 알림
+    REFUND_REQUEST_CREATED, // 환불 요청 알림
+    REFUND_REQUEST_REJECTED, // 환불 거절 알림
+    REFUND_COMPLETED, // 환불 완료 알림
 
     ERROR_DETECTED;     // 장애 발생 알림
 

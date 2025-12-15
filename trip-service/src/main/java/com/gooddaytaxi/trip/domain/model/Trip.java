@@ -1,6 +1,7 @@
 package com.gooddaytaxi.trip.domain.model;
 
 import com.gooddaytaxi.common.jpa.model.BaseEntity;
+import com.gooddaytaxi.trip.application.command.TripCreateRequestCommand;
 import com.gooddaytaxi.trip.domain.model.enums.TripStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -38,6 +39,9 @@ public class Trip extends BaseEntity {
     @Column(name = "driver_id", nullable = false)
     private UUID driverId;
 
+    @Column(name = "dispatch_id", nullable = false, unique = true)
+    private UUID dispatchId;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TripStatus status;
@@ -68,6 +72,7 @@ public class Trip extends BaseEntity {
             UUID policyId,
             UUID passengerId,
             UUID driverId,
+            UUID dispatchId,
             TripStatus status,
             LocalDateTime startTime,
             LocalDateTime endTime,
@@ -80,6 +85,7 @@ public class Trip extends BaseEntity {
         this.policyId = policyId;
         this.passengerId = passengerId;
         this.driverId = driverId;
+        this.dispatchId = dispatchId;
         this.status = status;
         this.startTime = startTime;
         this.endTime = endTime;
@@ -95,6 +101,7 @@ public class Trip extends BaseEntity {
             UUID policyId,
             UUID passengerId,
             UUID driverId,
+            UUID dispatchId,
             String pickupAddress,
             String destinationAddress
     ) {
@@ -104,14 +111,36 @@ public class Trip extends BaseEntity {
                 .policyId(policyId)
                 .passengerId(passengerId)
                 .driverId(driverId)
-                .status(TripStatus.READY)          // 초기 상태 READY
+                .dispatchId(dispatchId)      // ✅ dispatch_id NOT NULL 해결 핵심
+                .status(TripStatus.READY)
                 .startTime(now)
-                .endTime(now)                      // NOT NULL 방지용 기본값
+                .endTime(now)
                 .pickupAddress(pickupAddress)
                 .destinationAddress(destinationAddress)
-                .totalDuration(0L)                 // 아직 운행 안 해서 0
-                .totalDistance(BigDecimal.ZERO)    // 거리 0
-                .finalFare(0L)                     // 요금 0
+                .totalDuration(0L)
+                .totalDistance(BigDecimal.ZERO)
+                .finalFare(0L)
+                .build();
+    }
+
+    // Dispatch 이벤트 기반 운행 생성 (의미 기반 팩토리)
+    public static Trip createFromDispatch(
+            FarePolicy policy,
+            TripCreateRequestCommand command
+    ) {
+        return Trip.builder()
+                .policyId(policy.getPolicyId())
+                .passengerId(command.passengerId())
+                .driverId(command.driverId())
+                .dispatchId(command.dispatchId())
+                .status(TripStatus.READY)
+                .startTime(LocalDateTime.now())
+                .endTime(LocalDateTime.now())
+                .pickupAddress(command.pickupAddress())
+                .destinationAddress(command.destinationAddress())
+                .totalDuration(0L)
+                .totalDistance(BigDecimal.ZERO)
+                .finalFare(0L)
                 .build();
     }
 
