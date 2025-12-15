@@ -6,11 +6,11 @@ import java.util.UUID;
  * DISPATCH_REQUESTED, DISPATCH_ACCEPTED 이벤트 Payload DTO
  */
 public record DispatchEventPayload(
-    String message,
+    UUID notificationOriginId,
+    UUID notifierId,
     UUID driverId,
     UUID passengerId,
-    UUID notifierId,
-    UUID notificationOriginId,
     String pickupAddress,
-    String destinationAddress
+    String destinationAddress,
+    String message
 ) {}
