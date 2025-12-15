@@ -3,7 +3,7 @@ package com.gooddaytaxi.support.adapter.out.external.slack;
 import com.gooddaytaxi.support.adapter.in.kafka.dto.EventMetadata;
 import com.gooddaytaxi.support.adapter.out.external.slack.dto.SlackMessageAPIRes;
 import com.gooddaytaxi.support.adapter.out.external.slack.dto.SlackMessageAlertReq;
-import com.gooddaytaxi.support.adapter.out.internal.account.dto.UserInfo;
+import com.gooddaytaxi.support.adapter.out.internal.account.dto.UserProfile;
 import com.gooddaytaxi.support.adapter.out.messaging.config.RabbitMQConfig;
 import com.gooddaytaxi.support.application.port.out.external.NotificationAlertExternalPort;
 import com.gooddaytaxi.support.application.port.out.internal.account.AccountDomainCommunicationPort;
@@ -30,13 +30,25 @@ public class NotificationAlertSlackAdapter implements NotificationAlertExternalP
     private final SlackFeignClient slackFeignClient;
 
     // RabbitListener 메서드 삭제 후, 직접 호출 시
-    public void sendCallDirectRequest(QueuePushMessage queuePushMessage) {
+    public void sendDirectRequest(QueuePushMessage queuePushMessage) {
         doSendSlack(queuePushMessage);
     }
 
     @RabbitListener(queues = RabbitMQConfig.DISPATCH_QUEUE)
     @Override
-    public void sendCallRequest(QueuePushMessage queuePushMessage) {
+    public void sendFromDispatch(QueuePushMessage queuePushMessage) {
+        doSendSlack(queuePushMessage);
+    }
+
+    @RabbitListener(queues = RabbitMQConfig.TRIP_QUEUE)
+    @Override
+    public void sendFromTrip(QueuePushMessage queuePushMessage) {
+        doSendSlack(queuePushMessage);
+    }
+
+    @RabbitListener(queues = RabbitMQConfig.PAYMENT_QUEUE)
+    @Override
+    public void sendFromPayment(QueuePushMessage queuePushMessage) {
         doSendSlack(queuePushMessage);
     }
 
@@ -59,15 +71,15 @@ public class NotificationAlertSlackAdapter implements NotificationAlertExternalP
         String formattedMessage = "*%s*\n%s".formatted(messageTitle, messageBody);
 
         // 메시지 수신자 정보 조회
-        List<UserInfo> receivers = new ArrayList<>();
+        List<UserProfile> receivers = new ArrayList<>();
         try {
             log.debug("[Connect] Support Service >>> Account Feign Starting . . . ");
 
             for (UUID receiver:  messageReceivers) {
                 if (receiver != null) {
-                    UserInfo info = accountDomainCommunicationPort.getUserInfo(receiver);
-                    log.debug("[Check] UserInfo from Account Feign: username={}, role={}", info.name(), info.role());
-                    receivers.add(info);
+                    UserProfile userProfile = accountDomainCommunicationPort.getUserInfo(receiver);
+                    log.debug("[Check] UserProfile from Account Feign: username={}, role={}", userProfile.name(), userProfile.role());
+                    receivers.add(userProfile);
                 }
             }
             log.debug("[Connect] Support Service >>> Account Feign Completed! ");
@@ -78,7 +90,7 @@ public class NotificationAlertSlackAdapter implements NotificationAlertExternalP
 
         // 메시지 수신자 Slack ID 추출
         List<String> slackReceivers = new ArrayList<>();
-        for (UserInfo receiver: receivers) {
+        for (UserProfile receiver: receivers) {
             String slackId = receiver.slackUserId();
             log.debug("[Check] 수신자 Slack ID: username={}, slackId={}", receiver.name(), receiver.slackUserId());
             slackReceivers.add(slackId);

@@ -5,6 +5,7 @@ spring:
   config:
     import:
       - secrets.yaml
+
   application:
     name: gateway
 
@@ -101,7 +102,8 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
     service-url:
-      defaultZone: http://gd_eureka:${eureka.port}/eureka/
+      defaultZone: http://server:${eureka.port}/eureka/
+
 
 management:
   tracing:
@@ -110,13 +112,4 @@ management:
 
   zipkin:
     tracing:
-      endpoint: http://gd_zipkin:${zipkin.port}/api/v2/spans
-
-  endpoints:
-    web:
-      exposure:
-        include: health,info,prometheus
-
-  metrics:
-    tags:
-      application: gateway
+      endpoint: http://zipkin:${zipkin.port}/api/v2/spans

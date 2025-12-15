@@ -17,4 +17,5 @@ public interface DispatchQueryPort {
     List<Dispatch> findTimeoutTargets(int seconds);
 
     Optional<Dispatch> findByIdAndPassengerId(UUID dispatchId, UUID passengerId);
+
 }

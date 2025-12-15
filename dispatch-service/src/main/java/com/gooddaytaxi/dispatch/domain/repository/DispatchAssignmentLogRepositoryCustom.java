@@ -11,4 +11,5 @@ public interface DispatchAssignmentLogRepositoryCustom {
     Optional<DispatchAssignmentLog> findLatest(UUID dispatchId, UUID driverId);
 
     List<Dispatch> findPendingByCandidateDriver(UUID driverId);
+    List<UUID> findAllDriverIdsByDispatchId(UUID dispatchId);
 }

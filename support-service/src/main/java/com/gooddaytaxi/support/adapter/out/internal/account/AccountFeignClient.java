@@ -1,6 +1,7 @@
 package com.gooddaytaxi.support.adapter.out.internal.account;
 
-import com.gooddaytaxi.support.adapter.out.internal.account.dto.UserInfo;
+import com.gooddaytaxi.support.adapter.out.internal.account.dto.DriverProfile;
+import com.gooddaytaxi.support.adapter.out.internal.account.dto.UserProfile;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,6 +13,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 public interface AccountFeignClient {
 
     @GetMapping("/internal/v1/account/users/{userId}")
-    UserInfo getUserInfo(@PathVariable("userId") String userId);
-}
+    UserProfile getUserInfo(@PathVariable("userId") String userId);
 
+    @GetMapping("/internal/v1/account/drivers/{userId}")
+    DriverProfile getDriverInfo(@PathVariable("userId") String userId);
+}

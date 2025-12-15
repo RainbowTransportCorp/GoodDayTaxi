@@ -7,8 +7,11 @@ import com.gooddaytaxi.account.domain.exception.AccountErrorCode;
 import com.gooddaytaxi.account.domain.model.DriverProfile;
 import com.gooddaytaxi.account.domain.model.User;
 import com.gooddaytaxi.account.domain.model.UserRole;
+import com.gooddaytaxi.account.domain.model.UserStatus;
 import com.gooddaytaxi.account.domain.repository.DriverProfileRepository;
 import com.gooddaytaxi.account.domain.repository.UserRepository;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -76,5 +79,16 @@ public class GetInternalUserInfoUseCase {
         
         return driverProfileRepository.findByUserId(user.getUserUuid())
                 .orElse(null); // 기사이지만 프로필이 없는 경우는 null 반환
+    }
+
+    @Transactional(readOnly = true)
+    public List<InternalUserInfoResponse> findByRole(UserRole role) {
+        log.debug("Role 기반 사용자 조회 시작: role={}", role);
+
+        List<User> users = userRepository.findByRoleAndStatusAndDeletedAtIsNull(role, UserStatus.ACTIVE);
+
+        return users.stream()
+            .map(user -> mapper.toResponse(user, null)) // 기사 프로필은 필요 없음
+            .collect(Collectors.toList());
     }
 }

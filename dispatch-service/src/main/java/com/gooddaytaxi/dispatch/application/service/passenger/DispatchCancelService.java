@@ -13,6 +13,7 @@ import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
 import com.gooddaytaxi.dispatch.domain.model.enums.ChangedBy;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchDomainEventType;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
+import com.gooddaytaxi.dispatch.domain.model.enums.HistoryEventType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -53,7 +54,7 @@ public class DispatchCancelService {
         try {
             historyService.saveStatusChange(
                     dispatch.getDispatchId(),
-                    DispatchDomainEventType.CANCELLED,
+                    HistoryEventType.USER_CANCELED,
                     before,
                     dispatch.getDispatchStatus(),
                     ChangedBy.PASSENGER

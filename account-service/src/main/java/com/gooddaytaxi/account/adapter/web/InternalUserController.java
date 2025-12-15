@@ -6,9 +6,12 @@ import com.gooddaytaxi.account.application.dto.InternalUserInfoResponse;
 import com.gooddaytaxi.account.application.usecase.GetAvailableDriversUseCase;
 import com.gooddaytaxi.account.application.usecase.GetDispatchDriverInfoUseCase;
 import com.gooddaytaxi.account.application.usecase.GetInternalUserInfoUseCase;
+import com.gooddaytaxi.account.domain.model.UserRole;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -84,5 +87,24 @@ public class InternalUserController {
                 userId, response.getName());
         
         return ResponseEntity.ok(response);
+    }
+
+    @Operation(
+        summary = "MASTER_ADMIN 전체 UUID 조회",
+        description = "MASTER_ADMIN 역할을 가진 사용자들의 UUID 리스트를 반환합니다. support-service에서 알림 등 용도로 사용."
+    )
+    @GetMapping("/admins/uuids")
+    public ResponseEntity<List<UUID>> getMasterAdminUuids() {
+        // MASTER_ADMIN 역할 사용자 조회
+        List<InternalUserInfoResponse> admins = getInternalUserInfoUseCase.findByRole(UserRole.MASTER_ADMIN);
+
+
+        // UUID만 추출
+        List<UUID> uuids = admins.stream()
+            .map(InternalUserInfoResponse::getUserId)
+            .collect(Collectors.toList());
+
+        log.debug("MASTER_ADMIN UUID 조회 완료: count={}", uuids.size());
+        return ResponseEntity.ok(uuids);
     }
 }

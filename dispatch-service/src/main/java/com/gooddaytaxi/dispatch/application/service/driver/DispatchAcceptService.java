@@ -6,7 +6,7 @@ import com.gooddaytaxi.dispatch.application.port.out.command.DispatchAcceptedCom
 import com.gooddaytaxi.dispatch.application.port.out.command.DispatchCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.command.TripCreateRequestCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
-import com.gooddaytaxi.dispatch.application.service.dispatch.DispatchAssignmentLogService;
+import com.gooddaytaxi.dispatch.application.service.assignmentLog.AssignmentLogLifecycleService;
 import com.gooddaytaxi.dispatch.application.service.dispatch.DispatchHistoryService;
 import com.gooddaytaxi.dispatch.application.usecase.accept.DispatchAcceptCommand;
 import com.gooddaytaxi.dispatch.application.usecase.accept.DispatchAcceptPermissionValidator;
@@ -18,7 +18,7 @@ import com.gooddaytaxi.dispatch.domain.model.entity.DispatchAssignmentLog;
 import com.gooddaytaxi.dispatch.domain.model.enums.ChangedBy;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchDomainEventType;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
-import com.gooddaytaxi.dispatch.domain.service.DispatchDomainService;
+import com.gooddaytaxi.dispatch.domain.model.enums.HistoryEventType;
 import com.gooddaytaxi.dispatch.infrastructure.redis.DispatchLockManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,14 +32,13 @@ public class DispatchAcceptService {
     private final DispatchQueryPort queryPort;
     private final DispatchCommandPort commandPort;
 
-    private final DispatchAssignmentLogService assignmentLogService;
+    private final AssignmentLogLifecycleService assignmentLogService;
     private final DispatchHistoryService historyService;
 
     private final DispatchAcceptedCommandPort acceptedEventPort;
     private final TripCreateRequestCommandPort tripEventPort;
 
     private final DispatchLockManager lockManager;
-    private final DispatchDomainService domainService;
 
     private final DispatchAcceptPermissionValidator permissionValidator;
 
@@ -105,7 +104,7 @@ public class DispatchAcceptService {
             try {
                 historyService.saveStatusChange(
                         dispatch.getDispatchId(),
-                        DispatchDomainEventType.ACCEPTED,
+                        HistoryEventType.STATUS_CHANGED,
                         before,
                         dispatch.getDispatchStatus(),
                         ChangedBy.DRIVER

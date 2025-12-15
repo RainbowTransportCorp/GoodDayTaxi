@@ -49,5 +49,15 @@ public class DispatchAssignmentLogRepositoryImpl implements DispatchAssignmentLo
                 )
                 .fetch();
     }
+  
+    @Override
+    public List<UUID> findAllDriverIdsByDispatchId(UUID dispatchId) {
+        return queryFactory
+                .select(dispatchAssignmentLog.candidateDriverId)
+                .from(dispatchAssignmentLog)
+                .where(dispatchAssignmentLog.dispatchId.eq(dispatchId))
+                .fetch();
+    }
+
 }
 
