@@ -122,7 +122,7 @@ public class DispatchNotificationService implements NotifyDispatchUsecase, Notif
 
             messageBody = """
                 %s 기사님이 콜을 수락했습니다
-                %s >>> %s로
+                %s → %s로
                 안전하게 운행해주실 예정이오니, 차량 정보를 참고하여 대기하여 주십시오
                 \uD83D\uDE95 탑승 차량:  %s의 %s(%s)
                 Call: %s

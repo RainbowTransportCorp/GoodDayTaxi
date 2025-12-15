@@ -56,7 +56,7 @@ public class TripNotificationService implements NotifyStartedTripUsecase, Notify
         String messageTitle = "\uD83D\uDCE2 운행이 시작되었습니다";
         Metadata metadata = command.getMetadata();
         String messageBody = """
-                %s >>> %s로 출발합니다
+                %s → %s로 출발합니다
                 """.formatted(
                     command.getPickupAddress(),
                     command.getDestinationAddress()
@@ -97,7 +97,7 @@ public class TripNotificationService implements NotifyStartedTripUsecase, Notify
         String messageTitle = "\uD83D\uDCE2 운행이 종료되었습니다";
         Metadata metadata = command.getMetadata();
         String messageBody = """
-                %s >>> %s에 도착했습니다
+                %s → %s에 도착했습니다
                 """.formatted(
                 command.getPickupAddress(),
                 command.getDestinationAddress()
