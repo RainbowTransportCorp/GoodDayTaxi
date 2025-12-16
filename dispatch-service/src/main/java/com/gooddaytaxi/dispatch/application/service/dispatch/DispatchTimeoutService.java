@@ -109,7 +109,8 @@ public class DispatchTimeoutService {
                     HistoryEventType.STATUS_CHANGED,
                     before,
                     DispatchStatus.ASSIGNING,
-                    ChangedBy.SYSTEM
+                    ChangedBy.SYSTEM,
+                    null
             );
 
             List<UUID> excludeDrivers =
@@ -142,12 +143,13 @@ public class DispatchTimeoutService {
                 HistoryEventType.TIMEOUT,
                 before,
                 DispatchStatus.TIMEOUT,
-                ChangedBy.SYSTEM
+                ChangedBy.SYSTEM,
+                null
         );
 
-        eventPort.publishTimeout(
-                new DispatchTimeoutPayload(
+        eventPort.publishTimeout(DispatchTimeoutPayload.from(
                         dispatch.getDispatchId(),
+                        dispatch.getPassengerId(),
                         dispatch.getTimeoutAt()
                 )
         );

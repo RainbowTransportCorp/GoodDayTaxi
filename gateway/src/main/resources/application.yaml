@@ -23,22 +23,22 @@ spring:
         - id: dispatch-service
           uri: http://host.docker.internal:8202
           predicates:
-            - Path=/api/v*/dispatches/**,/api/v*/admin/dispatch/**,/internal/v*/dispatch/**
+            - Path=/api/v*/dispatches/**,/api/v*/admin/dispatches/**,/internal/v*/dispatches/**
 
         - id: trip-service
           uri: http://host.docker.internal:8203
           predicates:
-            - Path=/api/v*/trips/**,/api/v*/policies/**,/api/v*/admin/trip/**,/internal/v*/trip/**
+            - Path=/api/v*/trips/**,/api/v*/policies/**,/api/v*/admin/trips/**,/internal/v*/trips/**
 
         - id: payment-service
           uri: http://host.docker.internal:8204
           predicates:
-            - Path=/api/v*/payments/**,/api/v*/admin/payment/**,/internal/v*/payment/**
+            - Path=/api/v*/payments/**,/api/v*/admin/payments/**,/internal/v*/payments/**
 
         - id: support-service
           uri: http://host.docker.internal:8205
           predicates:
-            - Path=/api/v*/support/**,/api/v*/admin/support/**,/internal/v*/support/**
+            - Path=/api/v*/supports/**,/api/v*/admin/supports/**,/internal/v*/supports/**
 
 
 springdoc:

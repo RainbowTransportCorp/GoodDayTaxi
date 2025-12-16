@@ -17,12 +17,14 @@ public class DispatchHistoryService {
 
     private final DispatchHistoryCommandPort historyPort;
 
-    public void saveStatusChange(UUID dispatchId,
-                                 HistoryEventType eventType,
-                                 DispatchStatus from,
-                                 DispatchStatus to,
-                                 ChangedBy changedBy) {
-
+    public void saveStatusChange(
+            UUID dispatchId,
+            HistoryEventType eventType,
+            DispatchStatus from,
+            DispatchStatus to,
+            ChangedBy changedBy,
+            String reason   // ← nullable 허용
+    ) {
         historyPort.save(
                 DispatchHistory.recordStatusChange(
                         dispatchId,
@@ -30,7 +32,7 @@ public class DispatchHistoryService {
                         from,
                         to,
                         changedBy,
-                        null
+                        reason
                 )
         );
     }
