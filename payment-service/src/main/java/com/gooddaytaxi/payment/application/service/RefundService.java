@@ -3,6 +3,7 @@ package com.gooddaytaxi.payment.application.service;
 import com.gooddaytaxi.payment.application.command.refund.ExternalPaymentCancelCommand;
 import com.gooddaytaxi.payment.application.command.refund.RefundCreateCommand;
 import com.gooddaytaxi.payment.application.command.refund.RefundSearchCommand;
+import com.gooddaytaxi.payment.application.event.RefundSettlementCreatedPayload;
 import com.gooddaytaxi.payment.application.event.RefundCompletedEvent;
 import com.gooddaytaxi.payment.application.exception.PaymentErrorCode;
 import com.gooddaytaxi.payment.application.exception.PaymentException;
@@ -10,6 +11,7 @@ import com.gooddaytaxi.payment.application.port.out.core.ExternalPaymentPort;
 import com.gooddaytaxi.payment.application.port.out.core.PaymentCommandPort;
 import com.gooddaytaxi.payment.application.port.out.core.PaymentQueryPort;
 import com.gooddaytaxi.payment.application.port.out.core.RefundRequestQueryPort;
+import com.gooddaytaxi.payment.application.port.out.event.PaymentEventCommandPort;
 import com.gooddaytaxi.payment.application.result.payment.ExternalPaymentConfirmResult;
 import com.gooddaytaxi.payment.application.result.refund.ExternalPaymentCancelResult;
 import com.gooddaytaxi.payment.application.result.refund.RefundCreateResult;
@@ -42,6 +44,7 @@ public class RefundService {
     private final PaymentQueryPort paymentQueryPort;
     private final ExternalPaymentPort externalPaymentPort;
     private final RefundRequestQueryPort requestQueryPort;
+    private final PaymentEventCommandPort eventCommandPort;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final PaymentFailureRecorder failureRecorder;
     private final PaymentValidator validator;
@@ -110,6 +113,22 @@ public class RefundService {
         return new RefundCreateResult(paymentId, "환불이 완료되었습니다!");
     }
 
+    //기사에게 환불 수행 알림
+    public RefundCreateResult requestDriverSupportRefund(UUID paymentId, String reason, UUID userId, String role) {
+        Payment payment = paymentQueryPort.findById(paymentId).orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+        //권한 체크 - 관리자만 가능
+        validator.checkRoleAdmin(UserRole.of(role));
+        //결제 수단이 실물결제인지 확인
+        validator.checkMethodPhysicalPayment(payment.getMethod());
+        //결제상태가 완료 상태인지 확인
+        validator.checkPaymentStatusCompleted(payment.getStatus());
+        RefundReason refundReason = RefundReason.of(reason);
+        //환불 수행 요청 이벤트 발행
+        eventCommandPort.publishRefundSettlementCreated(RefundSettlementCreatedPayload.from(payment, refundReason, userId));
+
+        return new RefundCreateResult(paymentId, "기사 환불 수행 요청이 발송되었습니다.");
+    }
+
     @Transactional
     public RefundCreateResult registerPhysicalRefund(UUID paymentId, RefundCreateCommand command, UUID userId, String role) {
         //해당 결제가 있는지 확인
@@ -165,6 +184,7 @@ public class RefundService {
         return dto.toString();
     }
 
+    @Transactional(readOnly = true)
     public RefundReadResult getRefund(UUID paymentId, UUID userId, String role) {
         Payment payment = paymentQueryPort.findById(paymentId).orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
         //권한 체크
@@ -193,6 +213,7 @@ public class RefundService {
     }
 
     //환불 검색
+    @Transactional(readOnly = true)
     public Page<RefundReadResult> searchRefund(RefundSearchCommand command, UUID userId, String role) {
         UUID passeangerId = command.passengerId();
         UUID driverId = command.driverId();

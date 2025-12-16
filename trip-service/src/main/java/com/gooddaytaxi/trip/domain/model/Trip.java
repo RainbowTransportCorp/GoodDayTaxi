@@ -145,10 +145,10 @@ public class Trip extends BaseEntity {
     }
 
 
-    public void start() {
+    public boolean start() {
         // 이미 시작되어 있으면 멱등하게 처리
         if (this.status == TripStatus.STARTED) {
-            return;
+            return false;
         }
 
         // READY가 아닌 상태에서 시작 시도하면 예외
@@ -164,6 +164,8 @@ public class Trip extends BaseEntity {
         if (this.startTime == null) {
             this.startTime = LocalDateTime.now();
         }
+
+        return true;
     }
 
     public void end(BigDecimal totalDistance, long totalDuration) {
@@ -192,3 +194,5 @@ public class Trip extends BaseEntity {
     }
 //나중에  FarePolicy 적용할 때는 calculateFare 부분 리펙토링
 }
+
+

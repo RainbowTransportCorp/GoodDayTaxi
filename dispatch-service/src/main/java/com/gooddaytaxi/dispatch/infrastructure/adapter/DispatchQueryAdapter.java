@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -16,6 +17,16 @@ import java.util.UUID;
 public class DispatchQueryAdapter implements DispatchQueryPort {
 
     private final DispatchRepository dispatchRepository;
+
+    @Override
+    public List<Dispatch> findAll() {
+        return dispatchRepository.findAll();
+    }
+
+    @Override
+    public List<Dispatch> findByStatus(DispatchStatus status) {
+        return dispatchRepository.findByStatus(status);
+    }
 
     @Override
     public List<Dispatch> findAllByPassengerId(UUID passengerId) {
@@ -29,13 +40,13 @@ public class DispatchQueryAdapter implements DispatchQueryPort {
     }
 
     @Override
-    public List<Dispatch> findByStatus(DispatchStatus status) {
-        return dispatchRepository.findByStatus(status);
+    public List<Dispatch> findByDriverIdAndStatus(UUID driverId, DispatchStatus status) {
+        return dispatchRepository.findByDriverIdAndStatus(driverId, status);
     }
 
     @Override
-    public List<Dispatch> findTimeoutTargets(int seconds) {
-        return dispatchRepository.findTimeoutTargets(seconds);
+    public Optional<Dispatch> findByIdAndPassengerId(UUID dispatchId, UUID passengerId) {
+        return dispatchRepository.findByIdAndPassengerId(dispatchId,passengerId);
     }
 
     @Override

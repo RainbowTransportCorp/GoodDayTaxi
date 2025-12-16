@@ -86,12 +86,17 @@ public class TripController {
 
     @PutMapping("/{tripId}/start")
     public ResponseEntity<ApiResponse<TripStartResponse>> startTrip(
-            @PathVariable("tripId") UUID tripId
+            @PathVariable("tripId") UUID tripId,
+            @RequestHeader("x-user-uuid") UUID notifierId
     ) {
-        StartTripCommand command = new StartTripCommand(tripId);
+
+        UUID finalNotifierId = (notifierId != null)
+                ? notifierId
+                : UUID.fromString("99999999-9999-9999-9999-999999999999");
+
+        StartTripCommand command = new StartTripCommand(tripId, finalNotifierId);
 
         TripStartResult result = tripService.startTrip(command);
-
         TripStartResponse response = tripStartResponseMapper.toResponse(result);
 
         return ResponseEntity.ok(ApiResponse.success(response));
