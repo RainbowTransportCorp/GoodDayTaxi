@@ -28,9 +28,10 @@ public enum PaymentErrorCode {
     ADMIN_ROLE_REQUIRED(HttpStatus.FORBIDDEN, "P011", "해당 요청은 관리자만 사용할 수 있습니다"),
     MASTER_ADMIN_ROLE_REQUIRED(HttpStatus.FORBIDDEN, "P011", "해당 요청은 최고관리자만 사용할 수 있습니다"),
     DRIVER_MASTER_ROLE_REQUIRED(HttpStatus.FORBIDDEN, "P011", "해당 요청은 기사와 최고관리자만 사용할 수 있습니다"),
-    PASSENGER_ROLE_NOT_ALLOWED(HttpStatus.FORBIDDEN, "P012", "승객은 해당 요청을 수행할 수 없습니다"),
-    PAYMENT_PASSENGER_MISMATCH(HttpStatus.FORBIDDEN, "P013", "결제 정보의 승객정보가 일치하지 않습니다"),
-    PAYMENT_DRIVER_MISMATCH(HttpStatus.FORBIDDEN, "P014", "결제 정보의 기사정보가 일치하지 않습니다"),
+    MASTER_AND_ADMIN_ROLE_REQUIRED(HttpStatus.FORBIDDEN, "P012", "해당 요청은 관리자와 최고관리자만 사용할 수 있습니다"),
+    PASSENGER_ROLE_NOT_ALLOWED(HttpStatus.FORBIDDEN, "P013", "승객은 해당 요청을 수행할 수 없습니다"),
+    PAYMENT_PASSENGER_MISMATCH(HttpStatus.FORBIDDEN, "P014", "결제 정보의 승객정보가 일치하지 않습니다"),
+    PAYMENT_DRIVER_MISMATCH(HttpStatus.FORBIDDEN, "P015", "결제 정보의 기사정보가 일치하지 않습니다"),
 
     //404 — NOT_FOUND
     PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "P015", "해당하는 결제 정보를 찾을 수 없습니다"),

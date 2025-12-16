@@ -52,6 +52,12 @@ public class PaymentValidator {
             throw new PaymentException(PaymentErrorCode.MASTER_ADMIN_ROLE_REQUIRED);
         }
     }
+    //유저의 역할이 마스터 관리자거나 관리자인지 확인
+    public void checkRoleAdminAndMaster(UserRole role) {
+        if(!(role == UserRole.MASTER_ADMIN || role == UserRole.ADMIN)) {
+            throw new PaymentException(PaymentErrorCode.MASTER_AND_ADMIN_ROLE_REQUIRED);
+        }
+    }
     //유저의 역할이 기사이거나 마스터 관리자인지 확인
     public void checkRoleDriverOrMaster(UserRole role) {
         if(!(role == UserRole.MASTER_ADMIN|| role == UserRole.DRIVER)) {
