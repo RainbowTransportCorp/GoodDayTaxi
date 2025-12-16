@@ -75,7 +75,7 @@ public class PassengerDispatchQueryService {
                 .requestCreatedAt(dispatch.getRequestCreatedAt())
                 .assignedAt(dispatch.getAssignedAt())
                 .acceptedAt(dispatch.getAcceptedAt())
-                .cancelledAt(dispatch.getCancelledAt())
+                .canceledAt(dispatch.getCanceledAt())
                 .timeoutAt(dispatch.getTimeoutAt())
                 .createdAt(dispatch.getCreatedAt())
                 .updatedAt(dispatch.getUpdatedAt())

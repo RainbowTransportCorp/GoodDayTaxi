@@ -2,6 +2,7 @@ package com.gooddaytaxi.dispatch.domain.model.entity;
 
 import com.gooddaytaxi.common.jpa.model.BaseEntity;
 import com.gooddaytaxi.dispatch.application.exception.CannotAssignDriverException;
+import com.gooddaytaxi.dispatch.domain.exception.CannotCancelDispatchException;
 import com.gooddaytaxi.dispatch.domain.exception.DispatchAlreadyAssignedByOthersException;
 import com.gooddaytaxi.dispatch.domain.exception.InvalidDispatchStateException;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
@@ -52,8 +53,8 @@ public class Dispatch extends BaseEntity {
     @Column(name = "accepted_at")
     private LocalDateTime acceptedAt;
 
-    @Column(name = "cancelled_at")
-    private LocalDateTime cancelledAt;
+    @Column(name = "canceled_at")
+    private LocalDateTime canceledAt;
 
     @Column(name = "timeout_at")
     private LocalDateTime timeoutAt;
@@ -102,13 +103,17 @@ public class Dispatch extends BaseEntity {
         this.acceptedAt = LocalDateTime.now();
     }
 
-    public void cancel() {
-        if (!dispatchStatus.isCancelableStatus()) {
-            throw new InvalidDispatchStateException();
+    public void cancelByPassenger() {
+
+        if (dispatchStatus == DispatchStatus.CANCELED ||
+                dispatchStatus == DispatchStatus.TIMEOUT) {
+            throw new CannotCancelDispatchException();
         }
-        this.dispatchStatus = DispatchStatus.CANCELLED;
-        this.cancelledAt = LocalDateTime.now();
+
+        this.dispatchStatus = DispatchStatus.CANCELED;
+        this.canceledAt = LocalDateTime.now();
     }
+
 
     /**
      * 기사 1명이 배차 요청을 거절할 때 호출되는 도메인 행동 메서드
@@ -155,7 +160,7 @@ public class Dispatch extends BaseEntity {
 
     public void terminateByRetryLimit() {
         if (dispatchStatus == DispatchStatus.TIMEOUT ||
-                dispatchStatus == DispatchStatus.CANCELLED) {
+                dispatchStatus == DispatchStatus.CANCELED) {
             throw new InvalidDispatchStateException();
         }
 
