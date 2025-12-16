@@ -34,7 +34,7 @@ public class AdminDispatchController {
      */
     @GetMapping
     public ResponseEntity<ApiResponse<List<AdminDispatchListResponseDto>>> getDispatches(
-            @RequestHeader(value = "X-User-Role", required = false) String role,
+            @RequestHeader(value = "X-User-Role") String role,
             @RequestParam(required = false) DispatchStatus status
     ) {
         UserRole userRole = UserRole.valueOf(role);
@@ -53,7 +53,7 @@ public class AdminDispatchController {
      */
     @GetMapping("/{dispatchId}")
     public ResponseEntity<ApiResponse<AdminDispatchDetailResponseDto>> getDispatchDetail(
-            @RequestHeader(value = "X-User-Role", required = false) String role,
+            @RequestHeader(value = "X-User-Role") String role,
             @PathVariable UUID dispatchId
     ) {
         UserRole userRole = UserRole.valueOf(role);
@@ -68,11 +68,14 @@ public class AdminDispatchController {
     }
 
     /**
-     * 관리자 강제 Timeout 처리 (MASTER_ADMIN)
+     * 관리자 강제 timeout 처리 (cancel로 하려 했으나 timeout이 적절하다고 판단하여 timeout으로 변경)
+     * @param role
+     * @param dispatchId
+     * @return
      */
     @PatchMapping("/{dispatchId}/force-timeout")
     public ResponseEntity<ApiResponse<AdminForceTimeoutResponseDto>> forceTimeout(
-            @RequestHeader(value = "X-User-Role", required = false) String role,
+            @RequestHeader(value = "X-User-Role") String role,
             @PathVariable UUID dispatchId
     ) {
         UserRole userRole = UserRole.valueOf(role);
