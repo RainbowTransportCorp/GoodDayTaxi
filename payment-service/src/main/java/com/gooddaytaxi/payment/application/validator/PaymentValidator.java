@@ -46,6 +46,18 @@ public class PaymentValidator {
         }
     }
 
+    //유저의 역할이 마스터 관리자인지 확인
+    public void checkRoleMasterAdmin(UserRole role) {
+        if(role != UserRole.MASTER_ADMIN) {
+            throw new PaymentException(PaymentErrorCode.MASTER_ADMIN_ROLE_REQUIRED);
+        }
+    }
+    //유저의 역할이 기사이거나 마스터 관리자인지 확인
+    public void checkRoleDriverOrMaster(UserRole role) {
+        if(!(role == UserRole.MASTER_ADMIN|| role == UserRole.DRIVER)) {
+            throw new PaymentException(PaymentErrorCode.DRIVER_MASTER_ROLE_REQUIRED);
+        }
+    }
     //승객인 경우 불가
     public void notAllowedPassenger(UserRole role) {
         if(role == UserRole.PASSENGER) throw new PaymentException(PaymentErrorCode.PASSENGER_ROLE_NOT_ALLOWED);

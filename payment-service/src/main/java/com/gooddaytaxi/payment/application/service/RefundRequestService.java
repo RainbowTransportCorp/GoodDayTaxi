@@ -100,10 +100,10 @@ public class RefundRequestService {
 
     @Transactional
     public RefundRequestCreateResult respondToRefundRequest(RefundRequestResponseCreateCommand command, UUID userId, String role) {
-        //환불 요청 응답은 관리지만 가능
-        validator.checkRoleAdmin(UserRole.of(role));
+        //환불 요청 응답은 최고관리지만 가능
+        validator.checkRoleMasterAdmin(UserRole.of(role));
 
-        RefundRequest request = requestQueryPort.findById(command.requestId()).orElseThrow(()-> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+        RefundRequest request = requestQueryPort.findById(command.requestId()).orElseThrow(()-> new PaymentException(PaymentErrorCode.REFUND_REQUEST_NOT_FOUND));
         validator.checkRefundRequestStatusRequested(request.getStatus());
         request.respond(command.approve(), command.response());
         if(!command.approve()) {

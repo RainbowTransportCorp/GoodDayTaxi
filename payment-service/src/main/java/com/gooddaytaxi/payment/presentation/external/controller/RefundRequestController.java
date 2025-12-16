@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/payments/refund/requests")
+@RequestMapping("/api/v1/refund/requests")
 @RequiredArgsConstructor
 public class RefundRequestController {
     private final RefundRequestService requestService;
