@@ -18,7 +18,7 @@ import java.util.UUID;
 @Tag(name = "알림 관리", description = "알림 조회 및 읽음 처리 API")
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/support")
+@RequestMapping("/api/v1/supports")
 @RequiredArgsConstructor
 public class NotificationController {
 
@@ -31,6 +31,7 @@ public class NotificationController {
             @RequestHeader("X-User-Role") String userRole,
             @Parameter(description = "사용자 ID (UUID)", required = true, example = "550e8400-e29b-41d4-a716-446655440000")
             @RequestHeader("X-User-UUID") String userId) {
+        log.info("사용자 역할: {}", userRole);
 
         log.debug("[Check] 사용자 ID: {}, 사용자 역할: {}", userRole, userId);
 
