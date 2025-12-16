@@ -30,10 +30,10 @@ public class DispatchEndpoint {
     public void onDispatchRequested(EventRequest req) {
         log.info("💗💗💗💗 Requested Request: {}", req.toString());
         // Metadata
-        Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occuredAt());
+        Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occurredAt());
         // Payload
         DispatchRequestedEventPayload pl = req.convertPayload(DispatchRequestedEventPayload.class);
-        log.debug("[Check] Dispatch EventRequest 데이터: dispatchId={}, notifierId={}, message={}, occuredAt={}", pl.notificationOriginId(), pl.notifierId(), pl.message(), metadata.occurredAt());
+        log.debug("[Check] Dispatch EventRequest 데이터: dispatchId={}, notifierId={}, message={}, occurredAt={}", pl.notificationOriginId(), pl.notifierId(), pl.message(), metadata.occurredAt());
 
         // EventRequest DTO > Command 변환
         NotifyDispatchInformationCommand command = NotifyDispatchInformationCommand.create(
@@ -58,10 +58,10 @@ public class DispatchEndpoint {
     public void onDispatchAccepted(EventRequest req) {
         log.info("💗💗💗💗 Accepted Request: {}", req.toString());
         // Metadata
-        Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occuredAt());
+        Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occurredAt());
         // Payload
         DispatchAcceptedEventPayload pl = req.convertPayload(DispatchAcceptedEventPayload.class);
-        log.info("[Check] Dispatch EventRequest 데이터: dispatchId={}, notifierId={}, message={}, occuredAt={}", pl.notificationOriginId(), pl.notifierId(), pl.message(), metadata.occurredAt());
+        log.info("[Check] Dispatch EventRequest 데이터: dispatchId={}, notifierId={}, message={}, occurredAt={}", pl.notificationOriginId(), pl.notifierId(), pl.message(), metadata.occurredAt());
 
         // EventRequest DTO > Command 변환
         NotifyDispatchAcceptedCommand command = NotifyDispatchAcceptedCommand.create(
@@ -87,7 +87,7 @@ public class DispatchEndpoint {
         log.info("💗💗💗💗 Timeout Request: {}", req.toString());
 
         // Metadata
-        Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occuredAt());
+        Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occurredAt());
         // Payload
         DispatchTimeoutEventPayload pl = req.convertPayload(DispatchTimeoutEventPayload.class);
         log.debug("[Check] Dispatch Timeout EventRequest 데이터: dispatchId={}, timeoutAt={}", pl.dispatchId(), pl.timeoutAt());
@@ -116,7 +116,7 @@ public class DispatchEndpoint {
 
         log.info("💗💗💗💗 Canceled Request: {}", req.toString());
         // Metadata
-        Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occuredAt());
+        Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occurredAt());
         // Payload
         DispatchCanceledEventPayload pl = req.convertPayload(DispatchCanceledEventPayload.class);
         log.debug("[Check] Dispatch Cancel EventRequest 데이터: dispatchId={}, driverId={}, cancelBy={}, canceledAt={}", pl.notificationOriginId(), pl.driverId(), pl.canceledBy(), pl.canceledAt());
@@ -145,7 +145,7 @@ public class DispatchEndpoint {
     public void onDispatchRejected(EventRequest req) {
         log.info("💗💗💗💗 Rejected Request: {}", req.toString());
         // Metadata
-        Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occuredAt());
+        Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occurredAt());
         // Payload
         DispatchRejectedEventPayload pl = req.convertPayload(DispatchRejectedEventPayload.class);
         log.debug("[Check] Dispatch Reject EventRequest 데이터: dispatchId={}, driverId={}, rejectedAt={}", pl.dispatchId(), pl.driverId(), pl.rejectedAt());

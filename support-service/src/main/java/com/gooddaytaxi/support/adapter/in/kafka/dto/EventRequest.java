@@ -15,7 +15,7 @@ public record EventRequest(
 //        EventMetadata eventMetadata,
         UUID eventId,
         String eventType,
-        LocalDateTime occuredAt,
+        LocalDateTime occurredAt,
         Integer payloadVersion,
         Map<String, Object> payload
 ) {
