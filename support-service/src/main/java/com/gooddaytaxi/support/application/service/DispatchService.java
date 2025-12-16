@@ -230,10 +230,11 @@ public class DispatchService implements NotifyDispatchUsecase, NotifyAcceptedCal
 
         }
         String messageBody = """
-                %s
-                %s(으)로 배차가 중단되었습니다
+                %s %s
+                %s(으)로 배차가 취소되었습니다
                 """.formatted(
                 command.getCanceledAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                savedNoti.getMessage(),
                 canceledBy
         );
 
