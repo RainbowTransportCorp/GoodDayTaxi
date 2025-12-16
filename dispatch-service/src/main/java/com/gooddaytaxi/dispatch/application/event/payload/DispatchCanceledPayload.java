@@ -14,7 +14,7 @@ public record DispatchCanceledPayload(
         UUID passengerId,
         String canceledBy,          // PASSENGER | SYSTEM
         String message,
-        LocalDateTime cancelledAt
+        LocalDateTime canceledAt
 ) {
 
     // 승객 취소

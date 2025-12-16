@@ -21,7 +21,7 @@ public class DispatchDetailResponseDto {
     private final LocalDateTime requestCreatedAt;
     private final LocalDateTime assignedAt;
     private final LocalDateTime acceptedAt;
-    private final LocalDateTime cancelledAt;
+    private final LocalDateTime canceledAt;
     private final LocalDateTime timeoutAt;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;

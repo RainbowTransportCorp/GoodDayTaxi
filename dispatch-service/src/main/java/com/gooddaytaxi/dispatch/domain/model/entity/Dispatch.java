@@ -53,8 +53,8 @@ public class Dispatch extends BaseEntity {
     @Column(name = "accepted_at")
     private LocalDateTime acceptedAt;
 
-    @Column(name = "cancelled_at")
-    private LocalDateTime cancelledAt;
+    @Column(name = "canceled_at")
+    private LocalDateTime canceledAt;
 
     @Column(name = "timeout_at")
     private LocalDateTime timeoutAt;
@@ -105,13 +105,13 @@ public class Dispatch extends BaseEntity {
 
     public void cancelByPassenger() {
 
-        if (dispatchStatus == DispatchStatus.CANCELLED ||
+        if (dispatchStatus == DispatchStatus.CANCELED ||
                 dispatchStatus == DispatchStatus.TIMEOUT) {
             throw new CannotCancelDispatchException();
         }
 
-        this.dispatchStatus = DispatchStatus.CANCELLED;
-        this.cancelledAt = LocalDateTime.now();
+        this.dispatchStatus = DispatchStatus.CANCELED;
+        this.canceledAt = LocalDateTime.now();
     }
 
 
@@ -160,7 +160,7 @@ public class Dispatch extends BaseEntity {
 
     public void terminateByRetryLimit() {
         if (dispatchStatus == DispatchStatus.TIMEOUT ||
-                dispatchStatus == DispatchStatus.CANCELLED) {
+                dispatchStatus == DispatchStatus.CANCELED) {
             throw new InvalidDispatchStateException();
         }
 

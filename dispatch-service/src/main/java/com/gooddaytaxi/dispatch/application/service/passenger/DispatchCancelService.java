@@ -72,7 +72,7 @@ public class DispatchCancelService {
         return DispatchCancelResult.builder()
                 .dispatchId(dispatch.getDispatchId())
                 .dispatchStatus(dispatch.getDispatchStatus())
-                .cancelledAt(dispatch.getCancelledAt())
+                .canceledAt(dispatch.getCanceledAt())
                 .build();
     }
 }
