@@ -8,11 +8,11 @@ import java.util.UUID;
 
 public record DispatchCanceledPayload(
         UUID notificationOriginId,   // dispatchId
-        UUID notifierId,             // passengerId or SYSTEM
+        UUID notifierId,             // driver or SYSTEM
         UUID dispatchId,
         UUID driverId,
         UUID passengerId,
-        String cancelledBy,          // PASSENGER | SYSTEM
+        String canceledBy,          // PASSENGER | SYSTEM
         String message,
         LocalDateTime cancelledAt
 ) {
@@ -20,8 +20,8 @@ public record DispatchCanceledPayload(
     // 승객 취소
     public static DispatchCanceledPayload fromPassenger(Dispatch dispatch) {
         return new DispatchCanceledPayload(
-                dispatch.getDispatchId(),
-                dispatch.getPassengerId(),
+                dispatch.getDispatchId(), // 알림용 (배차에서 보냈음)
+                dispatch.getDriverId(), // 알림용 (누구에게 보낼 것)
                 dispatch.getDispatchId(),
                 dispatch.getDriverId(),
                 dispatch.getPassengerId(),

@@ -2,6 +2,7 @@ package com.gooddaytaxi.dispatch.domain.model.entity;
 
 import com.gooddaytaxi.common.jpa.model.BaseEntity;
 import com.gooddaytaxi.dispatch.application.exception.CannotAssignDriverException;
+import com.gooddaytaxi.dispatch.domain.exception.CannotCancelDispatchException;
 import com.gooddaytaxi.dispatch.domain.exception.DispatchAlreadyAssignedByOthersException;
 import com.gooddaytaxi.dispatch.domain.exception.InvalidDispatchStateException;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
@@ -104,17 +105,12 @@ public class Dispatch extends BaseEntity {
 
     public void cancelByPassenger() {
 
-        if (dispatchStatus == DispatchStatus.IN_PROGRESS ||
-                dispatchStatus == DispatchStatus.COMPLETED) {
-            throw new CannotCancelAfterTripStartedException(dispatchId);
+        if (dispatchStatus == DispatchStatus.CANCELLED ||
+                dispatchStatus == DispatchStatus.TIMEOUT) {
+            throw new CannotCancelDispatchException();
         }
 
-        if (dispatchStatus == DispatchStatus.ASSIGNED) {
-            this.dispatchStatus = DispatchStatus.CANCELED_AFTER_ACCEPTED;
-        } else {
-            this.dispatchStatus = DispatchStatus.CANCELED_BEFORE_ASSIGN;
-        }
-
+        this.dispatchStatus = DispatchStatus.CANCELLED;
         this.cancelledAt = LocalDateTime.now();
     }
 
