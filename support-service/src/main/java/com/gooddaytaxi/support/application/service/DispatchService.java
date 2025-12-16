@@ -179,7 +179,7 @@ public class DispatchService implements NotifyDispatchUsecase, NotifyAcceptedCal
         String messageTitle = "\uD83D\uDCE2 기사 매칭 시간이 초과되었습니다";
         Metadata metadata = command.getMetadata();
         String messageBody = """
-                [ %s ] 
+                [ %s ]
                 운행 중인 기사님께 배차를 시도하였지만
                 시간(30s)이 초과되었습니다
                 """.formatted(

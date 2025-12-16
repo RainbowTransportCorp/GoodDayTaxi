@@ -3,15 +3,11 @@ package com.gooddaytaxi.support.application.service;
 import com.gooddaytaxi.support.adapter.out.internal.account.dto.UserRole;
 import com.gooddaytaxi.support.application.port.in.web.GetAllUserNotificationsUsecase;
 import com.gooddaytaxi.support.application.port.out.persistence.NotificationQueryPersistencePort;
-import com.gooddaytaxi.support.domain.notification.model.Notification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.aspectj.weaver.ast.Not;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 /**
