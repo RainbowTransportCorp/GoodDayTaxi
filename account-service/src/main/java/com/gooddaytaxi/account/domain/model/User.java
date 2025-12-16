@@ -40,7 +40,7 @@ public class User extends BaseEntity {
     private String slackId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false, length = 10)
+    @Column(name = "role", nullable = false, length = 15)
     private UserRole role;
 
     @Enumerated(EnumType.STRING)

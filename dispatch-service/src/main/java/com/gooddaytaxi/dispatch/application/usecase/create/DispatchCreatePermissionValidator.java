@@ -8,8 +8,8 @@ import org.springframework.stereotype.Component;
 public class DispatchCreatePermissionValidator {
 
     public void validate(UserRole role) {
-        // PASSENGER / ADMIN / SYSTEM / MASTER_ADMIN allowed
-        if (role == UserRole.DRIVER) {
+        //승객, 마스터만 가능
+        if (role == UserRole.DRIVER || role == UserRole.ADMIN || role == UserRole.SYSTEM) {
             throw new DispatchPermissionDeniedException(role);
         }
     }

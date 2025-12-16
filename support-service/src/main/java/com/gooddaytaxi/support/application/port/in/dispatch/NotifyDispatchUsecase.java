@@ -7,5 +7,4 @@ import com.gooddaytaxi.support.application.dto.NotifyDispatchInformationCommand;
  */
 public interface NotifyDispatchUsecase {
     void execute(NotifyDispatchInformationCommand command);
-    // void cancel(DeleteCallCommand command);
 }

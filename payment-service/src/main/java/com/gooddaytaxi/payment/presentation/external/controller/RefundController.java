@@ -53,6 +53,17 @@ public class RefundController {
         return ResponseEntity.status(201).body(ApiResponse.success(responseDto));
     }
 
+    //결제수단이 실물결제인경우 기사에게 환불 수행 필요 요청
+    @PostMapping("/driver/support/{paymentId}/{reason}")
+    public ResponseEntity<ApiResponse<RefundCreateResponseDto>> DriverSupportRefund(@PathVariable UUID paymentId,
+                                                                 @PathVariable String reason,
+                                                                 @RequestParam UUID userId,
+                                                                 @RequestParam String role) {
+        RefundCreateResult result = refundService.requestDriverSupportRefund(paymentId,reason, userId, role);
+        RefundCreateResponseDto responseDto = RefundCreateResponseMapper.toResponse(result);
+        return ResponseEntity.status(201).body(ApiResponse.success(responseDto));
+    }
+
 
     //환불 상태 조회
     @GetMapping("/{paymentId}")
