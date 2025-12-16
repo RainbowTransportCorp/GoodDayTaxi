@@ -1,6 +1,5 @@
 package com.gooddaytaxi.payment.domain.repository;
 
-import com.gooddaytaxi.payment.application.port.out.core.view.PaymentIdentityView;
 import com.gooddaytaxi.payment.domain.entity.Payment;
 import com.gooddaytaxi.payment.domain.entity.Refund;
 import org.springframework.data.domain.Page;

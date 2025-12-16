@@ -1,4 +1,4 @@
-package com.gooddaytaxi.payment.application.port.out.core.view;
+package com.gooddaytaxi.payment.domain.repository;
 
 import com.gooddaytaxi.payment.domain.enums.PaymentStatus;
 

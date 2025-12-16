@@ -1,7 +1,7 @@
 package com.gooddaytaxi.payment.infrastructure.adapter.out;
 
 import com.gooddaytaxi.payment.application.port.out.core.PaymentQueryPort;
-import com.gooddaytaxi.payment.application.port.out.core.view.PaymentIdentityView;
+import com.gooddaytaxi.payment.domain.repository.PaymentIdentityView;
 import com.gooddaytaxi.payment.domain.entity.Payment;
 import com.gooddaytaxi.payment.domain.entity.Refund;
 import com.gooddaytaxi.payment.domain.repository.PaymentRepository;

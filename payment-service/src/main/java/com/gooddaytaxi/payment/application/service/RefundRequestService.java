@@ -10,7 +10,7 @@ import com.gooddaytaxi.payment.application.exception.PaymentException;
 import com.gooddaytaxi.payment.application.port.out.core.PaymentQueryPort;
 import com.gooddaytaxi.payment.application.port.out.core.RefundRequestCommandPort;
 import com.gooddaytaxi.payment.application.port.out.core.RefundRequestQueryPort;
-import com.gooddaytaxi.payment.application.port.out.core.view.PaymentIdentityView;
+import com.gooddaytaxi.payment.domain.repository.PaymentIdentityView;
 import com.gooddaytaxi.payment.application.port.out.event.PaymentEventCommandPort;
 import com.gooddaytaxi.payment.application.result.refundRequest.RefundRequestCancelResult;
 import com.gooddaytaxi.payment.application.result.refundRequest.RefundRequestCreateResult;
