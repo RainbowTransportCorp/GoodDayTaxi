@@ -2,8 +2,8 @@ package com.gooddaytaxi.support.application.service;
 
 import com.gooddaytaxi.support.adapter.out.internal.account.dto.DriverProfile;
 import com.gooddaytaxi.support.adapter.out.internal.account.dto.VehicleInfo;
-import com.gooddaytaxi.support.application.Metadata;
-import com.gooddaytaxi.support.application.dto.*;
+import com.gooddaytaxi.support.application.dto.Metadata;
+import com.gooddaytaxi.support.application.dto.dispatch.*;
 import com.gooddaytaxi.support.application.port.in.dispatch.*;
 import com.gooddaytaxi.support.application.port.out.internal.account.AccountDomainCommunicationPort;
 import com.gooddaytaxi.support.application.port.out.messaging.NotificationPushMessagingPort;
@@ -28,7 +28,7 @@ import java.util.UUID;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class DispatchNotificationService implements NotifyDispatchUsecase, NotifyAcceptedCallUsecase, NotifyDispatchTimeoutUsecase, NotifyDispatchCancelUsecase, NotifyDispatchRejectUsecase {
+public class DispatchService implements NotifyDispatchUsecase, NotifyAcceptedCallUsecase, NotifyDispatchTimeoutUsecase, NotifyDispatchCancelUsecase, NotifyDispatchRejectUsecase {
 
     private final NotificationCommandPersistencePort notificationCommandPersistencePort;
     private final NotificationPushMessagingPort notificationPushMessagingPort;
@@ -51,21 +51,21 @@ public class DispatchNotificationService implements NotifyDispatchUsecase, Notif
 
         // 수신자: [ 기사, 승객 ]
         List<UUID> receivers = new ArrayList<>();
-        receivers.add(command.getDriverId());
+        receivers.add(noti.getDriverId());
         receivers.add(null);
 
         // 알림 메시지 구성
         String messageTitle = "\uD83D\uDCE2 콜 요청을 수락하시겠습니까?";
         Metadata metadata = command.getMetadata();
         String messageBody = """
-                승객 ID %s 님이 %s로 향하는 운행을 요청하였습니다
-                현재 승객의 위치는 %s 입니다
                 %s
+                승객 ID %s 님이 %s(으)로 향하는 운행을 요청하였습니다
+                현재 승객의 위치는 %s 입니다
                 """.formatted(
+                command.getMessage(),
                 command.getPassengerId(),
                 command.getDestinationAddress(),
-                command.getPickupAddress(),
-                command.getMessage()
+                command.getPickupAddress()
         );
 
         // RabbitMQ: Queue에 Push
@@ -99,7 +99,7 @@ public class DispatchNotificationService implements NotifyDispatchUsecase, Notif
         // 수신자: [ 기사, 승객 ]
         List<UUID> receivers = new ArrayList<>();
         receivers.add(null);
-        receivers.add(command.getPassengerId());
+        receivers.add(noti.getPassengerId());
 
         // Account Feign Client: 기사 정보 조회
         DriverProfile driverProfile = null;
@@ -172,7 +172,7 @@ public class DispatchNotificationService implements NotifyDispatchUsecase, Notif
         // 수신자: [ 기사, 승객 ]
         List<UUID> receivers = new ArrayList<>();
         receivers.add(null);
-        receivers.add(command.getPassengerId());
+        receivers.add(noti.getPassengerId());
 
         // 알림 메시지 구성
         String messageTitle = "\uD83D\uDCE2 콜 요청을 수락하시겠습니까?";
@@ -212,7 +212,7 @@ public class DispatchNotificationService implements NotifyDispatchUsecase, Notif
 
         // 수신자: [ 기사, 승객 ]
         List<UUID> receivers = new ArrayList<>();
-        receivers.add(command.getDispatchId());
+        receivers.add(noti.getDriverId());
         receivers.add(null);
 
         // 알림 메시지 구성
@@ -255,7 +255,7 @@ public class DispatchNotificationService implements NotifyDispatchUsecase, Notif
     public void execute(NotifyDispatchRejectedCommand command) {
         // Notification 생성 및 저장
         Notification noti = Notification.from(command, NotificationType.DISPATCH_REJECTED);
-        noti.assignIds(command.getDispatchId(), null, null, command.getDriverId(), command.getPassengerId());
+        noti.assignIds(command.getDispatchId(), null, null, command.getDriverId(), null);
 
         Notification savedNoti = notificationCommandPersistencePort.save(noti);
 //        Notification savedNoti = notificationQueryPersistencePort.findById(noti.getId());
@@ -263,8 +263,8 @@ public class DispatchNotificationService implements NotifyDispatchUsecase, Notif
 
         // 수신자: [ 기사, 승객 ]
         List<UUID> receivers = new ArrayList<>();
+        receivers.add(noti.getDriverId());
         receivers.add(null);
-        receivers.add(command.getDispatchId());
 
         // 알림 메시지 구성
         String messageTitle = "\uD83D\uDCE2 기사님이 콜을 거절하였습니다";
@@ -285,7 +285,7 @@ public class DispatchNotificationService implements NotifyDispatchUsecase, Notif
 //        notificationAlertExternalPort.sendDirectRequest(queuePushMessage);
 
         // 로그
-        log.info("\uD83D\uDCE2 [DISPATCH] Rejected! dispatchId={}, driverId={}, passengerId={}, rejectedAt={}", command.getDispatchId(), command.getDriverId(), command.getPassengerId(), command.getRejectedAt());
+        log.info("\uD83D\uDCE2 [DISPATCH] Rejected! dispatchId={}, driverId={}, rejectedAt={}", command.getDispatchId(), command.getDriverId(), command.getRejectedAt());
 
     }
 }

@@ -1,8 +1,8 @@
 package com.gooddaytaxi.support.adapter.in.kafka.endpoint;
 
 import com.gooddaytaxi.support.adapter.in.kafka.dto.*;
-import com.gooddaytaxi.support.application.Metadata;
-import com.gooddaytaxi.support.application.dto.*;
+import com.gooddaytaxi.support.application.dto.Metadata;
+import com.gooddaytaxi.support.application.dto.dispatch.*;
 import com.gooddaytaxi.support.application.port.in.dispatch.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,10 +29,10 @@ public class DispatchEndpoint {
     @KafkaListener(topics = "dispatch.requested", groupId = "support-service", concurrency = "1")
     public void onDispatchRequested(EventRequest req) {
         // Metadata
-        Metadata metadata = req.eventMetadata().to();
+        Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occuredAt());
         // Payload
         DispatchEventPayload pl = req.convertPayload(DispatchEventPayload.class);
-        log.debug("[Check] Dispatch EventRequest 데이터: dispatchId={}, notifierId={}, message={}, occuredAt={}", pl.notificationOriginId(), pl.notifierId(), pl.message(), metadata.getOccuredAt());
+        log.debug("[Check] Dispatch EventRequest 데이터: dispatchId={}, notifierId={}, message={}, occuredAt={}", pl.notificationOriginId(), pl.notifierId(), pl.message(), metadata.occuredAt());
 
         // EventRequest DTO > Command 변환
         NotifyDispatchInformationCommand command = NotifyDispatchInformationCommand.create(
@@ -56,10 +56,10 @@ public class DispatchEndpoint {
     @KafkaListener(topics = "dispatch.accepted", groupId = "support-service", concurrency = "1")
     public void onDispatchAccepted(EventRequest req) {
         // Metadata
-        Metadata metadata = req.eventMetadata().to();
+        Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occuredAt());
         // Payload
         DispatchEventPayload pl = req.convertPayload(DispatchEventPayload.class);
-        log.debug("[Check] Dispatch EventRequest 데이터: dispatchId={}, notifierId={}, message={}, occuredAt={}", pl.notificationOriginId(), pl.notifierId(), pl.message(), metadata.getOccuredAt());
+        log.info("[Check] Dispatch EventRequest 데이터: dispatchId={}, notifierId={}, message={}, occuredAt={}", pl.notificationOriginId(), pl.notifierId(), pl.message(), metadata.occuredAt());
 
         // EventRequest DTO > Command 변환
         NotifyDispatchAcceptedCommand command = NotifyDispatchAcceptedCommand.create(
@@ -67,6 +67,7 @@ public class DispatchEndpoint {
                 pl.driverId(), pl.passengerId(),
                 pl.pickupAddress(), pl.destinationAddress(),
                 pl.message(),
+                pl.acceptedAt(),
                 metadata
         );
         log.debug("[Transform] EventRequest >>> Command ➡️ {}", command);
@@ -82,7 +83,7 @@ public class DispatchEndpoint {
     @KafkaListener(topics = "dispatch.timeout", groupId = "support-service", concurrency = "1")
     public void onDispatchTimeOut(EventRequest req) {
         // Metadata
-        Metadata metadata = req.eventMetadata().to();
+        Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occuredAt());
         // Payload
         DispatchTimeoutEventPayload pl = req.convertPayload(DispatchTimeoutEventPayload.class);
         log.debug("[Check] Dispatch Timeout EventRequest 데이터: dispatchId={}, timeoutAt={}", pl.dispatchId(), pl.timeoutAt());
@@ -107,7 +108,7 @@ public class DispatchEndpoint {
     @KafkaListener(topics = "dispatch.cancelled", groupId = "support-service", concurrency = "1")
     public void onDispatchCancelled(EventRequest req) {
         // Metadata
-        Metadata metadata = req.eventMetadata().to();
+        Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occuredAt());
         // Payload
         DispatchCancelledEventPayload pl = req.convertPayload(DispatchCancelledEventPayload.class);
         log.debug("[Check] Dispatch Cancel EventRequest 데이터: dispatchId={}, driverId={}, cancelBy={}, cancelledAt={}", pl.dispatchId(), pl.driverId(), pl.cancelledBy(), pl.cancelledAt());
@@ -128,21 +129,20 @@ public class DispatchEndpoint {
     }
 
     /**
-     * 기사가 콜을 거절했을 때 손님에게 알림을 전송하는 이벤트 리스너
+     * 어느 기사가 콜을 거절했을 때 이미 배정된 콜에 대해 같은 콜을 받은 다른 기사들에게 거절 알림을 전송하는 이벤트 리스너
      */
     @KafkaListener(topics = "dispatch.rejected", groupId = "support-service", concurrency = "1")
     public void onDispatchRejected(EventRequest req) {
         // Metadata
-        Metadata metadata = req.eventMetadata().to();
+        Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occuredAt());
         // Payload
         DispatchRejectedEventPayload pl = req.convertPayload(DispatchRejectedEventPayload.class);
-        log.debug("[Check] Dispatch Reject EventRequest 데이터: dispatchId={}, driverId={}, passengerId={}, rejectedAt={}", pl.dispatchId(), pl.driverId(), pl.passengerId(), pl.rejectedAt());
+        log.debug("[Check] Dispatch Reject EventRequest 데이터: dispatchId={}, driverId={}, rejectedAt={}", pl.dispatchId(), pl.driverId(), pl.rejectedAt());
 
         // EventRequest DTO > Command 변환
         NotifyDispatchRejectedCommand command = NotifyDispatchRejectedCommand.create(
                 pl.dispatchId(),
                 pl.driverId(),
-                pl.passengerId(),
                 pl.rejectedAt(),
                 metadata
         );

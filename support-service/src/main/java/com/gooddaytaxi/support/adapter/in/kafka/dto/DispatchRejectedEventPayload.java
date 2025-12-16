@@ -9,7 +9,6 @@ import java.util.UUID;
 public record DispatchRejectedEventPayload(
         UUID dispatchId,
         UUID driverId,
-        UUID passengerId,
         LocalDateTime rejectedAt
 ) {
 }

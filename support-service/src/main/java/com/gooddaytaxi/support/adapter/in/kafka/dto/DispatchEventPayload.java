@@ -1,5 +1,6 @@
 package com.gooddaytaxi.support.adapter.in.kafka.dto;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
@@ -8,9 +9,11 @@ import java.util.UUID;
 public record DispatchEventPayload(
     UUID notificationOriginId,
     UUID notifierId,
+    UUID dispatchId,
     UUID driverId,
     UUID passengerId,
     String pickupAddress,
     String destinationAddress,
-    String message
+    String message,
+    LocalDateTime acceptedAt
 ) {}
