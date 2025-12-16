@@ -49,7 +49,7 @@ public class DispatchCreateService {
                             null,
                             saved.getDispatchStatus(),
                             ChangedBy.PASSENGER,
-                            null
+                            "승객으로부터 콜 생성"
                     )
             );
         } catch (Exception e) {

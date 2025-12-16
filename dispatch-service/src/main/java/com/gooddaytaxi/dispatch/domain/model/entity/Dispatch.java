@@ -1,13 +1,15 @@
 package com.gooddaytaxi.dispatch.domain.model.entity;
 
 import com.gooddaytaxi.common.jpa.model.BaseEntity;
-import com.gooddaytaxi.dispatch.application.exception.CannotAssignDriverException;
-import com.gooddaytaxi.dispatch.domain.exception.CannotCancelDispatchException;
-import com.gooddaytaxi.dispatch.domain.exception.DispatchAlreadyAssignedByOthersException;
-import com.gooddaytaxi.dispatch.domain.exception.InvalidDispatchStateException;
+import com.gooddaytaxi.dispatch.domain.exception.dispatch.DispatchAlreadyAssignedByOthersException;
+import com.gooddaytaxi.dispatch.domain.exception.dispatch.DispatchCannotAssignException;
+import com.gooddaytaxi.dispatch.domain.exception.dispatch.DispatchCannotCancelException;
+import com.gooddaytaxi.dispatch.domain.exception.dispatch.DispatchInvalidStateException;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -75,27 +77,34 @@ public class Dispatch extends BaseEntity {
     }
 
 
-    // ======== 상태 전이 ========
-    //상태 전이 관련 예외처리 디테일하게 리팩토링 예정
+// ======== 상태 전이 ========
 
     public void startAssigning() {
-        if (this.dispatchStatus != DispatchStatus.REQUESTED) {
-            throw new InvalidDispatchStateException();
+        if (dispatchStatus != DispatchStatus.REQUESTED) {
+            throw DispatchInvalidStateException.cannot(
+                    dispatchStatus,
+                    "배차 시작"
+            );
         }
         this.dispatchStatus = DispatchStatus.ASSIGNING;
     }
 
+
     public void assignedTo(UUID driverId) {
-        if (this.dispatchStatus != DispatchStatus.ASSIGNING) {
-            throw new CannotAssignDriverException();
+        if (dispatchStatus != DispatchStatus.ASSIGNING) {
+            throw new DispatchCannotAssignException(
+                    "배차 상태가 ASSIGNING일 때만 기사 배정이 가능합니다. 현재 상태=" + dispatchStatus
+            );
         }
+
         this.dispatchStatus = DispatchStatus.ASSIGNED;
         this.driverId = driverId;
         this.assignedAt = LocalDateTime.now();
     }
 
+
     public void accept() {
-        if (this.dispatchStatus != DispatchStatus.ASSIGNED) {
+        if (dispatchStatus != DispatchStatus.ASSIGNED) {
             throw new DispatchAlreadyAssignedByOthersException();
         }
 
@@ -104,10 +113,10 @@ public class Dispatch extends BaseEntity {
     }
 
     public void cancelByPassenger() {
-
         if (dispatchStatus == DispatchStatus.CANCELED ||
                 dispatchStatus == DispatchStatus.TIMEOUT) {
-            throw new CannotCancelDispatchException();
+
+            throw new DispatchCannotCancelException();
         }
 
         this.dispatchStatus = DispatchStatus.CANCELED;
@@ -116,13 +125,15 @@ public class Dispatch extends BaseEntity {
 
 
     /**
-     * 기사 1명이 배차 요청을 거절할 때 호출되는 도메인 행동 메서드
-     * - 다수 기사들에게 배차 시도가 있는 로직이기 때문에 상태 전이는 생략된다.
-     * - 단, ASSIGNING 상태가 아니면 거절 불가
+     * 기사 1명이 배차 요청을 거절
+     * - ASSIGNING 상태에서만 가능
      */
     public void rejectedByDriver() {
-        if (this.dispatchStatus != DispatchStatus.ASSIGNING) {
-            throw new InvalidDispatchStateException();
+        if (dispatchStatus != DispatchStatus.ASSIGNING) {
+            throw DispatchInvalidStateException.cannot(
+                    dispatchStatus,
+                    "기사 거절"
+            );
         }
     }
 
@@ -131,8 +142,11 @@ public class Dispatch extends BaseEntity {
     }
 
     public void timeout() {
-        if (this.dispatchStatus != DispatchStatus.ASSIGNED) {
-            throw new InvalidDispatchStateException();
+        if (dispatchStatus != DispatchStatus.ASSIGNED) {
+            throw DispatchInvalidStateException.cannot(
+                    dispatchStatus,
+                    "타임아웃 처리"
+            );
         }
 
         this.dispatchStatus = DispatchStatus.TIMEOUT;
@@ -140,9 +154,13 @@ public class Dispatch extends BaseEntity {
     }
 
     public void forceTimeout() {
-        if (this.dispatchStatus != DispatchStatus.REQUESTED
-                && this.dispatchStatus != DispatchStatus.ASSIGNING) {
-            throw new InvalidDispatchStateException();
+        if (dispatchStatus != DispatchStatus.REQUESTED &&
+                dispatchStatus != DispatchStatus.ASSIGNING) {
+
+            throw DispatchInvalidStateException.cannot(
+                    dispatchStatus,
+                    "강제 타임아웃"
+            );
         }
 
         this.dispatchStatus = DispatchStatus.TIMEOUT;
@@ -150,10 +168,14 @@ public class Dispatch extends BaseEntity {
     }
 
 
-    public void resetToAssigning(){
-        if(this.dispatchStatus != DispatchStatus.TIMEOUT) {
-            throw new InvalidDispatchStateException();
+    public void resetToAssigning() {
+        if (dispatchStatus != DispatchStatus.TIMEOUT) {
+            throw DispatchInvalidStateException.cannot(
+                    dispatchStatus,
+                    "재배차"
+            );
         }
+
         this.dispatchStatus = DispatchStatus.ASSIGNING;
         this.assignedAt = LocalDateTime.now();
     }
@@ -161,7 +183,11 @@ public class Dispatch extends BaseEntity {
     public void terminateByRetryLimit() {
         if (dispatchStatus == DispatchStatus.TIMEOUT ||
                 dispatchStatus == DispatchStatus.CANCELED) {
-            throw new InvalidDispatchStateException();
+
+            throw DispatchInvalidStateException.cannot(
+                    dispatchStatus,
+                    "재시도 한계 종료"
+            );
         }
 
         this.dispatchStatus = DispatchStatus.TIMEOUT;

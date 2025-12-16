@@ -33,7 +33,7 @@ spring:
         - id: payment-service
           uri: http://host.docker.internal:8204
           predicates:
-            - Path=/api/v*/payments/**,/api/v*/admin/payments/**,/internal/v*/payments/**
+            - Path=/api/v*/payments/**,/api/v*/admin/payments/**,/internal/v*/payments/**,/api/v*/refunds/**,/api/v*/refund/requests/**
 
         - id: support-service
           uri: http://host.docker.internal:8205

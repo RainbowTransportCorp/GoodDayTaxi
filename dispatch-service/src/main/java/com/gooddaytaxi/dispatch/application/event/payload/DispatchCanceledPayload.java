@@ -30,18 +30,4 @@ public record DispatchCanceledPayload(
                 LocalDateTime.now()
         );
     }
-
-    // 시스템 취소 (타임아웃 등)
-    public static DispatchCanceledPayload fromSystem(Dispatch dispatch) {
-        return new DispatchCanceledPayload(
-                dispatch.getDispatchId(),
-                SystemNotifier.SYSTEM_ID, // SYSTEM
-                dispatch.getDispatchId(),
-                dispatch.getDriverId(),
-                dispatch.getPassengerId(),
-                SystemNotifier.SYSTEM_ID.toString(), //SYSTEM
-                "배차가 자동으로 취소되었습니다.",
-                LocalDateTime.now()
-        );
-    }
 }

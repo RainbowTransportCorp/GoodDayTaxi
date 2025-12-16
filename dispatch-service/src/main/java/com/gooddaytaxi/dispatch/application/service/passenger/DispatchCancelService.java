@@ -60,7 +60,7 @@ public class DispatchCancelService {
                     before,
                     dispatch.getDispatchStatus(),
                     ChangedBy.PASSENGER,
-                    null
+                    "승객 측의 콜 취소"
             );
         } catch (Exception e) {
             log.error("[DispatchCancel] 히스토리 기록 실패 - dispatchId={}, error={}",
