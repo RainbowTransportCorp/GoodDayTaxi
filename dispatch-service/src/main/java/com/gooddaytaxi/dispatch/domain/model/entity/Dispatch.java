@@ -1,14 +1,15 @@
 package com.gooddaytaxi.dispatch.domain.model.entity;
 
 import com.gooddaytaxi.common.jpa.model.BaseEntity;
-import com.gooddaytaxi.dispatch.application.exception.CannotAssignDriverException;
+import com.gooddaytaxi.dispatch.domain.exception.dispatch.DispatchAlreadyAssignedByOthersException;
 import com.gooddaytaxi.dispatch.domain.exception.dispatch.DispatchCannotAssignException;
 import com.gooddaytaxi.dispatch.domain.exception.dispatch.DispatchCannotCancelException;
-import com.gooddaytaxi.dispatch.domain.exception.dispatch.DispatchAlreadyAssignedByOthersException;
 import com.gooddaytaxi.dispatch.domain.exception.dispatch.DispatchInvalidStateException;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

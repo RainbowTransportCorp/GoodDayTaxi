@@ -2,11 +2,9 @@ package com.gooddaytaxi.dispatch.application.service.driver;
 
 import com.gooddaytaxi.dispatch.application.exception.auth.UserRole;
 import com.gooddaytaxi.dispatch.application.port.out.query.DispatchAssignmentLogQueryPort;
-import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
 import com.gooddaytaxi.dispatch.application.query.DispatchPendingListResult;
 import com.gooddaytaxi.dispatch.application.usecase.query.DriverQueryPermissionValidator;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
-import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
