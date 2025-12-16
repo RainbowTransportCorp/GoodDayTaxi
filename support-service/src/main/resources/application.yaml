@@ -96,3 +96,7 @@ management:
 slack:
   api-url: https://slack.com
   bot-token: ${slack.bot-token}
+
+logging:
+  level:
+    com.gooddaytaxi.support: DEBUG # INFO, DEBUG, WARN, ERROR
