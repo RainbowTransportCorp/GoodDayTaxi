@@ -1,12 +1,9 @@
 package com.gooddaytaxi.support.adapter.in.kafka.endpoint;
 
-import com.gooddaytaxi.support.adapter.in.kafka.dto.DispatchEventPayload;
-import com.gooddaytaxi.support.adapter.in.kafka.dto.EventRequest;
+import com.gooddaytaxi.support.adapter.in.kafka.dto.*;
 import com.gooddaytaxi.support.application.Metadata;
-import com.gooddaytaxi.support.application.dto.NotifyDispatchAcceptedCommand;
-import com.gooddaytaxi.support.application.dto.NotifyDispatchInformationCommand;
-import com.gooddaytaxi.support.application.port.in.dispatch.NotifyAcceptedCallUsecase;
-import com.gooddaytaxi.support.application.port.in.dispatch.NotifyDispatchUsecase;
+import com.gooddaytaxi.support.application.dto.*;
+import com.gooddaytaxi.support.application.port.in.dispatch.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -22,38 +19,35 @@ public class DispatchEndpoint {
 
     private final NotifyDispatchUsecase notifyDispatchUsecase;
     private final NotifyAcceptedCallUsecase notifyAcceptedCallUsecase;
+    private final NotifyDispatchTimeoutUsecase notifyDispatchTimeoutUsecase;
+    private final NotifyDispatchCancelUsecase notifyDispatchCancelUsecase;
+    private final NotifyDispatchRejectUsecase notifyDispatchRejectUsecase;
 
     /**
      * 특정 기사에게 배차 요청이 왔을 때 Driver에 손님의 Call 요청 알림 전송 이벤트 리스너
      */
     @KafkaListener(topics = "dispatch.requested", groupId = "support-service", concurrency = "1")
     public void onDispatchRequested(EventRequest req) {
-
-        DispatchEventPayload pl = req.convertPayload(DispatchEventPayload.class);
+        // Metadata
         Metadata metadata = req.eventMetadata().to();
-        log.info("‼️‼️‼️‼️Payload 내용 content={}", pl);
-        log.info("‼️‼️‼️‼️Event 수신 내용 eventId={}, evnetType{}, occurredAt={}, payloadVersion={}",
-        req.eventMetadata().eventId(),
-        req.eventMetadata().eventType(),
-        req.eventMetadata().occuredAt(),
-        req.payloadVersion());
+        // Payload
+        DispatchEventPayload pl = req.convertPayload(DispatchEventPayload.class);
+        log.debug("[Check] Dispatch EventRequest 데이터: dispatchId={}, notifierId={}, message={}, occuredAt={}", pl.notificationOriginId(), pl.notifierId(), pl.message(), metadata.getOccuredAt());
 
-        log.info("‼️‼️‼️‼️Request 내용 message={}, driverId={}, passengerId={}",
-                pl.message(), pl.driverId(), pl.passengerId());
-
-
-//        EventRequest req = EventRequest.from(message);
+        // EventRequest DTO > Command 변환
         NotifyDispatchInformationCommand command = NotifyDispatchInformationCommand.create(
                 pl.notificationOriginId(), pl.notifierId(),
                 pl.driverId(), pl.passengerId(),
                 pl.pickupAddress(), pl.destinationAddress(),
-                pl.message());
+                pl.message(),
+                metadata
+        );
 
-        log.info("‼️‼️‼️‼️Command 내용 message={}, driverId={}, passengerId={}",
-                command.getMessage(), command.getDriverId(), command.getPassengerId());
+        log.debug("[Transform] EventRequest >>> Command ➡️ {}", command);
 
-
+        // 콜에 대해 배차 시도 알림 전송 서비스 호출
         notifyDispatchUsecase.execute(command);
+
     }
 
     /**
@@ -79,5 +73,82 @@ public class DispatchEndpoint {
 
         // 수락된 콜 알림 전송 서비스 호출
         notifyAcceptedCallUsecase.execute(command);
+    }
+
+
+    /**
+     * 기사가 배차 요청에 대해 응답하지 않은 지 30초가 경과되면 손님에게 배차 시간 초과(Call 거절) 알림을 전송하는 이벤트 리스너
+     */
+    @KafkaListener(topics = "dispatch.timeout", groupId = "support-service", concurrency = "1")
+    public void onDispatchTimeOut(EventRequest req) {
+        // Metadata
+        Metadata metadata = req.eventMetadata().to();
+        // Payload
+        DispatchTimeoutEventPayload pl = req.convertPayload(DispatchTimeoutEventPayload.class);
+        log.debug("[Check] Dispatch Timeout EventRequest 데이터: dispatchId={}, timeoutAt={}", pl.dispatchId(), pl.timeoutAt());
+
+        // EventRequest DTO > Command 변환
+        NotifyDipsatchTimeoutCommand command = NotifyDipsatchTimeoutCommand.create(
+                pl.dispatchId(),
+                pl.passengerId(),
+                pl.timeoutAt(),
+                metadata
+        );
+        log.debug("[Transform] EventRequest >>> Command ➡️ {}", command);
+
+        // 수락된 콜 알림 전송 서비스 호출
+        notifyDispatchTimeoutUsecase.execute(command);
+    }
+
+
+    /**
+     * 승객이 콜을 취소했을 때 기사에게 알림을 전송하는 이벤트 리스너
+     */
+    @KafkaListener(topics = "dispatch.cancelled", groupId = "support-service", concurrency = "1")
+    public void onDispatchCancelled(EventRequest req) {
+        // Metadata
+        Metadata metadata = req.eventMetadata().to();
+        // Payload
+        DispatchCancelledEventPayload pl = req.convertPayload(DispatchCancelledEventPayload.class);
+        log.debug("[Check] Dispatch Cancel EventRequest 데이터: dispatchId={}, driverId={}, cancelBy={}, cancelledAt={}", pl.dispatchId(), pl.driverId(), pl.cancelledBy(), pl.cancelledAt());
+
+        // EventRequest DTO > Command 변환
+        NotifyDispatchCancelledCommand command = NotifyDispatchCancelledCommand.create(
+                pl.dispatchId(),
+                pl.driverId(),
+                pl.passengerId(),
+                pl.cancelledBy(),
+                pl.cancelledAt(),
+                metadata
+        );
+        log.debug("[Transform] EventRequest >>> Command ➡️ {}", command);
+
+        // 배차 취소 알림 전송 서비스 호출
+        notifyDispatchCancelUsecase.execute(command);
+    }
+
+    /**
+     * 기사가 콜을 거절했을 때 손님에게 알림을 전송하는 이벤트 리스너
+     */
+    @KafkaListener(topics = "dispatch.rejected", groupId = "support-service", concurrency = "1")
+    public void onDispatchRejected(EventRequest req) {
+        // Metadata
+        Metadata metadata = req.eventMetadata().to();
+        // Payload
+        DispatchRejectedEventPayload pl = req.convertPayload(DispatchRejectedEventPayload.class);
+        log.debug("[Check] Dispatch Reject EventRequest 데이터: dispatchId={}, driverId={}, passengerId={}, rejectedAt={}", pl.dispatchId(), pl.driverId(), pl.passengerId(), pl.rejectedAt());
+
+        // EventRequest DTO > Command 변환
+        NotifyDispatchRejectedCommand command = NotifyDispatchRejectedCommand.create(
+                pl.dispatchId(),
+                pl.driverId(),
+                pl.passengerId(),
+                pl.rejectedAt(),
+                metadata
+        );
+        log.debug("[Transform] EventRequest >>> Command ➡️ {}", command);
+
+        // 배차 취소 알림 전송 서비스 호출
+        notifyDispatchRejectUsecase.execute(command);
     }
 }

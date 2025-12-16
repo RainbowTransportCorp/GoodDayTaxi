@@ -9,6 +9,10 @@ public enum NotificationType {
 
     DISPATCH_REQUESTED, // 콜 요청 알림
     DISPATCH_ACCEPTED, // 배차 수락 알림
+    DISPATCH_TIMEOUT, // 배차 시도 시간 초과 알림
+    DISPATCH_CANCELLED, // 배차 취소 알림
+    DISPATCH_REJECTED, // 배차 거절 알림
+
 
     TRIP_STARTED,      // 운행 시작 알림
     TRIP_ENDED,        // 운행 종료 알림
@@ -17,6 +21,7 @@ public enum NotificationType {
     REFUND_REQUEST_CREATED, // 환불 요청 알림
     REFUND_REQUEST_REJECTED, // 환불 거절 알림
     REFUND_COMPLETED, // 환불 완료 알림
+    REFUND_SETTLEMENT_CREATED, // 환불 진행 요청 알림
 
     ERROR_DETECTED;     // 장애 발생 알림
 
