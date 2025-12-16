@@ -16,7 +16,7 @@ public class DispatchDetailResponseMapper {
                 .requestCreatedAt(result.getRequestCreatedAt())
                 .assignedAt(result.getAssignedAt())
                 .acceptedAt(result.getAcceptedAt())
-                .cancelledAt(result.getCancelledAt())
+                .canceledAt(result.getCanceledAt())
                 .timeoutAt(result.getTimeoutAt())
                 .createdAt(result.getCreatedAt())
                 .updatedAt(result.getUpdatedAt())

@@ -6,8 +6,6 @@ import com.gooddaytaxi.dispatch.domain.repository.DispatchRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 @Component
 @RequiredArgsConstructor
 public class DispatchCommandAdapter implements DispatchCommandPort {

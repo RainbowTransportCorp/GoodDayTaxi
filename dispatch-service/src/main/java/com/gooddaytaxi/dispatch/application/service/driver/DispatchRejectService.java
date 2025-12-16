@@ -9,11 +9,10 @@ import com.gooddaytaxi.dispatch.application.service.dispatch.DispatchHistoryServ
 import com.gooddaytaxi.dispatch.application.usecase.reject.DispatchRejectCommand;
 import com.gooddaytaxi.dispatch.application.usecase.reject.DispatchRejectPermissionValidator;
 import com.gooddaytaxi.dispatch.application.usecase.reject.DispatchRejectResult;
-import com.gooddaytaxi.dispatch.domain.exception.DispatchNotAssignedDriverException;
+import com.gooddaytaxi.dispatch.application.exception.auth.DispatchNotAssignedDriverException;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
 import com.gooddaytaxi.dispatch.domain.model.entity.DispatchAssignmentLog;
 import com.gooddaytaxi.dispatch.domain.model.enums.ChangedBy;
-import com.gooddaytaxi.dispatch.domain.model.enums.DispatchDomainEventType;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
 import com.gooddaytaxi.dispatch.domain.model.enums.HistoryEventType;
 import lombok.RequiredArgsConstructor;
@@ -72,7 +71,7 @@ public class DispatchRejectService {
 
         // 5. 이벤트 발행
         eventPort.publishRejected(
-                DispatchRejectedPayload.from(dispatch));
+                DispatchRejectedPayload.from(dispatch, logEntry.getCandidateDriverId()));
 
         // 6. 히스토리 (실패해도 흐름 유지)
         try {

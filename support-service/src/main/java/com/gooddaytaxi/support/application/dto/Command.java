@@ -1,6 +1,5 @@
 package com.gooddaytaxi.support.application.dto;
 
-import com.gooddaytaxi.support.application.Metadata;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

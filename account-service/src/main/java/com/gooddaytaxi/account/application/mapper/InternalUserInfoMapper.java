@@ -28,13 +28,12 @@ public class InternalUserInfoMapper {
                 .email(user.getEmail())
                 .phoneNumber(user.getPhoneNumber())
                 .role(user.getRole())
-                .status(user.getStatus());
+                .status(user.getStatus())
+                .slackUserId(user.getSlackId()); // User 테이블에서 슬랙ID 가져오기
         
         // 기사인 경우 추가 정보 설정
         if (driverProfile != null) {
-            builder
-                    .slackUserId(driverProfile.getSlackUserId())
-                    .onlineStatus(driverProfile.getOnlineStatus());
+            builder.onlineStatus(driverProfile.getOnlineStatus());
         }
         
         return builder.build();

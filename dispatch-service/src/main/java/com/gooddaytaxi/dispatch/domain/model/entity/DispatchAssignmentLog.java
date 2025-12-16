@@ -1,7 +1,9 @@
 package com.gooddaytaxi.dispatch.domain.model.entity;
 
 import com.gooddaytaxi.common.jpa.model.BaseEntity;
-import com.gooddaytaxi.dispatch.domain.exception.InvalidAssignmentStatusException;
+import com.gooddaytaxi.dispatch.domain.exception.assignment.AssignmentAlreadyAcceptedException;
+import com.gooddaytaxi.dispatch.domain.exception.assignment.AssignmentAlreadyRejectedException;
+import com.gooddaytaxi.dispatch.domain.exception.assignment.AssignmentInvalidStateException;
 import com.gooddaytaxi.dispatch.domain.model.enums.AssignmentStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -63,41 +65,43 @@ public class DispatchAssignmentLog extends BaseEntity {
 
     public void accept() {
         if (!assignmentStatus.isSent()) {
-            throw new InvalidAssignmentStatusException(
-                    "SENT 상태에서만 ACCEPTED로 변경할 수 있습니다. 현재 상태=" + this.assignmentStatus
+            throw new AssignmentInvalidStateException(
+                    assignmentStatus,
+                    "ACCEPTED로 변경"
             );
         }
         if (assignmentStatus.isAccepted()) {
-            throw new InvalidAssignmentStatusException(
-                    "이미 ACCEPTED 상태입니다."
-            );
+            throw new AssignmentAlreadyAcceptedException();
         }
         this.assignmentStatus = AssignmentStatus.ACCEPTED;
         this.respondedAt = LocalDateTime.now();
     }
 
+
     public void reject() {
         if (!assignmentStatus.isSent()) {
-            throw new InvalidAssignmentStatusException(
-                    "SENT 상태에서만 REJECTED로 변경할 수 있습니다. 현재 상태=" + this.assignmentStatus
+            throw new AssignmentInvalidStateException(
+                    assignmentStatus,
+                    "REJECTED로 변경"
             );
         }
         if (assignmentStatus.isRejected()) {
-            throw new InvalidAssignmentStatusException(
-                    "이미 REJECTED 상태입니다."
-            );
+            throw new AssignmentAlreadyRejectedException();
         }
         this.assignmentStatus = AssignmentStatus.REJECTED;
         this.respondedAt = LocalDateTime.now();
     }
 
+
     public void timeout() {
-        if (assignmentStatus.isSent()) {
-            throw new InvalidAssignmentStatusException(
-                    "SENT 상태에서만 TIMEOUT으로 변경할 수 있습니다. 현재 상태=" + this.assignmentStatus
+        if (!assignmentStatus.isSent()) {
+            throw new AssignmentInvalidStateException(
+                    assignmentStatus,
+                    "TIMEOUT으로 변경"
             );
         }
         this.assignmentStatus = AssignmentStatus.TIMEOUT;
         this.respondedAt = LocalDateTime.now();
     }
+
 }
