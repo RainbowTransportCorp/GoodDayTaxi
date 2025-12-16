@@ -8,10 +8,8 @@ import com.gooddaytaxi.dispatch.application.service.dispatch.DispatchHistoryServ
 import com.gooddaytaxi.dispatch.application.usecase.cancel.DispatchCancelCommand;
 import com.gooddaytaxi.dispatch.application.usecase.cancel.DispatchCancelPermissionValidator;
 import com.gooddaytaxi.dispatch.application.usecase.cancel.DispatchCancelResult;
-import com.gooddaytaxi.dispatch.application.usecase.query.PassengerQueryPermissionValidator;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
 import com.gooddaytaxi.dispatch.domain.model.enums.ChangedBy;
-import com.gooddaytaxi.dispatch.domain.model.enums.DispatchDomainEventType;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
 import com.gooddaytaxi.dispatch.domain.model.enums.HistoryEventType;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +40,7 @@ public class DispatchCancelService {
 
         DispatchStatus before = dispatch.getDispatchStatus();
 
-        dispatch.cancel();
+        dispatch.cancelByPassenger();
         commandPort.save(dispatch);
 
         // 1) 이벤트 발행

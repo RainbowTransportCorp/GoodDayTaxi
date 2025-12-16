@@ -102,13 +102,22 @@ public class Dispatch extends BaseEntity {
         this.acceptedAt = LocalDateTime.now();
     }
 
-    public void cancel() {
-        if (!dispatchStatus.isCancelableStatus()) {
-            throw new InvalidDispatchStateException();
+    public void cancelByPassenger() {
+
+        if (dispatchStatus == DispatchStatus.IN_PROGRESS ||
+                dispatchStatus == DispatchStatus.COMPLETED) {
+            throw new CannotCancelAfterTripStartedException(dispatchId);
         }
-        this.dispatchStatus = DispatchStatus.CANCELLED;
+
+        if (dispatchStatus == DispatchStatus.ASSIGNED) {
+            this.dispatchStatus = DispatchStatus.CANCELED_AFTER_ACCEPTED;
+        } else {
+            this.dispatchStatus = DispatchStatus.CANCELED_BEFORE_ASSIGN;
+        }
+
         this.cancelledAt = LocalDateTime.now();
     }
+
 
     /**
      * 기사 1명이 배차 요청을 거절할 때 호출되는 도메인 행동 메서드
