@@ -33,7 +33,7 @@ public class TripEndpoint {
         Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occuredAt());
         // Payload
         TripStartedEventPayload pl = req.convertPayload(TripStartedEventPayload.class);
-        log.debug("[Check] Trip Started EventRequest 데이터: tripId={}, notifierId={}, occuredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occuredAt());
+        log.debug("[Check] Trip Started EventRequest 데이터: tripId={}, notifierId={}, occuredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occurredAt());
 
         // EventRequest DTO > Command 변환
         NotifyTripStartedCommand command = NotifyTripStartedCommand.create(
@@ -59,7 +59,7 @@ public class TripEndpoint {
         Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occuredAt());
         // Payload
         TripEndedEventPayload pl = req.convertPayload(TripEndedEventPayload.class);
-        log.debug("[Check] Trip Ended EventRequest 데이터: tripId={}, notifierId={}, occuredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occuredAt());
+        log.debug("[Check] Trip Ended EventRequest 데이터: tripId={}, notifierId={}, occuredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occurredAt());
 
         // EventRequest DTO > Command 변환
         NotifyTripEndedCommand command = NotifyTripEndedCommand.create(

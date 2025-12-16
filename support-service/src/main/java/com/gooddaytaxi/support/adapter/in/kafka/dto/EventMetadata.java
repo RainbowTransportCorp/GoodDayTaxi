@@ -11,7 +11,7 @@ public record EventMetadata (
         LocalDateTime occuredAt
 ){
     public static EventMetadata from(Metadata metadata){
-        return new EventMetadata(metadata.eventId(), metadata.eventType(), metadata.occuredAt());
+        return new EventMetadata(metadata.eventId(), metadata.eventType(), metadata.occurredAt());
     }
 
     public Metadata to(){

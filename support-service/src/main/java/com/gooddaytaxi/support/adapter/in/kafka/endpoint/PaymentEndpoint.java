@@ -31,7 +31,7 @@ public class PaymentEndpoint {
         Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occuredAt());
         // Payload
         PaymentCompletedEventPayload pl = req.convertPayload(PaymentCompletedEventPayload.class);
-        log.debug("[Check] Payment Completed EventRequest 데이터: paymentId={}, notifierId={}, occuredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occuredAt());
+        log.debug("[Check] Payment Completed EventRequest 데이터: paymentId={}, notifierId={}, occuredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occurredAt());
 
         // EventRequest DTO > Command 변환
         NotifyPaymentCompletedCommand command = NotifyPaymentCompletedCommand.create(
@@ -59,7 +59,7 @@ public class PaymentEndpoint {
         Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occuredAt());
         // Payload
         RefundRequestCreatedEventPayload pl = req.convertPayload(RefundRequestCreatedEventPayload.class);
-        log.debug("[Check] Refund Request Created EventRequest 데이터: paymentId={}, notifierId={}, occuredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occuredAt());
+        log.debug("[Check] Refund Request Created EventRequest 데이터: paymentId={}, notifierId={}, occuredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occurredAt());
 
         // EventRequest DTO > Command 변환
         NotifyRefundRequestedCommand command = NotifyRefundRequestedCommand.create(
@@ -87,7 +87,7 @@ public class PaymentEndpoint {
         Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occuredAt());
         // Payload
         RefundRequestRejectedEventPayload pl = req.convertPayload(RefundRequestRejectedEventPayload.class);
-        log.debug("[Check] Refund Request Rejected EventRequest 데이터: paymentId={}, notifierId={}, occuredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occuredAt());
+        log.debug("[Check] Refund Request Rejected EventRequest 데이터: paymentId={}, notifierId={}, occuredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occurredAt());
 
         // EventRequest DTO > Command 변환
         NotifyRefundRejectedCommand command = NotifyRefundRejectedCommand.create(
@@ -115,7 +115,7 @@ public class PaymentEndpoint {
         Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occuredAt());
         // Payload
         RefundCompletedEventPayload pl = req.convertPayload(RefundCompletedEventPayload.class);
-        log.debug("[Check] Refund Request Rejected EventRequest 데이터: paymentId={}, notifierId={}, occuredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occuredAt());
+        log.debug("[Check] Refund Request Rejected EventRequest 데이터: paymentId={}, notifierId={}, occuredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occurredAt());
 
         // EventRequest DTO > Command 변환
         NotifyRefundCompletedCommand command = NotifyRefundCompletedCommand.create(

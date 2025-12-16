@@ -4,9 +4,9 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
- * DISPATCH_REQUESTED, DISPATCH_ACCEPTED 이벤트 Payload DTO
+ * DISPATCH_ACCEPTED 이벤트 Payload DTO
  */
-public record DispatchEventPayload(
+public record DispatchAcceptedEventPayload(
     UUID notificationOriginId,
     UUID notifierId,
     UUID dispatchId,

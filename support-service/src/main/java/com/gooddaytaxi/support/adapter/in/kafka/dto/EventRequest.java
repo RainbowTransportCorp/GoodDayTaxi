@@ -43,7 +43,7 @@ public record EventRequest(
 //public record EventRequest(
 //        EventMetadata eventMetadata,
 //        Integer payloadVersion,
-//        DispatchEventPayload payload
+//        DispatchRequestedEventPayload payload
 //) {
 //
 //    private static final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();

@@ -33,6 +33,16 @@ public class NotificationQueryPersistenceAdapter implements NotificationQueryPer
     }
 
     @Override
+    public List<Notification> findAllByNotifierId(UUID notifierId) {
+        return notificationJpaRepository.findAllByNotifierId(notifierId);
+    }
+
+    @Override
+    public List<Notification> findAllByNotifierIdIn(List<UUID> notifierIds) {
+        return notificationJpaRepository.findAllByNotifierIdIn(notifierIds);
+    }
+
+    @Override
     public List<Notification> findAllByNotificationType(NotificationType notificationType) {
         return notificationJpaRepository.findAllByNotificationType(notificationType);
     }

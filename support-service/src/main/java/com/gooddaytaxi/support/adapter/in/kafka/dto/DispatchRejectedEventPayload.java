@@ -7,8 +7,12 @@ import java.util.UUID;
  * DISPATCH_REJECTED 이벤트 Payload DTO
  */
 public record DispatchRejectedEventPayload(
+        UUID notificationOriginId,
+        UUID notifierId,
         UUID dispatchId,
         UUID driverId,
+        UUID passengerId,
+        String message,
         LocalDateTime rejectedAt
 ) {
 }

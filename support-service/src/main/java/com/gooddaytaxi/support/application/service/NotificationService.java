@@ -2,11 +2,16 @@ package com.gooddaytaxi.support.application.service;
 
 import com.gooddaytaxi.support.adapter.out.internal.account.dto.UserRole;
 import com.gooddaytaxi.support.application.port.in.web.GetAllUserNotificationsUsecase;
+import com.gooddaytaxi.support.application.port.out.persistence.NotificationQueryPersistencePort;
+import com.gooddaytaxi.support.domain.notification.model.Notification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.aspectj.weaver.ast.Not;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -18,7 +23,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Transactional
 public class NotificationService implements GetAllUserNotificationsUsecase {
-    private static final String SYSTEM_UUID = "99999999-9999-9999-9999-999999999999";  // DISPATCH_TIMEOUT 이벤트 notifierId
+
+    private final NotificationQueryPersistencePort notificationQueryPersistencePort;
+    private static final UUID SYSTEM_UUID = UUID.fromString("99999999-9999-9999-9999-999999999999");  // DISPATCH_TIMEOUT 이벤트 notifierId
 
     @Override
     public void execute(UUID userId, String userRole) {
@@ -26,20 +33,20 @@ public class NotificationService implements GetAllUserNotificationsUsecase {
 
         UserRole role = UserRole.valueOf(userRole);
 
-        switch(role) {
-            case DRIVER -> {        // 기사
 
-            }
-            case PASSENGER -> {     // 승객
-
-            }
-            case ADMIN -> {         // 관리자(조회 권한)
-
-            }
-            case MASTER_ADMIN -> {  // 최고 관리자
-
-            }
-        }
+//        List<Notification> notifications;
+//        switch(role) {
+//            case DRIVER, PASSENGER -> {   // 기사, 승객
+//                notifications = notificationQueryPersistencePort.findAllByNotifierId(userId);
+//            }
+//            case ADMIN, MASTER_ADMIN -> { // 관리자
+////                notifications = notificationQueryPersistencePort.findAllByNotifierIdIn();
+//                List<Notification> systemNotifications = notificationQueryPersistencePort.findAllByNotifierId(SYSTEM_UUID);
+//            }
+//            default -> {
+//                notifications = notificationQueryPersistencePort.findAllByNotifierId(userId);
+//            }
+//        }
 
 
     }

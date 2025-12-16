@@ -51,7 +51,7 @@ public class DispatchService implements NotifyDispatchUsecase, NotifyAcceptedCal
 
         // 수신자: [ 기사, 승객 ]
         List<UUID> receivers = new ArrayList<>();
-        receivers.add(notification.getDriverId());
+        receivers.add(savedNoti.getDriverId());
         receivers.add(null);
 
         // 알림 메시지 구성
@@ -62,8 +62,8 @@ public class DispatchService implements NotifyDispatchUsecase, NotifyAcceptedCal
                 승객 ID %s 님이 %s(으)로 향하는 운행을 요청하였습니다
                 현재 승객의 위치는 %s 입니다
                 """.formatted(
-                command.getMessage(),
-                command.getPassengerId(),
+                savedNoti.getMessage(),
+                savedNoti.getPassengerId(),
                 command.getDestinationAddress(),
                 command.getPickupAddress()
         );
@@ -99,7 +99,7 @@ public class DispatchService implements NotifyDispatchUsecase, NotifyAcceptedCal
         // 수신자: [ 기사, 승객 ]
         List<UUID> receivers = new ArrayList<>();
         receivers.add(null);
-        receivers.add(notification.getPassengerId());
+        receivers.add(savedNoti.getPassengerId());
 
         // Account Feign Client: 기사 정보 조회
         DriverProfile driverProfile = null;
@@ -112,7 +112,7 @@ public class DispatchService implements NotifyDispatchUsecase, NotifyAcceptedCal
         }
 
         // 알림 메시지 구성
-        String messageTitle = "\uD83D\uDCE2" + command.getMessage();
+        String messageTitle = "\uD83D\uDCE2 기사님이 콜을 수락했습니다";
         Metadata metadata = command.getMetadata();
         String messageBody;
 
@@ -125,12 +125,13 @@ public class DispatchService implements NotifyDispatchUsecase, NotifyAcceptedCal
             String vehicleColor = vehicle.vehicleColor();
 
             messageBody = """
-                %s 기사님이 콜을 수락했습니다
-                %s → %s로
+                [ %s ]
+                %s 기사님이 %s → %s로
                 안전하게 운행해주실 예정이오니, 차량 정보를 참고하여 대기하여 주십시오
                 \uD83D\uDE95 탑승 차량:  %s의 %s(%s)
                 Call: %s
                 """.formatted(
+                        savedNoti.getMessage(),
                         driverName,
                         command.getPickupAddress(),
                         command.getDestinationAddress(),
@@ -152,7 +153,7 @@ public class DispatchService implements NotifyDispatchUsecase, NotifyAcceptedCal
 //        notificationAlertExternalPort.sendDirectRequest(queuePushMessage);
 
         // 로그
-        log.info("\uD83D\uDCE2 [CALL] Accepted! driverId={}, passengerId={}: {} >>> {}",command.getDriverId(), queuePushMessage.receivers().get(1), command.getPickupAddress(), command.getDestinationAddress());
+        log.info("\uD83D\uDCE2 [CALL] Accepted! passengerId={}: {} >>> {}", queuePushMessage.receivers().get(1), command.getPickupAddress(), command.getDestinationAddress());
     }
 
     /**
@@ -172,16 +173,18 @@ public class DispatchService implements NotifyDispatchUsecase, NotifyAcceptedCal
         // 수신자: [ 기사, 승객 ]
         List<UUID> receivers = new ArrayList<>();
         receivers.add(null);
-        receivers.add(notification.getPassengerId());
+        receivers.add(savedNoti.getPassengerId());
 
         // 알림 메시지 구성
-        String messageTitle = "\uD83D\uDCE2 콜 요청을 수락하시겠습니까?";
+        String messageTitle = "\uD83D\uDCE2 기사 매칭 시간이 초과되었습니다";
         Metadata metadata = command.getMetadata();
         String messageBody = """
+                [ %s ] 
                 운행 중인 기사님께 배차를 시도하였지만
                 시간(30s)이 초과되었습니다
-                다시 배차를 시도합니다
-                """;
+                """.formatted(
+                savedNoti.getMessage()
+        );
 
         // RabbitMQ: Queue에 Push
         QueuePushMessage queuePushMessage = QueuePushMessage.create(receivers, metadata, messageTitle, messageBody);
@@ -201,9 +204,9 @@ public class DispatchService implements NotifyDispatchUsecase, NotifyAcceptedCal
      * */
     @Transactional
     @Override
-    public void execute(NotifyDispatchCancelledCommand command) {
+    public void execute(NotifyDispatchCanceledCommand command) {
         // Notification 생성 및 저장
-        Notification notification = Notification.from(command, NotificationType.DISPATCH_CANCELLED);
+        Notification notification = Notification.from(command, NotificationType.DISPATCH_CANCELED);
         notification.assignIds(command.getDispatchId(), null, null, command.getDriverId(), command.getPassengerId());
 
         Notification savedNoti = notificationCommandPersistencePort.save(notification);
@@ -212,26 +215,26 @@ public class DispatchService implements NotifyDispatchUsecase, NotifyAcceptedCal
 
         // 수신자: [ 기사, 승객 ]
         List<UUID> receivers = new ArrayList<>();
-        receivers.add(notification.getDriverId());
+        receivers.add(savedNoti.getDriverId());
         receivers.add(null);
 
         // 알림 메시지 구성
         String messageTitle = "\uD83D\uDCE2 승객의 콜이 취소되었습니다";
         Metadata metadata = command.getMetadata();
-        String cancelledBy;
+        String canceledBy;
 
-        switch(command.getCancelledBy()) {
-            case "PASSENGER" -> cancelledBy = "승객의 취소";
-            case "SYSTEM" -> cancelledBy = "시스템 상";
-            default -> cancelledBy = "기타 사유";
+        switch(command.getCanceledBy()) {
+            case "PASSENGER" -> canceledBy = "승객의 취소";
+            case "SYSTEM" -> canceledBy = "시스템 상";
+            default -> canceledBy = "기타 사유";
 
         }
         String messageBody = """
                 %s
                 %s(으)로 배차가 중단되었습니다
                 """.formatted(
-                command.getCancelledAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                cancelledBy
+                command.getCanceledAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                canceledBy
         );
 
         // RabbitMQ: Queue에 Push
@@ -243,7 +246,7 @@ public class DispatchService implements NotifyDispatchUsecase, NotifyAcceptedCal
 //        notificationAlertExternalPort.sendDirectRequest(queuePushMessage);
 
         // 로그
-        log.info("\uD83D\uDCE2 [DISPATCH] Cancelled! dispatchId={}, driverId={}, passengerId={}, cancelledAt={}", command.getDispatchId(), command.getDriverId(), command.getPassengerId(), command.getCancelledAt());
+        log.info("\uD83D\uDCE2 [DISPATCH] Canceled! dispatchId={}, driverId={}, passengerId={}, cancelledAt={}", command.getDispatchId(), command.getDriverId(), command.getPassengerId(), command.getCanceledAt());
 
     }
 
@@ -255,7 +258,7 @@ public class DispatchService implements NotifyDispatchUsecase, NotifyAcceptedCal
     public void execute(NotifyDispatchRejectedCommand command) {
         // Notification 생성 및 저장
         Notification notification = Notification.from(command, NotificationType.DISPATCH_REJECTED);
-        notification.assignIds(command.getDispatchId(), null, null, command.getDriverId(), null);
+        notification.assignIds(command.getDispatchId(), null, null, command.getDriverId(), command.getPassengerId());
 
         Notification savedNoti = notificationCommandPersistencePort.save(notification);
 //        Notification savedNoti = notificationQueryPersistencePort.findById(noti.getId());
@@ -263,17 +266,18 @@ public class DispatchService implements NotifyDispatchUsecase, NotifyAcceptedCal
 
         // 수신자: [ 기사, 승객 ]
         List<UUID> receivers = new ArrayList<>();
-        receivers.add(notification.getDriverId());
+        receivers.add(savedNoti.getDriverId());
         receivers.add(null);
 
         // 알림 메시지 구성
-        String messageTitle = "\uD83D\uDCE2 기사님이 콜을 거절하였습니다";
+        String messageTitle = "\uD83D\uDCE2 콜이 거절되었습니다";
         Metadata metadata = command.getMetadata();
         String messageBody = """
-                %s에 기사님이 콜을 거절하였습니다
+                %s에 %s
                 다시 배차를 시도합니다
                 """.formatted(
-                command.getRejectedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                command.getRejectedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                savedNoti.getMessage()
         );
 
         // RabbitMQ: Queue에 Push
