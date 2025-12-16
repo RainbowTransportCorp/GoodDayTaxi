@@ -75,13 +75,14 @@ public class AdminDispatchController {
      */
     @PatchMapping("/{dispatchId}/force-timeout")
     public ResponseEntity<ApiResponse<AdminForceTimeoutResponseDto>> forceTimeout(
+            @RequestHeader(value = "X-User-UUID") UUID userId,
             @RequestHeader(value = "X-User-Role") String role,
             @PathVariable UUID dispatchId
     ) {
         UserRole userRole = UserRole.valueOf(role);
 
         AdminForceTimeoutCommand command =
-                new AdminForceTimeoutCommand("응답 이상으로 인한 강제 Timeout");
+                new AdminForceTimeoutCommand(userId,"응답 이상으로 인한 강제 Timeout");
 
         AdminForceTimeoutResult result =
                 adminService.forceTimeout(userRole, dispatchId, command);

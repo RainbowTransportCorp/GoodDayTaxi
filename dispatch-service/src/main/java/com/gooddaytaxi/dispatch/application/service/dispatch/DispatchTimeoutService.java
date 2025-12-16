@@ -143,10 +143,10 @@ public class DispatchTimeoutService {
                 before,
                 DispatchStatus.TIMEOUT,
                 ChangedBy.SYSTEM,
-                null
+                "재배차 한도 초과"
         );
 
-        eventPort.publishTimeout(DispatchTimeoutPayload.from(
+        eventPort.publish(DispatchTimeoutPayload.auto(
                         dispatch.getDispatchId(),
                         dispatch.getPassengerId(),
                         dispatch.getTimeoutAt()

@@ -49,8 +49,6 @@ public enum DispatchErrorCode {
             400
     );
 
-
-
     private final String code;     // 에러 코드 (프론트/로그용)
     private final String message;  // 도메인 규칙 위반 메시지
     private final int status;      // HTTP Status (숫자)
