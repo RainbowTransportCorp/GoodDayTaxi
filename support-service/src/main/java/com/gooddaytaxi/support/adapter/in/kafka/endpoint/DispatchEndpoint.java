@@ -110,16 +110,16 @@ public class DispatchEndpoint {
         // Metadata
         Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occuredAt());
         // Payload
-        DispatchCancelledEventPayload pl = req.convertPayload(DispatchCancelledEventPayload.class);
-        log.debug("[Check] Dispatch Cancel EventRequest 데이터: dispatchId={}, driverId={}, cancelBy={}, cancelledAt={}", pl.dispatchId(), pl.driverId(), pl.cancelledBy(), pl.cancelledAt());
+        DispatchCanceledEventPayload pl = req.convertPayload(DispatchCanceledEventPayload.class);
+        log.debug("[Check] Dispatch Cancel EventRequest 데이터: dispatchId={}, driverId={}, cancelBy={}, cancelledAt={}", pl.dispatchId(), pl.driverId(), pl.canceledBy(), pl.canceledAt());
 
         // EventRequest DTO > Command 변환
         NotifyDispatchCancelledCommand command = NotifyDispatchCancelledCommand.create(
                 pl.dispatchId(),
                 pl.driverId(),
                 pl.passengerId(),
-                pl.cancelledBy(),
-                pl.cancelledAt(),
+                pl.canceledBy(),
+                pl.canceledAt(),
                 metadata
         );
         log.debug("[Transform] EventRequest >>> Command ➡️ {}", command);

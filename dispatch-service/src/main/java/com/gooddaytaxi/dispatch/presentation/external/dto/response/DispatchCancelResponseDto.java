@@ -13,6 +13,6 @@ import java.util.UUID;
 public class DispatchCancelResponseDto {
     private final UUID dispatchId;
     private final String dispatchStatus;
-    private final LocalDateTime cancelledAt;
+    private final LocalDateTime canceledAt;
 }
 
