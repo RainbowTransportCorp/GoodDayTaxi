@@ -1,7 +1,7 @@
 package com.gooddaytaxi.dispatch.application.service.assignmentLog;
 
 import com.gooddaytaxi.dispatch.application.port.out.command.DispatchAssignmentCommandPort;
-import com.gooddaytaxi.dispatch.domain.exception.InvalidAssignmentStatusException;
+import com.gooddaytaxi.dispatch.domain.exception.assignment.AssignmentLogNotFoundException;
 import com.gooddaytaxi.dispatch.domain.model.entity.DispatchAssignmentLog;
 import com.gooddaytaxi.dispatch.domain.model.enums.AssignmentStatus;
 import com.gooddaytaxi.dispatch.domain.repository.DispatchAssignmentLogRepository;
@@ -26,12 +26,10 @@ public class AssignmentLogLifecycleService {
     public DispatchAssignmentLog findLatest(UUID dispatchId, UUID driverId) {
 
         return repository.findLatest(dispatchId, driverId)
-                .orElseThrow(
-                        () -> new InvalidAssignmentStatusException(
-                                "해당 기사에게 발송된 AssignmentLog가 존재하지 않습니다. " +
-                                        "dispatchId=" + dispatchId + ", driverId=" + driverId
-                        )
+                .orElseThrow(() ->
+                        new AssignmentLogNotFoundException(dispatchId, driverId)
                 );
+
     }
 
     /**

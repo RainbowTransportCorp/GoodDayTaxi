@@ -1,5 +1,6 @@
-package com.gooddaytaxi.dispatch.domain.exception;
+package com.gooddaytaxi.dispatch.domain.exception.dispatch;
 
+import com.gooddaytaxi.dispatch.domain.exception.DispatchErrorCode;
 import lombok.Getter;
 
 @Getter

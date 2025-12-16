@@ -11,8 +11,8 @@ import com.gooddaytaxi.dispatch.application.service.dispatch.DispatchHistoryServ
 import com.gooddaytaxi.dispatch.application.usecase.accept.DispatchAcceptCommand;
 import com.gooddaytaxi.dispatch.application.usecase.accept.DispatchAcceptPermissionValidator;
 import com.gooddaytaxi.dispatch.application.usecase.accept.DispatchAcceptResult;
-import com.gooddaytaxi.dispatch.domain.exception.DispatchAlreadyAssignedByOthersException;
-import com.gooddaytaxi.dispatch.domain.exception.DispatchNotAssignedDriverException;
+import com.gooddaytaxi.dispatch.domain.exception.dispatch.DispatchAlreadyAssignedByOthersException;
+import com.gooddaytaxi.dispatch.application.exception.auth.DispatchNotAssignedDriverException;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
 import com.gooddaytaxi.dispatch.domain.model.entity.DispatchAssignmentLog;
 import com.gooddaytaxi.dispatch.domain.model.enums.ChangedBy;
@@ -110,7 +110,7 @@ public class DispatchAcceptService {
                         before,
                         dispatch.getDispatchStatus(),
                         ChangedBy.DRIVER,
-                        null
+                        "기사로부터 배차 수락"
                 );
             } catch (Exception e) {
                 log.error("[Accept] 히스토리 기록 실패 - dispatchId={} err={}",

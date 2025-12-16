@@ -9,7 +9,7 @@ import com.gooddaytaxi.dispatch.application.service.dispatch.DispatchHistoryServ
 import com.gooddaytaxi.dispatch.application.usecase.reject.DispatchRejectCommand;
 import com.gooddaytaxi.dispatch.application.usecase.reject.DispatchRejectPermissionValidator;
 import com.gooddaytaxi.dispatch.application.usecase.reject.DispatchRejectResult;
-import com.gooddaytaxi.dispatch.domain.exception.DispatchNotAssignedDriverException;
+import com.gooddaytaxi.dispatch.application.exception.auth.DispatchNotAssignedDriverException;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
 import com.gooddaytaxi.dispatch.domain.model.entity.DispatchAssignmentLog;
 import com.gooddaytaxi.dispatch.domain.model.enums.ChangedBy;

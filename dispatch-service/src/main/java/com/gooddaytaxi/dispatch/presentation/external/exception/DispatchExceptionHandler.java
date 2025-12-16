@@ -5,19 +5,19 @@ import com.gooddaytaxi.dispatch.application.exception.DispatchNotFoundException;
 import com.gooddaytaxi.dispatch.application.exception.DispatchPermissionDeniedException;
 import com.gooddaytaxi.dispatch.application.exception.ErrorResponse;
 import com.gooddaytaxi.dispatch.domain.exception.DispatchErrorCode;
-import com.gooddaytaxi.dispatch.domain.exception.InvalidDispatchStateException;
+import com.gooddaytaxi.dispatch.domain.exception.common.DispatchDomainException;
+import com.gooddaytaxi.dispatch.presentation.external.controller.AdminDispatchController;
 import com.gooddaytaxi.dispatch.presentation.external.controller.DispatchController;
 import com.gooddaytaxi.dispatch.presentation.external.controller.DriverDispatchController;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@Slf4j
 @RestControllerAdvice(assignableTypes = {
         DispatchController.class,
-        DriverDispatchController.class
+        DriverDispatchController.class,
+        AdminDispatchController.class
 })
 public class DispatchExceptionHandler {
 
@@ -34,15 +34,17 @@ public class DispatchExceptionHandler {
                 .body(ApiResponse.error(response));
     }
 
-    @ExceptionHandler(InvalidDispatchStateException.class)
-    public ResponseEntity<ApiResponse<ErrorResponse>> handleInvalidState(InvalidDispatchStateException e) {
+    // 도메인 예외는 싹 여기서 처리
+    @ExceptionHandler(DispatchDomainException.class)
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleDomainException(DispatchDomainException e) {
 
         DispatchErrorCode code = e.getErrorCode();
         HttpStatus status = HttpStatus.valueOf(code.getStatus());
 
+        // detail을 내려주자 (super(detail))
         ErrorResponse response = new ErrorResponse(
                 code.getCode(),
-                code.getMessage()
+                e.getMessage()
         );
 
         return ResponseEntity
@@ -63,4 +65,18 @@ public class DispatchExceptionHandler {
                 .status(HttpStatus.FORBIDDEN)
                 .body(ApiResponse.error(response));
     }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleUnknown(Exception e) {
+
+        ErrorResponse response = new ErrorResponse(
+                "INTERNAL_ERROR",
+                "서버 내부 오류가 발생했습니다."
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error(response));
+    }
+
 }
