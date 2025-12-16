@@ -1,6 +1,5 @@
 package com.gooddaytaxi.dispatch.application.service.admin;
 
-import com.gooddaytaxi.dispatch.application.exception.DispatchPermissionDeniedException;
 import com.gooddaytaxi.dispatch.application.exception.auth.UserRole;
 import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
 import com.gooddaytaxi.dispatch.application.usecase.admin.AdminDispatchDetailResult;

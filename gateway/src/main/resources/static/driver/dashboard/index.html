@@ -1,40 +1,46 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8" />
-    <title>Good day Taxi – Driver</title>
+    <meta charset="UTF-8">
+    <title>Driver Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <link rel="stylesheet" href="/common/header.css">
     <script src="/common/header.js" defer></script>
-
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-
 <header class="header">
     <div class="brand">
         <div class="brand-main">Good day Taxi</div>
-        <div class="brand-sub" id="brand-sub">무지개 운수</div>
+        <div class="brand-sub" id="brand-sub"></div>
     </div>
-
     <div class="user-box">
         <span id="user-name"></span>
         <button class="btn-logout" onclick="logout()">로그아웃</button>
     </div>
 </header>
 
+<main class="dashboard">
+    <h1 class="dashboard-title">🚖 기사 대시보드</h1>
 
-<main>
+    <div class="card-grid">
+        <div class="card" onclick="location.href='/driver/dispatches/index.html'">
+            <div class="card-title">대기 콜</div>
+            <div class="card-desc">수락 가능한 배차 목록 확인</div>
+        </div>
 
-    <div class="top-actions">
-        <button class="btn-refresh" onclick="loadPending()">대기 콜 새로고침</button>
+        <div class="card" onclick="location.href='/driver/trips/index.html'">
+            <div class="card-title">운행 기록</div>
+            <div class="card-desc">완료된 운행 내역</div>
+        </div>
+
+        <div class="card" onclick="location.href='/driver/profile/index.html'">
+            <div class="card-title">내 프로필</div>
+            <div class="card-desc">차량 / 근무 상태 관리</div>
+        </div>
     </div>
-
-    <div id="dispatch-list" class="dispatch-list"></div>
-
 </main>
-
-<script src="script.js"></script>
 </body>
 </html>

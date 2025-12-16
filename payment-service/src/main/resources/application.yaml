@@ -24,8 +24,8 @@ spring:
         show_sql: true
 
   kafka:
-#    bootstrap-servers: localhost:${kafka.port}
-    bootstrap-servers: host.docker.internal:${kafka.port}
+    bootstrap-servers: localhost:${kafka.port}
+#    bootstrap-servers: host.docker.internal:${kafka.port}
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer

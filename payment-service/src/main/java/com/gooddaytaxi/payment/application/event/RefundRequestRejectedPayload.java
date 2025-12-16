@@ -1,6 +1,6 @@
 package com.gooddaytaxi.payment.application.event;
 
-import com.gooddaytaxi.payment.domain.entity.Payment;
+import com.gooddaytaxi.payment.domain.repository.PaymentIdentityView;
 import com.gooddaytaxi.payment.domain.entity.RefundRequest;
 
 import java.time.LocalDateTime;
@@ -16,7 +16,7 @@ public record RefundRequestRejectedPayload(
         LocalDateTime rejectedAt
 ) {
 
-    public static RefundRequestRejectedPayload from(Payment payment, RefundRequest request, UUID userId) {
+    public static RefundRequestRejectedPayload from(PaymentIdentityView payment, RefundRequest request, UUID userId) {
         return new RefundRequestRejectedPayload(
                 request.getId(),
                 userId,

@@ -6,7 +6,7 @@ import com.gooddaytaxi.dispatch.application.port.out.command.DispatchCommandPort
 import com.gooddaytaxi.dispatch.application.port.out.command.DispatchRequestedCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.query.AccountDriverSelectionQueryPort;
 import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
-import com.gooddaytaxi.dispatch.domain.exception.DriverUnavailableException;
+import com.gooddaytaxi.dispatch.application.exception.DriverUnavailableException;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
 import com.gooddaytaxi.dispatch.domain.model.entity.DispatchAssignmentLog;
 import com.gooddaytaxi.dispatch.domain.model.enums.ChangedBy;

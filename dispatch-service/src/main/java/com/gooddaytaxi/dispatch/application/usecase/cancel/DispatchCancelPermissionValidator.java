@@ -2,7 +2,7 @@ package com.gooddaytaxi.dispatch.application.usecase.cancel;
 
 import com.gooddaytaxi.dispatch.application.exception.DispatchPermissionDeniedException;
 import com.gooddaytaxi.dispatch.application.exception.auth.UserRole;
-import com.gooddaytaxi.dispatch.domain.exception.DispatchNotOwnerPassengerException;
+import com.gooddaytaxi.dispatch.application.exception.auth.DispatchNotOwnerPassengerException;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
