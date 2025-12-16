@@ -1,6 +1,7 @@
 package com.gooddaytaxi.payment.infrastructure.adapter.out;
 
 import com.gooddaytaxi.payment.application.port.out.core.PaymentQueryPort;
+import com.gooddaytaxi.payment.application.port.out.core.view.PaymentIdentityView;
 import com.gooddaytaxi.payment.domain.entity.Payment;
 import com.gooddaytaxi.payment.domain.entity.Refund;
 import com.gooddaytaxi.payment.domain.repository.PaymentRepository;
@@ -46,6 +47,11 @@ public class PaymentQueryAdapter implements PaymentQueryPort {
     @Override
     public Page<Refund> searchRefunds(String status, String reason, Boolean existRequest, UUID passeangerId, UUID driverId, UUID tripId, String method, Long minAmount, Long maxAmount, LocalDateTime startDay, LocalDateTime endDay, Pageable pageable) {
         return paymentRepository.searchRefunds(status, reason, existRequest, passeangerId, driverId, tripId, method, minAmount, maxAmount, startDay, endDay, pageable);
+    }
+
+    @Override
+    public Optional<PaymentIdentityView> findIdentityViewById(UUID paymentId) {
+        return paymentRepository.findIdentityById(paymentId);
     }
 
 }

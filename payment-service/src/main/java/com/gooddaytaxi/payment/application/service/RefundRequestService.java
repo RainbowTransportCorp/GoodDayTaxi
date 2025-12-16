@@ -10,6 +10,7 @@ import com.gooddaytaxi.payment.application.exception.PaymentException;
 import com.gooddaytaxi.payment.application.port.out.core.PaymentQueryPort;
 import com.gooddaytaxi.payment.application.port.out.core.RefundRequestCommandPort;
 import com.gooddaytaxi.payment.application.port.out.core.RefundRequestQueryPort;
+import com.gooddaytaxi.payment.application.port.out.core.view.PaymentIdentityView;
 import com.gooddaytaxi.payment.application.port.out.event.PaymentEventCommandPort;
 import com.gooddaytaxi.payment.application.result.refundRequest.RefundRequestCancelResult;
 import com.gooddaytaxi.payment.application.result.refundRequest.RefundRequestCreateResult;
@@ -61,7 +62,7 @@ public class RefundRequestService {
     @Transactional(readOnly = true)
     public RefundRequestReadResult getRefundRequest(UUID requestId, UUID userId, String role) {
         RefundRequest request = requestQueryPort.findById(requestId).orElseThrow(()-> new PaymentException(PaymentErrorCode.REFUND_REQUEST_NOT_FOUND));
-        Payment payment = paymentQueryPort.findById(request.getPaymentId()).orElseThrow(()-> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+        PaymentIdentityView payment = paymentQueryPort.findIdentityViewById(request.getPaymentId()).orElseThrow(()-> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
         //승객일 경우 본인 요청건만 조회 가능
         if(UserRole.of(role).equals(UserRole.PASSENGER)) {
@@ -108,7 +109,7 @@ public class RefundRequestService {
         request.respond(command.approve(), command.response());
         if(!command.approve()) {
             //기각시 이벤트 발행
-            Payment payment = paymentQueryPort.findById(request.getPaymentId()).orElseThrow(()-> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+            PaymentIdentityView payment = paymentQueryPort.findIdentityViewById(request.getPaymentId()).orElseThrow(()-> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
             eventCommandPort.publishRefundRequestRejected(RefundRequestRejectedPayload.from(payment, request, userId));
         }
 
@@ -120,7 +121,7 @@ public class RefundRequestService {
         //환불 요청 취소는 승객만 가능
         validator.checkRolePassenger(UserRole.of(role));
         RefundRequest request = requestQueryPort.findById(requestId).orElseThrow(()-> new PaymentException(PaymentErrorCode.REFUND_REQUEST_NOT_FOUND));
-        Payment payment = paymentQueryPort.findById(request.getPaymentId()).orElseThrow(()-> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+        PaymentIdentityView payment = paymentQueryPort.findIdentityViewById(request.getPaymentId()).orElseThrow(()-> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
         //해당 결제의 승객만 취소 가능
         validator.checkPassengerPermission(userId, payment.getPassengerId());
         //환불 요청 상태가 REQUESTED 일때만 취소 가능
