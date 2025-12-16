@@ -19,7 +19,7 @@ public class AuditorAwareImpl implements AuditorAware<UUID> {
     private static final UUID SYSTEM_UUID =
             UUID.fromString("99999999-9999-9999-9999-999999999999");
 
-    private static final String USER_UUID_HEADER = "x-user-UUID";
+    private static final String USER_UUID_HEADER = "x-user-uuid";
 
     @Override
     public Optional<UUID> getCurrentAuditor() {
