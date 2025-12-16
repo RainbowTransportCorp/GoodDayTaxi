@@ -42,16 +42,16 @@ public class DispatchService implements NotifyDispatchUsecase, NotifyAcceptedCal
     @Override
     public void execute(NotifyDispatchInformationCommand command) {
         // Notification 생성 및 저장
-        Notification noti = Notification.from(command, NotificationType.DISPATCH_REQUESTED);
-        noti.assignIds(command.getDispatchId(), null, null, command.getDriverId(), command.getPassengerId());
+        Notification notification = Notification.from(command, NotificationType.DISPATCH_REQUESTED);
+        notification.assignIds(command.getDispatchId(), null, null, command.getDriverId(), command.getPassengerId());
 
-        Notification savedNoti = notificationCommandPersistencePort.save(noti);
+        Notification savedNoti = notificationCommandPersistencePort.save(notification);
 //        Notification savedNoti = notificationQueryPersistencePort.findById(noti.getId());
         log.debug("[Check] Notification Persistence 조회: dispatchId={}, driverId={}, passengeId={}, message={}", savedNoti.getDispatchId(), savedNoti.getDriverId(), savedNoti.getPassengerId(), savedNoti.getMessage());
 
         // 수신자: [ 기사, 승객 ]
         List<UUID> receivers = new ArrayList<>();
-        receivers.add(noti.getDriverId());
+        receivers.add(notification.getDriverId());
         receivers.add(null);
 
         // 알림 메시지 구성
@@ -88,18 +88,18 @@ public class DispatchService implements NotifyDispatchUsecase, NotifyAcceptedCal
     @Override
     public void execute(NotifyDispatchAcceptedCommand command) {
         // Notification 생성 및 저장
-        Notification noti = Notification.from(command, NotificationType.DISPATCH_ACCEPTED);
-        noti.assignIds(command.getDispatchId(), null, null, command.getDriverId(), command.getPassengerId());
-        log.debug("[Check] Notification 생성: dispatchId={}, driverId={}, passengerId={}, message={}", noti.getNotificationOriginId(), noti.getDriverId(), noti.getPassengerId(), noti.getMessage());
+        Notification notification = Notification.from(command, NotificationType.DISPATCH_ACCEPTED);
+        notification.assignIds(command.getDispatchId(), null, null, command.getDriverId(), command.getPassengerId());
+        log.debug("[Check] Notification 생성: dispatchId={}, driverId={}, passengerId={}, message={}", notification.getNotificationOriginId(), notification.getDriverId(), notification.getPassengerId(), notification.getMessage());
 
-        Notification savedNoti = notificationCommandPersistencePort.save(noti);
+        Notification savedNoti = notificationCommandPersistencePort.save(notification);
 //        Notification savedNoti = notificationQueryPersistencePort.findById(noti.getId());
         log.debug("[Check] Notification Persistence 조회: dispatchId={}, driverId={}, passengeId={}, message={}", savedNoti.getDispatchId(), savedNoti.getDriverId(), savedNoti.getPassengerId(), savedNoti.getMessage());
 
         // 수신자: [ 기사, 승객 ]
         List<UUID> receivers = new ArrayList<>();
         receivers.add(null);
-        receivers.add(noti.getPassengerId());
+        receivers.add(notification.getPassengerId());
 
         // Account Feign Client: 기사 정보 조회
         DriverProfile driverProfile = null;
@@ -162,17 +162,17 @@ public class DispatchService implements NotifyDispatchUsecase, NotifyAcceptedCal
     @Override
     public void execute(NotifyDipsatchTimeoutCommand command) {
         // Notification 생성 및 저장
-        Notification noti = Notification.from(command, NotificationType.DISPATCH_TIMEOUT);
-        noti.assignIds(command.getDispatchId(), null, null, null, command.getPassengerId());
+        Notification notification = Notification.from(command, NotificationType.DISPATCH_TIMEOUT);
+        notification.assignIds(command.getDispatchId(), null, null, null, command.getPassengerId());
 
-        Notification savedNoti = notificationCommandPersistencePort.save(noti);
+        Notification savedNoti = notificationCommandPersistencePort.save(notification);
 //        Notification savedNoti = notificationQueryPersistencePort.findById(noti.getId());
         log.debug("[Check] Notification Persistence 조회: dispatchId={}, passengeId={}, timeoutAt={}", savedNoti.getDispatchId(), savedNoti.getPassengerId(), command.getTimeoutAt());
 
         // 수신자: [ 기사, 승객 ]
         List<UUID> receivers = new ArrayList<>();
         receivers.add(null);
-        receivers.add(noti.getPassengerId());
+        receivers.add(notification.getPassengerId());
 
         // 알림 메시지 구성
         String messageTitle = "\uD83D\uDCE2 콜 요청을 수락하시겠습니까?";
@@ -203,16 +203,16 @@ public class DispatchService implements NotifyDispatchUsecase, NotifyAcceptedCal
     @Override
     public void execute(NotifyDispatchCancelledCommand command) {
         // Notification 생성 및 저장
-        Notification noti = Notification.from(command, NotificationType.DISPATCH_CANCELLED);
-        noti.assignIds(command.getDispatchId(), null, null, command.getDriverId(), command.getPassengerId());
+        Notification notification = Notification.from(command, NotificationType.DISPATCH_CANCELLED);
+        notification.assignIds(command.getDispatchId(), null, null, command.getDriverId(), command.getPassengerId());
 
-        Notification savedNoti = notificationCommandPersistencePort.save(noti);
+        Notification savedNoti = notificationCommandPersistencePort.save(notification);
 //        Notification savedNoti = notificationQueryPersistencePort.findById(noti.getId());
         log.debug("[Check] Notification Persistence 조회: dispatchId={}, driverId={}, passengeId={}", savedNoti.getDispatchId(), savedNoti.getDriverId(), savedNoti.getPassengerId());
 
         // 수신자: [ 기사, 승객 ]
         List<UUID> receivers = new ArrayList<>();
-        receivers.add(noti.getDriverId());
+        receivers.add(notification.getDriverId());
         receivers.add(null);
 
         // 알림 메시지 구성
@@ -254,16 +254,16 @@ public class DispatchService implements NotifyDispatchUsecase, NotifyAcceptedCal
     @Override
     public void execute(NotifyDispatchRejectedCommand command) {
         // Notification 생성 및 저장
-        Notification noti = Notification.from(command, NotificationType.DISPATCH_REJECTED);
-        noti.assignIds(command.getDispatchId(), null, null, command.getDriverId(), null);
+        Notification notification = Notification.from(command, NotificationType.DISPATCH_REJECTED);
+        notification.assignIds(command.getDispatchId(), null, null, command.getDriverId(), null);
 
-        Notification savedNoti = notificationCommandPersistencePort.save(noti);
+        Notification savedNoti = notificationCommandPersistencePort.save(notification);
 //        Notification savedNoti = notificationQueryPersistencePort.findById(noti.getId());
         log.debug("[Check] Notification Persistence 조회: dispatchId={}, driverId={}, passengeId={}", savedNoti.getDispatchId(), savedNoti.getDriverId(), savedNoti.getPassengerId());
 
         // 수신자: [ 기사, 승객 ]
         List<UUID> receivers = new ArrayList<>();
-        receivers.add(noti.getDriverId());
+        receivers.add(notification.getDriverId());
         receivers.add(null);
 
         // 알림 메시지 구성
