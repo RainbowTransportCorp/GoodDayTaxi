@@ -1,50 +1,44 @@
-package com.gooddaytaxi.support.application.dto;
+package com.gooddaytaxi.support.application.dto.dispatch;
 
 import com.gooddaytaxi.support.application.Metadata;
+import com.gooddaytaxi.support.application.dto.Command;
 import lombok.Getter;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
- * 운행 시작 알림 Command
- * - TRIP_STARTED 이벤트 처리
+ * 수락된 배차 정보 알림 Command
+ * - DISPATCH_ACCEPTED 이벤트 처리
  */
 @Getter
-public class NotifyTripStartedCommand extends Command {
-    private final UUID tripId;
+public class NotifyDispatchAcceptedCommand extends Command {
     private final UUID dispatchId;
     private final UUID driverId;
     private final UUID passengerId;
     private final String pickupAddress;
     private final String destinationAddress;
-    private final LocalDateTime startTime;
 
-    private NotifyTripStartedCommand(
+    private NotifyDispatchAcceptedCommand(
             UUID notificationOriginId, UUID notifierId,
-            UUID dispatchId,
             UUID driverId, UUID passengerId,
             String pickupAddress, String destinationAddress,
-            LocalDateTime startTime,
+            String message,
             Metadata metadata
     ) {
-        super(notificationOriginId, notifierId, null, metadata);
-        this.tripId = notificationOriginId;
-        this.dispatchId = dispatchId;
+        super(notificationOriginId, notifierId, message, metadata);
+        this.dispatchId = notificationOriginId;
         this.driverId = driverId;
         this.passengerId = passengerId;
         this.pickupAddress = pickupAddress;
         this.destinationAddress = destinationAddress;
-        this.startTime = startTime;
     }
-    public static NotifyTripStartedCommand create(
+    public static NotifyDispatchAcceptedCommand create(
             UUID notificationOriginId, UUID notifierId,
-            UUID dispatchId,
             UUID driverId, UUID passengerId,
             String pickupAddress, String destinationAddress,
-            LocalDateTime startTime,
+            String message,
             Metadata metadata
     ) {
-        return new NotifyTripStartedCommand(notificationOriginId, notifierId, dispatchId, driverId, passengerId, pickupAddress, destinationAddress, startTime, metadata);
+        return new NotifyDispatchAcceptedCommand(notificationOriginId, notifierId, driverId, passengerId, pickupAddress, destinationAddress, message, metadata);
     }
 }

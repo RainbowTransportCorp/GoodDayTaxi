@@ -2,6 +2,7 @@ package com.gooddaytaxi.support.application.service;
 
 import com.gooddaytaxi.support.application.Metadata;
 import com.gooddaytaxi.support.application.dto.*;
+import com.gooddaytaxi.support.application.dto.payment.*;
 import com.gooddaytaxi.support.application.port.in.payment.NotifyCompletedPaymentUsecase;
 import com.gooddaytaxi.support.application.port.in.payment.NotifyRefundUsecase;
 import com.gooddaytaxi.support.application.port.out.internal.account.AccountDomainCommunicationPort;
@@ -27,7 +28,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Service
 @Transactional
-public class PaymentNotificationService implements NotifyCompletedPaymentUsecase, NotifyRefundUsecase {
+public class PaymentService implements NotifyCompletedPaymentUsecase, NotifyRefundUsecase {
 
     private final NotificationCommandPersistencePort notificationCommandPersistencePort;
     private final NotificationPushMessagingPort notificationPushMessagingPort;

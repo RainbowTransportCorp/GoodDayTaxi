@@ -4,6 +4,10 @@ import com.gooddaytaxi.support.adapter.out.internal.account.dto.DriverProfile;
 import com.gooddaytaxi.support.adapter.out.internal.account.dto.UserProfile;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.UUID;
+
 @Slf4j
 @Component
 public class AccountFeignClientFallback implements AccountFeignClient {
@@ -17,6 +21,11 @@ public class AccountFeignClientFallback implements AccountFeignClient {
     public DriverProfile getDriverInfo(String userId) {
         log.error("❌ [Driver Profile] AccountFeignClient fallback triggered userId={}", userId);
         return null;
+    }
+
+    @Override
+    public List<UUID> getMasterAdminUuids() {
+        return List.of();
     }
 }
 

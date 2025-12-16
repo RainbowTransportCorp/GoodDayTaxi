@@ -2,7 +2,7 @@ package com.gooddaytaxi.support.adapter.in.kafka.endpoint;
 
 import com.gooddaytaxi.support.adapter.in.kafka.dto.*;
 import com.gooddaytaxi.support.application.Metadata;
-import com.gooddaytaxi.support.application.dto.*;
+import com.gooddaytaxi.support.application.dto.dispatch.*;
 import com.gooddaytaxi.support.application.port.in.dispatch.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -26,7 +26,7 @@ spring:
             - Path=/api/v*/dispatches/**,/api/v*/admin/dispatch/**,/internal/v*/dispatch/**
 
         - id: trip-service
-          uri: http://host.docker.internal:8205
+          uri: http://host.docker.internal:8203
           predicates:
             - Path=/api/v*/trips/**,/api/v*/policies/**,/api/v*/admin/trip/**,/internal/v*/trip/**
 
@@ -36,7 +36,7 @@ spring:
             - Path=/api/v*/payments/**,/api/v*/admin/payment/**,/internal/v*/payment/**
 
         - id: support-service
-          uri: http://host.docker.internal:8203
+          uri: http://host.docker.internal:8205
           predicates:
             - Path=/api/v*/support/**,/api/v*/admin/support/**,/internal/v*/support/**
 

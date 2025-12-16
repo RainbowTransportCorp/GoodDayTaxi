@@ -3,7 +3,7 @@ package com.gooddaytaxi.support.application.service;
 import com.gooddaytaxi.support.adapter.out.internal.account.dto.DriverProfile;
 import com.gooddaytaxi.support.adapter.out.internal.account.dto.VehicleInfo;
 import com.gooddaytaxi.support.application.Metadata;
-import com.gooddaytaxi.support.application.dto.*;
+import com.gooddaytaxi.support.application.dto.dispatch.*;
 import com.gooddaytaxi.support.application.port.in.dispatch.*;
 import com.gooddaytaxi.support.application.port.out.internal.account.AccountDomainCommunicationPort;
 import com.gooddaytaxi.support.application.port.out.messaging.NotificationPushMessagingPort;
@@ -28,7 +28,7 @@ import java.util.UUID;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class DispatchNotificationService implements NotifyDispatchUsecase, NotifyAcceptedCallUsecase, NotifyDispatchTimeoutUsecase, NotifyDispatchCancelUsecase, NotifyDispatchRejectUsecase {
+public class DispatchService implements NotifyDispatchUsecase, NotifyAcceptedCallUsecase, NotifyDispatchTimeoutUsecase, NotifyDispatchCancelUsecase, NotifyDispatchRejectUsecase {
 
     private final NotificationCommandPersistencePort notificationCommandPersistencePort;
     private final NotificationPushMessagingPort notificationPushMessagingPort;

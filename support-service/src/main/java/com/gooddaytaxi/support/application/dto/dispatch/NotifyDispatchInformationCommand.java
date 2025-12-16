@@ -1,23 +1,24 @@
-package com.gooddaytaxi.support.application.dto;
+package com.gooddaytaxi.support.application.dto.dispatch;
 
 import com.gooddaytaxi.support.application.Metadata;
+import com.gooddaytaxi.support.application.dto.Command;
 import lombok.Getter;
 
 import java.util.UUID;
 
 /**
- * 수락된 배차 정보 알림 Command
- * - DISPATCH_ACCEPTED 이벤트 처리
+ * 배차 정보 알림 Command
+ * - DISPATCH_REQUESTED 이벤트 처리
  */
 @Getter
-public class NotifyDispatchAcceptedCommand extends Command{
+public class NotifyDispatchInformationCommand extends Command {
     private final UUID dispatchId;
     private final UUID driverId;
     private final UUID passengerId;
     private final String pickupAddress;
     private final String destinationAddress;
 
-    private NotifyDispatchAcceptedCommand(
+    private NotifyDispatchInformationCommand(
             UUID notificationOriginId, UUID notifierId,
             UUID driverId, UUID passengerId,
             String pickupAddress, String destinationAddress,
@@ -31,13 +32,19 @@ public class NotifyDispatchAcceptedCommand extends Command{
         this.pickupAddress = pickupAddress;
         this.destinationAddress = destinationAddress;
     }
-    public static NotifyDispatchAcceptedCommand create(
+    public static NotifyDispatchInformationCommand create(
             UUID notificationOriginId, UUID notifierId,
             UUID driverId, UUID passengerId,
             String pickupAddress, String destinationAddress,
             String message,
             Metadata metadata
     ) {
-        return new NotifyDispatchAcceptedCommand(notificationOriginId, notifierId, driverId, passengerId, pickupAddress, destinationAddress, message, metadata);
+        return new NotifyDispatchInformationCommand(notificationOriginId, notifierId, driverId, passengerId, pickupAddress, destinationAddress, message, metadata);
+    }
+
+    @Override
+    public String toString() {
+        return "NotifyDispatchInformationCommand(driverId=%s, passengerId=%s, message=%s, dispatchId=%s)"
+                .formatted(driverId, passengerId, getMessage(), dispatchId);
     }
 }

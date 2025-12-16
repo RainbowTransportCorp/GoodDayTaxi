@@ -3,7 +3,7 @@ package com.gooddaytaxi.support.adapter.in.kafka.endpoint;
 
 import com.gooddaytaxi.support.adapter.in.kafka.dto.*;
 import com.gooddaytaxi.support.application.Metadata;
-import com.gooddaytaxi.support.application.dto.*;
+import com.gooddaytaxi.support.application.dto.payment.*;
 import com.gooddaytaxi.support.application.port.in.payment.NotifyCompletedPaymentUsecase;
 import com.gooddaytaxi.support.application.port.in.payment.NotifyRefundUsecase;
 import lombok.RequiredArgsConstructor;

@@ -1,8 +1,8 @@
 package com.gooddaytaxi.support.application.service;
 
 import com.gooddaytaxi.support.application.Metadata;
-import com.gooddaytaxi.support.application.dto.NotifyTripEndedCommand;
-import com.gooddaytaxi.support.application.dto.NotifyTripStartedCommand;
+import com.gooddaytaxi.support.application.dto.trip.NotifyTripEndedCommand;
+import com.gooddaytaxi.support.application.dto.trip.NotifyTripStartedCommand;
 import com.gooddaytaxi.support.application.port.in.trip.NotifyEndedTripUsecase;
 import com.gooddaytaxi.support.application.port.in.trip.NotifyStartedTripUsecase;
 import com.gooddaytaxi.support.application.port.out.messaging.NotificationPushMessagingPort;
@@ -27,7 +27,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Service
 @Transactional
-public class TripNotificationService implements NotifyStartedTripUsecase, NotifyEndedTripUsecase {
+public class TripService implements NotifyStartedTripUsecase, NotifyEndedTripUsecase {
 
     private final NotificationCommandPersistencePort notificationCommandPersistencePort;
     private final NotificationPushMessagingPort notificationPushMessagingPort;
