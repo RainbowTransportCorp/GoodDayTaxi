@@ -83,8 +83,8 @@ public class PaymentController {
     //기사가 직접 결제후 완료 처리
     @PutMapping("/driver/{paymentId}/confirm")
     public ResponseEntity<ApiResponse<PaymentApproveResponseDto>> confirmDriverPayment(@PathVariable UUID paymentId,
-                                                                                       @RequestHeader(value = "X-User-UUID", required = false) UUID userId,
-                                                                                       @RequestHeader(value = "X-User-Role", required = false) String role) {
+                                                                                       @RequestHeader(value = "X-User-UUID") UUID userId,
+                                                                                       @RequestHeader(value = "X-User-Role") String role) {
 
         PaymentApproveResult result = paymentService.approveDriverPayment(paymentId, userId, role);
         PaymentApproveResponseDto responseDto = PaymentApproveResponseMapper.toResponse(result);
@@ -94,8 +94,8 @@ public class PaymentController {
     //결제 단건 조회
     @GetMapping("/{paymentId}")
     public ResponseEntity<ApiResponse<PaymentReadResponseDto>> getPayment(@PathVariable UUID paymentId,
-                                                                          @RequestHeader(value = "X-User-UUID", required = false) UUID userId,
-                                                                          @RequestHeader(value = "X-User-Role", required = false) String role) {
+                                                                          @RequestHeader(value = "X-User-UUID") UUID userId,
+                                                                          @RequestHeader(value = "X-User-Role") String role) {
         PaymentReadResult result = paymentService.getPayment(paymentId, userId, role);
         PaymentReadResponseDto responseDto = PaymentReadResponseMapper.toResponse(result);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
@@ -104,8 +104,8 @@ public class PaymentController {
     //결제 검색 기능
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<Page<PaymentReadResponseDto>>> searchPayment(@RequestBody @Valid PaymentSearchRequestDto requestDto,
-                                                                                   @RequestHeader(value = "X-User-UUID", required = false) UUID userId,
-                                                                                   @RequestHeader(value = "X-User-Role", required = false) String role) {
+                                                                                   @RequestHeader(value = "X-User-UUID") UUID userId,
+                                                                                   @RequestHeader(value = "X-User-Role") String role) {
         PaymentSearchCommand command = PaymentSearchMapper.toCommand(requestDto);
         Page<PaymentReadResult> result = paymentService.searchPayment(command, userId, role);
         Page<PaymentReadResponseDto> responseDto = PaymentReadResponseMapper.toPageResponse(result);
@@ -115,8 +115,8 @@ public class PaymentController {
     //결제 전 금액 변경
     @PutMapping("/amount")
     public ResponseEntity<ApiResponse<PaymentUpdateResponseDto>> changePaymentAmount(@RequestBody @Valid PaymentAmountChangeRequestDto requestDto,
-                                                                                     @RequestHeader(value = "X-User-UUID", required = false) UUID userId,
-                                                                                     @RequestHeader(value = "X-User-Role", required = false) String role) {
+                                                                                     @RequestHeader(value = "X-User-UUID") UUID userId,
+                                                                                     @RequestHeader(value = "X-User-Role") String role) {
         PaymentAmountChangeCommand command = PaymentUpdateMapper.toAmountCommand(requestDto);
         PaymentUpdateResult result = paymentService.changePaymentAmount(command, userId, role);
         PaymentUpdateResponseDto responseDto = PaymentUpdateResponseMapper.toResponse(result);
@@ -126,8 +126,8 @@ public class PaymentController {
     //결제 전 결제 수단 변경
     @PutMapping("/method")
     public ResponseEntity<ApiResponse<PaymentUpdateResponseDto>> changePaymentMethod(@RequestBody @Valid PaymentMethodChangeRequestDto requestDto,
-                                                                                     @RequestHeader(value = "X-User-UUID", required = false) UUID userId,
-                                                                                     @RequestHeader(value = "X-User-Role", required = false) String role) {
+                                                                                     @RequestHeader(value = "X-User-UUID") UUID userId,
+                                                                                     @RequestHeader(value = "X-User-Role") String role) {
         PaymentMethodChangeCommand command = PaymentUpdateMapper.toMethodCommand(requestDto);
         PaymentUpdateResult result = paymentService.changePaymentMethod(command, userId, role);
         PaymentUpdateResponseDto responseDto = PaymentUpdateResponseMapper.toResponse(result);
@@ -136,8 +136,8 @@ public class PaymentController {
     //결제 취소
     @DeleteMapping
     public ResponseEntity<ApiResponse<PaymentCancelResponseDto>> cancelPayment(@RequestBody @Valid PaymentCancelRequestDto requestDto,
-                                                                               @RequestHeader(value = "X-User-UUID", required = false) UUID userId,
-                                                                               @RequestHeader(value = "X-User-Role", required = false) String role) {
+                                                                               @RequestHeader(value = "X-User-UUID") UUID userId,
+                                                                               @RequestHeader(value = "X-User-Role") String role) {
         PaymentCancelCommand command = PaymentCancelMapper.toCommand(requestDto);
         PaymentCancelResult result = paymentService.cancelPayment(command, userId, role);
         PaymentCancelResponseDto responseDto = PaymentCancelResponseMapper.toResponse(result);

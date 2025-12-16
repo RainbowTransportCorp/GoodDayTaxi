@@ -37,8 +37,8 @@ public class RefundRequestController {
     //환불 요청 생성
     @PostMapping
     public ResponseEntity<ApiResponse<RefundReqeustCreateResponseDto>> createRefundRequest(@RequestBody @Valid RefundRequestCreateRequestDto requestDto,
-                                                                                           @RequestHeader(value = "X-User-UUID", required = false) UUID userId,
-                                                                                           @RequestHeader(value = "X-User-Role", required = false) String role) {
+                                                                                           @RequestHeader(value = "X-User-UUID") UUID userId,
+                                                                                           @RequestHeader(value = "X-User-Role") String role) {
         RefundRequestCreateCommand command = RefundRequestCreateMapper.toRequestCommand(requestDto);
         RefundRequestCreateResult result = requestService.createRefundRequest(command, userId, role);
         RefundReqeustCreateResponseDto responseDto = RefundRequestCreateResponseMapper.toResponse(result);
@@ -48,8 +48,8 @@ public class RefundRequestController {
     //환불 요청 단건 조회
     @GetMapping("/{requestId}")
     public ResponseEntity<ApiResponse<RefundRequestReadResponseDto>> getRefundRequest(@PathVariable UUID requestId,
-                                                                                      @RequestHeader(value = "X-User-UUID", required = false) UUID userId,
-                                                                                      @RequestHeader(value = "X-User-Role", required = false) String role) {
+                                                                                      @RequestHeader(value = "X-User-UUID") UUID userId,
+                                                                                      @RequestHeader(value = "X-User-Role") String role) {
         RefundRequestReadResult result = requestService.getRefundRequest(requestId, userId, role);
         RefundRequestReadResponseDto responseDto = RefundRequestReadResponseMapper.toResponse(result);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
@@ -57,8 +57,8 @@ public class RefundRequestController {
 
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<Page<RefundRequestReadResponseDto>>> searchRefundRequests(@RequestBody @Valid RefundRequestSearchRequestDto requestDto,
-                                                                                                @RequestHeader(value = "X-User-UUID", required = false) UUID userId,
-                                                                                                @RequestHeader(value = "X-User-Role", required = false) String role) {
+                                                                                                @RequestHeader(value = "X-User-UUID") UUID userId,
+                                                                                                @RequestHeader(value = "X-User-Role") String role) {
         RefundReqeustSearchCommand command = RefundRequestSearchMapper.toCommand(requestDto);
         Page<RefundRequestReadResult> results = requestService.searchRefundRequests(command, userId, role);
         Page<RefundRequestReadResponseDto> responseDtos = RefundRequestReadResponseMapper.toPageResponse(results);
@@ -70,8 +70,8 @@ public class RefundRequestController {
     //환불 요청 응답
     @PostMapping("/response")
     public ResponseEntity<ApiResponse<RefundReqeustCreateResponseDto>> respondToRefundRequest(@RequestBody @Valid RefundRequestResponseRequestDto requestDto,
-                                                                                              @RequestHeader(value = "X-User-UUID", required = false) UUID userId,
-                                                                                              @RequestHeader(value = "X-User-Role", required = false) String role) {
+                                                                                              @RequestHeader(value = "X-User-UUID") UUID userId,
+                                                                                              @RequestHeader(value = "X-User-Role") String role) {
         RefundRequestResponseCreateCommand command = RefundRequestCreateMapper.toResponseCommand(requestDto);
         RefundRequestCreateResult result = requestService.respondToRefundRequest(command, userId, role);
         RefundReqeustCreateResponseDto responseDto = RefundRequestCreateResponseMapper.toResponse(result);
@@ -81,8 +81,8 @@ public class RefundRequestController {
     //환불 요청 취소
     @DeleteMapping("/{requestId}")
     public ResponseEntity<ApiResponse<RefundReqeustCancelResponseDto>> cancelRefundRequest(@PathVariable UUID requestId,
-                                                                                           @RequestHeader(value = "X-User-UUID", required = false) UUID userId,
-                                                                                           @RequestHeader(value = "X-User-Role", required = false) String role) {
+                                                                                           @RequestHeader(value = "X-User-UUID") UUID userId,
+                                                                                           @RequestHeader(value = "X-User-Role") String role) {
         RefundRequestCancelResult result = requestService.cancelRefundRequest(requestId, userId,role);
         RefundReqeustCancelResponseDto responseDto = RefundRequestCancelResponseMapper.toResponse(result);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
