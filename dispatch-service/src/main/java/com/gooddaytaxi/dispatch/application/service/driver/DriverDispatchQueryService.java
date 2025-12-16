@@ -30,14 +30,14 @@ public class DriverDispatchQueryService {
      */
     public List<DispatchPendingListResult> getDriverPendingDispatch(UUID driverId, UserRole role) {
 
-        log.info("[DriverPending] 조회 요청 - driverId={}", driverId);
+        log.debug("[DriverPending] 조회 요청 - driverId={}", driverId);
 
         permissionValidator.validate(role);
 
         List<Dispatch> dispatches =
                 dispatchAssignmentLogQueryPort.findAssigningByCandidateDriver(driverId);
 
-        log.info("[DriverPending] 조회 완료 - driverId={}, count={}",
+        log.debug("[DriverPending] 조회 완료 - driverId={}, count={}",
                 driverId, dispatches.size());
 
 

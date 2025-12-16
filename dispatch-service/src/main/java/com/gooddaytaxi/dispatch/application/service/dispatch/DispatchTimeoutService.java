@@ -6,7 +6,6 @@ import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
 import com.gooddaytaxi.dispatch.application.service.assignmentLog.AssignmentLogQueryService;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
 import com.gooddaytaxi.dispatch.domain.model.enums.ChangedBy;
-import com.gooddaytaxi.dispatch.domain.model.enums.DispatchDomainEventType;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
 import com.gooddaytaxi.dispatch.domain.model.enums.HistoryEventType;
 import com.gooddaytaxi.dispatch.infrastructure.messaging.outbox.publisher.DispatchTimeoutOutboxPublisher;
