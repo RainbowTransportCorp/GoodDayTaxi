@@ -11,11 +11,5 @@ public enum DispatchStatus {
     public boolean isTerminal() {
         return this == TIMEOUT || this == CANCELED;
     }
-
-    public boolean isCancelableStatus() {
-        return this == DispatchStatus.REQUESTED
-                || this == DispatchStatus.ASSIGNING
-                || this == DispatchStatus.ASSIGNED;
-    }
 }
 
