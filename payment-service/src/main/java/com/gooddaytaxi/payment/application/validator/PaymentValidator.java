@@ -90,6 +90,13 @@ public class PaymentValidator {
         }
     }
 
+    //환불 요청 상태가 요청중인지 확인
+    public void checkRefundRequestStatusRequested(RefundRequestStatus status) {
+        if(!status.equals(RefundRequestStatus.REQUESTED)) {
+            throw new PaymentException(PaymentErrorCode.REFUND_REQUEST_STATUS_INVALID);
+        }
+    }
+
     //해당 환불 요청이 승인된 상태인지 확인
     public void checkRefundRequestApproved(RefundRequestStatus status) {
         if(!status.equals(RefundRequestStatus.APPROVED)) {
