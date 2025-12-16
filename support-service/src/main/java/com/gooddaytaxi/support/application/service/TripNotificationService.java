@@ -77,6 +77,7 @@ public class TripNotificationService implements NotifyStartedTripUsecase, Notify
     /**
      * 수신자에게 운행 종료 알림 서비스
      */
+    @Transactional
     @Override
     public void execute(NotifyTripEndedCommand command) {
         // Notification 생성 및 저장

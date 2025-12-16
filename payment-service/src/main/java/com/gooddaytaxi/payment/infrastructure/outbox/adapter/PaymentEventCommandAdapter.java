@@ -5,6 +5,7 @@ import com.gooddaytaxi.payment.application.event.PaymentCompletePayload;
 import com.gooddaytaxi.payment.application.event.RefundCompletedPayload;
 import com.gooddaytaxi.payment.application.event.RefundRequestCreatePayload;
 import com.gooddaytaxi.payment.application.event.RefundRequestRejectedPayload;
+import com.gooddaytaxi.payment.application.event.RefundSettlementCreatedPayload;
 import com.gooddaytaxi.payment.application.port.out.event.PaymentEventOutboxPort;
 import com.gooddaytaxi.payment.application.port.out.event.PaymentEventCommandPort;
 import com.gooddaytaxi.payment.infrastructure.outbox.publisher.PaymentBaseOutboxPublisher;
@@ -51,6 +52,19 @@ public class PaymentEventCommandAdapter extends PaymentBaseOutboxPublisher imple
         publish(
                 "REFUND_REQUEST_REJECTED",
                 "refund.request.rejected",
+                AGGREGATE_TYPE,
+                payload.notificationOriginId(),
+                payload.notificationOriginId().toString(),
+                VERSION,
+                payload
+        );
+    }
+
+    @Override
+    public void publishRefundSettlementCreated(RefundSettlementCreatedPayload payload) {
+        publish(
+                "REFUND_SETTLEMENT_CREATED",
+                "refund.settlement.created",
                 AGGREGATE_TYPE,
                 payload.notificationOriginId(),
                 payload.notificationOriginId().toString(),
