@@ -8,11 +8,14 @@ import com.gooddaytaxi.trip.application.port.out.*;
 import com.gooddaytaxi.trip.application.result.*;
 import com.gooddaytaxi.trip.domain.model.Trip;
 import com.gooddaytaxi.trip.domain.model.enums.TripStatus;
+import com.gooddaytaxi.trip.infrastructure.messaging.outbox.TripOutboxAppender;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,12 +23,15 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TripService {
 
+
     private final CreateTripPort createTripPort;
     private final LoadTripsPort loadTripsPort;
     private final LoadTripByIdPort loadTripByIdPort;
     private final UpdateTripPort updateTripPort;
     private final LoadTripsByPassengerPort loadTripsByPassengerPort;
     private final LoadTripsByDriverPort loadTripsByDriverPort;
+    private final AppendTripEventPort appendTripEventPort;
+
 
 
     @Transactional
@@ -70,23 +76,35 @@ public class TripService {
 
     @Transactional
     public TripStartResult startTrip(StartTripCommand command) {
+        UUID tripId = command.tripId();
+        UUID notifierId = command.notifierId(); // 컨트롤러에서 헤더로 받은 값
 
-        Trip trip = loadTripByIdPort.loadTripById(command.tripId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Trip not found: " + command.tripId()
-                )); // → GlobalExceptionHandler에서 404로 맵핑되게 해 두면 됨
+        Trip trip = loadTripByIdPort.loadTripById(tripId)
+                .orElseThrow(() -> new EntityNotFoundException("Trip not found. tripId=" + tripId));
 
-        // 도메인 로직 호출 (READY → STARTED)
-        trip.start();
+        // 1) 상태 전이 + startTime 세팅 (Trip 도메인 메서드 내부에서 처리)
+        boolean transitioned = trip.start(); // ✅ 상태 전이 여부
 
-        Trip saved = updateTripPort.updateTrip(trip);
+        if (transitioned) {
+            appendTripEventPort.appendTripStarted(
+                    trip.getTripId(),
+                    command.notifierId(),
+                    trip.getDispatchId(),
+                    trip.getDriverId(),
+                    trip.getPassengerId(),
+                    trip.getPickupAddress(),
+                    trip.getDestinationAddress(),
+                    trip.getStartTime()
+            );
+        }
 
         return new TripStartResult(
-                saved.getTripId(),
-                saved.getStatus().name(),
-                saved.getStartTime(),
+                trip.getTripId(),
+                trip.getStatus().name(),
+                trip.getStartTime(),
                 "운행이 시작되었습니다."
         );
+
     }
 
     public TripEndResult endTrip(UUID tripId, EndTripCommand command) {
