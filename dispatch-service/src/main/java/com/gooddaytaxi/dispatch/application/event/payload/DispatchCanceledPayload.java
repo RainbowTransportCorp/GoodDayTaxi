@@ -1,5 +1,6 @@
 package com.gooddaytaxi.dispatch.application.event.payload;
 
+import com.gooddaytaxi.dispatch.application.event.SystemNotifier;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
 
 import java.time.LocalDateTime;
@@ -34,11 +35,11 @@ public record DispatchCanceledPayload(
     public static DispatchCanceledPayload fromSystem(Dispatch dispatch) {
         return new DispatchCanceledPayload(
                 dispatch.getDispatchId(),
-                null, // SYSTEM
+                SystemNotifier.SYSTEM_ID, // SYSTEM
                 dispatch.getDispatchId(),
                 dispatch.getDriverId(),
                 dispatch.getPassengerId(),
-                "SYSTEM",
+                SystemNotifier.SYSTEM_ID.toString(), //SYSTEM
                 "배차가 자동으로 취소되었습니다.",
                 LocalDateTime.now()
         );

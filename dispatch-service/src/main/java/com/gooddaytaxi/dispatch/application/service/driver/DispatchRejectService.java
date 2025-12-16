@@ -72,7 +72,7 @@ public class DispatchRejectService {
 
         // 5. 이벤트 발행
         eventPort.publishRejected(
-                DispatchRejectedPayload.from(dispatch));
+                DispatchRejectedPayload.from(dispatch, logEntry.getCandidateDriverId()));
 
         // 6. 히스토리 (실패해도 흐름 유지)
         try {
