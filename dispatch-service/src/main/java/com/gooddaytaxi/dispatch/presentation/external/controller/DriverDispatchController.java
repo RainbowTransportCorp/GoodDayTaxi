@@ -40,8 +40,8 @@ public class DriverDispatchController {
      */
     @GetMapping("/pending")
     public ResponseEntity<ApiResponse<List<DispatchPendingListResponseDto>>> getPendingDispatches(
-            @RequestHeader(value = "X-User-UUID", required = false) UUID userId,
-            @RequestHeader(value = "X-User-Role", required = false) String role
+            @RequestHeader(value = "X-User-UUID") UUID userId,
+            @RequestHeader(value = "X-User-Role") String role
     ) {
         List<DispatchPendingListResult> dispatchPendingListResults =
                 driverDispatchQueryService.getDriverPendingDispatch(userId, UserRole.valueOf(role));
@@ -60,8 +60,8 @@ public class DriverDispatchController {
     @PatchMapping("/{dispatchId}/accept")
     public ResponseEntity<ApiResponse<DispatchAcceptResponseDto>> accept(
             @PathVariable UUID dispatchId,
-            @RequestHeader(value = "X-User-UUID", required = false) UUID userId,
-            @RequestHeader(value = "X-User-Role", required = false) String role
+            @RequestHeader(value = "X-User-UUID") UUID userId,
+            @RequestHeader(value = "X-User-Role") String role
     ) throws InterruptedException {
         DispatchAcceptCommand command = DispatchAcceptCommandMapper.toCommand(userId, role, dispatchId);
         DispatchAcceptResult result = dispatchAcceptService.accept(command);
@@ -77,8 +77,8 @@ public class DriverDispatchController {
     @PatchMapping("/{dispatchId}/reject")
     public ResponseEntity<ApiResponse<DispatchRejectResponseDto>> reject(
             @PathVariable UUID dispatchId,
-            @RequestHeader(value = "X-User-UUID", required = false) UUID userId,
-            @RequestHeader(value = "X-User-Role", required = false) String role
+            @RequestHeader(value = "X-User-UUID") UUID userId,
+            @RequestHeader(value = "X-User-Role") String role
     ) {
         DispatchRejectCommand command = DispatchRejectCommandMapper.toCommand(userId, role, dispatchId);
         DispatchRejectResult result = dispatchRejectService.reject(command);

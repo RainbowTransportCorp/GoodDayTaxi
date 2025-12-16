@@ -45,7 +45,7 @@ public class DispatchCancelService {
         dispatch.cancel();
         commandPort.save(dispatch);
 
-        // 1) 이벤트 발행이 핵심
+        // 1) 이벤트 발행
         eventPort.publishCanceled(
                 DispatchCanceledPayload.fromPassenger(dispatch)
         );
@@ -57,7 +57,8 @@ public class DispatchCancelService {
                     HistoryEventType.USER_CANCELED,
                     before,
                     dispatch.getDispatchStatus(),
-                    ChangedBy.PASSENGER
+                    ChangedBy.PASSENGER,
+                    null
             );
         } catch (Exception e) {
             log.error("[DispatchCancel] 히스토리 기록 실패 - dispatchId={}, error={}",

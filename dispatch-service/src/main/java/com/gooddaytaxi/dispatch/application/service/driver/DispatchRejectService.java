@@ -63,7 +63,8 @@ public class DispatchRejectService {
         DispatchStatus before = dispatch.getDispatchStatus();
 
         // 3. 도메인 처리
-        domainService.processReject(dispatch, logEntry, command.getDriverId());
+        dispatch.rejectedByDriver();
+        logEntry.reject();
 
         // 4. 상태 저장
         assignmentLogService.save(logEntry);
@@ -71,12 +72,7 @@ public class DispatchRejectService {
 
         // 5. 이벤트 발행
         eventPort.publishRejected(
-                DispatchRejectedPayload.from(
-                        dispatch.getDispatchId(),
-                        command.getDriverId(),
-                        LocalDateTime.now()
-                )
-        );
+                DispatchRejectedPayload.from(dispatch));
 
         // 6. 히스토리 (실패해도 흐름 유지)
         try {
@@ -85,7 +81,8 @@ public class DispatchRejectService {
                     HistoryEventType.DRIVER_REJECTED,
                     before,
                     dispatch.getDispatchStatus(),
-                    ChangedBy.DRIVER
+                    ChangedBy.DRIVER,
+                    null
             );
         } catch (Exception e) {
             log.error("[Reject] 히스토리 기록 실패 - dispatchId={} err={}",

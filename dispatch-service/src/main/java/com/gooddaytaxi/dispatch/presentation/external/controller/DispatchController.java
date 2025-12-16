@@ -48,8 +48,8 @@ public class DispatchController {
     @PostMapping
     public ResponseEntity<ApiResponse<DispatchCreateResponseDto>> create(
             @RequestBody DispatchCreateRequestDto requestDto,
-            @RequestHeader(value = "X-User-UUID", required = false) UUID userId,
-            @RequestHeader(value = "X-User-Role", required = false) String role
+            @RequestHeader(value = "X-User-UUID") UUID userId,
+            @RequestHeader(value = "X-User-Role") String role
     ) {
         DispatchCreateCommand createCommand = DispatchCreateCommandMapper.toCommand(userId, role, requestDto);
         DispatchCreateResult createResult = dispatchCreateService.create(createCommand);
@@ -65,8 +65,8 @@ public class DispatchController {
      */
     @GetMapping
     public ResponseEntity<ApiResponse<List<DispatchListResponseDto>>> getDispatches(
-            @RequestHeader(value = "X-User-UUID", required = false) UUID passengerId,
-            @RequestHeader(value = "X-User-Role", required = false) String role
+            @RequestHeader(value = "X-User-UUID") UUID passengerId,
+            @RequestHeader(value = "X-User-Role") String role
 
     ) {
         List<DispatchSummaryResult> summaries =
@@ -88,8 +88,8 @@ public class DispatchController {
     @GetMapping("/{dispatchId}")
     public ResponseEntity<ApiResponse<DispatchDetailResponseDto>> getDispatchDetail(
             @PathVariable UUID dispatchId,
-            @RequestHeader(value = "X-User-UUID", required = false) UUID passengerId,
-            @RequestHeader(value = "X-User-Role", required = false) String role
+            @RequestHeader(value = "X-User-UUID") UUID passengerId,
+            @RequestHeader(value = "X-User-Role") String role
     ) {
         DispatchDetailResult dispatchDetailResult = passengerDispatchQueryService.getDispatchDetail(passengerId, UserRole.valueOf(role), dispatchId);
         DispatchDetailResponseDto responseDto = DispatchDetailResponseMapper.toDispatchDetailResponse(dispatchDetailResult);
@@ -106,8 +106,8 @@ public class DispatchController {
     @PatchMapping("/{dispatchId}/cancel")
     public ResponseEntity<ApiResponse<DispatchCancelResponseDto>> cancel(
             @PathVariable UUID dispatchId,
-            @RequestHeader(value = "X-User-UUID", required = false) UUID passengerId,
-            @RequestHeader(value = "X-User-Role", required = false) String role
+            @RequestHeader(value = "X-User-UUID") UUID passengerId,
+            @RequestHeader(value = "X-User-Role") String role
     ) {
         DispatchCancelCommand command = DispatchCancelCommandMapper.toCommand(passengerId, role, dispatchId);
         DispatchCancelResult result = dispatchCancelService.cancel(command);

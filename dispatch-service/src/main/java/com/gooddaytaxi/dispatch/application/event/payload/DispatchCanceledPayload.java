@@ -8,6 +8,7 @@ import java.util.UUID;
 public record DispatchCanceledPayload(
         UUID dispatchId,
         UUID passengerId,
+        UUID driverId,
         String cancelledBy,          // PASSENGER or SYSTEM
         LocalDateTime cancelledAt
 ) {
@@ -17,6 +18,7 @@ public record DispatchCanceledPayload(
         return new DispatchCanceledPayload(
                 dispatch.getDispatchId(),
                 dispatch.getPassengerId(),
+                dispatch.getDriverId(),
                 "PASSENGER",
                 LocalDateTime.now()
         );
@@ -27,6 +29,7 @@ public record DispatchCanceledPayload(
         return new DispatchCanceledPayload(
                 dispatch.getDispatchId(),
                 dispatch.getPassengerId(),
+                dispatch.getDriverId(),
                 "SYSTEM",
                 LocalDateTime.now()
         );

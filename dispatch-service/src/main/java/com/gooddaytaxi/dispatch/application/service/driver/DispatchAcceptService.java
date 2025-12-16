@@ -81,9 +81,12 @@ public class DispatchAcceptService {
 
             DispatchStatus before = dispatch.getDispatchStatus();
 
-            // 4. 도메인 처리 (여기서 driverId 확정)
-            domainService.processAccept(dispatch, logEntry, command.getDriverId());
-            log.info("[Accept] 도메인 처리 완료 - dispatchId={} driverId={}",
+            // 4. 상태 전이
+            dispatch.assignedTo(command.getDriverId());
+            dispatch.accept();
+            logEntry.accept();
+
+            log.info("[Accept] 상태 전이 완료 - dispatchId={} driverId={}",
                     dispatch.getDispatchId(), command.getDriverId());
 
             // 5. 상태 저장
@@ -107,7 +110,8 @@ public class DispatchAcceptService {
                         HistoryEventType.STATUS_CHANGED,
                         before,
                         dispatch.getDispatchStatus(),
-                        ChangedBy.DRIVER
+                        ChangedBy.DRIVER,
+                        null
                 );
             } catch (Exception e) {
                 log.error("[Accept] 히스토리 기록 실패 - dispatchId={} err={}",

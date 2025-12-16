@@ -115,8 +115,7 @@ public class Dispatch extends BaseEntity {
      * - 다수 기사들에게 배차 시도가 있는 로직이기 때문에 상태 전이는 생략된다.
      * - 단, ASSIGNING 상태가 아니면 거절 불가
      */
-    public void rejectedByDriver(UUID driverId) {
-
+    public void rejectedByDriver() {
         if (this.dispatchStatus != DispatchStatus.ASSIGNING) {
             throw new InvalidDispatchStateException();
         }
@@ -134,6 +133,17 @@ public class Dispatch extends BaseEntity {
         this.dispatchStatus = DispatchStatus.TIMEOUT;
         this.timeoutAt = LocalDateTime.now();
     }
+
+    public void forceTimeout() {
+        if (this.dispatchStatus != DispatchStatus.REQUESTED
+                && this.dispatchStatus != DispatchStatus.ASSIGNING) {
+            throw new InvalidDispatchStateException();
+        }
+
+        this.dispatchStatus = DispatchStatus.TIMEOUT;
+        this.timeoutAt = LocalDateTime.now();
+    }
+
 
     public void resetToAssigning(){
         if(this.dispatchStatus != DispatchStatus.TIMEOUT) {
