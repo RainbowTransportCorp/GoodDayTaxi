@@ -9,7 +9,7 @@ public class DispatchCancelResponseMapper {
         return DispatchCancelResponseDto.builder()
                 .dispatchId(result.getDispatchId())
                 .dispatchStatus(result.getDispatchStatus().name())
-                .cancelledAt(result.getCancelledAt())
+                .canceledAt(result.getCanceledAt())
                 .build();
     }
 }

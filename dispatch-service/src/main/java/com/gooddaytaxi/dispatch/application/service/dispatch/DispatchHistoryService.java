@@ -3,7 +3,6 @@ package com.gooddaytaxi.dispatch.application.service.dispatch;
 import com.gooddaytaxi.dispatch.application.port.out.command.DispatchHistoryCommandPort;
 import com.gooddaytaxi.dispatch.domain.model.entity.DispatchHistory;
 import com.gooddaytaxi.dispatch.domain.model.enums.ChangedBy;
-import com.gooddaytaxi.dispatch.domain.model.enums.DispatchDomainEventType;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
 import com.gooddaytaxi.dispatch.domain.model.enums.HistoryEventType;
 import lombok.RequiredArgsConstructor;

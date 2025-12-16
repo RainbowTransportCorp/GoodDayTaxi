@@ -1,5 +1,6 @@
 package com.gooddaytaxi.dispatch.application.event.payload;
 
+import com.gooddaytaxi.dispatch.application.event.SystemNotifier;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
 
 import java.time.LocalDateTime;
@@ -7,20 +8,20 @@ import java.util.UUID;
 
 public record DispatchCanceledPayload(
         UUID notificationOriginId,   // dispatchId
-        UUID notifierId,             // passengerId or SYSTEM
+        UUID notifierId,             // driver or SYSTEM
         UUID dispatchId,
         UUID driverId,
         UUID passengerId,
-        String cancelledBy,          // PASSENGER | SYSTEM
+        String canceledBy,          // PASSENGER | SYSTEM
         String message,
-        LocalDateTime cancelledAt
+        LocalDateTime canceledAt
 ) {
 
     // 승객 취소
     public static DispatchCanceledPayload fromPassenger(Dispatch dispatch) {
         return new DispatchCanceledPayload(
-                dispatch.getDispatchId(),
-                dispatch.getPassengerId(),
+                dispatch.getDispatchId(), // 알림용 (배차에서 보냈음)
+                dispatch.getDriverId(), // 알림용 (누구에게 보낼 것)
                 dispatch.getDispatchId(),
                 dispatch.getDriverId(),
                 dispatch.getPassengerId(),
@@ -34,11 +35,11 @@ public record DispatchCanceledPayload(
     public static DispatchCanceledPayload fromSystem(Dispatch dispatch) {
         return new DispatchCanceledPayload(
                 dispatch.getDispatchId(),
-                null, // SYSTEM
+                SystemNotifier.SYSTEM_ID, // SYSTEM
                 dispatch.getDispatchId(),
                 dispatch.getDriverId(),
                 dispatch.getPassengerId(),
-                "SYSTEM",
+                SystemNotifier.SYSTEM_ID.toString(), //SYSTEM
                 "배차가 자동으로 취소되었습니다.",
                 LocalDateTime.now()
         );

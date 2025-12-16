@@ -50,7 +50,7 @@ public class DispatchDriverAssignmentService {
                 DispatchStatus.REQUESTED,
                 DispatchStatus.ASSIGNING,
                 ChangedBy.SYSTEM,
-                null
+                "최초 배차시도"
         );
 
         int attemptNo = 1; // 최초는 무조건 1
@@ -83,7 +83,7 @@ public class DispatchDriverAssignmentService {
                     DispatchStatus.ASSIGNED,
                     DispatchStatus.ASSIGNING,
                     ChangedBy.SYSTEM,
-                    null
+                    "시간초과로 인한 재배차"
             );
 
         } else if (before == DispatchStatus.ASSIGNING) {

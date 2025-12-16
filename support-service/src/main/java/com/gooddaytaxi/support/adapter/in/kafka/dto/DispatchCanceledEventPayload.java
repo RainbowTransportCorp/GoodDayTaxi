@@ -6,12 +6,12 @@ import java.util.UUID;
 /**
  * DISPATCH_CANCELLED 이벤트 Payload DTO
  */
-public record DispatchCancelledEventPayload(
+public record DispatchCanceledEventPayload(
         UUID dispatchId,
         UUID driverId,
         UUID passengerId,
-        String cancelledBy,          // PASSENGER or SYSTEM
-        LocalDateTime cancelledAt
+        String canceledBy,          // PASSENGER or SYSTEM
+        LocalDateTime canceledAt
 
 ) {
 }
