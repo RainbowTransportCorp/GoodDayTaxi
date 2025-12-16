@@ -42,9 +42,11 @@ public class PaymentService {
 
 
     @Transactional
-    public PaymentCreateResult createPayment(PaymentCreateCommand command) {
+    public PaymentCreateResult createPayment(PaymentCreateCommand command, UUID userId, String role) {
         //승객아이디, 운전자아이디, 탑승아이디 검증은 운행에서 받아올 계획이므로 없음
         UUID tripId = command.tripId();
+        //유저의 역할이 기사인지 확인
+        validator.checkRoleDriver(UserRole.of(role));
 
         //해당 여행 아이디로 이미 결제 청구서가 존재하는지 확인
         // 대기, 진행중, 실패, 완료된 청구서는 다시 생성 불가
@@ -195,8 +197,11 @@ public class PaymentService {
     }
 
     //결제 청구서 단건 조회
-    public PaymentReadResult getPayment(UUID paymentId) {
+    public PaymentReadResult getPayment(UUID paymentId, UUID userId, String role) {
         Payment payment = paymentQueryPort.findById(paymentId).orElseThrow(()-> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+        //승객인 경우 본인 승객아이디인지 확인
+        if (UserRole.of(role) == UserRole.PASSENGER) validator.checkPassengerPermission(userId, payment.getPassengerId());
+        else if (UserRole.of(role) == UserRole.DRIVER) validator.checkDriverPermission(userId, payment.getDriverId());
         AttemptReadResult attemptResult = null;
         //결제 수단이 토스페이인경우 마지막 결제 내용도 포함
         if(payment.getMethod() == PaymentMethod.TOSS_PAY) {
@@ -372,5 +377,5 @@ public class PaymentService {
                 payment.getStatus().name()
         );
     }
-    
+
 }
