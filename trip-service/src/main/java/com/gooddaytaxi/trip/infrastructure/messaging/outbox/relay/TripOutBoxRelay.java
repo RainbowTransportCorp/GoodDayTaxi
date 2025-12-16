@@ -8,6 +8,8 @@ import com.gooddaytaxi.trip.infrastructure.messaging.producer.TripEventPublisher
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -19,27 +21,27 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TripOutBoxRelay {
     private final TripEventOutboxJpaRepository outboxRepository;
-    private final TripEventPublisher tripEventPublisher;
+    private final TripOutboxEventProcessor processor;
 
-    @Transactional
-    @Scheduled(fixedDelayString = "5000")
+    @Value("${trip.outbox.batch-size:100}")
+    private int batchSize;
+
+    @Scheduled(fixedDelayString = "${trip.outbox.relay-delay-ms:5000}")
     public void relayPendingEvents() {
-
         List<TripEventOutbox> pendings =
-                outboxRepository.findTop100ByEventStatusOrderByCreatedAtAsc(TripEventStatus.PENDING);
+                outboxRepository.findByEventStatusOrderByCreatedAt(
+                        TripEventStatus.PENDING,
+                        PageRequest.of(0, batchSize)
+                );
 
         if (pendings.isEmpty()) return;
 
         for (TripEventOutbox event : pendings) {
             try {
-                tripEventPublisher.publishSync(event); // publishSync or publish
-                event.markSent();
-                outboxRepository.save(event);
-
+                processor.processOne(event.getEventId()); // ✅ 1건 단위 트랜잭션
             } catch (Exception e) {
-                log.error("Relay failed. eventId={}", event.getEventId(), e);
-                event.markFailed("PUBLISH_ERR");
-                outboxRepository.save(event);
+                // 여기서는 “로깅만” (실제 상태 변경은 processor 내부에서 처리)
+                log.error("Outbox processing failed. eventId={}", event.getEventId(), e);
             }
         }
     }
