@@ -46,6 +46,24 @@ public class PaymentValidator {
         }
     }
 
+    //유저의 역할이 마스터 관리자인지 확인
+    public void checkRoleMasterAdmin(UserRole role) {
+        if(role != UserRole.MASTER_ADMIN) {
+            throw new PaymentException(PaymentErrorCode.MASTER_ADMIN_ROLE_REQUIRED);
+        }
+    }
+    //유저의 역할이 마스터 관리자거나 관리자인지 확인
+    public void checkRoleAdminAndMaster(UserRole role) {
+        if(!(role == UserRole.MASTER_ADMIN || role == UserRole.ADMIN)) {
+            throw new PaymentException(PaymentErrorCode.MASTER_AND_ADMIN_ROLE_REQUIRED);
+        }
+    }
+    //유저의 역할이 기사이거나 마스터 관리자인지 확인
+    public void checkRoleDriverOrMaster(UserRole role) {
+        if(!(role == UserRole.MASTER_ADMIN|| role == UserRole.DRIVER)) {
+            throw new PaymentException(PaymentErrorCode.DRIVER_MASTER_ROLE_REQUIRED);
+        }
+    }
     //승객인 경우 불가
     public void notAllowedPassenger(UserRole role) {
         if(role == UserRole.PASSENGER) throw new PaymentException(PaymentErrorCode.PASSENGER_ROLE_NOT_ALLOWED);
@@ -87,6 +105,13 @@ public class PaymentValidator {
     public void checkPaymentStatusCompleted(PaymentStatus status) {
         if(!status.equals(PaymentStatus.COMPLETED)) {
             throw new PaymentException(PaymentErrorCode.PAYMENT_STATUS_INVALID);
+        }
+    }
+
+    //환불 요청 상태가 요청중인지 확인
+    public void checkRefundRequestStatusRequested(RefundRequestStatus status) {
+        if(!status.equals(RefundRequestStatus.REQUESTED)) {
+            throw new PaymentException(PaymentErrorCode.REFUND_REQUEST_STATUS_INVALID);
         }
     }
 

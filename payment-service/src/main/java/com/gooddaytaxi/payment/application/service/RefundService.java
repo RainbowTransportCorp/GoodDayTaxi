@@ -51,22 +51,17 @@ public class RefundService {
 
     @Transactional
     public RefundCreateResult confirmTosspayRefund(UUID paymentId, RefundCreateCommand command, UUID userId, String role) {
-        //해당 결제가 있는지 확인
-        Payment payment = paymentQueryPort.findById(paymentId).orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+        //롤이 최고관리자인지 확인
+        validator.checkRoleMasterAdmin(UserRole.of(role));
 
-        //롤이 관리자인지 확인
-        validator.checkRoleAdmin(UserRole.of(role));
+        //해당 결제가 있는지 확인하고 완료 상태인지 검증
+        Payment payment = loadAndValidatePayment(paymentId);
+
         //결제 수단이 토스페이인지 확인
         validator.checkMethodTossPay(payment.getMethod());
-        //결제상태가 완료 상태인지 확인
-        validator.checkPaymentStatusCompleted(payment.getStatus());
         //환불 요청이 있다면 해당 요청이 승인된 상태인지 확인 + 해당 요청의 결제  실제결제가 일치하는지 확인
-        if(command.requestId() != null) {
-            RefundRequest request = requestQueryPort.findById(command.requestId()).orElseThrow(() -> new PaymentException(PaymentErrorCode.REFUND_REQUEST_NOT_FOUND));
-            validator.checkRefundRequestApproved(request.getStatus());
-            if(!request.getPaymentId().equals(payment.getId()))
-                throw new PaymentException(PaymentErrorCode.REFUND_REQUEST_PAYMENT_MISMATCH);
-        }
+        if(command.requestId() != null) loadAndValidateApprovedRequest(command, payment.getId());
+
 
         //해당 결제으 마지막 시도의 pamentKey 가져오기
         String paymentKey = payment.getAttempts().get(0).getPaymentKey();
@@ -115,13 +110,11 @@ public class RefundService {
 
     //기사에게 환불 수행 알림
     public RefundCreateResult requestDriverSupportRefund(UUID paymentId, String reason, UUID userId, String role) {
-        Payment payment = paymentQueryPort.findById(paymentId).orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+        Payment payment = loadAndValidatePayment(paymentId);
         //권한 체크 - 관리자만 가능
-        validator.checkRoleAdmin(UserRole.of(role));
+        validator.checkRoleAdminAndMaster(UserRole.of(role));
         //결제 수단이 실물결제인지 확인
         validator.checkMethodPhysicalPayment(payment.getMethod());
-        //결제상태가 완료 상태인지 확인
-        validator.checkPaymentStatusCompleted(payment.getStatus());
         RefundReason refundReason = RefundReason.of(reason);
         //환불 수행 요청 이벤트 발행
         eventCommandPort.publishRefundSettlementCreated(RefundSettlementCreatedPayload.from(payment, refundReason, userId));
@@ -131,22 +124,16 @@ public class RefundService {
 
     @Transactional
     public RefundCreateResult registerPhysicalRefund(UUID paymentId, RefundCreateCommand command, UUID userId, String role) {
-        //해당 결제가 있는지 확인
-        Payment payment = paymentQueryPort.findById(paymentId).orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
-
         //롤이 관리자인지 확인
-        validator.checkRoleAdmin(UserRole.of(role));
+        validator.checkRoleMasterAdmin(UserRole.of(role));
+
+        //해당 결제가 있는지 확인하고 완료 상태인지 검증
+        Payment payment = loadAndValidatePayment(paymentId);
         //결제 수단이 실물결제인지 확인
         validator.checkMethodPhysicalPayment(payment.getMethod());
-        //결제상태가 완료 상태인지 확인
-        validator.checkPaymentStatusCompleted(payment.getStatus());
         //환불 요청이 있다면 해당 요청이 승인된 상태인지 확인 + 해당 요청의 결제  실제결제가 일치하는지 확인
-        if(command.requestId() != null) {
-            RefundRequest request = requestQueryPort.findById(command.requestId()).orElseThrow(() -> new PaymentException(PaymentErrorCode.REFUND_REQUEST_NOT_FOUND));
-            validator.checkRefundRequestApproved(request.getStatus());
-            if(!request.getPaymentId().equals(payment.getId()))
-                throw new PaymentException(PaymentErrorCode.REFUND_REQUEST_PAYMENT_MISMATCH);
-        }
+        if(command.requestId() != null) loadAndValidateApprovedRequest(command, payment.getId());
+
 
         //환불 사유 매핑
         RefundReason reason = RefundReason.of(command.reason());
@@ -263,5 +250,19 @@ public class RefundService {
                         refund.getUpdatedAt()
                 )
         );
+    }
+
+    private Payment loadAndValidatePayment(UUID paymentId) {
+        Payment payment = paymentQueryPort.findById(paymentId)
+                .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+        validator.checkPaymentStatusCompleted(payment.getStatus());
+        return payment;
+    }
+
+    private void loadAndValidateApprovedRequest(RefundCreateCommand command, UUID paymentId) {
+        RefundRequest request = requestQueryPort.findById(command.requestId()).orElseThrow(() -> new PaymentException(PaymentErrorCode.REFUND_REQUEST_NOT_FOUND));
+        validator.checkRefundRequestApproved(request.getStatus());
+        if(!request.getPaymentId().equals(paymentId))
+            throw new PaymentException(PaymentErrorCode.REFUND_REQUEST_PAYMENT_MISMATCH);
     }
 }
