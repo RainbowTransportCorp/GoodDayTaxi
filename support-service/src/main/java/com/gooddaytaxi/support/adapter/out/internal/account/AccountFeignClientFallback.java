@@ -25,7 +25,8 @@ public class AccountFeignClientFallback implements AccountFeignClient {
 
     @Override
     public List<UUID> getMasterAdminUuids() {
-        return List.of();
+        log.error("❌ [Master Admin User] AccountFeignClient fallback triggered role=MASTER_ADMIN");
+        return null;
     }
 }
 

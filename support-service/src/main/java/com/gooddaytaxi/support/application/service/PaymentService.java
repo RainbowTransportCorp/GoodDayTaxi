@@ -1,6 +1,6 @@
 package com.gooddaytaxi.support.application.service;
 
-import com.gooddaytaxi.support.application.Metadata;
+import com.gooddaytaxi.support.application.dto.Metadata;
 import com.gooddaytaxi.support.application.dto.*;
 import com.gooddaytaxi.support.application.dto.payment.*;
 import com.gooddaytaxi.support.application.port.in.payment.NotifyCompletedPaymentUsecase;
@@ -51,8 +51,8 @@ public class PaymentService implements NotifyCompletedPaymentUsecase, NotifyRefu
 
         // 수신자: [ 기사, 승객 ]
         List<UUID> receivers = new ArrayList<>();
-        receivers.add(command.getDriverId());
-        receivers.add(command.getPassengerId());
+        receivers.add(noti.getDriverId());
+        receivers.add(noti.getPassengerId());
 
         // 알림 메시지 구성
         String messageTitle = "\uD83D\uDCE2 [GoodDayTaxi] 결제가 정상적으로 처리되었습니다";
@@ -154,7 +154,7 @@ public class PaymentService implements NotifyCompletedPaymentUsecase, NotifyRefu
         // 수신자: [ 기사, 승객 ]
         List<UUID> receivers = new ArrayList<>();
         receivers.add(null);
-        receivers.add(command.getPassengerId());
+        receivers.add(noti.getPassengerId());
 
         // 알림 메시지 구성
         String messageTitle = "\uD83D\uDCE2 고객님의 환불 요청이 처리 기준에 따라 거절되었습니다";
@@ -205,8 +205,8 @@ public class PaymentService implements NotifyCompletedPaymentUsecase, NotifyRefu
 
         // 수신자: [ 기사, 승객 ]
         List<UUID> receivers = new ArrayList<>();
-        receivers.add(command.getDriverId());
-        receivers.add(command.getPassengerId());
+        receivers.add(noti.getDriverId());
+        receivers.add(noti.getPassengerId());
 
         // 알림 메시지 구성
         RefundReason refundReason = RefundReason.of(command.getReason());
@@ -318,7 +318,7 @@ public class PaymentService implements NotifyCompletedPaymentUsecase, NotifyRefu
 
         // 수신자: [ 기사, 승객 ]
         List<UUID> receivers = new ArrayList<>();
-        receivers.add(command.getDriverId());
+        receivers.add(noti.getDriverId());
         receivers.add(null);
 
         // 알림 메시지 구성

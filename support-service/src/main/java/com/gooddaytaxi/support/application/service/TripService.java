@@ -1,6 +1,6 @@
 package com.gooddaytaxi.support.application.service;
 
-import com.gooddaytaxi.support.application.Metadata;
+import com.gooddaytaxi.support.application.dto.Metadata;
 import com.gooddaytaxi.support.application.dto.trip.NotifyTripEndedCommand;
 import com.gooddaytaxi.support.application.dto.trip.NotifyTripStartedCommand;
 import com.gooddaytaxi.support.application.port.in.trip.NotifyEndedTripUsecase;
@@ -49,8 +49,8 @@ public class TripService implements NotifyStartedTripUsecase, NotifyEndedTripUse
 
         // 수신자: [ 기사, 승객 ]
         List<UUID> receivers = new ArrayList<>();
-        receivers.add(command.getDriverId());
-        receivers.add(command.getPassengerId());
+        receivers.add(noti.getDriverId());
+        receivers.add(noti.getPassengerId());
 
         // 알림 메시지 구성
         String messageTitle = "\uD83D\uDCE2 운행이 시작되었습니다";
@@ -91,8 +91,8 @@ public class TripService implements NotifyStartedTripUsecase, NotifyEndedTripUse
 
         // 수신자: [ 기사, 승객 ]
         List<UUID> receivers = new ArrayList<>();
-        receivers.add(command.getDriverId());
-        receivers.add(command.getPassengerId());
+        receivers.add(noti.getDriverId());
+        receivers.add(noti.getPassengerId());
 
         // 알림 메시지 구성
         String messageTitle = "\uD83D\uDCE2 운행이 종료되었습니다";

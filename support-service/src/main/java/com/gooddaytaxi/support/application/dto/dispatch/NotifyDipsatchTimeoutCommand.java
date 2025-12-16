@@ -1,6 +1,6 @@
 package com.gooddaytaxi.support.application.dto.dispatch;
 
-import com.gooddaytaxi.support.application.Metadata;
+import com.gooddaytaxi.support.application.dto.Metadata;
 import com.gooddaytaxi.support.application.dto.Command;
 import lombok.Getter;
 

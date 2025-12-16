@@ -18,6 +18,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Transactional
 public class NotificationService implements GetAllUserNotificationsUsecase {
+    private static final String SYSTEM_UUID = "99999999-9999-9999-9999-999999999999";  // DISPATCH_TIMEOUT 이벤트 notifierId
+
     @Override
     public void execute(UUID userId, String userRole) {
         log.debug("[Check] 사용자 ID: {}, 사용자 역할: {}", userRole, userId);

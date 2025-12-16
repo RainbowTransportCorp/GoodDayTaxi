@@ -3,7 +3,7 @@ package com.gooddaytaxi.support.adapter.in.kafka.endpoint;
 import com.gooddaytaxi.support.adapter.in.kafka.dto.EventRequest;
 import com.gooddaytaxi.support.adapter.in.kafka.dto.TripEndedEventPayload;
 import com.gooddaytaxi.support.adapter.in.kafka.dto.TripStartedEventPayload;
-import com.gooddaytaxi.support.application.Metadata;
+import com.gooddaytaxi.support.application.dto.Metadata;
 import com.gooddaytaxi.support.application.dto.trip.NotifyTripEndedCommand;
 import com.gooddaytaxi.support.application.dto.trip.NotifyTripStartedCommand;
 import com.gooddaytaxi.support.application.port.in.trip.NotifyEndedTripUsecase;
@@ -30,10 +30,10 @@ public class TripEndpoint {
     @KafkaListener(topics = "trip.started", groupId = "support-service")
     public void onTripStarted(EventRequest req) {
         // Metadata
-        Metadata metadata = req.eventMetadata().to();
+        Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occuredAt());
         // Payload
         TripStartedEventPayload pl = req.convertPayload(TripStartedEventPayload.class);
-        log.debug("[Check] Trip Started EventRequest 데이터: tripId={}, notifierId={}, occuredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.getOccuredAt());
+        log.debug("[Check] Trip Started EventRequest 데이터: tripId={}, notifierId={}, occuredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occuredAt());
 
         // EventRequest DTO > Command 변환
         NotifyTripStartedCommand command = NotifyTripStartedCommand.create(
@@ -56,10 +56,10 @@ public class TripEndpoint {
     @KafkaListener(topics = "trip.ended", groupId = "support-service")
     public void onTripEnded(EventRequest req) {
         // Metadata
-        Metadata metadata = req.eventMetadata().to();
+        Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occuredAt());
         // Payload
         TripEndedEventPayload pl = req.convertPayload(TripEndedEventPayload.class);
-        log.debug("[Check] Trip Ended EventRequest 데이터: tripId={}, notifierId={}, occuredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.getOccuredAt());
+        log.debug("[Check] Trip Ended EventRequest 데이터: tripId={}, notifierId={}, occuredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occuredAt());
 
         // EventRequest DTO > Command 변환
         NotifyTripEndedCommand command = NotifyTripEndedCommand.create(
