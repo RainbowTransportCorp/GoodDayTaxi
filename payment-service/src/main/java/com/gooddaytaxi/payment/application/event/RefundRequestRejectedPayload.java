@@ -1,6 +1,6 @@
 package com.gooddaytaxi.payment.application.event;
 
-import com.gooddaytaxi.payment.application.port.out.core.view.PaymentIdentityView;
+import com.gooddaytaxi.payment.domain.repository.PaymentIdentityView;
 import com.gooddaytaxi.payment.domain.entity.RefundRequest;
 
 import java.time.LocalDateTime;
