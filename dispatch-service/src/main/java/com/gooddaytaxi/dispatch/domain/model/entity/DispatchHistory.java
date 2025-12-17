@@ -22,25 +22,24 @@ public class DispatchHistory extends BaseEntity {
     @Column(name = "dispatch_id", nullable = false)
     private UUID dispatchId;
 
-    /*
-    Dto 단에서는 String으로 받고, 어플리케이션, 도메인에서는 이벤트 유형별로 다른 역할을 하기 때문에
-    유형 별로 구분한 Enum으로 사용하고,
-    다시 column으로 저장할 때는 String으로 저장합니다.
-    */
+    /**
+     * 상태 변경의 원인이 되는 히스토리 이벤트 유형.
+     *
+     * 외부(DTO, 메시지) 및 DB 저장 시에는 String으로 관리하여
+     * 확장과 변경에 유연하게 대응하고,
+     * 코드 레벨에서는 Enum을 사용해 의미와 사용 범위를 제한한다.
+     */
     @Column(name = "event_type", nullable = false)
     private String eventType;
 
-    // 이전 상태
     @Enumerated(EnumType.STRING)
     @Column(name = "from_status")
     private DispatchStatus fromStatus;
 
-    // 바뀐 상태
     @Enumerated(EnumType.STRING)
     @Column(name = "to_status", nullable = false)
     private DispatchStatus toStatus;
 
-    // 누가 바꿨는가?
     @Enumerated(EnumType.STRING)
     @Column(name = "changed_by", nullable = false)
     private ChangedBy changedBy; // DRIVER / PASSENGER / SYSTEM / ADMIN

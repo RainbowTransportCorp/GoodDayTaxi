@@ -21,20 +21,21 @@ public class DriverDispatchQueryService {
 
     private final DispatchAssignmentLogQueryPort dispatchAssignmentLogQueryPort;
 
-    private final DriverQueryPermissionValidator permissionValidator;
+    private final DriverQueryPermissionValidator driverQueryPermissionValidator;
 
     /**
-     * 기사 대기중 배차(ASSIGNING) 조회
+     * 기사의 배차 대기 콜 목록을 조회하는 서비스
+     * @param driverId 특정 기사(관리자 외에는 기사 본인)의 UUID
+     * @param role driver UserRole
+     * @return 출발/도착지와 상태값 등이 포함된 콜 목록 Result
      */
     public List<DispatchPendingListResult> getDriverPendingDispatch(UUID driverId, UserRole role) {
 
         log.debug("[DriverPending] 조회 요청 - driverId={}", driverId);
-
-        permissionValidator.validate(role);
+        driverQueryPermissionValidator.validate(role);
 
         List<Dispatch> dispatches =
                 dispatchAssignmentLogQueryPort.findAssigningByCandidateDriver(driverId);
-
         log.debug("[DriverPending] 조회 완료 - driverId={}, count={}",
                 driverId, dispatches.size());
 

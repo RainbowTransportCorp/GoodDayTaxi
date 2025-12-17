@@ -60,7 +60,7 @@ public class AdminDispatchService {
                 HistoryEventType.TIMEOUT,
                 before,
                 dispatch.getDispatchStatus(),
-                ChangedBy.ADMIN,
+                ChangedBy.MASTER_ADMIN,
                 command.getReason()
         );
 
