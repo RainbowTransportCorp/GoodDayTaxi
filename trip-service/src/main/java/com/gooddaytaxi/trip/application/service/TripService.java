@@ -1,14 +1,13 @@
 package com.gooddaytaxi.trip.application.service;
 
 
+import com.gooddaytaxi.trip.application.command.CancelTripCommand;
 import com.gooddaytaxi.trip.application.command.EndTripCommand;
 import com.gooddaytaxi.trip.application.command.StartTripCommand;
 import com.gooddaytaxi.trip.application.command.TripCreateCommand;
 import com.gooddaytaxi.trip.application.port.out.*;
 import com.gooddaytaxi.trip.application.result.*;
 import com.gooddaytaxi.trip.domain.model.Trip;
-import com.gooddaytaxi.trip.domain.model.enums.TripStatus;
-import com.gooddaytaxi.trip.infrastructure.messaging.outbox.TripOutboxAppender;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -143,6 +142,42 @@ public class TripService {
                 transitioned ? "운행이 종료되었습니다." : "이미 종료된 운행입니다."
         );
     }
+    @Transactional
+    public TripCancelResult cancelTrip(CancelTripCommand command) {
+        UUID tripId = command.tripId();
+
+        Trip trip = loadTripByIdPort.loadTripById(tripId)
+                .orElseThrow(() -> new EntityNotFoundException("Trip not found. tripId=" + tripId));
+
+        // 1) 상태 전이 (CREATED/READY만 가능)
+        boolean transitioned = trip.cancel();
+
+        // 2) DB 업데이트 반영 (상태가 바뀌었든 아니든 저장은 일단 통일)
+        Trip updated = updateTripPort.updateTrip(trip);
+
+        // 3) outbox 적재는 “진짜로 CANCELLED로 바뀐 경우만”
+        if (transitioned) {
+            appendTripEventPort.appendTripCanceled(
+                    updated.getTripId(),
+                    command.notifierId(),
+                    updated.getDispatchId(),
+                    updated.getDriverId(),
+                    updated.getPassengerId(),
+                    command.cancelReason().name(),
+                    LocalDateTime.now()
+            );
+        }
+
+        return new TripCancelResult(
+                updated.getTripId(),
+                updated.getStatus().name(),
+                transitioned ? "운행이 취소되었습니다." : "취소할 수 없는 상태입니다."
+        );
+
+    }
+
+
+
 
     @Transactional
     public PassengerTripHistoryResult getPassengerTripHistory(UUID passengerId, int page, int size) {

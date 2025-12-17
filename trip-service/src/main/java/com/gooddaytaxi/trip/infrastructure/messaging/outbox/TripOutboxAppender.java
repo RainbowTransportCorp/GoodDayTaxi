@@ -6,6 +6,7 @@ import com.gooddaytaxi.trip.domain.model.enums.TripEventType;
 import com.gooddaytaxi.trip.infrastructure.messaging.model.EventEnvelope;
 import com.gooddaytaxi.trip.infrastructure.messaging.outbox.entity.TripEventOutbox;
 import com.gooddaytaxi.trip.infrastructure.messaging.outbox.repository.TripEventOutboxJpaRepository;
+import com.gooddaytaxi.trip.infrastructure.messaging.payload.TripCanceledPayload;
 import com.gooddaytaxi.trip.infrastructure.messaging.payload.TripEndedPayload;
 import com.gooddaytaxi.trip.infrastructure.messaging.payload.TripStartedPayload;
 import lombok.RequiredArgsConstructor;
@@ -136,5 +137,57 @@ public class TripOutboxAppender implements AppendTripEventPort {
         }
     }
 
+
+    @Override
+    @Transactional
+    public UUID appendTripCanceled(
+            UUID tripId,
+            UUID notifierId,
+            UUID dispatchId,
+            UUID driverId,
+            UUID passengerId,
+            String cancelReason,
+            LocalDateTime canceledAt
+    ) {
+        TripCanceledPayload payload = new TripCanceledPayload(
+                tripId,
+                tripId,          // notificationOriginId = tripId
+                notifierId,
+                dispatchId,
+                driverId,
+                passengerId,
+                cancelReason,
+                canceledAt
+                // payloadVersion
+        );
+
+        UUID eventId = UUID.randomUUID();
+
+        EventEnvelope<TripCanceledPayload> envelope = new EventEnvelope<>(
+                eventId,
+                PAYLOAD_VERSION,                              // envelope payloadVersion
+                TripEventType.TRIP_CANCELED.name(),
+                LocalDateTime.now(),
+                payload
+        );
+
+        try {
+            String payloadJson = objectMapper.writeValueAsString(envelope);
+
+            TripEventOutbox outbox = TripEventOutbox.createPendingEvent(
+                    tripId,
+                    TripEventType.TRIP_CANCELED,
+                    payloadJson
+            );
+
+            outboxRepository.save(outbox);
+            return eventId;
+
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to serialize TRIP_CANCELED event", e);
+        }
+
+
+    }
 
 }
