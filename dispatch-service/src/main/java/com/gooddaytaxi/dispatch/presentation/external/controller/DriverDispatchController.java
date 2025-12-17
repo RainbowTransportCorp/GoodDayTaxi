@@ -19,7 +19,6 @@ import com.gooddaytaxi.dispatch.presentation.external.mapper.response.DispatchAc
 import com.gooddaytaxi.dispatch.presentation.external.mapper.response.DispatchPendingListResponseMapper;
 import com.gooddaytaxi.dispatch.presentation.external.mapper.response.DispatchRejectResponseMapper;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -75,9 +74,11 @@ public class DriverDispatchController {
     }
 
     /**
-     * (기사) 콜 거절
-     * @param dispatchId
-     * @return
+     * 배차 후보 기사가 특정 콜에 대한 배차를 거절
+     * @param dispatchId 거절하기 위한 특정 배차의 식별자
+     * @param userId 헤더의 uuid
+     * @param role 헤더의 role
+     * @return 거절된 배차정보
      */
     @PatchMapping("/{dispatchId}/reject")
     public ResponseEntity<ApiResponse<DispatchRejectResponseDto>> reject(
