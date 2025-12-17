@@ -18,12 +18,17 @@ import com.gooddaytaxi.dispatch.presentation.external.mapper.command.DispatchRej
 import com.gooddaytaxi.dispatch.presentation.external.mapper.response.DispatchAcceptResponseMapper;
 import com.gooddaytaxi.dispatch.presentation.external.mapper.response.DispatchPendingListResponseMapper;
 import com.gooddaytaxi.dispatch.presentation.external.mapper.response.DispatchRejectResponseMapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
+
 
 /**
  * 기사(Driver) 전용 배차 API 컨트롤러.
@@ -32,6 +37,12 @@ import java.util.UUID;
  * - X-User-UUID : 요청 사용자 식별자
  * - X-User-Role : 요청 사용자 역할
  */
+@SecurityRequirement(name = "userId")
+@SecurityRequirement(name = "role")
+@Tag(
+        name = "Driver Dispatch API",
+        description = "기사(Driver)가 배차를 조회·수락·거절하는 외부 API"
+)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/dispatches/driver")
@@ -47,9 +58,15 @@ public class DriverDispatchController {
      * @param role 요청 기사 역할
      * @return 후보기사 본인에게 할당된 배차 리스트
      */
+    @Operation(
+            summary = "배차 대기 목록 조회",
+            description = "후보기사에게 할당된 배차 목록을 조회합니다."
+    )
     @GetMapping("/pending")
     public ResponseEntity<ApiResponse<List<DispatchPendingListResponseDto>>> getPendingDispatches(
+            @Parameter(hidden = true)
             @RequestHeader(value = "X-User-UUID") UUID userId,
+            @Parameter(hidden = true)
             @RequestHeader(value = "X-User-Role") String role
     ) {
         List<DispatchPendingListResult> dispatchPendingListResults =
@@ -68,10 +85,16 @@ public class DriverDispatchController {
      * @param role 요청 기사 역할
      * @return 수락된 배차정보
      */
+    @Operation(
+            summary = "배차 수락",
+            description = "배차 후보 기사가 특정 배차를 수락합니다."
+    )
     @PatchMapping("/{dispatchId}/accept")
     public ResponseEntity<ApiResponse<DispatchAcceptResponseDto>> accept(
             @PathVariable UUID dispatchId,
+            @Parameter(hidden = true)
             @RequestHeader(value = "X-User-UUID") UUID userId,
+            @Parameter(hidden = true)
             @RequestHeader(value = "X-User-Role") String role
     )  {
         DispatchAcceptCommand command = DispatchAcceptCommandMapper.toCommand(userId, role, dispatchId);
@@ -87,10 +110,16 @@ public class DriverDispatchController {
      * @param role 요청 기사 역할
      * @return 거절된 배차정보
      */
+    @Operation(
+            summary = "배차 거절",
+            description = "배차 후보 기사가 특정 배차를 거절합니다."
+    )
     @PatchMapping("/{dispatchId}/reject")
     public ResponseEntity<ApiResponse<DispatchRejectResponseDto>> reject(
             @PathVariable UUID dispatchId,
+            @Parameter(hidden = true)
             @RequestHeader(value = "X-User-UUID") UUID userId,
+            @Parameter(hidden = true)
             @RequestHeader(value = "X-User-Role") String role
     ) {
         DispatchRejectCommand command = DispatchRejectCommandMapper.toCommand(userId, role, dispatchId);
