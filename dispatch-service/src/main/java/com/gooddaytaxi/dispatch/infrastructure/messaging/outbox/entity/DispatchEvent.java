@@ -19,6 +19,13 @@ public class DispatchEvent extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID eventId;
 
+    /**
+     * 이벤트의 유형을 나타내는 값.
+     * <p>
+     * 이벤트 타입은 향후 세분화 및 확장 가능성을 고려하여
+     * DB에는 String 형태로 저장한다.
+     * 코드 레벨에서는 Enum을 사용해 허용된 값만 생성하도록 제한한다.
+     */
     @Column(nullable = false)
     private String eventType;            // 예: DISPATCH_CREATED
 

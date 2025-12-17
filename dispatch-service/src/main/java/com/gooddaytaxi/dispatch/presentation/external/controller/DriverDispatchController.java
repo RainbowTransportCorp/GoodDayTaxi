@@ -25,6 +25,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * 기사(Driver) 전용 배차 API 컨트롤러.
+ *
+ * 모든 요청은 Gateway에서 인증된 사용자 정보를 헤더로 전달받는다.
+ * - X-User-UUID : 요청 사용자 식별자
+ * - X-User-Role : 요청 사용자 역할
+ */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/dispatches/driver")
@@ -35,8 +42,10 @@ public class DriverDispatchController {
     private final DispatchRejectService dispatchRejectService;
 
     /**
-     * (기사) 배차 시도 중인 콜 목록 조회
-     * @return
+     * 배차 후보기사에게 할당된 배차 목록 조회
+     * @param userId 요청 기사 UUID
+     * @param role 요청 기사 역할
+     * @return 후보기사 본인에게 할당된 배차 리스트
      */
     @GetMapping("/pending")
     public ResponseEntity<ApiResponse<List<DispatchPendingListResponseDto>>> getPendingDispatches(
@@ -53,16 +62,18 @@ public class DriverDispatchController {
     }
 
     /**
-     * (기사) 콜 수락
-     * @param dispatchId
-     * @return
+     * 배차 후보 기사가 특정 배차에 대해 수락
+     * @param dispatchId 수락하기 위한 특정 배차의 식별자
+     * @param userId 요청 기사 UUID
+     * @param role 요청 기사 역할
+     * @return 수락된 배차정보
      */
     @PatchMapping("/{dispatchId}/accept")
     public ResponseEntity<ApiResponse<DispatchAcceptResponseDto>> accept(
             @PathVariable UUID dispatchId,
             @RequestHeader(value = "X-User-UUID") UUID userId,
             @RequestHeader(value = "X-User-Role") String role
-    ) throws InterruptedException {
+    )  {
         DispatchAcceptCommand command = DispatchAcceptCommandMapper.toCommand(userId, role, dispatchId);
         DispatchAcceptResult result = dispatchAcceptService.accept(command);
         DispatchAcceptResponseDto responseDto = DispatchAcceptResponseMapper.toResponse(result);
@@ -70,9 +81,11 @@ public class DriverDispatchController {
     }
 
     /**
-     * (기사) 콜 거절
-     * @param dispatchId
-     * @return
+     * 배차 후보 기사가 특정 배차를 거절
+     * @param dispatchId 거절하기 위한 특정 배차의 식별자
+     * @param userId 요청 기사 UUID
+     * @param role 요청 기사 역할
+     * @return 거절된 배차정보
      */
     @PatchMapping("/{dispatchId}/reject")
     public ResponseEntity<ApiResponse<DispatchRejectResponseDto>> reject(
