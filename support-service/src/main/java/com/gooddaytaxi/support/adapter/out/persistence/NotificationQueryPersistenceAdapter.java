@@ -1,10 +1,10 @@
 package com.gooddaytaxi.support.adapter.out.persistence;
 
+import com.gooddaytaxi.support.application.port.out.persistence.AdminNotificationSpecifications;
 import com.gooddaytaxi.support.application.port.out.persistence.NotificationQueryPersistencePort;
-import com.gooddaytaxi.support.application.service.NotificationFilter;
+import com.gooddaytaxi.support.application.service.AdminNotificationFilter;
 import com.gooddaytaxi.support.domain.notification.model.Notification;
 import com.gooddaytaxi.support.domain.notification.model.NotificationType;
-import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -20,10 +20,9 @@ import java.util.UUID;
  */
 @RequiredArgsConstructor
 @Component
-public class NotificationQueryPersistenceAdapter implements NotificationQueryPersistencePort {// , NotificationSpecifications {
+public class NotificationQueryPersistenceAdapter implements NotificationQueryPersistencePort {// , AdminNotificationSpecifications {
 
     private final NotificationJpaRepository notificationJpaRepository;
-    private final EntityManager em;
 
     /**
     * 알림 조회
@@ -79,7 +78,7 @@ public class NotificationQueryPersistenceAdapter implements NotificationQueryPer
     }
 
     @Override
-    public Page<Notification> search(NotificationFilter filter, Pageable pageable) {
-        return null;
+    public Page<Notification> search(AdminNotificationFilter filter, Pageable pageable) {
+        return notificationJpaRepository.findAll(AdminNotificationSpecifications.applyFilter(filter), pageable);
     }
 }

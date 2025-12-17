@@ -8,6 +8,8 @@ import com.gooddaytaxi.support.domain.exception.SupportErrorCode;
 import com.gooddaytaxi.support.domain.notification.model.Notification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,7 +23,7 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional
+@Transactional(readOnly = true)
 public class AdminService implements GetAllNotificationForAdminUsecase {
 
     private final NotificationQueryPersistencePort notificationQueryPersistencePort;
@@ -32,7 +34,7 @@ public class AdminService implements GetAllNotificationForAdminUsecase {
      */
     @Transactional(readOnly = true)
     @Override
-    public List<NotificationResponse> execute(UUID userId, String userRole) {
+    public Page<NotificationResponse> execute(UUID userId, String userRole, AdminNotificationFilter filter, Pageable pageable) {
         log.debug("[Check] 사용자 ID: {}, 사용자 역할: {}", userId, userRole);
 
         UserRole role = UserRole.valueOf(userRole);
@@ -42,9 +44,9 @@ public class AdminService implements GetAllNotificationForAdminUsecase {
         }
 
         // 모든 알림 조회
-        List<Notification> notifications = notificationQueryPersistencePort.findAll();
+        Page<Notification> notifications = notificationQueryPersistencePort.search(filter, pageable);
 
-        return notifications.stream().map(NotificationResponse::from).toList();
+        return notifications.map(NotificationResponse::from);
 
     }
 }

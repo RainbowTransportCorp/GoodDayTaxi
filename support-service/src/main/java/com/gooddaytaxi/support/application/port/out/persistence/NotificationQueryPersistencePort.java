@@ -1,6 +1,6 @@
 package com.gooddaytaxi.support.application.port.out.persistence;
 
-import com.gooddaytaxi.support.application.service.NotificationFilter;
+import com.gooddaytaxi.support.application.service.AdminNotificationFilter;
 import com.gooddaytaxi.support.domain.notification.model.Notification;
 import com.gooddaytaxi.support.domain.notification.model.NotificationType;
 import org.springframework.data.domain.Page;
@@ -21,6 +21,6 @@ public interface NotificationQueryPersistencePort {
     List<Notification> findByNotifiedAtBefore(LocalDateTime end);
     List<Notification> findByIsReadFalseAndNotifiedAtAfter(LocalDateTime start);
     List<Notification> findAll();
-    Page<Notification> search(NotificationFilter filter, Pageable pageable);
+    Page<Notification> search(AdminNotificationFilter filter, Pageable pageable);
 
 }
