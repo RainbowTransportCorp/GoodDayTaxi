@@ -19,6 +19,7 @@ import com.gooddaytaxi.dispatch.presentation.external.mapper.response.DispatchAc
 import com.gooddaytaxi.dispatch.presentation.external.mapper.response.DispatchPendingListResponseMapper;
 import com.gooddaytaxi.dispatch.presentation.external.mapper.response.DispatchRejectResponseMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,8 +36,10 @@ public class DriverDispatchController {
     private final DispatchRejectService dispatchRejectService;
 
     /**
-     * (기사) 배차 시도 중인 콜 목록 조회
-     * @return
+     * 배차 후보기사에게 할당된 콜 목록 조회
+     * @param userId 토큰을 게이트웨이로 보내서 파싱 후 가져온 헤더의 userId
+     * @param role 토큰을 게이트웨이로 보내서 파싱 후 가져온 헤더의 role
+     * @return 후보기사 본인에게 할당된 콜(배차) 리스트
      */
     @GetMapping("/pending")
     public ResponseEntity<ApiResponse<List<DispatchPendingListResponseDto>>> getPendingDispatches(
@@ -53,16 +56,18 @@ public class DriverDispatchController {
     }
 
     /**
-     * (기사) 콜 수락
-     * @param dispatchId
-     * @return
+     * 배차 후보 기사가 특정 콜에 대한 배차를 수락
+     * @param dispatchId 수락하기 위한 특정 배차의 식별자
+     * @param userId 게이트웨이 헤더에서 받은 uuid
+     * @param role 게이트웨이 헤더에서 받은 role
+     * @return 수락된 배차정보
      */
     @PatchMapping("/{dispatchId}/accept")
     public ResponseEntity<ApiResponse<DispatchAcceptResponseDto>> accept(
             @PathVariable UUID dispatchId,
             @RequestHeader(value = "X-User-UUID") UUID userId,
             @RequestHeader(value = "X-User-Role") String role
-    ) throws InterruptedException {
+    )  {
         DispatchAcceptCommand command = DispatchAcceptCommandMapper.toCommand(userId, role, dispatchId);
         DispatchAcceptResult result = dispatchAcceptService.accept(command);
         DispatchAcceptResponseDto responseDto = DispatchAcceptResponseMapper.toResponse(result);

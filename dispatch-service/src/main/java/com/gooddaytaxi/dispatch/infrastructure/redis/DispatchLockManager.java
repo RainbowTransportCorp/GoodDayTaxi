@@ -19,17 +19,24 @@ public class DispatchLockManager {
     private final RedissonClient redissonClient;
     private final RedisTemplate<String, String> redisTemplate;
 
-    private static final long WAIT_TIME = 0;
+    private static final long WAIT_TIME = 1;
     private static final long LEASE_TIME = 3; // 자동 해제
 
     /** 락 획득 */
-    public boolean tryLock(String dispatchId, UUID driverId) throws InterruptedException {
+    public boolean tryLock(String dispatchId, UUID driverId) {
 
         RLock lock = getLock(dispatchId);
 
         log.debug("[LOCK] 락 시도 - dispatchId={}, driverId={}", dispatchId, driverId);
 
-        boolean acquired = lock.tryLock(WAIT_TIME, LEASE_TIME, TimeUnit.SECONDS);
+        boolean acquired = false;
+        try {
+            acquired = lock.tryLock(WAIT_TIME, LEASE_TIME, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.warn("[LOCK] 인터럽트 발생 - dispatchId={}, driverId={}", dispatchId, driverId);
+            return false;
+        }
 
         if (acquired) {
             log.info("[LOCK] 락 획득 성공 - dispatchId={}, driverId={}", dispatchId, driverId);

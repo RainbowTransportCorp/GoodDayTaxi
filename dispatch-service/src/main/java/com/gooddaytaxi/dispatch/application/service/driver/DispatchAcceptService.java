@@ -41,7 +41,7 @@ public class DispatchAcceptService {
 
     private final DispatchAcceptPermissionValidator permissionValidator;
 
-    public DispatchAcceptResult accept(DispatchAcceptCommand command) throws InterruptedException {
+    public DispatchAcceptResult accept(DispatchAcceptCommand command) {
 
         log.info("[Accept] 요청 수신 - driverId={} dispatchId={}",
                 command.getDriverId(), command.getDispatchId());
