@@ -1,12 +1,14 @@
 package com.gooddaytaxi.trip.presentation.controller;
 
 import com.gooddaytaxi.common.core.dto.ApiResponse;
+import com.gooddaytaxi.trip.application.command.CancelTripCommand;
 import com.gooddaytaxi.trip.application.command.EndTripCommand;
 import com.gooddaytaxi.trip.application.command.StartTripCommand;
 import com.gooddaytaxi.trip.application.command.TripCreateCommand;
 import com.gooddaytaxi.trip.application.result.*;
 import com.gooddaytaxi.trip.application.service.TripService;
 
+import com.gooddaytaxi.trip.domain.model.enums.CancelReason;
 import com.gooddaytaxi.trip.presentation.dto.request.CreateTripRequest;
 import com.gooddaytaxi.trip.presentation.dto.request.EndTripRequest;
 import com.gooddaytaxi.trip.presentation.dto.response.*;
@@ -122,6 +124,31 @@ public class TripController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+
+    @PutMapping("/{tripId}/cancel")
+    public ResponseEntity<ApiResponse<TripCancelResult>> cancelTrip(
+            @PathVariable UUID tripId,
+            @RequestHeader(value = "x-user-uuid", required = false) UUID notifierId,
+            @RequestParam(defaultValue = "PASSENGER_REQUEST") String cancelReason
+    ) {
+        UUID finalNotifierId = (notifierId != null)
+                ? notifierId
+                : UUID.fromString("99999999-9999-9999-9999-999999999999");;
+
+        CancelReason reason = CancelReason.valueOf(cancelReason);
+
+        CancelTripCommand command =
+                new CancelTripCommand(tripId, finalNotifierId, reason);
+
+        TripCancelResult result = tripService.cancelTrip(command);
+        return ResponseEntity.ok(ApiResponse.success(result));
+    }
+
+
+
+
+
+
     @GetMapping("/passengers/{passengerId}")
     public ResponseEntity<ApiResponse<PassengerTripHistoryResponse>> getPassengerTripHistory(
             @PathVariable UUID passengerId,
@@ -137,6 +164,9 @@ public class TripController {
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
+
+
+
 
     @GetMapping("/drivers/{driverId}")
     public ResponseEntity<ApiResponse<DriverTripHistoryResponse>> getDriverTripHistory(

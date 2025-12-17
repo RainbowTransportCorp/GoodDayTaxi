@@ -32,4 +32,16 @@ public interface AppendTripEventPort {
             Long totalDuration,
             Long finalFare
     );
+
+
+    UUID appendTripCanceled(
+            UUID tripId,
+            UUID notifierId,
+            UUID dispatchId,
+            UUID driverId,
+            UUID passengerId,
+            String cancelReason,
+            LocalDateTime canceledAt
+    );
+
 }
