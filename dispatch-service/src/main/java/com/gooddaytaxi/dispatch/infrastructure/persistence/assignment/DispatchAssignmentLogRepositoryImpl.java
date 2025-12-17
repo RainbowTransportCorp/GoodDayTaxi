@@ -36,6 +36,14 @@ public class DispatchAssignmentLogRepositoryImpl implements DispatchAssignmentLo
         );
     }
 
+    /**
+     * 특정 기사에게 배차 제안이 이루어진 배차 중,
+     * 아직 배차가 확정되지 않은(ASSIGNING) 건을 조회한다.
+     *
+     * @param driverId 배차 제안을 받은 기사 ID
+     * @return 해당 기사에게 제안된 미확정 배차 목록
+     */
+
     @Override
     public List<Dispatch> findPendingByCandidateDriver(UUID driverId) {
         return queryFactory
