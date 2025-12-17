@@ -34,6 +34,7 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       auto-offset-reset: earliest  # 컨슈머가 처음 시작할 때 오프셋을 처음부터 읽음
+      enable-auto-commit: false   # 수동 커밋: 메시지 처리/저장이 완료된 후에 오프셋 커밋
 
 
 eureka:
