@@ -1,10 +1,14 @@
 package com.gooddaytaxi.support.adapter.out.persistence;
 
 import com.gooddaytaxi.support.application.port.out.persistence.NotificationQueryPersistencePort;
+import com.gooddaytaxi.support.application.service.NotificationFilter;
 import com.gooddaytaxi.support.domain.notification.model.Notification;
 import com.gooddaytaxi.support.domain.notification.model.NotificationType;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -16,11 +20,13 @@ import java.util.UUID;
  */
 @RequiredArgsConstructor
 @Component
-public class NotificationQueryPersistenceAdapter implements NotificationQueryPersistencePort {
-    private final NotificationJpaRepository notificationJpaRepository;
+public class NotificationQueryPersistenceAdapter implements NotificationQueryPersistencePort {// , NotificationSpecifications {
 
-    /** 알림 조회
-    *
+    private final NotificationJpaRepository notificationJpaRepository;
+    private final EntityManager em;
+
+    /**
+    * 알림 조회
     */
     @Override
     public Notification findById(UUID id) {
@@ -65,5 +71,15 @@ public class NotificationQueryPersistenceAdapter implements NotificationQueryPer
     @Override
     public List<Notification> findByIsReadFalseAndNotifiedAtAfter(LocalDateTime start) {
         return notificationJpaRepository.findByIsReadFalseAndNotifiedAtAfter(start);
+    }
+
+    @Override
+    public List<Notification> findAll() {
+        return notificationJpaRepository.findAll();
+    }
+
+    @Override
+    public Page<Notification> search(NotificationFilter filter, Pageable pageable) {
+        return null;
     }
 }

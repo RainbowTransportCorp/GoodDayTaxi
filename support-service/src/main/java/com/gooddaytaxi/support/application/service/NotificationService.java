@@ -1,9 +1,8 @@
 package com.gooddaytaxi.support.application.service;
 
-import com.gooddaytaxi.support.adapter.out.internal.account.dto.UserRole;
 import com.gooddaytaxi.support.application.dto.notification.NotificationResponse;
-import com.gooddaytaxi.support.application.port.in.web.GetAllUserNotificationsUsecase;
-import com.gooddaytaxi.support.application.port.in.web.UpdateNotrificationAsReadUsecase;
+import com.gooddaytaxi.support.application.port.in.web.notification.GetAllUserNotificationsUsecase;
+import com.gooddaytaxi.support.application.port.in.web.notification.UpdateNotrificationReadStatusUsecase;
 import com.gooddaytaxi.support.application.port.out.persistence.NotificationQueryPersistencePort;
 import com.gooddaytaxi.support.domain.notification.model.Notification;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +21,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class NotificationService implements GetAllUserNotificationsUsecase, UpdateNotrificationAsReadUsecase{
+public class NotificationService implements GetAllUserNotificationsUsecase, UpdateNotrificationReadStatusUsecase {
 
     private final NotificationQueryPersistencePort notificationQueryPersistencePort;
     private static final UUID SYSTEM_UUID = UUID.fromString("99999999-9999-9999-9999-999999999999");  // DISPATCH_TIMEOUT 이벤트 notifierId

@@ -2,13 +2,14 @@ package com.gooddaytaxi.support.adapter.in.web.controller;
 
 import com.gooddaytaxi.common.core.dto.ApiResponse;
 import com.gooddaytaxi.support.application.dto.notification.NotificationResponse;
-import com.gooddaytaxi.support.application.port.in.web.GetAllUserNotificationsUsecase;
-import com.gooddaytaxi.support.application.port.in.web.UpdateNotrificationAsReadUsecase;
+import com.gooddaytaxi.support.application.port.in.web.notification.GetAllUserNotificationsUsecase;
+import com.gooddaytaxi.support.application.port.in.web.notification.UpdateNotrificationReadStatusUsecase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,7 +25,7 @@ import java.util.UUID;
 public class NotificationController {
 
     private final GetAllUserNotificationsUsecase getAllUserNotificationsUsecase;
-    private final UpdateNotrificationAsReadUsecase updateNotrificationAsReadUsecase;
+    private final UpdateNotrificationReadStatusUsecase updateNotrificationReadStatusUsecase;
 
     /*
     * 사용자 본인 알림 전체 조회
@@ -61,7 +62,7 @@ public class NotificationController {
         log.debug("[Check] 사용자 ID: {}", userId);
 
         // 알림 목록 조회
-        NotificationResponse response = updateNotrificationAsReadUsecase.execute(UUID.fromString(userId), UUID.fromString(notificationId));
+        NotificationResponse response = updateNotrificationReadStatusUsecase.execute(UUID.fromString(userId), UUID.fromString(notificationId));
 
         log.debug("[Response] 알림 읽음 처리 완료");
 

@@ -14,13 +14,13 @@ import java.util.UUID;
  */
 interface NotificationJpaRepository extends JpaRepository<Notification, UUID> {
 
-    /** 알림 생성, 삭제
-     *
+    /**
+     * 알림 생성, 삭제
      */
     Notification save(Notification notification);
 
-    /** 알림 조회
-     *
+    /**
+     * 알림 조회
      */
     Optional<Notification> findById(UUID notificationId);
     Optional<Notification> findByNotificationOriginId(UUID id);
@@ -45,6 +45,5 @@ interface NotificationJpaRepository extends JpaRepository<Notification, UUID> {
     List<Notification> findByNotifiedAtAfter(LocalDateTime start);
     List<Notification> findByNotifiedAtBefore(LocalDateTime end);
     List<Notification> findByIsReadFalseAndNotifiedAtAfter(LocalDateTime start);
-
-
+    List<Notification> findAll();
 }

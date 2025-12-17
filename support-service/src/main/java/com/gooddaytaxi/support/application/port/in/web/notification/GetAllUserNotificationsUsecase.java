@@ -1,4 +1,4 @@
-package com.gooddaytaxi.support.application.port.in.web;
+package com.gooddaytaxi.support.application.port.in.web.notification;
 
 import com.gooddaytaxi.support.application.dto.notification.NotificationResponse;
 
