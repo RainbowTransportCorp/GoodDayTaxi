@@ -59,15 +59,12 @@ public class DispatchAcceptService {
         }
 
         try {
-            // 1. Dispatch 조회
             Dispatch dispatch = queryPort.findById(command.getDispatchId());
             log.debug("[Accept] Dispatch 조회 완료 - status={}", dispatch.getDispatchStatus());
 
-            // 2. 역할 검증
             dispatchAcceptPermissionValidator.validate(command.getRole());
             log.debug("[Accept] 역할 검증 통과 - role={}", command.getRole());
 
-            // 3. 후보 기사 여부 검증
             DispatchAssignmentLog logEntry =
                     assignmentLogService.findLatest(
                             command.getDispatchId(),
@@ -85,7 +82,6 @@ public class DispatchAcceptService {
 
             DispatchStatus before = dispatch.getDispatchStatus();
 
-            // 4. 상태 전이
             dispatch.assignedTo(command.getDriverId());
             dispatch.accept();
             logEntry.accept();
@@ -93,11 +89,9 @@ public class DispatchAcceptService {
             log.info("[Accept] 상태 전이 완료 - dispatchId={} driverId={}",
                     dispatch.getDispatchId(), command.getDriverId());
 
-            // 5. 상태 저장
             assignmentLogService.save(logEntry);
             commandPort.save(dispatch);
 
-            // 6. 이벤트 발행
             acceptedEventPort.publishAccepted(
                     DispatchAcceptedPayload.from(dispatch, command.getDriverId())
             );
@@ -107,7 +101,6 @@ public class DispatchAcceptService {
 
             log.info("[Accept] 이벤트 발행 완료 - dispatchId={}", dispatch.getDispatchId());
 
-            // 7. 히스토리 (실패해도 흐름 유지)
             try {
                 historyService.saveStatusChange(
                         dispatch.getDispatchId(),

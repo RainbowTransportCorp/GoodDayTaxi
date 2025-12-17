@@ -3,7 +3,6 @@ package com.gooddaytaxi.dispatch.application.service.assignmentLog;
 import com.gooddaytaxi.dispatch.application.port.out.command.DispatchAssignmentCommandPort;
 import com.gooddaytaxi.dispatch.domain.exception.assignment.AssignmentLogNotFoundException;
 import com.gooddaytaxi.dispatch.domain.model.entity.DispatchAssignmentLog;
-import com.gooddaytaxi.dispatch.domain.model.enums.AssignmentStatus;
 import com.gooddaytaxi.dispatch.domain.repository.DispatchAssignmentLogRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +27,6 @@ public class AssignmentLogLifecycleService {
     /**
      * 특정 배차(dispatchId)에 대해
      * 해당 기사(driverId)의 가장 최근 배차 시도 로그를 조회한다.
-     *
      * 배차 시도 로그가 없을 시 AssignmentLogNotFoundException 예외 발생
      * @param dispatchId 특정 배차 식별자
      * @param driverId 특정 기사 식별자
@@ -44,8 +42,8 @@ public class AssignmentLogLifecycleService {
     }
 
     /**
-     *
-     * @param logEntry
+     * 배차 시도 로그의 상태 변경 결과를 저장한다.
+     * @param logEntry 저장될 로그
      */
     public void save(DispatchAssignmentLog logEntry) {
 
