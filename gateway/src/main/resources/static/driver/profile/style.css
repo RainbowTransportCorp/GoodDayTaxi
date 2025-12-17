@@ -8,7 +8,7 @@
 }
 
 * {
-    box-sizing: border-box;   /* 🔥 input 잘리는 문제의 핵심 해결 요소 */
+    box-sizing: border-box;
 }
 
 body {
