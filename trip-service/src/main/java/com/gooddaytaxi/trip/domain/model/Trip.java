@@ -187,6 +187,15 @@ public class Trip extends BaseEntity {
         return true;
     }
 
+    public boolean cancel() {
+        if (this.status == TripStatus.CREATED || this.status == TripStatus.READY) {
+            this.status = TripStatus.CANCELLED;
+            return true;
+        }
+        return false;
+    }
+
+
     private long calculateFare(BigDecimal totalDistance, long totalDurationSeconds) {
         // 예시 정책: 기본 3,000원 + (km당 1,000원) + (초당 2원)
         long baseFare = 3000L;
