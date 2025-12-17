@@ -19,6 +19,8 @@ import com.gooddaytaxi.dispatch.presentation.external.mapper.response.DispatchAc
 import com.gooddaytaxi.dispatch.presentation.external.mapper.response.DispatchPendingListResponseMapper;
 import com.gooddaytaxi.dispatch.presentation.external.mapper.response.DispatchRejectResponseMapper;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +37,8 @@ import java.util.UUID;
  * - X-User-UUID : 요청 사용자 식별자
  * - X-User-Role : 요청 사용자 역할
  */
+@SecurityRequirement(name = "userId")
+@SecurityRequirement(name = "role")
 @Tag(
         name = "Driver Dispatch API",
         description = "기사(Driver)가 배차를 조회·수락·거절하는 외부 API"
@@ -60,7 +64,9 @@ public class DriverDispatchController {
     )
     @GetMapping("/pending")
     public ResponseEntity<ApiResponse<List<DispatchPendingListResponseDto>>> getPendingDispatches(
+            @Parameter(hidden = true)
             @RequestHeader(value = "X-User-UUID") UUID userId,
+            @Parameter(hidden = true)
             @RequestHeader(value = "X-User-Role") String role
     ) {
         List<DispatchPendingListResult> dispatchPendingListResults =
@@ -86,7 +92,9 @@ public class DriverDispatchController {
     @PatchMapping("/{dispatchId}/accept")
     public ResponseEntity<ApiResponse<DispatchAcceptResponseDto>> accept(
             @PathVariable UUID dispatchId,
+            @Parameter(hidden = true)
             @RequestHeader(value = "X-User-UUID") UUID userId,
+            @Parameter(hidden = true)
             @RequestHeader(value = "X-User-Role") String role
     )  {
         DispatchAcceptCommand command = DispatchAcceptCommandMapper.toCommand(userId, role, dispatchId);
@@ -109,7 +117,9 @@ public class DriverDispatchController {
     @PatchMapping("/{dispatchId}/reject")
     public ResponseEntity<ApiResponse<DispatchRejectResponseDto>> reject(
             @PathVariable UUID dispatchId,
+            @Parameter(hidden = true)
             @RequestHeader(value = "X-User-UUID") UUID userId,
+            @Parameter(hidden = true)
             @RequestHeader(value = "X-User-Role") String role
     ) {
         DispatchRejectCommand command = DispatchRejectCommandMapper.toCommand(userId, role, dispatchId);

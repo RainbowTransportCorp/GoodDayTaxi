@@ -23,6 +23,8 @@ import com.gooddaytaxi.dispatch.presentation.external.mapper.response.DispatchCr
 import com.gooddaytaxi.dispatch.presentation.external.mapper.response.DispatchDetailResponseMapper;
 import com.gooddaytaxi.dispatch.presentation.external.mapper.response.DispatchListResponseMapper;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -58,7 +60,9 @@ public class DispatchController {
     @PostMapping
     public ResponseEntity<ApiResponse<DispatchCreateResponseDto>> create(
             @RequestBody DispatchCreateRequestDto requestDto,
+            @Parameter(hidden = true)
             @RequestHeader(value = "X-User-UUID") UUID userId,
+            @Parameter(hidden = true)
             @RequestHeader(value = "X-User-Role") String role
     ) {
         DispatchCreateCommand createCommand = DispatchCreateCommandMapper.toCommand(userId, role, requestDto);
@@ -79,7 +83,9 @@ public class DispatchController {
     )
     @GetMapping
     public ResponseEntity<ApiResponse<List<DispatchListResponseDto>>> getDispatches(
+            @Parameter(hidden = true)
             @RequestHeader(value = "X-User-UUID") UUID passengerId,
+            @Parameter(hidden = true)
             @RequestHeader(value = "X-User-Role") String role
 
     ) {
@@ -105,7 +111,9 @@ public class DispatchController {
     @GetMapping("/{dispatchId}")
     public ResponseEntity<ApiResponse<DispatchDetailResponseDto>> getDispatchDetail(
             @PathVariable UUID dispatchId,
+            @Parameter(hidden = true)
             @RequestHeader(value = "X-User-UUID") UUID passengerId,
+            @Parameter(hidden = true)
             @RequestHeader(value = "X-User-Role") String role
     ) {
         DispatchDetailResult dispatchDetailResult =
@@ -134,7 +142,9 @@ public class DispatchController {
     @PatchMapping("/{dispatchId}/cancel")
     public ResponseEntity<ApiResponse<DispatchCancelResponseDto>> cancel(
             @PathVariable UUID dispatchId,
+            @Parameter(hidden = true)
             @RequestHeader(value = "X-User-UUID") UUID passengerId,
+            @Parameter(hidden = true)
             @RequestHeader(value = "X-User-Role") String role
     ) {
         DispatchCancelCommand command =

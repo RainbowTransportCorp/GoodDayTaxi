@@ -15,6 +15,8 @@ import com.gooddaytaxi.dispatch.presentation.external.dto.response.AdminForceTim
 import com.gooddaytaxi.dispatch.presentation.external.mapper.response.AdminDispatchResponseMapper;
 import com.gooddaytaxi.dispatch.presentation.external.mapper.response.AdminTimeoutResponseMapper;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -44,6 +46,7 @@ public class AdminDispatchController {
     )
     @GetMapping
     public ResponseEntity<ApiResponse<List<AdminDispatchListResponseDto>>> getDispatches(
+            @Parameter(hidden = true)
             @RequestHeader(value = "X-User-Role") String role,
             @RequestParam(required = false) DispatchStatus status
     ) {
@@ -67,6 +70,7 @@ public class AdminDispatchController {
     )
     @GetMapping("/{dispatchId}")
     public ResponseEntity<ApiResponse<AdminDispatchDetailResponseDto>> getDispatchDetail(
+            @Parameter(hidden = true)
             @RequestHeader(value = "X-User-Role") String role,
             @PathVariable UUID dispatchId
     ) {
@@ -93,7 +97,9 @@ public class AdminDispatchController {
     )
     @PatchMapping("/{dispatchId}/force-timeout")
     public ResponseEntity<ApiResponse<AdminForceTimeoutResponseDto>> forceTimeout(
+            @Parameter(hidden = true)
             @RequestHeader(value = "X-User-UUID") UUID userId,
+            @Parameter(hidden = true)
             @RequestHeader(value = "X-User-Role") String role,
             @PathVariable UUID dispatchId
     ) {
