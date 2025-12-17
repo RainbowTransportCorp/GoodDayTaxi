@@ -106,25 +106,41 @@ public class TripService {
         );
 
     }
-
+    @Transactional
     public TripEndResult endTrip(UUID tripId, EndTripCommand command) {
         Trip trip = loadTripByIdPort.loadTripById(tripId)
-                .orElseThrow(() -> new IllegalArgumentException("Trip not found: " + tripId));
+                .orElseThrow(() -> new EntityNotFoundException("Trip not found. tripId=" + tripId));
 
-        if (trip.getStatus() == TripStatus.ENDED) {
-            throw new IllegalStateException("이미 ENDED 상태인 운행입니다.");
-        }
+        // 1) 상태 전이 (STARTED -> ENDED)
+        boolean transitioned = trip.end(command.totalDistance(), command.totalDuration());
 
-        trip.end(command.totalDistance(), command.totalDuration());
-
+        // 2) 업데이트 반영 (네 구조에선 포트로 update 하는 방식 유지)
         Trip updated = updateTripPort.updateTrip(trip);
+
+        // 3) outbox 적재는 “진짜로 ENDED로 바뀐 경우만”
+        if (transitioned) {
+            appendTripEventPort.appendTripEnded(
+                    updated.getTripId(),
+                    command.notifierId(),
+                    updated.getDispatchId(),
+                    updated.getDriverId(),
+                    updated.getPassengerId(),
+                    updated.getPickupAddress(),
+                    updated.getDestinationAddress(),
+                    updated.getStartTime(),
+                    updated.getEndTime(),
+                    updated.getTotalDistance(),
+                    updated.getTotalDuration(),
+                    updated.getFinalFare()
+            );
+        }
 
         return new TripEndResult(
                 updated.getTripId(),
                 updated.getStatus().name(),
                 updated.getEndTime(),
                 updated.getFinalFare(),
-                "운행 종료, 요금 산정 완료 및 결제 요청 이벤트 발행 완료"
+                transitioned ? "운행이 종료되었습니다." : "이미 종료된 운행입니다."
         );
     }
 
@@ -163,10 +179,6 @@ public class TripService {
                 items
         );
     }
-
-
-
-
 
 
 

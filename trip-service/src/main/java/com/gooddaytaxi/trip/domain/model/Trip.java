@@ -168,7 +168,11 @@ public class Trip extends BaseEntity {
         return true;
     }
 
-    public void end(BigDecimal totalDistance, long totalDuration) {
+    public boolean end(BigDecimal totalDistance, long totalDuration) {
+        if (this.status == TripStatus.ENDED) {
+            return false; // 멱등
+        }
+
         if (this.status != TripStatus.STARTED) {
             throw new IllegalStateException("STARTED 상태에서만 ENDED로 변경할 수 있습니다.");
         }
@@ -178,8 +182,9 @@ public class Trip extends BaseEntity {
         this.totalDuration = totalDuration;
         this.endTime = LocalDateTime.now();
 
-        // 요금 계산 로직 (임시 간단 버전)
         this.finalFare = calculateFare(totalDistance, totalDuration);
+
+        return true;
     }
 
     private long calculateFare(BigDecimal totalDistance, long totalDurationSeconds) {
