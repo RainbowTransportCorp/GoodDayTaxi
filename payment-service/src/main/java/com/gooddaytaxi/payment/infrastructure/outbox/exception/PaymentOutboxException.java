@@ -1,4 +1,4 @@
-package com.gooddaytaxi.payment.infrastructure.outbox;
+package com.gooddaytaxi.payment.infrastructure.outbox.exception;
 
 public class PaymentOutboxException extends RuntimeException {
     public PaymentOutboxException(String message) {
