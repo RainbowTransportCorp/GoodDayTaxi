@@ -10,6 +10,7 @@ public record TripEndedEventPayload(
         UUID notificationOriginId,
         UUID notifierId,
         UUID dispatchId,
+        UUID tripId,
         UUID driverId,
         UUID passengerId,
         String pickupAddress,

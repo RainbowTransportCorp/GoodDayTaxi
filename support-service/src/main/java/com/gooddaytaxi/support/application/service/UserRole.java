@@ -1,4 +1,4 @@
-package com.gooddaytaxi.support.adapter.out.internal.account.dto;
+package com.gooddaytaxi.support.application.service;
 
 /**
  * 사용자 역할 타입 - 승객/기사/일반관리자/최고관리자 구분
