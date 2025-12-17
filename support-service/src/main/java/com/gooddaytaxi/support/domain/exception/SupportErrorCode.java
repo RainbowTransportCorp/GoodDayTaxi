@@ -8,7 +8,6 @@ import org.springframework.http.HttpStatus;
  * Support 서비스 전용 도메인 에러 코드
  */
 @Getter
-@RequiredArgsConstructor
 public enum SupportErrorCode {
 
     ACCESS_DENIED("SUP001", "접근 권한이 없습니다", HttpStatus.FORBIDDEN),
