@@ -15,6 +15,11 @@ public class DispatchAssignmentLogQueryAdapter implements DispatchAssignmentLogQ
 
     private final DispatchAssignmentLogRepository dispatchAssignmentLogRepository;
 
+    /**
+     * 특정 기사에게 배차 제안이 이루어진 ASSIGNING 상태의 배차 목록을 조회한다.
+     * @param driverId 배차 제안을 받은 기사 ID
+     * @return 기사에게 제안된 미확정 배차 목록
+     */
     @Override
     public List<Dispatch> findAssigningByCandidateDriver(UUID driverId) {
         return dispatchAssignmentLogRepository.findPendingByCandidateDriver(driverId);

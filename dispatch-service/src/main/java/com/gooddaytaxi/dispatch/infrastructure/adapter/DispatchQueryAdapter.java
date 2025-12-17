@@ -12,6 +12,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Dispatch 조회를 위한 Query Adapter.
+ *
+ * Application 계층에서 사용하는 DispatchQueryPort를 구현하며,
+ * 실제 데이터 조회는 DispatchRepository에 위임한다.
+ */
 @Component
 @RequiredArgsConstructor
 public class DispatchQueryAdapter implements DispatchQueryPort {
