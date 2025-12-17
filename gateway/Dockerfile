@@ -12,6 +12,8 @@ COPY src ./src
 
 RUN chmod +x gradlew
 
+RUN ./gradlew bootJar
+
 # ============================
 # 2) Run Stage
 # ============================

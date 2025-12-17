@@ -1,4 +1,4 @@
-const BASE_URL = "api/v1/auth/login";
+const BASE_URL = "/api/v1/auth/login";
 
 async function login() {
     const email = document.getElementById("email").value;
