@@ -19,6 +19,11 @@ public class DispatchEventOutboxAdapter implements DispatchEventOutboxPort {
 
     private final DispatchEventJpaRepository repository;
 
+    /**
+     * Outbox 이벤트를 PENDING 상태로 저장한다.
+     *
+     * @param model 저장할 Outbox 이벤트 모델
+     */
     @Override
     public void save(OutboxEventModel model) {
         DispatchEvent event = DispatchEvent.pending(
@@ -34,6 +39,12 @@ public class DispatchEventOutboxAdapter implements DispatchEventOutboxPort {
         repository.save(event);
     }
 
+    /**
+     * 아직 전송되지 않은(PENDING) Outbox 이벤트를 조회한다.
+     *
+     * @param limit 한 번에 조회할 최대 이벤트 개수
+     * @return 전송 대기 중인 Outbox 이벤트 목록
+     */
     @Override
     public List<OutboxEventModel> findPending(int limit) {
         List<DispatchEvent> events =  repository.findPending(limit);
@@ -56,6 +67,11 @@ public class DispatchEventOutboxAdapter implements DispatchEventOutboxPort {
                 .toList();
     }
 
+    /**
+     * Outbox 이벤트를 전송 완료(PUBLISHED) 상태로 변경한다.
+     *
+     * @param eventId 상태를 변경할 이벤트 식별자
+     */
     @Override
     @Transactional
     public void markPublished(UUID eventId) {

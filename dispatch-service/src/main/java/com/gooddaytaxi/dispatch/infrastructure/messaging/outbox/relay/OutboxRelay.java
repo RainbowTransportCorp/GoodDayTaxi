@@ -10,6 +10,16 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+/**
+ * Outbox 테이블에 저장된 이벤트를 조회하여
+ * Kafka로 실제 전송하는 Relay 컴포넌트.
+ *
+ * Application 계층은 트랜잭션 안정성을 위해
+ * 이벤트를 Outbox DB에만 기록하고,
+ * 이 클래스가 별도의 흐름으로 DB → Kafka 전송을 담당한다.
+ *
+ * 전송 실패 시 이벤트는 Outbox에 남아 재시도된다.
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -19,11 +29,7 @@ public class OutboxRelay {
     private final KafkaTemplate<String, String> kafkaTemplate;
 
     /**
-     * Outbox 패턴에서 실제 Kafka 전송(Producer) 역할을 담당하는 컴포넌트.
-     *  - Application은 Outbox DB에 이벤트만 기록한다. (트랜잭션 안정성)
-     *  - 메시지 전송은 별도 프로세스로 분리하여 실패 시 재시도 가능하도록 함.
-     *  - 따라서 KafkaProducer 클래스를 따로 두지 않고
-     *    OutboxRelay가 DB → Kafka 전송을 책임진다.
+     * Outbox에 저장된 미전송 이벤트를 조회하여 Kafka로 전송한다.
      */
     @Scheduled(fixedDelayString = "${outbox.relay.delay-ms:5000}")
     public void relay() {
