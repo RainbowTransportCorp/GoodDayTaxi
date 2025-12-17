@@ -1,7 +1,6 @@
 package com.gooddaytaxi.support.adapter.out.persistence;
 
 import com.gooddaytaxi.support.domain.log.model.Log;
-import com.gooddaytaxi.support.domain.notification.model.Notification;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;

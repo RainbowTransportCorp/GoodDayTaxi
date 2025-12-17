@@ -2,8 +2,6 @@ package com.gooddaytaxi.support.domain.log.model;
 
 import com.gooddaytaxi.common.jpa.model.BaseEntity;
 import com.gooddaytaxi.support.application.dto.Command;
-import com.gooddaytaxi.support.domain.notification.model.Notification;
-import com.gooddaytaxi.support.domain.notification.model.NotificationType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
