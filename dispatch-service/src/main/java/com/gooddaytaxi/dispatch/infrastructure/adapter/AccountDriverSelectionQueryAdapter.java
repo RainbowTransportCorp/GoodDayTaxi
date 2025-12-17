@@ -1,7 +1,7 @@
 package com.gooddaytaxi.dispatch.infrastructure.adapter;
 
 import com.gooddaytaxi.dispatch.application.port.out.query.AccountDriverSelectionQueryPort;
-import com.gooddaytaxi.dispatch.domain.exception.DriverUnavailableException;
+import com.gooddaytaxi.dispatch.application.exception.DriverUnavailableException;
 import com.gooddaytaxi.dispatch.infrastructure.client.account.AccountDriverClient;
 import com.gooddaytaxi.dispatch.infrastructure.client.account.dto.DriverInfo;
 import lombok.RequiredArgsConstructor;

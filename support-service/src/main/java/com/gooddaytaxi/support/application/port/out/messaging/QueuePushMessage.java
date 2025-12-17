@@ -1,7 +1,7 @@
 package com.gooddaytaxi.support.application.port.out.messaging;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gooddaytaxi.support.application.Metadata;
+import com.gooddaytaxi.support.application.dto.Metadata;
 
 import java.io.Serializable;
 import java.util.List;

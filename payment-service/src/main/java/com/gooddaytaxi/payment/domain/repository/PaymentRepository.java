@@ -32,4 +32,15 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> , Paymen
     Payment findLastByTripIdAndStatusForCreate(@Param("tripId") UUID tripId);
 
     Page<Refund> searchRefunds(String status, String reason, Boolean existRequest, UUID passeangerId, UUID driverId, UUID tripId, String method, Long minAmount, Long maxAmount, LocalDateTime startDay, LocalDateTime endDay, Pageable pageable);
+
+    @Query("""
+        select p.id as id,
+               p.passengerId as passengerId,
+               p.driverId as driverId,
+               p.tripId as tripId,
+               p.status as status
+        from Payment p
+        where p.id = :paymentId
+    """)
+    Optional<PaymentIdentityView> findIdentityById(UUID paymentId);
 }

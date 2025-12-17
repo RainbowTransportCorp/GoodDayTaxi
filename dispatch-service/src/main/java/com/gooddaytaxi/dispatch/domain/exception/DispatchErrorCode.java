@@ -13,6 +13,12 @@ public enum DispatchErrorCode {
             400
     ),
 
+    CANNOT_CANCEL(
+            "DISPATCH_CANNOT_CANCEL",
+            "이미 종료된 배차는 취소할 수 없습니다.",
+            400
+    ),
+
     NOT_ASSIGNED_DRIVER(
             "DISPATCH_NOT_ASSIGNED_DRIVER",
             "해당 기사에게 배정된 콜이 아닙니다.",
@@ -42,8 +48,6 @@ public enum DispatchErrorCode {
             "해당 기사에게 배정할 수 없습니다.",
             400
     );
-
-
 
     private final String code;     // 에러 코드 (프론트/로그용)
     private final String message;  // 도메인 규칙 위반 메시지

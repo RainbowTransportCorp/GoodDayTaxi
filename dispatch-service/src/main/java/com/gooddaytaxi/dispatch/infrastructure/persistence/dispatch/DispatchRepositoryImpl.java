@@ -1,14 +1,12 @@
 package com.gooddaytaxi.dispatch.infrastructure.persistence.dispatch;
 
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
-import com.gooddaytaxi.dispatch.domain.model.entity.QDispatch;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
 import com.gooddaytaxi.dispatch.domain.repository.DispatchRepositoryCustom;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;

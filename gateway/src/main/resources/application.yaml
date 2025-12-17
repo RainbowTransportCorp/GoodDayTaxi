@@ -33,7 +33,7 @@ spring:
         - id: payment-service
           uri: http://host.docker.internal:8204
           predicates:
-            - Path=/api/v*/payments/**,/api/v*/admin/payments/**,/internal/v*/payments/**
+            - Path=/api/v*/payments/**,/api/v*/admin/payments/**,/internal/v*/payments/**,/api/v*/refunds/**,/api/v*/refund/requests/**
 
         - id: support-service
           uri: http://host.docker.internal:8205
@@ -90,11 +90,11 @@ springdoc:
       # Support-service
       # -----------------------------
       - name: support-service-v1
-        url: /api/v1/support/api-docs
+        url: /api/v1/supports/api-docs
       - name: support-service-v2
-        url: /api/v2/support/api-docs
+        url: /api/v2/supports/api-docs
       - name: support-service-v3
-        url: /api/v3/support/api-docs
+        url: /api/v3/supports/api-docs
 
 
 eureka:

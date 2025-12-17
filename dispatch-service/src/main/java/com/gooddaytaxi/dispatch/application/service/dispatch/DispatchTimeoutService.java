@@ -6,7 +6,6 @@ import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
 import com.gooddaytaxi.dispatch.application.service.assignmentLog.AssignmentLogQueryService;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
 import com.gooddaytaxi.dispatch.domain.model.enums.ChangedBy;
-import com.gooddaytaxi.dispatch.domain.model.enums.DispatchDomainEventType;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
 import com.gooddaytaxi.dispatch.domain.model.enums.HistoryEventType;
 import com.gooddaytaxi.dispatch.infrastructure.messaging.outbox.publisher.DispatchTimeoutOutboxPublisher;
@@ -144,10 +143,10 @@ public class DispatchTimeoutService {
                 before,
                 DispatchStatus.TIMEOUT,
                 ChangedBy.SYSTEM,
-                null
+                "재배차 한도 초과"
         );
 
-        eventPort.publishTimeout(DispatchTimeoutPayload.from(
+        eventPort.publish(DispatchTimeoutPayload.auto(
                         dispatch.getDispatchId(),
                         dispatch.getPassengerId(),
                         dispatch.getTimeoutAt()

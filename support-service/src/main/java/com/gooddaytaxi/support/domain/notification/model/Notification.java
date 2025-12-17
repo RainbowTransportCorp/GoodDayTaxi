@@ -66,10 +66,18 @@ public class Notification extends BaseEntity {
     @Comment("알림 발생 시각")
     private LocalDateTime notifiedAt;
 
+//    @ElementCollection(fetch = FetchType.LAZY)
+//    @CollectionTable(
+//            name = "p_support_notification_receivers",
+//            joinColumns = @JoinColumn(name = "notification_id")
+//    )
+//    @Column(name = "receiver_id")
+//    @Comment("알림 수신자")
+//    private List<UUID> receivers;
 
     /**
-    * 논리적 삭제가 필요한 Domain의 Auditing 필드
-    */
+     * 논리적 삭제가 필요한 Domain의 Auditing 필드
+     */
     @Column(name = "deleted_at")
     @Comment("삭제 시각")
     private LocalDateTime deletedAt;
@@ -82,21 +90,22 @@ public class Notification extends BaseEntity {
     /**
      * 알림 Entity 생성
      *
-     * @param notifierId 알림 생성자
      * @param notificationOriginId 알림 생성 근원 도메인 ID
-     * @param notificationType 알림 타입
-     * @param message 알림 메시지
+     * @param notifierId           알림 생성자
+     * @param notificationType     알림 타입
+     * @param message              알림 메시지
      */
 //    @Builder
-    private Notification(UUID notifierId, UUID notificationOriginId, NotificationType notificationType, String message) {
-        this.notifierId = notifierId;
+    private Notification(UUID notificationOriginId, UUID notifierId, NotificationType notificationType, String message) {
         this.notificationOriginId = notificationOriginId;
+        this.notifierId = notifierId;
         this.notificationType = notificationType;
         this.message = (message == null || message.isBlank()) ? null : message;
         this.isRead = false;
     }
+
     public static Notification from(Command command, NotificationType notificationType) {
-        return new Notification(command.getNotifierId(), command.getNotificationOriginId(), notificationType, command.getMessage());
+        return new Notification(command.getNotificationOriginId(), command.getNotifierId(), notificationType, command.getMessage());
     }
 
 
@@ -113,10 +122,10 @@ public class Notification extends BaseEntity {
 
     /**
      * 알림 타입에 따른 필요한 정보(ID) 설정
-     *  - DISPATCH_XXX : dispatchId, passengerId, driverId 필요
-     *  - TRIP_XXX : dispatchId, passengerId, driverId, tripId 필요
-     *  - PAYMENT_XXX : dispatchId, passengerId, driverId, tripId, paymentId 필요
-     *  - ERROR_DETECTED : 상황에 따라 필요
+     * - DISPATCH_XXX : dispatchId, passengerId, driverId 필요
+     * - TRIP_XXX : dispatchId, passengerId, driverId, tripId 필요
+     * - PAYMENT_XXX : dispatchId, passengerId, driverId, tripId, paymentId 필요
+     * - ERROR_DETECTED : 상황에 따라 필요
      *
      * @param dispatchId  배차 ID
      * @param passengerId 승객 ID
@@ -124,7 +133,7 @@ public class Notification extends BaseEntity {
      * @param tripId      운행 ID
      * @param paymentId   결제 ID
      */
-    public void assignIds (UUID dispatchId, UUID tripId, UUID paymentId, UUID driverId, UUID passengerId) {
+    public void assignIds(UUID dispatchId, UUID tripId, UUID paymentId, UUID driverId, UUID passengerId) {
         this.dispatchId = dispatchId;
         this.tripId = tripId;
         this.paymentId = paymentId;
@@ -132,13 +141,27 @@ public class Notification extends BaseEntity {
         this.passengerId = passengerId;
     }
 
-    public void setMessageSendingTime(LocalDateTime sendingTime) {
+    /**
+     * 알림 읽음 처리
+     */
+    public void updateIsRead() {
+        this.isRead = true;
+    }
+
+    /**
+     * 메시지 전송 시각 설정
+     * @param sendingTime 메시지 전송 시각
+     */
+    public void assignMessageSendingTime(LocalDateTime sendingTime) {
         this.notifiedAt = sendingTime;
     }
 
-
-
-
+    /**
+     * 메시지 수신자 설정
+     *
+     * @param receivers 메시지 전송 시각
+     */
+//    public void assignReceivers(List<UUID> receivers) {
+//        this.receivers = receivers;
+//    }
 }
-
-

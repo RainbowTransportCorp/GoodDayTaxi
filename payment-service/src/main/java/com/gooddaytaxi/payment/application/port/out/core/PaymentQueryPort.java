@@ -1,5 +1,6 @@
 package com.gooddaytaxi.payment.application.port.out.core;
 
+import com.gooddaytaxi.payment.domain.repository.PaymentIdentityView;
 import com.gooddaytaxi.payment.domain.entity.Payment;
 import com.gooddaytaxi.payment.domain.entity.Refund;
 import org.springframework.data.domain.Page;
@@ -21,4 +22,6 @@ public interface PaymentQueryPort {
     Payment findLastByTripIdAndStatusForCreate(UUID tripId);
 
     Page<Refund> searchRefunds(String status, String reason, Boolean existRequest, UUID passeangerId, UUID driverId, UUID tripId, String method, Long minAmount, Long maxAmount, LocalDateTime localDateTime, LocalDateTime localDateTime1, Pageable pageable);
+
+    Optional<PaymentIdentityView> findIdentityViewById(UUID paymentId);
 }
