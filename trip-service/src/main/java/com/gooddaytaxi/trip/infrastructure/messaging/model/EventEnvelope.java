@@ -5,6 +5,7 @@ import java.util.UUID;
 
 public record EventEnvelope<T>(
         UUID eventId,
+        int payloadVersion,
         String eventType,
         LocalDateTime occurredAt,
         T payload
