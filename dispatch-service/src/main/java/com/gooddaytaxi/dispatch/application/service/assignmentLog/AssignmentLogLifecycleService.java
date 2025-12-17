@@ -57,14 +57,4 @@ public class AssignmentLogLifecycleService {
                 logEntry.getAssignmentStatus()
         );
     }
-
-    /**
-     * SENT 상태인지 여부
-     * (유스케이스 단에서 부가 검사하려면 사용)
-     */
-    public boolean isLatestSent(UUID dispatchId, UUID driverId) {
-        return repository.findLatest(dispatchId, driverId)
-                .map(log -> log.getAssignmentStatus() == AssignmentStatus.SENT)
-                .orElse(false);
-    }
 }
