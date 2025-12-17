@@ -142,8 +142,14 @@ public class Notification extends BaseEntity {
     }
 
     /**
+     * 알림 읽음 처리
+     */
+    public void updateIsRead() {
+        this.isRead = true;
+    }
+
+    /**
      * 메시지 전송 시각 설정
-     *
      * @param sendingTime 메시지 전송 시각
      */
     public void assignMessageSendingTime(LocalDateTime sendingTime) {

@@ -3,6 +3,7 @@ package com.gooddaytaxi.support.application.service;
 import com.gooddaytaxi.support.adapter.out.internal.account.dto.UserRole;
 import com.gooddaytaxi.support.application.dto.notification.NotificationResponse;
 import com.gooddaytaxi.support.application.port.in.web.GetAllUserNotificationsUsecase;
+import com.gooddaytaxi.support.application.port.in.web.UpdateNotrificationAsReadUsecase;
 import com.gooddaytaxi.support.application.port.out.persistence.NotificationQueryPersistencePort;
 import com.gooddaytaxi.support.domain.notification.model.Notification;
 import lombok.RequiredArgsConstructor;
@@ -21,18 +22,18 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class NotificationService implements GetAllUserNotificationsUsecase {
+public class NotificationService implements GetAllUserNotificationsUsecase, UpdateNotrificationAsReadUsecase{
 
     private final NotificationQueryPersistencePort notificationQueryPersistencePort;
     private static final UUID SYSTEM_UUID = UUID.fromString("99999999-9999-9999-9999-999999999999");  // DISPATCH_TIMEOUT 이벤트 notifierId
 
-    /*
+    /**
     * 사용자의 알림 전체 조회 서비스
-    * */
+    */
     @Transactional(readOnly = true)
     @Override
     public List<NotificationResponse> execute(UUID userId, String userRole) {
-        log.debug("[Check] 사용자 ID: {}, 사용자 역할: {}", userRole, userId);
+        log.debug("[Check] 사용자 ID: {}, 사용자 역할: {}", userId, userRole);
 
         UserRole role = UserRole.valueOf(userRole);
 
@@ -52,4 +53,25 @@ public class NotificationService implements GetAllUserNotificationsUsecase {
 
         return notifications.stream().map(NotificationResponse::from).toList();
     }
+
+    /**
+     * 알림 읽음(isRead) 처리 서비스
+     */
+    @Transactional
+    @Override
+    public NotificationResponse execute(UUID userId, UUID notificationId) {
+        log.debug("[Check] 사용자 ID: {}", userId);
+
+        // Notification ID로 알림 조회
+        Notification notification = notificationQueryPersistencePort.findById(notificationId);
+
+        // isRead: false -> true 변경
+        notification.updateIsRead();
+
+        log.debug("[Check] {} 알림 읽음 여부: {}", notification.toString(), notification.isRead());
+
+        return NotificationResponse.from(notification);
+
+    }
+
 }
