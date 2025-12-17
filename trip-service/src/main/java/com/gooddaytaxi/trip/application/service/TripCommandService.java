@@ -28,6 +28,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TripCommandService implements HandleTripCreateRequestUseCase {
 
+    private static final int PAYLOAD_VERSION = 1;
     private final ExistsTripByDispatchIdPort existsTripByDispatchIdPort;
     private final CreateTripPort createTripPort;
     private final LoadActiveFarePolicyPort loadActiveFarePolicyPort;
@@ -70,6 +71,7 @@ public class TripCommandService implements HandleTripCreateRequestUseCase {
         EventEnvelope<Map<String, Object>> envelope =
                 new EventEnvelope<>(
                         eventId,
+                        PAYLOAD_VERSION,
                         TripEventType.TRIP_CREATED.name(),
                         occurredAt,
                         payload
