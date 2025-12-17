@@ -1,5 +1,7 @@
 package com.gooddaytaxi.support.adapter.out.internal.account.dto;
 
+import com.gooddaytaxi.support.application.service.UserRole;
+
 import java.util.UUID;
 
 /**

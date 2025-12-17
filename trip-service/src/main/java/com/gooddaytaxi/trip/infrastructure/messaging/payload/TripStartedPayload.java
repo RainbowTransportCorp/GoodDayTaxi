@@ -12,7 +12,7 @@ public record TripStartedPayload(
         UUID passengerId,
         String pickupAddress,
         String destinationAddress,
-        LocalDateTime startTime,
-        int payloadVersion
+        LocalDateTime startTime
+
 ) {
 }

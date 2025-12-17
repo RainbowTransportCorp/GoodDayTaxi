@@ -10,7 +10,6 @@ import org.hibernate.annotations.Comment;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -91,22 +90,22 @@ public class Notification extends BaseEntity {
     /**
      * 알림 Entity 생성
      *
-     * @param notifierId           알림 생성자
      * @param notificationOriginId 알림 생성 근원 도메인 ID
+     * @param notifierId           알림 생성자
      * @param notificationType     알림 타입
      * @param message              알림 메시지
      */
 //    @Builder
-    private Notification(UUID notifierId, UUID notificationOriginId, NotificationType notificationType, String message) {
-        this.notifierId = notifierId;
+    private Notification(UUID notificationOriginId, UUID notifierId, NotificationType notificationType, String message) {
         this.notificationOriginId = notificationOriginId;
+        this.notifierId = notifierId;
         this.notificationType = notificationType;
         this.message = (message == null || message.isBlank()) ? null : message;
         this.isRead = false;
     }
 
     public static Notification from(Command command, NotificationType notificationType) {
-        return new Notification(command.getNotifierId(), command.getNotificationOriginId(), notificationType, command.getMessage());
+        return new Notification(command.getNotificationOriginId(), command.getNotifierId(), notificationType, command.getMessage());
     }
 
 
@@ -143,8 +142,14 @@ public class Notification extends BaseEntity {
     }
 
     /**
+     * 알림 읽음 처리
+     */
+    public void updateIsRead() {
+        this.isRead = true;
+    }
+
+    /**
      * 메시지 전송 시각 설정
-     *
      * @param sendingTime 메시지 전송 시각
      */
     public void assignMessageSendingTime(LocalDateTime sendingTime) {

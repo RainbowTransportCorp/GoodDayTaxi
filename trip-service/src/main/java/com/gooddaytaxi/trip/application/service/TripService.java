@@ -1,14 +1,13 @@
 package com.gooddaytaxi.trip.application.service;
 
 
+import com.gooddaytaxi.trip.application.command.CancelTripCommand;
 import com.gooddaytaxi.trip.application.command.EndTripCommand;
 import com.gooddaytaxi.trip.application.command.StartTripCommand;
 import com.gooddaytaxi.trip.application.command.TripCreateCommand;
 import com.gooddaytaxi.trip.application.port.out.*;
 import com.gooddaytaxi.trip.application.result.*;
 import com.gooddaytaxi.trip.domain.model.Trip;
-import com.gooddaytaxi.trip.domain.model.enums.TripStatus;
-import com.gooddaytaxi.trip.infrastructure.messaging.outbox.TripOutboxAppender;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -106,27 +105,79 @@ public class TripService {
         );
 
     }
-
+    @Transactional
     public TripEndResult endTrip(UUID tripId, EndTripCommand command) {
         Trip trip = loadTripByIdPort.loadTripById(tripId)
-                .orElseThrow(() -> new IllegalArgumentException("Trip not found: " + tripId));
+                .orElseThrow(() -> new EntityNotFoundException("Trip not found. tripId=" + tripId));
 
-        if (trip.getStatus() == TripStatus.ENDED) {
-            throw new IllegalStateException("이미 ENDED 상태인 운행입니다.");
-        }
+        // 1) 상태 전이 (STARTED -> ENDED)
+        boolean transitioned = trip.end(command.totalDistance(), command.totalDuration());
 
-        trip.end(command.totalDistance(), command.totalDuration());
-
+        // 2) 업데이트 반영 (네 구조에선 포트로 update 하는 방식 유지)
         Trip updated = updateTripPort.updateTrip(trip);
+
+        // 3) outbox 적재는 “진짜로 ENDED로 바뀐 경우만”
+        if (transitioned) {
+            appendTripEventPort.appendTripEnded(
+                    updated.getTripId(),
+                    command.notifierId(),
+                    updated.getDispatchId(),
+                    updated.getDriverId(),
+                    updated.getPassengerId(),
+                    updated.getPickupAddress(),
+                    updated.getDestinationAddress(),
+                    updated.getStartTime(),
+                    updated.getEndTime(),
+                    updated.getTotalDistance(),
+                    updated.getTotalDuration(),
+                    updated.getFinalFare()
+            );
+        }
 
         return new TripEndResult(
                 updated.getTripId(),
                 updated.getStatus().name(),
                 updated.getEndTime(),
                 updated.getFinalFare(),
-                "운행 종료, 요금 산정 완료 및 결제 요청 이벤트 발행 완료"
+                transitioned ? "운행이 종료되었습니다." : "이미 종료된 운행입니다."
         );
     }
+    @Transactional
+    public TripCancelResult cancelTrip(CancelTripCommand command) {
+        UUID tripId = command.tripId();
+
+        Trip trip = loadTripByIdPort.loadTripById(tripId)
+                .orElseThrow(() -> new EntityNotFoundException("Trip not found. tripId=" + tripId));
+
+        // 1) 상태 전이 (CREATED/READY만 가능)
+        boolean transitioned = trip.cancel();
+
+        // 2) DB 업데이트 반영 (상태가 바뀌었든 아니든 저장은 일단 통일)
+        Trip updated = updateTripPort.updateTrip(trip);
+
+        // 3) outbox 적재는 “진짜로 CANCELLED로 바뀐 경우만”
+        if (transitioned) {
+            appendTripEventPort.appendTripCanceled(
+                    updated.getTripId(),
+                    command.notifierId(),
+                    updated.getDispatchId(),
+                    updated.getDriverId(),
+                    updated.getPassengerId(),
+                    command.cancelReason().name(),
+                    LocalDateTime.now()
+            );
+        }
+
+        return new TripCancelResult(
+                updated.getTripId(),
+                updated.getStatus().name(),
+                transitioned ? "운행이 취소되었습니다." : "취소할 수 없는 상태입니다."
+        );
+
+    }
+
+
+
 
     @Transactional
     public PassengerTripHistoryResult getPassengerTripHistory(UUID passengerId, int page, int size) {
@@ -163,10 +214,6 @@ public class TripService {
                 items
         );
     }
-
-
-
-
 
 
 

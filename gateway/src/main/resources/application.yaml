@@ -90,11 +90,11 @@ springdoc:
       # Support-service
       # -----------------------------
       - name: support-service-v1
-        url: /api/v1/support/api-docs
+        url: /api/v1/supports/api-docs
       - name: support-service-v2
-        url: /api/v2/support/api-docs
+        url: /api/v2/supports/api-docs
       - name: support-service-v3
-        url: /api/v3/support/api-docs
+        url: /api/v3/supports/api-docs
 
 
 eureka:

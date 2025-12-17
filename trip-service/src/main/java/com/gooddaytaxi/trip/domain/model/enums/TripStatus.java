@@ -1,7 +1,8 @@
 package com.gooddaytaxi.trip.domain.model.enums;
 
 public enum TripStatus {
-    READY("준비"),
+    CREATED("생성됨"),
+    READY("배차 완료"),
     STARTED("운행 시작"),
     ENDED("운행 종료"),
     CANCELLED("취소");

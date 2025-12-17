@@ -1,12 +1,14 @@
 package com.gooddaytaxi.trip.presentation.controller;
 
 import com.gooddaytaxi.common.core.dto.ApiResponse;
+import com.gooddaytaxi.trip.application.command.CancelTripCommand;
 import com.gooddaytaxi.trip.application.command.EndTripCommand;
 import com.gooddaytaxi.trip.application.command.StartTripCommand;
 import com.gooddaytaxi.trip.application.command.TripCreateCommand;
 import com.gooddaytaxi.trip.application.result.*;
 import com.gooddaytaxi.trip.application.service.TripService;
 
+import com.gooddaytaxi.trip.domain.model.enums.CancelReason;
 import com.gooddaytaxi.trip.presentation.dto.request.CreateTripRequest;
 import com.gooddaytaxi.trip.presentation.dto.request.EndTripRequest;
 import com.gooddaytaxi.trip.presentation.dto.response.*;
@@ -87,7 +89,7 @@ public class TripController {
     @PutMapping("/{tripId}/start")
     public ResponseEntity<ApiResponse<TripStartResponse>> startTrip(
             @PathVariable("tripId") UUID tripId,
-            @RequestHeader("x-user-uuid") UUID notifierId
+            @RequestHeader(value = "x-user-uuid",required = false) UUID notifierId
     ) {
 
         UUID finalNotifierId = (notifierId != null)
@@ -106,16 +108,46 @@ public class TripController {
     @PutMapping("/{tripId}/end")
     public ResponseEntity<ApiResponse<TripEndResponse>> endTrip(
             @PathVariable UUID tripId,
+            @RequestHeader(value = "x-user-uuid", required = false) UUID notifierId,
             @Valid @RequestBody EndTripRequest request
     ) {
-        EndTripCommand command = endTripRequestMapper.toCommand(request);
+        UUID finalNotifierId = (notifierId != null)
+                ? notifierId
+                : UUID.fromString("99999999-9999-9999-9999-999999999999");
+
+        EndTripCommand command = endTripRequestMapper.toCommand(request, finalNotifierId);
+        // ↑ mapper가 notifierId를 못 받는 구조면, 아래처럼 command 생성 방식으로 바꿔도 됨
 
         TripEndResult result = tripService.endTrip(tripId, command);
-
         TripEndResponse response = tripEndResponseMapper.toResponse(result);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
+
+
+    @PutMapping("/{tripId}/cancel")
+    public ResponseEntity<ApiResponse<TripCancelResult>> cancelTrip(
+            @PathVariable UUID tripId,
+            @RequestHeader(value = "x-user-uuid", required = false) UUID notifierId,
+            @RequestParam(defaultValue = "PASSENGER_REQUEST") String cancelReason
+    ) {
+        UUID finalNotifierId = (notifierId != null)
+                ? notifierId
+                : UUID.fromString("99999999-9999-9999-9999-999999999999");;
+
+        CancelReason reason = CancelReason.valueOf(cancelReason);
+
+        CancelTripCommand command =
+                new CancelTripCommand(tripId, finalNotifierId, reason);
+
+        TripCancelResult result = tripService.cancelTrip(command);
+        return ResponseEntity.ok(ApiResponse.success(result));
+    }
+
+
+
+
+
 
     @GetMapping("/passengers/{passengerId}")
     public ResponseEntity<ApiResponse<PassengerTripHistoryResponse>> getPassengerTripHistory(
@@ -132,6 +164,9 @@ public class TripController {
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
+
+
+
 
     @GetMapping("/drivers/{driverId}")
     public ResponseEntity<ApiResponse<DriverTripHistoryResponse>> getDriverTripHistory(

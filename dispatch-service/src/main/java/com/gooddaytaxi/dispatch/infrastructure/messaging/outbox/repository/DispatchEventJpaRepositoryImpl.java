@@ -25,14 +25,4 @@ public class DispatchEventJpaRepositoryImpl implements DispatchEventJpaRepositor
                 .limit(limit)
                 .fetch();
     }
-
-    @Override
-    public void updateStatusPublished(UUID eventId) {
-        queryFactory
-                .update(dispatchEvent)
-                .set(dispatchEvent.eventStatus, EventStatus.SENT)
-                .set(dispatchEvent.publishedAt, LocalDateTime.now())
-                .where(dispatchEvent.eventId.eq(eventId))
-                .execute();
-    }
 }

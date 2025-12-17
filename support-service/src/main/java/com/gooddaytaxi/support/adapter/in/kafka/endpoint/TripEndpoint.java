@@ -30,10 +30,10 @@ public class TripEndpoint {
     @KafkaListener(topics = "trip.started", groupId = "support-service")
     public void onTripStarted(EventRequest req) {
         // Metadata
-        Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occuredAt());
+        Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occurredAt());
         // Payload
         TripStartedEventPayload pl = req.convertPayload(TripStartedEventPayload.class);
-        log.debug("[Check] Trip Started EventRequest 데이터: tripId={}, notifierId={}, occuredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occuredAt());
+        log.debug("[Check] Trip Started EventRequest 데이터: tripId={}, notifierId={}, occurredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occurredAt());
 
         // EventRequest DTO > Command 변환
         NotifyTripStartedCommand command = NotifyTripStartedCommand.create(
@@ -56,10 +56,10 @@ public class TripEndpoint {
     @KafkaListener(topics = "trip.ended", groupId = "support-service")
     public void onTripEnded(EventRequest req) {
         // Metadata
-        Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occuredAt());
+        Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occurredAt());
         // Payload
         TripEndedEventPayload pl = req.convertPayload(TripEndedEventPayload.class);
-        log.debug("[Check] Trip Ended EventRequest 데이터: tripId={}, notifierId={}, occuredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occuredAt());
+        log.debug("[Check] Trip Ended EventRequest 데이터: tripId={}, notifierId={}, occurredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occurredAt());
 
         // EventRequest DTO > Command 변환
         NotifyTripEndedCommand command = NotifyTripEndedCommand.create(

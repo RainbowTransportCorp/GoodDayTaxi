@@ -28,10 +28,10 @@ public class PaymentEndpoint {
     @KafkaListener(topics = "payment.completed", groupId = "support-service")
     public void onPaymentCompleted(EventRequest req) {
         // Metadata
-        Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occuredAt());
+        Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occurredAt());
         // Payload
         PaymentCompletedEventPayload pl = req.convertPayload(PaymentCompletedEventPayload.class);
-        log.debug("[Check] Payment Completed EventRequest 데이터: paymentId={}, notifierId={}, occuredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occuredAt());
+        log.debug("[Check] Payment Completed EventRequest 데이터: paymentId={}, notifierId={}, occurredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occurredAt());
 
         // EventRequest DTO > Command 변환
         NotifyPaymentCompletedCommand command = NotifyPaymentCompletedCommand.create(
@@ -56,10 +56,10 @@ public class PaymentEndpoint {
     @KafkaListener(topics = "refund.request.created", groupId = "support-service")
     public void onRefundRequestCreated(EventRequest req) {
         // Metadata
-        Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occuredAt());
+        Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occurredAt());
         // Payload
         RefundRequestCreatedEventPayload pl = req.convertPayload(RefundRequestCreatedEventPayload.class);
-        log.debug("[Check] Refund Request Created EventRequest 데이터: paymentId={}, notifierId={}, occuredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occuredAt());
+        log.debug("[Check] Refund Request Created EventRequest 데이터: paymentId={}, notifierId={}, occurredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occurredAt());
 
         // EventRequest DTO > Command 변환
         NotifyRefundRequestedCommand command = NotifyRefundRequestedCommand.create(
@@ -84,10 +84,10 @@ public class PaymentEndpoint {
     @KafkaListener(topics = "refund.request.rejected", groupId = "support-service")
     public void onRefundRequestRejected(EventRequest req) {
         // Metadata
-        Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occuredAt());
+        Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occurredAt());
         // Payload
         RefundRequestRejectedEventPayload pl = req.convertPayload(RefundRequestRejectedEventPayload.class);
-        log.debug("[Check] Refund Request Rejected EventRequest 데이터: paymentId={}, notifierId={}, occuredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occuredAt());
+        log.debug("[Check] Refund Request Rejected EventRequest 데이터: paymentId={}, notifierId={}, occurredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occurredAt());
 
         // EventRequest DTO > Command 변환
         NotifyRefundRejectedCommand command = NotifyRefundRejectedCommand.create(
@@ -112,10 +112,10 @@ public class PaymentEndpoint {
     @KafkaListener(topics = "refund.completed", groupId = "support-service")
     public void onRefundCompleted(EventRequest req) {
         // Metadata
-        Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occuredAt());
+        Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occurredAt());
         // Payload
         RefundCompletedEventPayload pl = req.convertPayload(RefundCompletedEventPayload.class);
-        log.debug("[Check] Refund Request Rejected EventRequest 데이터: paymentId={}, notifierId={}, occuredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occuredAt());
+        log.debug("[Check] Refund Request Rejected EventRequest 데이터: paymentId={}, notifierId={}, occurredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occurredAt());
 
         // EventRequest DTO > Command 변환
         NotifyRefundCompletedCommand command = NotifyRefundCompletedCommand.create(
@@ -147,7 +147,7 @@ public class PaymentEndpoint {
     @KafkaListener(topics = "refund.settlement", groupId = "support-service")
     public void onRefundSettlementCreated(EventRequest req) {
         // Metadata
-        Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occuredAt());
+        Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occurredAt());
         // Payload
         RefundSettlementCreatedEventPayload pl = req.convertPayload(RefundSettlementCreatedEventPayload.class);
         log.debug("[Check] Refund Request to Driver EventRequest 데이터: tripId={}, paymentId={}, driverId={}, approvedAt={}", pl.tripId(), pl.notificationOriginId(), pl.driverId(), pl.approvedAt());

@@ -1,12 +1,16 @@
 package com.gooddaytaxi.support.application.service;
 
-import com.gooddaytaxi.support.adapter.out.internal.account.dto.UserRole;
-import com.gooddaytaxi.support.application.port.in.web.GetAllUserNotificationsUsecase;
+import com.gooddaytaxi.support.application.dto.notification.NotificationResponse;
+import com.gooddaytaxi.support.application.port.in.web.notification.GetAllUserNotificationsUsecase;
+import com.gooddaytaxi.support.application.port.in.web.notification.UpdateNotrificationReadStatusUsecase;
+import com.gooddaytaxi.support.application.port.out.persistence.NotificationQueryPersistencePort;
+import com.gooddaytaxi.support.domain.notification.model.Notification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -17,30 +21,56 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class NotificationService implements GetAllUserNotificationsUsecase {
-    private static final String SYSTEM_UUID = "99999999-9999-9999-9999-999999999999";  // DISPATCH_TIMEOUT 이벤트 notifierId
+public class NotificationService implements GetAllUserNotificationsUsecase, UpdateNotrificationReadStatusUsecase {
 
+    private final NotificationQueryPersistencePort notificationQueryPersistencePort;
+    private static final UUID SYSTEM_UUID = UUID.fromString("99999999-9999-9999-9999-999999999999");  // DISPATCH_TIMEOUT 이벤트 notifierId
+
+    /**
+    * 사용자의 알림 전체 조회 서비스
+    */
+    @Transactional(readOnly = true)
     @Override
-    public void execute(UUID userId, String userRole) {
-        log.debug("[Check] 사용자 ID: {}, 사용자 역할: {}", userRole, userId);
+    public List<NotificationResponse> execute(UUID userId, String userRole) {
+        log.debug("[Check] 사용자 ID: {}, 사용자 역할: {}", userId, userRole);
 
         UserRole role = UserRole.valueOf(userRole);
 
+        // Notifier ID로 알림 조회
+        List<Notification> notifications;
         switch(role) {
-            case DRIVER -> {        // 기사
-
+            case DRIVER, PASSENGER -> {   // 기사, 승객일 경우
+                notifications = notificationQueryPersistencePort.findAllByNotifierId(userId);
             }
-            case PASSENGER -> {     // 승객
-
+            case ADMIN, MASTER_ADMIN -> { // 관리자일 경우, System이 통지한 알림 포함하여 조회
+                notifications = notificationQueryPersistencePort.findAllByNotifierIdIn(List.of(userId, SYSTEM_UUID));
             }
-            case ADMIN -> {         // 관리자(조회 권한)
-
-            }
-            case MASTER_ADMIN -> {  // 최고 관리자
-
+            default -> {
+                notifications = notificationQueryPersistencePort.findAllByNotifierId(userId);
             }
         }
 
+        return notifications.stream().map(NotificationResponse::from).toList();
+    }
+
+    /**
+     * 알림 읽음(isRead) 처리 서비스
+     */
+    @Transactional
+    @Override
+    public NotificationResponse execute(UUID userId, UUID notificationId) {
+        log.debug("[Check] 사용자 ID: {}", userId);
+
+        // Notification ID로 알림 조회
+        Notification notification = notificationQueryPersistencePort.findById(notificationId);
+
+        // isRead: false -> true 변경
+        notification.updateIsRead();
+
+        log.debug("[Check] {} 알림 읽음 여부: {}", notification.toString(), notification.isRead());
+
+        return NotificationResponse.from(notification);
 
     }
+
 }

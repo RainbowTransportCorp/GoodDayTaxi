@@ -18,22 +18,26 @@ public class NotifyDipsatchTimeoutCommand extends Command {
     private final LocalDateTime timeoutAt;
 
     private NotifyDipsatchTimeoutCommand(
-            UUID dispatchId,
+            UUID notificationOriginId,
+            UUID notifierId,
             UUID passengerId,
+            String message,
             LocalDateTime timeoutAt,
             Metadata metadata
     ) {
-        super(dispatchId, null, null, metadata);
-        this.dispatchId = dispatchId;
+        super(notificationOriginId, notifierId, message, metadata);
+        this.dispatchId = notificationOriginId;
         this.passengerId = passengerId;
         this.timeoutAt = timeoutAt;
     }
     public static NotifyDipsatchTimeoutCommand create(
-            UUID dispatchId,
+            UUID notificationOriginId,
+            UUID notifierId,
             UUID passengerId,
+            String message,
             LocalDateTime timeoutAt,
             Metadata metadata
     ) {
-        return new NotifyDipsatchTimeoutCommand(dispatchId, passengerId, timeoutAt, metadata);
+        return new NotifyDipsatchTimeoutCommand(notificationOriginId, notifierId, passengerId, message, timeoutAt, metadata);
     }
 }

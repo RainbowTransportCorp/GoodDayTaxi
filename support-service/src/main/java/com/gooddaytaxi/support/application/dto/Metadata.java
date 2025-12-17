@@ -6,5 +6,5 @@ import java.util.UUID;
 public record Metadata (
     UUID eventId,
     String eventType,
-    LocalDateTime occuredAt
+    LocalDateTime occurredAt
 ){}
