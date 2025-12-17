@@ -1,7 +1,7 @@
 package com.gooddaytaxi.dispatch.infrastructure.messaging.outbox.relay;
 
 import com.gooddaytaxi.dispatch.application.outbox.DispatchEventOutboxPort;
-import com.gooddaytaxi.dispatch.application.outbox.OutboxEventModel;
+import com.gooddaytaxi.dispatch.infrastructure.messaging.outbox.entity.DispatchEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -33,22 +33,28 @@ public class OutboxRelay {
      */
     @Scheduled(fixedDelayString = "${outbox.relay.delay-ms:5000}")
     public void relay() {
-        List<OutboxEventModel> pending = outboxPort.findPending(100);
+        List<DispatchEvent> pending = outboxPort.findPending(100);
 
-        for (OutboxEventModel event : pending) {
+        for (DispatchEvent event : pending) {
             try {
                 kafkaTemplate.send(
-                        event.topic(),
-                        event.messageKey(),
-                        event.payloadJson()
+                        event.getTopic(),
+                        event.getMessageKey(),
+                        event.getPayload()
                 ).get();
 
-                outboxPort.markPublished(event.eventId());
+                event.markSent();
+                outboxPort.save(event);
+
             } catch (Exception ex) {
+                event.markFailed(ex.getMessage());
+                outboxPort.save(event);
+
                 log.error("[DISPATCH-OUTBOX-ERROR] id={} topic={} error={}",
-                        event.eventId(), event.topic(), ex.getMessage());
+                        event.getEventId(), event.getTopic(), ex.getMessage());
             }
         }
     }
+
 
 }

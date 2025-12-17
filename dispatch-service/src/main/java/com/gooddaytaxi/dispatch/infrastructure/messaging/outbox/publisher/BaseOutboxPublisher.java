@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gooddaytaxi.dispatch.application.event.DispatchEventMetadata;
 import com.gooddaytaxi.dispatch.application.event.EventEnvelope;
 import com.gooddaytaxi.dispatch.application.outbox.DispatchEventOutboxPort;
-import com.gooddaytaxi.dispatch.application.outbox.OutboxEventModel;
+import com.gooddaytaxi.dispatch.infrastructure.messaging.outbox.entity.DispatchEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -62,8 +62,8 @@ public abstract class BaseOutboxPublisher<T> {
             throw new IllegalArgumentException("Outbox payload serialization failed", e);
         }
 
-        // 3. Outbox 모델 생성
-        OutboxEventModel model = new OutboxEventModel(
+        // 3. Outbox 엔티티 생성 (PENDING 상태)
+        DispatchEvent event = DispatchEvent.pending(
                 metadata.eventType(),
                 metadata.topic(),
                 messageKey,
@@ -73,11 +73,12 @@ public abstract class BaseOutboxPublisher<T> {
                 payloadJson
         );
 
-        // 4. 저장
-        outboxPort.save(model);
+        // 4. Outbox 저장 (전송은 Relay가 담당)
+        outboxPort.save(event);
 
         log.info("[DISPATCH-OUTBOX-SAVED] type={} id={} topic={}",
                 metadata.eventType(), aggregateId, metadata.topic());
     }
 }
+
 
