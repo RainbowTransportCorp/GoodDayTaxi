@@ -4,13 +4,16 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
- * DISPATCH_TIMEOUT 이벤트 Payload DTO
+ * DISPATCH_ACCEPTED 이벤트 Payload DTO
  */
-public record DispatchTimeoutEventPayload(
+public record DispatchAcceptedEventPayload(
     UUID notificationOriginId,
     UUID notifierId,
     UUID dispatchId,
+    UUID driverId,
     UUID passengerId,
+    String pickupAddress,
+    String destinationAddress,
     String message,
-    LocalDateTime timeoutAt
+    LocalDateTime acceptedAt
 ) {}

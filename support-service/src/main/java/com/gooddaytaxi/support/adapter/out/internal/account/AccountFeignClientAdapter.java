@@ -22,6 +22,7 @@ public class AccountFeignClientAdapter implements AccountDomainCommunicationPort
 
     @Override
     public UserProfile getUserInfo(UUID userId) {
+
         return accountFeignClient.getUserInfo(userId.toString());
     }
 

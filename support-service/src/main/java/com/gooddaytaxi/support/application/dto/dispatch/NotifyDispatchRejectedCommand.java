@@ -15,25 +15,33 @@ import java.util.UUID;
 public class NotifyDispatchRejectedCommand extends Command {
     private final UUID dispatchId;
     private final UUID driverId;
+    private final UUID passengerId;
     private final LocalDateTime rejectedAt;
 
     private NotifyDispatchRejectedCommand(
-            UUID dispatchId,
+            UUID notificationOriginId,
+            UUID notifierId,
             UUID driverId,
+            UUID passengerId,
+            String message,
             LocalDateTime rejectedAt,
             Metadata metadata
     ) {
-        super(dispatchId, null, null, metadata);
-        this.dispatchId = dispatchId;
+        super(notificationOriginId, notifierId, message, metadata);
+        this.dispatchId = notificationOriginId;
         this.driverId = driverId;
+        this.passengerId = passengerId;
         this.rejectedAt = rejectedAt;
     }
     public static NotifyDispatchRejectedCommand create(
-            UUID dispatchId,
+            UUID notificationOriginId,
+            UUID notifierId,
             UUID driverId,
+            UUID passengerId,
+            String message,
             LocalDateTime rejectedAt,
             Metadata metadata
     ) {
-        return new NotifyDispatchRejectedCommand(dispatchId, driverId, rejectedAt, metadata);
+        return new NotifyDispatchRejectedCommand(notificationOriginId, notifierId, driverId, passengerId, message, rejectedAt, metadata);
     }
 }

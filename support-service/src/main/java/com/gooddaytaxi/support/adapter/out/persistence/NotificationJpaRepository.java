@@ -24,6 +24,22 @@ interface NotificationJpaRepository extends JpaRepository<Notification, UUID> {
      */
     Optional<Notification> findById(UUID notificationId);
     Optional<Notification> findByNotificationOriginId(UUID id);
+    List<Notification> findAllByNotifierId(UUID notifierId);
+    /*
+    * JPQL: findAllByNotifierIdIn
+    @Query("""
+        SELECT n
+        FROM Notification n
+        WHERE n.notifierId = :userId
+           OR n.notifierId = :systemId
+    """)
+        List<Notification> findAllByNotifierIn(
+                @Param("userId") UUID userId,
+                @Param("systemId") UUID systemId
+        );
+    */
+    List<Notification> findAllByNotifierIdIn(List<UUID> notifierIds);
+
     List<Notification> findAllByNotificationType(NotificationType type);
     List<Notification> findByNotifiedAtBetween(LocalDateTime start, LocalDateTime end);
     List<Notification> findByNotifiedAtAfter(LocalDateTime start);

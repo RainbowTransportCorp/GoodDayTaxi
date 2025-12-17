@@ -41,18 +41,18 @@ public class PaymentService implements NotifyCompletedPaymentUsecase, NotifyRefu
     @Override
     public void execute(NotifyPaymentCompletedCommand command) {
         // Notification 생성 및 저장
-        Notification noti = Notification.from(command, NotificationType.PAYMENT_COMPLETED);
-        noti.assignIds(null, command.getTripId(), command.getPaymentId(), command.getDriverId(), command.getPassengerId());
-        log.debug("[Check] Notification 생성: paymentId={}, driverId={}, passengerId={}, message={}", noti.getNotificationOriginId(), noti.getDriverId(), noti.getPassengerId(), noti.getMessage());
+        Notification notification = Notification.from(command, NotificationType.PAYMENT_COMPLETED);
+        notification.assignIds(null, command.getTripId(), command.getPaymentId(), command.getDriverId(), command.getPassengerId());
+        log.debug("[Check] Notification 생성: paymentId={}, driverId={}, passengerId={}, message={}", notification.getNotificationOriginId(), notification.getDriverId(), notification.getPassengerId(), notification.getMessage());
 
-        Notification savedNoti = notificationCommandPersistencePort.save(noti);
+        Notification savedNoti = notificationCommandPersistencePort.save(notification);
 //        Notification savedNoti = notificationQueryPersistencePort.findById(noti.getId());
         log.debug("[Check] Notification Persistence 조회: paymentId={}, driverId={}, passengerId={}, message={}", savedNoti.getPaymentId(), savedNoti.getDriverId(), savedNoti.getPassengerId(), savedNoti.getMessage());
 
         // 수신자: [ 기사, 승객 ]
         List<UUID> receivers = new ArrayList<>();
-        receivers.add(noti.getDriverId());
-        receivers.add(noti.getPassengerId());
+        receivers.add(notification.getDriverId());
+        receivers.add(notification.getPassengerId());
 
         // 알림 메시지 구성
         String messageTitle = "\uD83D\uDCE2 [GoodDayTaxi] 결제가 정상적으로 처리되었습니다";
@@ -89,11 +89,11 @@ public class PaymentService implements NotifyCompletedPaymentUsecase, NotifyRefu
     @Override
     public void request(NotifyRefundRequestedCommand command) {
         // Notification 생성 및 저장
-        Notification noti = Notification.from(command, NotificationType.REFUND_REQUEST_CREATED);
-        noti.assignIds(null, command.getTripId(), command.getPaymentId(), command.getDriverId(), command.getPassengerId());
-        log.debug("[Check] Notification 생성: refundRequestId={}, paymentId={}, driverId={}, passengerId={}, message={}", noti.getNotificationOriginId(), noti.getPaymentId(), noti.getDriverId(), noti.getNotifierId(), noti.getMessage());
+        Notification notification = Notification.from(command, NotificationType.REFUND_REQUEST_CREATED);
+        notification.assignIds(null, command.getTripId(), command.getPaymentId(), command.getDriverId(), command.getPassengerId());
+        log.debug("[Check] Notification 생성: refundRequestId={}, paymentId={}, driverId={}, passengerId={}, message={}", notification.getNotificationOriginId(), notification.getPaymentId(), notification.getDriverId(), notification.getNotifierId(), notification.getMessage());
 
-        Notification savedNoti = notificationCommandPersistencePort.save(noti);
+        Notification savedNoti = notificationCommandPersistencePort.save(notification);
 //        Notification savedNoti = notificationQueryPersistencePort.findById(noti.getId());
         log.debug("[Check] Notification Persistence 조회: paymentId={}, driverId={}, passengerId={}, message={}", savedNoti.getPaymentId(), savedNoti.getDriverId(), savedNoti.getPassengerId(), savedNoti.getMessage());
 
@@ -143,18 +143,18 @@ public class PaymentService implements NotifyCompletedPaymentUsecase, NotifyRefu
     @Override
     public void reject(NotifyRefundRejectedCommand command) {
         // Notification 생성 및 저장
-        Notification noti = Notification.from(command, NotificationType.REFUND_REQUEST_REJECTED);
-        noti.assignIds(null, command.getTripId(), command.getPaymentId(), null, command.getPassengerId());
-        log.debug("[Check] Notification 생성: refundRequestId={}, paymentId={}, adminId={}, passengerId={}, rejectReason={}", noti.getNotificationOriginId(), noti.getPaymentId(), noti.getNotifierId(), noti.getPassengerId(), command.getRejectReason());
+        Notification notification = Notification.from(command, NotificationType.REFUND_REQUEST_REJECTED);
+        notification.assignIds(null, command.getTripId(), command.getPaymentId(), null, command.getPassengerId());
+        log.debug("[Check] Notification 생성: refundRequestId={}, paymentId={}, adminId={}, passengerId={}, rejectReason={}", notification.getNotificationOriginId(), notification.getPaymentId(), notification.getNotifierId(), notification.getPassengerId(), command.getRejectReason());
 
-        Notification savedNoti = notificationCommandPersistencePort.save(noti);
+        Notification savedNoti = notificationCommandPersistencePort.save(notification);
 //        Notification savedNoti = notificationQueryPersistencePort.findById(noti.getId());
         log.debug("[Check] Notification Persistence 조회: paymentId={}, adminId={}, passengerId={}, rejectReason={}", savedNoti.getPaymentId(), savedNoti.getNotifierId(), savedNoti.getPassengerId(), savedNoti.getMessage());
 
         // 수신자: [ 기사, 승객 ]
         List<UUID> receivers = new ArrayList<>();
         receivers.add(null);
-        receivers.add(noti.getPassengerId());
+        receivers.add(notification.getPassengerId());
 
         // 알림 메시지 구성
         String messageTitle = "\uD83D\uDCE2 고객님의 환불 요청이 처리 기준에 따라 거절되었습니다";
@@ -195,18 +195,18 @@ public class PaymentService implements NotifyCompletedPaymentUsecase, NotifyRefu
     @Override
     public void complete(NotifyRefundCompletedCommand command) {
         // Notification 생성 및 저장
-        Notification noti = Notification.from(command, NotificationType.REFUND_COMPLETED);
-        noti.assignIds(null, command.getTripId(), command.getPaymentId(), command.getDriverId(), command.getPassengerId());
-        log.debug("[Check] Notification 생성: refundRequestId={}, paymentId={}, adminId={}, driverId={}, passengerId={}, refundReason={}", noti.getNotificationOriginId(), noti.getPaymentId(), noti.getNotifierId(), noti.getDriverId(), noti.getPassengerId(), command.getReason());
+        Notification notification = Notification.from(command, NotificationType.REFUND_COMPLETED);
+        notification.assignIds(null, command.getTripId(), command.getPaymentId(), command.getDriverId(), command.getPassengerId());
+        log.debug("[Check] Notification 생성: refundRequestId={}, paymentId={}, adminId={}, driverId={}, passengerId={}, refundReason={}", notification.getNotificationOriginId(), notification.getPaymentId(), notification.getNotifierId(), notification.getDriverId(), notification.getPassengerId(), command.getReason());
 
-        Notification savedNoti = notificationCommandPersistencePort.save(noti);
+        Notification savedNoti = notificationCommandPersistencePort.save(notification);
 //        Notification savedNoti = notificationQueryPersistencePort.findById(noti.getId());
         log.debug("[Check] Notification Persistence 조회: paymentId={}, adminId={}, driverId={}, passengerId={}, message={}", savedNoti.getPaymentId(), savedNoti.getNotifierId(), savedNoti.getDriverId(), savedNoti.getPassengerId(), savedNoti.getMessage());
 
         // 수신자: [ 기사, 승객 ]
         List<UUID> receivers = new ArrayList<>();
-        receivers.add(noti.getDriverId());
-        receivers.add(noti.getPassengerId());
+        receivers.add(notification.getDriverId());
+        receivers.add(notification.getPassengerId());
 
         // 알림 메시지 구성
         RefundReason refundReason = RefundReason.of(command.getReason());
@@ -308,17 +308,17 @@ public class PaymentService implements NotifyCompletedPaymentUsecase, NotifyRefu
     @Override
     public void createSettlement(NotifyRefundSettlementCreatedCommand command) {
         // Notification 생성 및 저장
-        Notification noti = Notification.from(command, NotificationType.REFUND_SETTLEMENT_CREATED);
-        noti.assignIds(null, command.getTripId(), command.getPaymentId(), command.getDriverId(), null);
-        log.debug("[Check] Notification 생성: paymentId={}, adminId={}, driverId={}, reason={}", noti.getNotificationOriginId(), noti.getNotifierId(), noti.getDriverId(), command.getReason());
+        Notification notification = Notification.from(command, NotificationType.REFUND_SETTLEMENT_CREATED);
+        notification.assignIds(null, command.getTripId(), command.getPaymentId(), command.getDriverId(), null);
+        log.debug("[Check] Notification 생성: paymentId={}, adminId={}, driverId={}, reason={}", notification.getNotificationOriginId(), notification.getNotifierId(), notification.getDriverId(), command.getReason());
 
-        Notification savedNoti = notificationCommandPersistencePort.save(noti);
+        Notification savedNoti = notificationCommandPersistencePort.save(notification);
 //        Notification savedNoti = notificationQueryPersistencePort.findById(noti.getId());
         log.debug("[Check] Notification Persistence 조회: paymentId={}, adminId={}, driverId={}, message={}", savedNoti.getPaymentId(), savedNoti.getNotifierId(), savedNoti.getDriverId(), savedNoti.getMessage());
 
         // 수신자: [ 기사, 승객 ]
         List<UUID> receivers = new ArrayList<>();
-        receivers.add(noti.getDriverId());
+        receivers.add(notification.getDriverId());
         receivers.add(null);
 
         // 알림 메시지 구성

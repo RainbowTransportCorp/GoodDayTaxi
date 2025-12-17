@@ -15,7 +15,7 @@ public record EventRequest(
 //        EventMetadata eventMetadata,
         UUID eventId,
         String eventType,
-        LocalDateTime occuredAt,
+        LocalDateTime occurredAt,
         Integer payloadVersion,
         Map<String, Object> payload
 ) {
@@ -43,7 +43,7 @@ public record EventRequest(
 //public record EventRequest(
 //        EventMetadata eventMetadata,
 //        Integer payloadVersion,
-//        DispatchEventPayload payload
+//        DispatchRequestedEventPayload payload
 //) {
 //
 //    private static final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
