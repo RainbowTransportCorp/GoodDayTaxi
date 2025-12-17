@@ -38,21 +38,3 @@ public record EventRequest(
         }
     }
 }
-
-
-//public record EventRequest(
-//        EventMetadata eventMetadata,
-//        Integer payloadVersion,
-//        DispatchRequestedEventPayload payload
-//) {
-//
-//    private static final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
-//
-//    public static EventRequest from(String data) {
-//        try {
-//            return mapper.readValue(data, EventRequest.class);
-//        } catch (Exception e) {
-//            throw new RuntimeException("Invalid JSON for EventRequest", e);
-//        }
-//    }
-//}

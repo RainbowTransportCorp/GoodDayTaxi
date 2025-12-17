@@ -1,6 +1,9 @@
 package com.gooddaytaxi.support.domain.log.model;
 
 import com.gooddaytaxi.common.jpa.model.BaseEntity;
+import com.gooddaytaxi.support.application.dto.Command;
+import com.gooddaytaxi.support.domain.notification.model.Notification;
+import com.gooddaytaxi.support.domain.notification.model.NotificationType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -61,12 +64,16 @@ public class Log extends BaseEntity {
      * @param logMessage 로그 메시지
      */
     @Builder
-    public Log(LogType logType, String logMessage) {
-        this.logType = logType;
+    private Log(String logMessage, LocalDateTime occurredAt, LogType logType, UUID notificationId) {
         this.logMessage = logMessage;
-        this.occurredAt = LocalDateTime.now();
+        this.occurredAt = occurredAt;
+        this.logType = logType;
+        this.notificationId = notificationId;
     }
 
+    public static Log from(Command command, LogType logType, UUID notificationId) {
+        return new Log(command.getMessage(), command.getMetadata().occurredAt(), logType, notificationId);
+    }
 
     /**
      * 알림 소프트 삭제
@@ -76,14 +83,5 @@ public class Log extends BaseEntity {
     public void softDelete(UUID deletedBy) {
         this.deletedAt = LocalDateTime.now();
         this.deletedBy = deletedBy;
-    }
-
-    /**
-     * 알림 ID Setter - 알림 관련 장애인 경우 필요
-     *
-     * @param notificationId 알림 ID
-     */
-    public void setNotificationId(UUID notificationId) {
-        this.notificationId = notificationId;
     }
 }

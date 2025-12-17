@@ -28,6 +28,7 @@ import java.util.UUID;
 @Slf4j
 @RequiredArgsConstructor
 @Service
+@Transactional
 public class DispatchService implements NotifyDispatchUsecase, NotifyAcceptedCallUsecase, NotifyDispatchTimeoutUsecase, NotifyDispatchCancelUsecase, NotifyDispatchRejectUsecase {
 
     private final NotificationCommandPersistencePort notificationCommandPersistencePort;
