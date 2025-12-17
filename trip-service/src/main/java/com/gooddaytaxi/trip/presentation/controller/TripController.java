@@ -87,7 +87,7 @@ public class TripController {
     @PutMapping("/{tripId}/start")
     public ResponseEntity<ApiResponse<TripStartResponse>> startTrip(
             @PathVariable("tripId") UUID tripId,
-            @RequestHeader("x-user-uuid") UUID notifierId
+            @RequestHeader(value = "x-user-uuid",required = false) UUID notifierId
     ) {
 
         UUID finalNotifierId = (notifierId != null)
@@ -106,12 +106,17 @@ public class TripController {
     @PutMapping("/{tripId}/end")
     public ResponseEntity<ApiResponse<TripEndResponse>> endTrip(
             @PathVariable UUID tripId,
+            @RequestHeader(value = "x-user-uuid", required = false) UUID notifierId,
             @Valid @RequestBody EndTripRequest request
     ) {
-        EndTripCommand command = endTripRequestMapper.toCommand(request);
+        UUID finalNotifierId = (notifierId != null)
+                ? notifierId
+                : UUID.fromString("99999999-9999-9999-9999-999999999999");
+
+        EndTripCommand command = endTripRequestMapper.toCommand(request, finalNotifierId);
+        // ↑ mapper가 notifierId를 못 받는 구조면, 아래처럼 command 생성 방식으로 바꿔도 됨
 
         TripEndResult result = tripService.endTrip(tripId, command);
-
         TripEndResponse response = tripEndResponseMapper.toResponse(result);
 
         return ResponseEntity.ok(ApiResponse.success(response));
