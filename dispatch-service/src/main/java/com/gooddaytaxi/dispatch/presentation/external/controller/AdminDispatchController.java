@@ -14,6 +14,8 @@ import com.gooddaytaxi.dispatch.presentation.external.dto.response.AdminDispatch
 import com.gooddaytaxi.dispatch.presentation.external.dto.response.AdminForceTimeoutResponseDto;
 import com.gooddaytaxi.dispatch.presentation.external.mapper.response.AdminDispatchResponseMapper;
 import com.gooddaytaxi.dispatch.presentation.external.mapper.response.AdminTimeoutResponseMapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +26,10 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/admin/dispatches")
 @RequiredArgsConstructor
+@Tag(
+        name = "Admin Dispatch API",
+        description = "관리자(Admin) 배차 조회 및 강제 처리 API"
+)
 public class AdminDispatchController {
 
     private final AdminDispatchQueryService adminQueryService;
@@ -32,6 +38,10 @@ public class AdminDispatchController {
     /**
      * 관리자 배차 목록 조회 (ADMIN, MASTER_ADMIN)
      */
+    @Operation(
+            summary = "관리자 배차 목록 조회",
+            description = "관리자가 배차 목록을 조회합니다. 상태 필터링이 가능합니다."
+    )
     @GetMapping
     public ResponseEntity<ApiResponse<List<AdminDispatchListResponseDto>>> getDispatches(
             @RequestHeader(value = "X-User-Role") String role,
@@ -51,6 +61,10 @@ public class AdminDispatchController {
     /**
      * 관리자 배차 상세 조회 (ADMIN, MASTER_ADMIN)
      */
+    @Operation(
+            summary = "관리자 배차 상세 조회",
+            description = "관리자가 특정 배차의 상세 정보를 조회합니다."
+    )
     @GetMapping("/{dispatchId}")
     public ResponseEntity<ApiResponse<AdminDispatchDetailResponseDto>> getDispatchDetail(
             @RequestHeader(value = "X-User-Role") String role,
@@ -73,6 +87,10 @@ public class AdminDispatchController {
      * @param dispatchId
      * @return
      */
+    @Operation(
+            summary = "관리자 강제 Timeout 처리",
+            description = "관리자가 특정 배차를 강제로 Timeout 처리합니다."
+    )
     @PatchMapping("/{dispatchId}/force-timeout")
     public ResponseEntity<ApiResponse<AdminForceTimeoutResponseDto>> forceTimeout(
             @RequestHeader(value = "X-User-UUID") UUID userId,
