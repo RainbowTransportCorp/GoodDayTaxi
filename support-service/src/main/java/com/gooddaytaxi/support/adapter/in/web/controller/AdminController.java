@@ -29,23 +29,23 @@ public class AdminController {
     /*
      * 관리자의 전체 알림 목록 조회(필터링, 페이징)
      * */
-    @Operation(summary = "관리자의 알림 전체 조회", description = "관리자만 모든 알림 목록을 조회합니다.")
-    @GetMapping("/notifications")
-    public ResponseEntity<ApiResponse<Page<NotificationResponse>>> getAllNotifications(
-            @Parameter(description = "사용자 ID (UUID)", required = true, example = "550e8400-e29b-41d4-a716-446655440000")
-            @RequestHeader("X-User-UUID") String userId,
-            @Parameter(description = "사용자 역할 (ADMIN/MASTER_ADMIN/Driver/Passenger)", required = true, example = "DRIVER")
-            @RequestHeader("X-User-Role") String userRole
-    ) {
-        log.debug("[Check] 사용자 ID: {}, 사용자 역할: {}", userId, userRole);
-
-        // 알림 목록 조회
-        Page<NotificationResponse> response = getAllNotificationForAdminUsecase.execute(UUID.fromString(userId), userRole);
-
-
-        log.debug("[Response] 모든 알림 조회 완료");
-
-        return ResponseEntity.ok(ApiResponse.success(response, "전체 알림 조회가 완료되었습니다"));
-    }
+//    @Operation(summary = "관리자의 알림 전체 조회", description = "관리자만 모든 알림 목록을 조회합니다.")
+//    @GetMapping("/notifications")
+//    public ResponseEntity<ApiResponse<Page<NotificationResponse>>> getAllNotifications(
+//            @Parameter(description = "사용자 ID (UUID)", required = true, example = "550e8400-e29b-41d4-a716-446655440000")
+//            @RequestHeader("X-User-UUID") String userId,
+//            @Parameter(description = "사용자 역할 (ADMIN/MASTER_ADMIN/Driver/Passenger)", required = true, example = "DRIVER")
+//            @RequestHeader("X-User-Role") String userRole
+//    ) {
+//        log.debug("[Check] 사용자 ID: {}, 사용자 역할: {}", userId, userRole);
+//
+//        // 알림 목록 조회
+//        Page<NotificationResponse> response = getAllNotificationForAdminUsecase.execute(UUID.fromString(userId), userRole);
+//
+//
+//        log.debug("[Response] 모든 알림 조회 완료");
+//
+//        return ResponseEntity.ok(ApiResponse.success(response, "전체 알림 조회가 완료되었습니다"));
+//    }
 
 }
