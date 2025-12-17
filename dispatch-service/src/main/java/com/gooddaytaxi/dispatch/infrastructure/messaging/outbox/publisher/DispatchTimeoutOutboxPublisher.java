@@ -4,11 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gooddaytaxi.dispatch.application.event.DispatchEventMetadata;
 import com.gooddaytaxi.dispatch.application.event.payload.DispatchTimeoutPayload;
 import com.gooddaytaxi.dispatch.application.outbox.DispatchEventOutboxPort;
+import com.gooddaytaxi.dispatch.application.port.out.command.DispatchTimeoutCommandPort;
 import org.springframework.stereotype.Component;
 
 @Component
 public class DispatchTimeoutOutboxPublisher
-        extends BaseOutboxPublisher<DispatchTimeoutPayload> {
+        extends BaseOutboxPublisher<DispatchTimeoutPayload>
+        implements DispatchTimeoutCommandPort {
 
     public DispatchTimeoutOutboxPublisher(
             ObjectMapper mapper,
@@ -17,12 +19,14 @@ public class DispatchTimeoutOutboxPublisher
         super(mapper, outboxPort);
     }
 
-    public void publishTimeout(DispatchTimeoutPayload payload) {
+    @Override
+    public void publish(DispatchTimeoutPayload payload) {
         publish(
                 DispatchEventMetadata.DISPATCH_TIMEOUT,
-                payload.dispatchId(),
-                payload.dispatchId().toString(),
+                payload.dispatchId(),                 // aggregateId
+                payload.dispatchId().toString(),      // partition key
                 payload
         );
     }
 }
+

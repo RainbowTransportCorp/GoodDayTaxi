@@ -33,8 +33,8 @@ public class RefundController {
     @PostMapping("/tosspay/{paymentId}")
     public ResponseEntity<ApiResponse<RefundCreateResponseDto>> ConfirmTosspayRefund(@PathVariable UUID paymentId,
                                                                                      @RequestBody @Valid RefundCreateRequestDto requestDto,
-                                                                                     @RequestParam UUID userId,
-                                                                                     @RequestParam String role) {
+                                                                                     @RequestHeader(value = "X-User-UUID") UUID userId,
+                                                                                     @RequestHeader(value = "X-User-Role") String role) {
         RefundCreateCommand command = RefundCreateMapper.toTosspayCommand(requestDto);
         RefundCreateResult result = refundService.confirmTosspayRefund(paymentId, command, userId, role);
         RefundCreateResponseDto responseDto = RefundCreateResponseMapper.toResponse(result);
@@ -45,10 +45,21 @@ public class RefundController {
     @PostMapping("/{paymentId}")
     public ResponseEntity<ApiResponse<RefundCreateResponseDto>> registerCashCardRefund(@PathVariable UUID paymentId,
                                                                                        @RequestBody @Valid RefundCreateRequestDto requestDto,
-                                                                                       @RequestParam UUID userId,
-                                                                                       @RequestParam String role) {
+                                                                                       @RequestHeader(value = "X-User-UUID") UUID userId,
+                                                                                       @RequestHeader(value = "X-User-Role") String role) {
         RefundCreateCommand command = RefundCreateMapper.toPhysicalCommand(requestDto);
         RefundCreateResult result = refundService.registerPhysicalRefund(paymentId, command, userId, role);
+        RefundCreateResponseDto responseDto = RefundCreateResponseMapper.toResponse(result);
+        return ResponseEntity.status(201).body(ApiResponse.success(responseDto));
+    }
+
+    //결제수단이 실물결제인경우 기사에게 환불 수행 필요 요청
+    @PostMapping("/driver/support/{paymentId}/{reason}")
+    public ResponseEntity<ApiResponse<RefundCreateResponseDto>> DriverSupportRefund(@PathVariable UUID paymentId,
+                                                                                    @PathVariable String reason,
+                                                                                    @RequestHeader(value = "X-User-UUID") UUID userId,
+                                                                                    @RequestHeader(value = "X-User-Role") String role) {
+        RefundCreateResult result = refundService.requestDriverSupportRefund(paymentId,reason, userId, role);
         RefundCreateResponseDto responseDto = RefundCreateResponseMapper.toResponse(result);
         return ResponseEntity.status(201).body(ApiResponse.success(responseDto));
     }
@@ -57,8 +68,8 @@ public class RefundController {
     //환불 상태 조회
     @GetMapping("/{paymentId}")
     public ResponseEntity<ApiResponse<RefundReadResponseDto>> getRefundStatus(@PathVariable UUID paymentId,
-                                                               @RequestParam UUID userId,
-                                                               @RequestParam String role) {
+                                                                              @RequestHeader(value = "X-User-UUID") UUID userId,
+                                                                              @RequestHeader(value = "X-User-Role") String role) {
         RefundReadResult result = refundService.getRefund(paymentId, userId, role);
         RefundReadResponseDto responseDto = RefundReadResponseMapper.toResponse(result);
         return ResponseEntity.status(200).body(ApiResponse.success(responseDto));
@@ -68,8 +79,8 @@ public class RefundController {
     //환불 검색
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<Page<RefundReadResponseDto>>> searchRefund(@RequestBody @Valid RefundSearchRequestDto requestDto,
-                                                                                @RequestParam UUID userId,
-                                                                                @RequestParam String role) {
+                                                                                 @RequestHeader(value = "X-User-UUID") UUID userId,
+                                                                                 @RequestHeader(value = "X-User-Role") String role) {
         RefundSearchCommand command = RefundSearchMapper.toCommand(requestDto);
         Page<RefundReadResult> result = refundService.searchRefund(command, userId, role);
         Page<RefundReadResponseDto> responseDto = RefundReadResponseMapper.toPageResponse(result);

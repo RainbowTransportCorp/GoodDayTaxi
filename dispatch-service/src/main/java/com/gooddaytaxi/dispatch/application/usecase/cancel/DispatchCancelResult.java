@@ -14,6 +14,6 @@ import java.util.UUID;
 public class DispatchCancelResult {
     private final UUID dispatchId;
     private final DispatchStatus dispatchStatus;
-    private final LocalDateTime cancelledAt;
+    private final LocalDateTime canceledAt;
 }
 

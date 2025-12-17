@@ -78,7 +78,7 @@ public class NotificationAlertSlackAdapter implements NotificationAlertExternalP
             for (UUID receiver:  messageReceivers) {
                 if (receiver != null) {
                     UserProfile userProfile = accountDomainCommunicationPort.getUserInfo(receiver);
-                    log.debug("[Check] UserProfile from Account Feign: username={}, role={}", userProfile.name(), userProfile.role());
+                    log.debug("[Check] UserProfile from Account Feign: username={}, role={}, slackId={}", userProfile.name(), userProfile.role(), userProfile.slackUserId());
                     receivers.add(userProfile);
                 }
             }

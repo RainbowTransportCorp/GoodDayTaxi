@@ -5,12 +5,14 @@ import com.gooddaytaxi.dispatch.application.outbox.OutboxEventModel;
 import com.gooddaytaxi.dispatch.infrastructure.messaging.outbox.entity.DispatchEvent;
 import com.gooddaytaxi.dispatch.infrastructure.messaging.outbox.repository.DispatchEventJpaRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class DispatchEventOutboxAdapter implements DispatchEventOutboxPort {
@@ -37,7 +39,7 @@ public class DispatchEventOutboxAdapter implements DispatchEventOutboxPort {
         List<DispatchEvent> events =  repository.findPending(limit);
 
         events.forEach(e ->
-                System.out.println("[DEBUG] EVENT ENTITY ID = " + e.getEventId())
+                log.debug("[DEBUG] EVENT ENTITY ID = " + e.getEventId())
         );
 
         return events.stream()

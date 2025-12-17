@@ -1,10 +1,11 @@
 package com.gooddaytaxi.dispatch.application.service.passenger;
 
-import com.gooddaytaxi.dispatch.application.exception.auth.DispatchPassengerPermissionValidator;
+import com.gooddaytaxi.dispatch.application.exception.DispatchNotFoundException;
 import com.gooddaytaxi.dispatch.application.exception.auth.UserRole;
 import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
 import com.gooddaytaxi.dispatch.application.query.DispatchDetailResult;
 import com.gooddaytaxi.dispatch.application.query.DispatchSummaryResult;
+import com.gooddaytaxi.dispatch.application.usecase.query.PassengerQueryPermissionValidator;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +22,7 @@ import java.util.UUID;
 public class PassengerDispatchQueryService {
 
     private final DispatchQueryPort queryPort;
-    private final DispatchPassengerPermissionValidator permissionValidator;
+    private final PassengerQueryPermissionValidator permissionValidator;
 
     /**
      * 승객의 콜 목록 조회
@@ -51,13 +52,15 @@ public class PassengerDispatchQueryService {
     /**
      * 승객의 콜 상세 정보 조회
      */
-    public DispatchDetailResult getDispatchDetail(UserRole role, UUID dispatchId) {
+    public DispatchDetailResult getDispatchDetail(UUID passengerId,UserRole role, UUID dispatchId) {
 
         log.info("[PassengerDispatchDetail] 조회 요청 - dispatchId={}", dispatchId);
 
         permissionValidator.validate(role);
 
-        Dispatch dispatch = queryPort.findById(dispatchId);
+        Dispatch dispatch = queryPort
+                .findByIdAndPassengerId(dispatchId, passengerId)
+                .orElseThrow(() -> new DispatchNotFoundException(dispatchId));
 
         log.info("[PassengerDispatchDetail] 조회 완료 - dispatchId={} status={}",
                 dispatch.getDispatchId(), dispatch.getDispatchStatus());
@@ -72,7 +75,7 @@ public class PassengerDispatchQueryService {
                 .requestCreatedAt(dispatch.getRequestCreatedAt())
                 .assignedAt(dispatch.getAssignedAt())
                 .acceptedAt(dispatch.getAcceptedAt())
-                .cancelledAt(dispatch.getCancelledAt())
+                .canceledAt(dispatch.getCanceledAt())
                 .timeoutAt(dispatch.getTimeoutAt())
                 .createdAt(dispatch.getCreatedAt())
                 .updatedAt(dispatch.getUpdatedAt())

@@ -9,7 +9,7 @@ import com.gooddaytaxi.dispatch.application.usecase.create.DispatchCreateResult;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
 import com.gooddaytaxi.dispatch.domain.model.entity.DispatchHistory;
 import com.gooddaytaxi.dispatch.domain.model.enums.ChangedBy;
-import com.gooddaytaxi.dispatch.domain.model.enums.DispatchDomainEventType;
+import com.gooddaytaxi.dispatch.domain.model.enums.HistoryEventType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -45,11 +45,11 @@ public class DispatchCreateService {
             historyPort.save(
                     DispatchHistory.recordStatusChange(
                             saved.getDispatchId(),
-                            DispatchDomainEventType.CREATED.name(),
+                            HistoryEventType.USER_CREATED.name(),
                             null,
                             saved.getDispatchStatus(),
                             ChangedBy.PASSENGER,
-                            null
+                            "승객으로부터 콜 생성"
                     )
             );
         } catch (Exception e) {

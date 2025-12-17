@@ -1,14 +1,12 @@
 package com.gooddaytaxi.dispatch.infrastructure.persistence.dispatch;
 
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
-import com.gooddaytaxi.dispatch.domain.model.entity.QDispatch;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
 import com.gooddaytaxi.dispatch.domain.repository.DispatchRepositoryCustom;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -31,13 +29,29 @@ public class DispatchRepositoryImpl implements DispatchRepositoryCustom {
     }
 
     @Override
-    public List<Dispatch> findByStatus(DispatchStatus status) {
+    public List<Dispatch> findByDriverIdAndStatus(UUID driverId, DispatchStatus status) {
         return queryFactory
                 .selectFrom(dispatch)
-                .where(dispatch.dispatchStatus.eq(status))
-                .orderBy(dispatch.requestCreatedAt.asc())
+                .where(
+                        dispatch.driverId.eq(driverId),
+                        dispatch.dispatchStatus.eq(status)
+                )
                 .fetch();
     }
+
+    @Override
+    public Optional<Dispatch> findByIdAndPassengerId(UUID dispatchId, UUID passengerId) {
+        return Optional.ofNullable(
+                queryFactory
+                        .selectFrom(dispatch)
+                        .where(
+                                dispatch.dispatchId.eq(dispatchId),
+                                dispatch.passengerId.eq(passengerId)
+                        )
+                        .fetchOne()
+        );
+    }
+
 
     @Override
     public Optional<Dispatch> findByDispatchId(UUID dispatchId) {
@@ -48,18 +62,6 @@ public class DispatchRepositoryImpl implements DispatchRepositoryCustom {
                         .fetchOne());
     }
 
-    @Override
-    public List<Dispatch> findTimeoutTargets(int seconds) {
-        LocalDateTime now = LocalDateTime.now();
-
-        return queryFactory
-                .selectFrom(dispatch)
-                .where(
-                        dispatch.dispatchStatus.eq(DispatchStatus.ASSIGNING),
-                        dispatch.timeoutAt.loe(now)
-                )
-                .fetch();
-    }
 
     @Override
     public List<Dispatch> findTimeoutCandidates() {
@@ -69,6 +71,14 @@ public class DispatchRepositoryImpl implements DispatchRepositoryCustom {
                         .in(DispatchStatus.ASSIGNING,
                                 DispatchStatus.ASSIGNED
                         ))
+                .fetch();
+    }
+
+    @Override
+    public List<Dispatch> findByStatus(DispatchStatus status) {
+        return queryFactory
+                .selectFrom(dispatch)
+                .where(dispatch.dispatchStatus.eq(status))
                 .fetch();
     }
 

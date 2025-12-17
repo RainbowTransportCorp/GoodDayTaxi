@@ -2,7 +2,9 @@ package com.gooddaytaxi.support.adapter.in.kafka.dto;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * 배차 콜 요청 DTO - 클라이언트로부터 수신한 요청 정보를 담는 객체
@@ -10,7 +12,10 @@ import java.util.Map;
  */
 
 public record EventRequest(
-        EventMetadata eventMetadata,
+//        EventMetadata eventMetadata,
+        UUID eventId,
+        String eventType,
+        LocalDateTime occurredAt,
         Integer payloadVersion,
         Map<String, Object> payload
 ) {
@@ -38,7 +43,7 @@ public record EventRequest(
 //public record EventRequest(
 //        EventMetadata eventMetadata,
 //        Integer payloadVersion,
-//        DispatchEventPayload payload
+//        DispatchRequestedEventPayload payload
 //) {
 //
 //    private static final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();

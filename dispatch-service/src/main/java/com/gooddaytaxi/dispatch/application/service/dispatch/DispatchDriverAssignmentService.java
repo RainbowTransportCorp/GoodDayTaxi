@@ -6,12 +6,10 @@ import com.gooddaytaxi.dispatch.application.port.out.command.DispatchCommandPort
 import com.gooddaytaxi.dispatch.application.port.out.command.DispatchRequestedCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.query.AccountDriverSelectionQueryPort;
 import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
-import com.gooddaytaxi.dispatch.application.service.assignmentLog.AssignmentLogQueryService;
-import com.gooddaytaxi.dispatch.domain.exception.DriverUnavailableException;
+import com.gooddaytaxi.dispatch.application.exception.DriverUnavailableException;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
 import com.gooddaytaxi.dispatch.domain.model.entity.DispatchAssignmentLog;
 import com.gooddaytaxi.dispatch.domain.model.enums.ChangedBy;
-import com.gooddaytaxi.dispatch.domain.model.enums.DispatchDomainEventType;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
 import com.gooddaytaxi.dispatch.domain.model.enums.HistoryEventType;
 import lombok.RequiredArgsConstructor;
@@ -51,7 +49,8 @@ public class DispatchDriverAssignmentService {
                 HistoryEventType.STATUS_CHANGED,
                 DispatchStatus.REQUESTED,
                 DispatchStatus.ASSIGNING,
-                ChangedBy.SYSTEM
+                ChangedBy.SYSTEM,
+                "최초 배차시도"
         );
 
         int attemptNo = 1; // 최초는 무조건 1
@@ -83,7 +82,8 @@ public class DispatchDriverAssignmentService {
                     HistoryEventType.STATUS_CHANGED,
                     DispatchStatus.ASSIGNED,
                     DispatchStatus.ASSIGNING,
-                    ChangedBy.SYSTEM
+                    ChangedBy.SYSTEM,
+                    "시간초과로 인한 재배차"
             );
 
         } else if (before == DispatchStatus.ASSIGNING) {

@@ -3,8 +3,8 @@ package com.gooddaytaxi.dispatch.application.event;
 public enum DispatchEventMetadata {
 
     DISPATCH_CANCELED(
-            "DISPATCH_CANCELLED",
-            "dispatch.cancelled",
+            "DISPATCH_CANCELED",
+            "dispatch.canceled",
             "Dispatch",
             1
     ),

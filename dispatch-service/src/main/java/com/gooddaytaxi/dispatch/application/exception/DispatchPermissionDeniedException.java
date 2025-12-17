@@ -18,6 +18,7 @@ public class DispatchPermissionDeniedException extends RuntimeException {
         return switch (role) {
             case DRIVER -> "passenger 권한이 필요합니다.";
             case PASSENGER -> "driver 권한이 필요합니다.";
+            case SYSTEM -> "System 접근 불가";
             default -> "권한이 없습니다.";
         };
     }

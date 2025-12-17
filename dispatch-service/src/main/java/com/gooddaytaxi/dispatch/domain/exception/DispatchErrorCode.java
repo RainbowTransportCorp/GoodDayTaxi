@@ -13,6 +13,24 @@ public enum DispatchErrorCode {
             400
     ),
 
+    CANNOT_CANCEL(
+            "DISPATCH_CANNOT_CANCEL",
+            "이미 종료된 배차는 취소할 수 없습니다.",
+            400
+    ),
+
+    NOT_ASSIGNED_DRIVER(
+            "DISPATCH_NOT_ASSIGNED_DRIVER",
+            "해당 기사에게 배정된 콜이 아닙니다.",
+            403
+    ),
+
+    NOT_OWNER_PASSENGER(
+            "DISPATCH_NOT_OWNER_PASSENGER",
+            "해당 승객이 생성한 콜이 아닙니다.",
+            403
+    ),
+
     DRIVER_UNAVAILABLE(
             "DRIVER_UNAVAILABLE",
             "현재 배정 가능한 기사가 없습니다.",
