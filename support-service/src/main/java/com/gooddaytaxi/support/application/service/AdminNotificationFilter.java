@@ -4,6 +4,7 @@ public record AdminNotificationFilter(
         // 도메인
         String notificationOriginId,
         // 사용자
+        String notifierId,
         // 알림 타입
         String notificationType,
         // 날짜
