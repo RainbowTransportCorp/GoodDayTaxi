@@ -39,8 +39,13 @@ public class DispatchAcceptService {
 
     private final DispatchLockManager lockManager;
 
-    private final DispatchAcceptPermissionValidator permissionValidator;
+    private final DispatchAcceptPermissionValidator dispatchAcceptPermissionValidator;
 
+    /**
+     * 배차 요청 수락 서비스
+     * @param command 수락할 기사 정보와 배차 정보 command
+     * @return 배차 상태와 수락 시간이 포함된 배차의 result
+     */
     public DispatchAcceptResult accept(DispatchAcceptCommand command) {
 
         log.info("[Accept] 요청 수신 - driverId={} dispatchId={}",
@@ -59,7 +64,7 @@ public class DispatchAcceptService {
             log.debug("[Accept] Dispatch 조회 완료 - status={}", dispatch.getDispatchStatus());
 
             // 2. 역할 검증
-            permissionValidator.validate(command.getRole());
+            dispatchAcceptPermissionValidator.validate(command.getRole());
             log.debug("[Accept] 역할 검증 통과 - role={}", command.getRole());
 
             // 3. 후보 기사 여부 검증

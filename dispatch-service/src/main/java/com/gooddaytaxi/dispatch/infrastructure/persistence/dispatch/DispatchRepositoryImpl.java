@@ -53,6 +53,11 @@ public class DispatchRepositoryImpl implements DispatchRepositoryCustom {
     }
 
 
+    /**
+     * 특정 배차 식별자를 가진 배차 정보를 조회
+     * @param dispatchId 특정 배차 식별자
+     * @return 식별자에 맞는 배차 정보
+     */
     @Override
     public Optional<Dispatch> findByDispatchId(UUID dispatchId) {
         return Optional.ofNullable(

@@ -21,6 +21,15 @@ public class DispatchAssignmentLogRepositoryImpl implements DispatchAssignmentLo
 
     private final JPAQueryFactory queryFactory;
 
+    /**
+     * 특정 배차에 특정 기사를 배차시도한 로그를 조회 (최근 1건)
+     *
+     * 배차 시도는 시간(attemptedAt) 기준으로 정렬
+     *
+     * @param dispatchId 배차 식별자
+     * @param driverId 배차 후보 기사 식별자
+     * @return 가장 최근 배차 시도 로그 (존재하지 않을 경우 Optional.empty)
+     */
     @Override
     public Optional<DispatchAssignmentLog> findLatest(UUID dispatchId, UUID driverId) {
         return Optional.ofNullable(
