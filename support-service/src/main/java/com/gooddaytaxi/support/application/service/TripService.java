@@ -41,16 +41,16 @@ public class TripService implements NotifyStartedTripUsecase, NotifyEndedTripUse
         // Notification 생성 및 저장
         Notification notification = Notification.from(command, NotificationType.TRIP_STARTED);
         notification.assignIds(command.getDispatchId(), command.getTripId(), null, command.getDriverId(), command.getPassengerId());
-        log.debug("[Check] Notification 생성: tripId={}, driverId={}, passengerId={}, message={}", notification.getNotificationOriginId(), notification.getDriverId(), notification.getPassengerId(), notification.getMessage());
+        log.debug("[Check] Notification 생성: tripId={}, driverId={}, passengerId={}", notification.getNotificationOriginId(), notification.getDriverId(), notification.getPassengerId());
 
         Notification savedNoti = notificationCommandPersistencePort.save(notification);
 //        Notification savedNoti = notificationQueryPersistencePort.findById(noti.getId());
-        log.debug("[Check] Notification Persistence 조회: tripId={}, driverId={}, passengerId={}, message={}", savedNoti.getTripId(), savedNoti.getDriverId(), savedNoti.getPassengerId(), savedNoti.getMessage());
+        log.debug("[Check] Notification Persistence 조회: tripId={}, driverId={}, passengerId={}", savedNoti.getTripId(), savedNoti.getDriverId(), savedNoti.getPassengerId());
 
         // 수신자: [ 기사, 승객 ]
         List<UUID> receivers = new ArrayList<>();
-        receivers.add(notification.getDriverId());
-        receivers.add(notification.getPassengerId());
+        receivers.add(savedNoti.getDriverId());
+        receivers.add(savedNoti.getPassengerId());
 
         // 알림 메시지 구성
         String messageTitle = "\uD83D\uDCE2 운행이 시작되었습니다";
@@ -83,16 +83,16 @@ public class TripService implements NotifyStartedTripUsecase, NotifyEndedTripUse
         // Notification 생성 및 저장
         Notification notification = Notification.from(command, NotificationType.TRIP_ENDED);
         notification.assignIds(command.getDispatchId(), command.getTripId(), null, command.getDriverId(), command.getPassengerId());
-        log.debug("[Check] Notification 생성: tripId={}, driverId={}, passengerId={}, message={}", notification.getNotificationOriginId(), notification.getDriverId(), notification.getPassengerId(), notification.getMessage());
+        log.debug("[Check] Notification 생성: tripId={}, driverId={}, passengerId={}", notification.getNotificationOriginId(), notification.getDriverId(), notification.getPassengerId());
 
         Notification savedNoti = notificationCommandPersistencePort.save(notification);
 //        Notification savedNoti = notificationQueryPersistencePort.findById(noti.getId());
-        log.debug("[Check] Notification Persistence 조회: tripId={}, driverId={}, passengerId={}, message={}", savedNoti.getTripId(), savedNoti.getDriverId(), savedNoti.getPassengerId(), savedNoti.getMessage());
+        log.debug("[Check] Notification Persistence 조회: tripId={}, driverId={}, passengerId={}", savedNoti.getTripId(), savedNoti.getDriverId(), savedNoti.getPassengerId());
 
         // 수신자: [ 기사, 승객 ]
         List<UUID> receivers = new ArrayList<>();
-        receivers.add(notification.getDriverId());
-        receivers.add(notification.getPassengerId());
+        receivers.add(savedNoti.getDriverId());
+        receivers.add(savedNoti.getPassengerId());
 
         // 알림 메시지 구성
         String messageTitle = "\uD83D\uDCE2 운행이 종료되었습니다";
