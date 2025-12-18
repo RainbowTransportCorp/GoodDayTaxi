@@ -1,6 +1,5 @@
 package com.gooddaytaxi.support.application.service;
 
-import com.gooddaytaxi.support.adapter.out.internal.account.dto.UserProfile;
 import com.gooddaytaxi.support.application.dto.Metadata;
 import com.gooddaytaxi.support.application.dto.trip.NotifyTripCanceledCommand;
 import com.gooddaytaxi.support.application.dto.trip.NotifyTripEndedCommand;
