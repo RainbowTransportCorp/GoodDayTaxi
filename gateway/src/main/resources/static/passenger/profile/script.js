@@ -21,7 +21,7 @@ async function loadProfile() {
 
     if (!uuid || role !== "PASSENGER") {
         alert("접근 권한이 없습니다.");
-        window.location.href = "/login/index.html";
+        window.location.href = "/index.html";
         return;
     }
 

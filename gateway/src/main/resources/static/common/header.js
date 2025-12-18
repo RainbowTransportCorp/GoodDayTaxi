@@ -14,7 +14,7 @@ function getEmail() {
 
 function logout() {
     localStorage.clear();
-    window.location.href = "/login/index.html";
+    window.location.href = "/index.html";
 }
 
 function getDisplayName() {
