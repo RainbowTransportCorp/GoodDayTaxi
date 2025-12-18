@@ -1,5 +1,6 @@
 package com.gooddaytaxi.support.application.service;
 
+import com.gooddaytaxi.support.adapter.out.internal.account.dto.UserProfile;
 import com.gooddaytaxi.support.application.dto.Metadata;
 import com.gooddaytaxi.support.application.dto.trip.NotifyTripCanceledCommand;
 import com.gooddaytaxi.support.application.dto.trip.NotifyTripEndedCommand;
@@ -7,6 +8,7 @@ import com.gooddaytaxi.support.application.dto.trip.NotifyTripStartedCommand;
 import com.gooddaytaxi.support.application.port.in.trip.NotifyCanceledTripUsecase;
 import com.gooddaytaxi.support.application.port.in.trip.NotifyEndedTripUsecase;
 import com.gooddaytaxi.support.application.port.in.trip.NotifyStartedTripUsecase;
+import com.gooddaytaxi.support.application.port.out.internal.account.AccountDomainCommunicationPort;
 import com.gooddaytaxi.support.application.port.out.messaging.NotificationPushMessagingPort;
 import com.gooddaytaxi.support.application.port.out.messaging.QueuePushMessage;
 import com.gooddaytaxi.support.application.port.out.persistence.NotificationCommandPersistencePort;
@@ -34,6 +36,7 @@ public class TripService implements NotifyStartedTripUsecase, NotifyEndedTripUse
 
     private final NotificationCommandPersistencePort notificationCommandPersistencePort;
     private final NotificationPushMessagingPort notificationPushMessagingPort;
+    private final AccountDomainCommunicationPort accountDomainCommunicationPort;
 
     /**
      * 수신자에게 운행 시작 알림 서비스
@@ -134,29 +137,65 @@ public class TripService implements NotifyStartedTripUsecase, NotifyEndedTripUse
 //        Notification savedNoti = notificationQueryPersistencePort.findById(noti.getId());
         log.debug("[Check] Notification Persistence 조회: tripId={}, driverId={}", savedNoti.getTripId(), savedNoti.getDriverId());
 
-        // account feign client 호출해서, role 판별하고
-
-        // 수신자: 기사일 때,
-            // 알림 메시지 구성
-
-        // 수신자: 승객일 때,
-            // 알림 메시지 구성
-
-        // 수신자: [ 기사, 승객 ]
-        List<UUID> receivers = new ArrayList<>();
-        receivers.add(savedNoti.getDriverId());
-        receivers.add(null);
-
-        // 알림 메시지 구성
-        String messageTitle = "\uD83D\uDCE2 운행이 취소되었습니다";
+        // 취소 사유로 수신자, 알림 메시지 구분
         Metadata metadata = command.getMetadata();
-        String messageBody = """
-                [ %s ]의 사유로
-                %s에 기사님의 운행이 취소되었습니다
+        String cancelReason = command.getCancelReason();
+        List<UUID> receivers;
+        String messageTitle;
+        String messageBody;
+        switch (cancelReason) {
+            // 손님 요청으로 취소: 기사에게 송신
+            case "PASSENGER_REQUEST" -> {
+                // 수신자: [ 기사 ]
+                receivers = new ArrayList<>();
+                receivers.add(savedNoti.getDriverId());
+                receivers.add(null);
+
+                // 알림 메시지 구성
+                messageTitle = "\uD83D\uDCE2 운행이 취소되었습니다.";
+                messageBody = """
+                %s
+                승객의 요청으로 기사님의 운행이 취소되었습니다.
                 """.formatted(
-                command.getCancelReason(),
-                command.getCanceledAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-        );
+                        command.getCanceledAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                );
+            }
+            // 기사 요청으로 취소: 손님에게 송신
+            case "DRIVER_REQUEST" -> {
+                // 수신자: [ 승객 ]
+                receivers = new ArrayList<>();
+                receivers.add(null);
+                receivers.add(savedNoti.getPassengerId());
+
+                // 알림 메시지 구성
+                messageTitle = "\uD83D\uDCE2 운행이 취소되었습니다.";
+                messageBody = """
+                %s
+                기사님의 요청으로 고객님의 콜이 취소되었습니다.
+                - 사유: 차량 고장 및 정비 중 | 사고 발생 | 도로 상황 주의 등
+                """.formatted(
+                        command.getCanceledAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                );
+            }
+            // 이외 사유로 취소: 기사, 손님, 관리자 모두에게 송신
+            default -> {
+                // 수신자: [ MASTER_ADMIN 관리자들 , 기사, 승객 ]
+                receivers = accountDomainCommunicationPort.getMasterAdminUuids();
+                receivers.add(savedNoti.getDriverId());
+                receivers.add(savedNoti.getPassengerId());
+
+                // 알림 메시지 구성
+                messageTitle = "\uD83D\uDCE2 운행이 취소되었습니다.";
+                messageBody = """
+                [ %s ]의 사유로
+                %s에 운행이 취소되었습니다.
+                빠르게 복구될 수 있도록 조치하겠습니다. 죄송합니다.
+                """.formatted(
+                        command.getCancelReason(),
+                        command.getCanceledAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                );
+            }
+        }
 
         // RabbitMQ: Queue에 Push
         QueuePushMessage queuePushMessage = QueuePushMessage.create(receivers, metadata, messageTitle, messageBody);
