@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Dispatch Detail</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- 공통 헤더 -->
+    <link rel="stylesheet" href="/common/header.css">
+    <script src="/common/header.js" defer></script>
+
+    <!-- 페이지 스타일 -->
+    <link rel="stylesheet" href="detail.css">
+</head>
+
+<body>
+<header class="header">
+    <div class="brand">
+        <div class="brand-main">Good day Taxi</div>
+        <div class="brand-sub" id="brand-sub"></div>
+    </div>
+
+    <div class="user-box">
+        <span id="user-name"></span>
+        <button class="btn-logout" onclick="logout()">로그아웃</button>
+    </div>
+</header>
+
+<main class="page">
+    <h1 class="page-title">📦 배차 상세</h1>
+
+    <section class="card" id="detailCard">
+        <div class="row"><span>배차 ID</span><b id="dispatchId"></b></div>
+        <div class="row"><span>상태</span><b id="status"></b></div>
+        <div class="row"><span>승객</span><b id="passenger"></b></div>
+        <div class="row"><span>기사</span><b id="driver"></b></div>
+        <div class="row"><span>출발지</span><b id="pickup"></b></div>
+        <div class="row"><span>도착지</span><b id="dropoff"></b></div>
+        <div class="row"><span>요금</span><b id="fare"></b></div>
+        <div class="row"><span>생성 시간</span><b id="createdAt"></b></div>
+    </section>
+
+    <div class="actions" id="adminActions">
+        <button class="btn-danger" onclick="forceTimeout()">강제 TIMEOUT</button>
+    </div>
+
+    <button class="btn-back" onclick="history.back()">← 목록으로</button>
+</main>
+
+<script src="detail.js"></script>
+</body>
+</html>
