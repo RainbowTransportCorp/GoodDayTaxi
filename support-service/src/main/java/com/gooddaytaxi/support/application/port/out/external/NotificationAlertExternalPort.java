@@ -1,6 +1,6 @@
 package com.gooddaytaxi.support.application.port.out.external;
 
-import com.gooddaytaxi.support.application.port.out.messaging.QueuePushMessage;
+import com.gooddaytaxi.support.application.port.out.dto.QueuePushMessage;
 
 /** 메시지 전송 알림 External API Port
  *

@@ -1,6 +1,6 @@
 package com.gooddaytaxi.support.adapter.out.internal.account.dto;
 
-import com.gooddaytaxi.support.application.service.UserRole;
+import com.gooddaytaxi.support.application.policy.UserRole;
 
 import java.util.UUID;
 

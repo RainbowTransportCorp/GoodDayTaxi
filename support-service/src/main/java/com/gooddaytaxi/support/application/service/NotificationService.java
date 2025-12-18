@@ -1,6 +1,7 @@
 package com.gooddaytaxi.support.application.service;
 
-import com.gooddaytaxi.support.application.dto.notification.NotificationResponse;
+import com.gooddaytaxi.support.application.policy.UserRole;
+import com.gooddaytaxi.support.application.dto.output.notification.NotificationResponse;
 import com.gooddaytaxi.support.application.port.in.web.notification.GetAllUserNotificationsUsecase;
 import com.gooddaytaxi.support.application.port.in.web.notification.UpdateNotrificationReadStatusUsecase;
 import com.gooddaytaxi.support.application.port.out.persistence.NotificationQueryPersistencePort;

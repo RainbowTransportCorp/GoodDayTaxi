@@ -3,11 +3,11 @@ package com.gooddaytaxi.support.application.service;
 import com.gooddaytaxi.support.adapter.out.internal.account.dto.DriverProfile;
 import com.gooddaytaxi.support.adapter.out.internal.account.dto.VehicleInfo;
 import com.gooddaytaxi.support.application.dto.Metadata;
-import com.gooddaytaxi.support.application.dto.dispatch.*;
+import com.gooddaytaxi.support.application.dto.input.dispatch.*;
 import com.gooddaytaxi.support.application.port.in.dispatch.*;
-import com.gooddaytaxi.support.application.port.out.internal.account.AccountDomainCommunicationPort;
+import com.gooddaytaxi.support.application.port.out.internal.AccountDomainCommunicationPort;
 import com.gooddaytaxi.support.application.port.out.messaging.NotificationPushMessagingPort;
-import com.gooddaytaxi.support.application.port.out.messaging.QueuePushMessage;
+import com.gooddaytaxi.support.application.port.out.dto.QueuePushMessage;
 import com.gooddaytaxi.support.application.port.out.persistence.NotificationCommandPersistencePort;
 import com.gooddaytaxi.support.domain.notification.model.Notification;
 import com.gooddaytaxi.support.domain.notification.model.NotificationType;
@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +30,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Service
 @Transactional
-public class DispatchService implements NotifyDispatchUsecase, NotifyAcceptedCallUsecase, NotifyDispatchTimeoutUsecase, NotifyDispatchCancelUsecase, NotifyDispatchRejectUsecase {
+public class DispatchService implements NotifyDispatchUsecase, NotifyCallAcceptUsecase, NotifyDispatchTimeoutUsecase, NotifyDispatchCancelUsecase, NotifyDispatchRejectUsecase {
 
     private final NotificationCommandPersistencePort notificationCommandPersistencePort;
     private final NotificationPushMessagingPort notificationPushMessagingPort;
@@ -76,6 +77,9 @@ public class DispatchService implements NotifyDispatchUsecase, NotifyAcceptedCal
 
         // Push 알림: Slack, FCM 등 - RabbitMQ Listener 없이 직접 호출 시 사용
 //        notificationAlertExternalPort.sendDirectRequest(queuePushMessage);
+
+        // 알림 전송 시각 할당
+        savedNoti.assignMessageSendingTime(LocalDateTime.now());
 
         // 로그
         log.info("\uD83D\uDCE2 [CALL] Requested! driverId={}, passengerId={}: {} >>> {}",command.getDriverId(), queuePushMessage.receivers().get(1), command.getPickupAddress(), command.getDestinationAddress());
@@ -153,6 +157,9 @@ public class DispatchService implements NotifyDispatchUsecase, NotifyAcceptedCal
          // Push 알림: Slack, FCM 등 - RabbitMQ Listener 없이 직접 호출 시 사용
 //        notificationAlertExternalPort.sendDirectRequest(queuePushMessage);
 
+        // 알림 전송 시각 할당
+        savedNoti.assignMessageSendingTime(LocalDateTime.now());
+
         // 로그
         log.info("\uD83D\uDCE2 [CALL] Accepted! passengerId={}: {} >>> {}", queuePushMessage.receivers().get(1), command.getPickupAddress(), command.getDestinationAddress());
     }
@@ -194,6 +201,9 @@ public class DispatchService implements NotifyDispatchUsecase, NotifyAcceptedCal
 
         // Push 알림: Slack, FCM 등 - RabbitMQ Listener 없이 직접 호출 시 사용
 //        notificationAlertExternalPort.sendDirectRequest(queuePushMessage);
+
+        // 알림 전송 시각 할당
+        savedNoti.assignMessageSendingTime(LocalDateTime.now());
 
         // 로그
         log.info("\uD83D\uDCE2 [DISPATCH] Timeout! dispatchId={}, passengerId={}, timeoutAt={}", command.getDispatchId(), command.getPassengerId(), command.getTimeoutAt());
@@ -247,6 +257,9 @@ public class DispatchService implements NotifyDispatchUsecase, NotifyAcceptedCal
         // Push 알림: Slack, FCM 등 - RabbitMQ Listener 없이 직접 호출 시 사용
 //        notificationAlertExternalPort.sendDirectRequest(queuePushMessage);
 
+        // 알림 전송 시각 할당
+        savedNoti.assignMessageSendingTime(LocalDateTime.now());
+
         // 로그
         log.info("\uD83D\uDCE2 [DISPATCH] Canceled! dispatchId={}, driverId={}, passengerId={}, cancelledAt={}", command.getDispatchId(), command.getDriverId(), command.getPassengerId(), command.getCanceledAt());
 
@@ -289,6 +302,9 @@ public class DispatchService implements NotifyDispatchUsecase, NotifyAcceptedCal
 
         // Push 알림: Slack, FCM 등 - RabbitMQ Listener 없이 직접 호출 시 사용
 //        notificationAlertExternalPort.sendDirectRequest(queuePushMessage);
+
+        // 알림 전송 시각 할당
+        savedNoti.assignMessageSendingTime(LocalDateTime.now());
 
         // 로그
         log.info("\uD83D\uDCE2 [DISPATCH] Rejected! dispatchId={}, driverId={}, rejectedAt={}", command.getDispatchId(), command.getDriverId(), command.getRejectedAt());

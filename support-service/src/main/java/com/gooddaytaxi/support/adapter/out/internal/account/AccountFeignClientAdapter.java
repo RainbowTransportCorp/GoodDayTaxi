@@ -2,7 +2,7 @@ package com.gooddaytaxi.support.adapter.out.internal.account;
 
 import com.gooddaytaxi.support.adapter.out.internal.account.dto.DriverProfile;
 import com.gooddaytaxi.support.adapter.out.internal.account.dto.UserProfile;
-import com.gooddaytaxi.support.application.port.out.internal.account.AccountDomainCommunicationPort;
+import com.gooddaytaxi.support.application.port.out.internal.AccountDomainCommunicationPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

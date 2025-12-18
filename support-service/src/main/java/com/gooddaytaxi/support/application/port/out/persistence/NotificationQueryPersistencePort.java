@@ -1,6 +1,6 @@
 package com.gooddaytaxi.support.application.port.out.persistence;
 
-import com.gooddaytaxi.support.application.service.AdminNotificationFilter;
+import com.gooddaytaxi.support.application.query.filter.AdminNotificationFilter;
 import com.gooddaytaxi.support.domain.notification.model.Notification;
 import com.gooddaytaxi.support.domain.notification.model.NotificationType;
 import org.springframework.data.domain.Page;

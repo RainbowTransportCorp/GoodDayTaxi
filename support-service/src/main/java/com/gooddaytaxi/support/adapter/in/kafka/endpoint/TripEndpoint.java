@@ -2,14 +2,14 @@ package com.gooddaytaxi.support.adapter.in.kafka.endpoint;
 
 import com.gooddaytaxi.support.adapter.in.kafka.dto.*;
 import com.gooddaytaxi.support.application.dto.Metadata;
-import com.gooddaytaxi.support.application.dto.trip.TripCanceledCommand;
-import com.gooddaytaxi.support.application.dto.trip.TripEndedCommand;
-import com.gooddaytaxi.support.application.dto.trip.TripLocationUpdatedCommand;
-import com.gooddaytaxi.support.application.dto.trip.TripStartedCommand;
-import com.gooddaytaxi.support.application.port.in.trip.NotifyCanceledTripUsecase;
-import com.gooddaytaxi.support.application.port.in.trip.NotifyEndedTripUsecase;
-import com.gooddaytaxi.support.application.port.in.trip.NotifyStartedTripUsecase;
-import com.gooddaytaxi.support.application.port.in.trip.NotifyUpdatedLocationTripUsecase;
+import com.gooddaytaxi.support.application.dto.input.trip.TripCanceledCommand;
+import com.gooddaytaxi.support.application.dto.input.trip.TripEndedCommand;
+import com.gooddaytaxi.support.application.dto.input.trip.TripLocationUpdatedCommand;
+import com.gooddaytaxi.support.application.dto.input.trip.TripStartedCommand;
+import com.gooddaytaxi.support.application.port.in.trip.NotifyTripCancelUsecase;
+import com.gooddaytaxi.support.application.port.in.trip.NotifyTripEndUsecase;
+import com.gooddaytaxi.support.application.port.in.trip.NotifyTripStartUsecase;
+import com.gooddaytaxi.support.application.port.in.trip.NotifyTripLocationUpdateUsecase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -23,10 +23,10 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class TripEndpoint {
 
-    private final NotifyStartedTripUsecase notifyStartedTripUsecase;
-    private final NotifyEndedTripUsecase notifyEndedTripUsecase;
-    private final NotifyCanceledTripUsecase notifyCanceledTripUsecase;
-    private final NotifyUpdatedLocationTripUsecase notifyUpdatedLocationTripUsecase;
+    private final NotifyTripStartUsecase notifyTripStartUsecase;
+    private final NotifyTripEndUsecase notifyTripEndUsecase;
+    private final NotifyTripCancelUsecase notifyTripCancelUsecase;
+    private final NotifyTripLocationUpdateUsecase notifyTripLocationUpdateUsecase;
 
     /**
      * 운행이 시작될 때 기사, 손님에게 알림을 전송하는 이벤트 리스너
@@ -51,7 +51,7 @@ public class TripEndpoint {
         log.debug("[Transform] EventRequest >>> Command ➡️ {}", command);
 
         // 운행 시작 알림 전송 서비스 호출
-        notifyStartedTripUsecase.execute(command);
+        notifyTripStartUsecase.execute(command);
     }
 
     /**
@@ -79,7 +79,7 @@ public class TripEndpoint {
         log.debug("[Transform] EventRequest >>> Command ➡️ {}", command);
 
         // 운행 종료 알림 전송 서비스 호출
-        notifyEndedTripUsecase.execute(command);
+        notifyTripEndUsecase.execute(command);
     }
 
     /**
@@ -105,7 +105,7 @@ public class TripEndpoint {
         log.debug("[Transform] EventRequest >>> Command ➡️ {}", command);
 
         // 운행 취소 알림 전송 서비스 호출
-        notifyCanceledTripUsecase.execute(command);
+        notifyTripCancelUsecase.execute(command);
     }
 
 
@@ -134,7 +134,7 @@ public class TripEndpoint {
         log.debug("[Transform] EventRequest >>> Command ➡️ {}", command);
 
         // 운행 취소 알림 전송 서비스 호출
-        notifyUpdatedLocationTripUsecase.execute(command);
+        notifyTripLocationUpdateUsecase.execute(command);
     }
 
 }
