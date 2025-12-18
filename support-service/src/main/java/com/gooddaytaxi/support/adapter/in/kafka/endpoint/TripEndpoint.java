@@ -104,7 +104,7 @@ public class TripEndpoint {
         );
         log.debug("[Transform] EventRequest >>> Command ➡️ {}", command);
 
-        // 운행 종료 알림 전송 서비스 호출
+        // 운행 취소 알림 전송 서비스 호출
         notifyCanceledTripUsecase.execute(command);
     }
 

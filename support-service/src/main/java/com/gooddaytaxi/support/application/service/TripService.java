@@ -134,6 +134,14 @@ public class TripService implements NotifyStartedTripUsecase, NotifyEndedTripUse
 //        Notification savedNoti = notificationQueryPersistencePort.findById(noti.getId());
         log.debug("[Check] Notification Persistence 조회: tripId={}, driverId={}", savedNoti.getTripId(), savedNoti.getDriverId());
 
+        // account feign client 호출해서, role 판별하고
+
+        // 수신자: 기사일 때,
+            // 알림 메시지 구성
+
+        // 수신자: 승객일 때,
+            // 알림 메시지 구성
+
         // 수신자: [ 기사, 승객 ]
         List<UUID> receivers = new ArrayList<>();
         receivers.add(savedNoti.getDriverId());
