@@ -33,7 +33,7 @@ public class DispatchTimeoutService {
 
     private final DispatchTimeoutOutboxPublisher eventPort;
 
-    private static final int REASSIGN_TIMEOUT_SECONDS = 60;
+    private static final int REASSIGN_TIMEOUT_SECONDS = 120;
     private static final int FINAL_TIMEOUT_SECONDS = 600;
 
     public void runTimeoutCheck() {

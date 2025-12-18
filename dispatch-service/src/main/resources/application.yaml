@@ -27,12 +27,12 @@ spring:
 
   data:
     redis:
-      host: host.docker.internal
+      host: localhost
       port: 6379
       database: 0
 
   kafka:
-    bootstrap-servers: host.docker.internal:${kafka.port} #local
+    bootstrap-servers: localhost:${kafka.port} #local
 #    bootstrap-servers: kafka:${kafka.port} # docker - 서비스 자체를 띄울 때 사용
     consumer:
       group-id: dispatch-group
