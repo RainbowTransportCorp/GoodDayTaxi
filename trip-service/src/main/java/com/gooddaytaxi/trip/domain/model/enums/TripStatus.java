@@ -5,7 +5,7 @@ public enum TripStatus {
     READY("배차 완료"),
     STARTED("운행 시작"),
     ENDED("운행 종료"),
-    CANCELLED("취소");
+    CANCELED("취소");
 
     private final String description;
 
