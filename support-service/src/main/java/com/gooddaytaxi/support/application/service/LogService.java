@@ -9,7 +9,6 @@ import com.gooddaytaxi.support.application.port.out.messaging.QueuePushMessage;
 import com.gooddaytaxi.support.application.port.out.persistence.LogCommandPersistencePort;
 import com.gooddaytaxi.support.application.port.out.persistence.NotificationCommandPersistencePort;
 import com.gooddaytaxi.support.domain.log.model.Log;
-import com.gooddaytaxi.support.domain.log.model.LogType;
 import com.gooddaytaxi.support.domain.notification.model.Notification;
 import com.gooddaytaxi.support.domain.notification.model.NotificationType;
 import jakarta.transaction.Transactional;
