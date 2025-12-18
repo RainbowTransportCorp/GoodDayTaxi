@@ -1,7 +1,7 @@
 package com.gooddaytaxi.support.application.service;
 
 import com.gooddaytaxi.support.application.dto.Metadata;
-import com.gooddaytaxi.support.application.dto.log.NotifyErrorLogCommand;
+import com.gooddaytaxi.support.application.dto.log.ErrorLogCommand;
 import com.gooddaytaxi.support.application.port.in.monitoring.NotifyErrorDetectedUsecase;
 import com.gooddaytaxi.support.application.port.out.internal.account.AccountDomainCommunicationPort;
 import com.gooddaytaxi.support.application.port.out.messaging.NotificationPushMessagingPort;
@@ -38,7 +38,7 @@ public class LogService implements NotifyErrorDetectedUsecase {
      */
     @Transactional
     @Override
-    public void execute(NotifyErrorLogCommand command) {
+    public void execute(ErrorLogCommand command) {
         // Notification 생성 및 저장
         Notification notification = Notification.from(command, NotificationType.ERROR_DETECTED);
         notification.assignIds(command.getDispatchId(), command.getTripId(), command.getPaymentId(), command.getDriverId(), command.getPassengerId());

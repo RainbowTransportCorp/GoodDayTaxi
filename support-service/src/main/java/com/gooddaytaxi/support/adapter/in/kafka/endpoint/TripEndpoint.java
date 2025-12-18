@@ -5,9 +5,9 @@ import com.gooddaytaxi.support.adapter.in.kafka.dto.TripCanceledEventPayload;
 import com.gooddaytaxi.support.adapter.in.kafka.dto.TripEndedEventPayload;
 import com.gooddaytaxi.support.adapter.in.kafka.dto.TripStartedEventPayload;
 import com.gooddaytaxi.support.application.dto.Metadata;
-import com.gooddaytaxi.support.application.dto.trip.NotifyTripCanceledCommand;
-import com.gooddaytaxi.support.application.dto.trip.NotifyTripEndedCommand;
-import com.gooddaytaxi.support.application.dto.trip.NotifyTripStartedCommand;
+import com.gooddaytaxi.support.application.dto.trip.TripCanceledCommand;
+import com.gooddaytaxi.support.application.dto.trip.TripEndedCommand;
+import com.gooddaytaxi.support.application.dto.trip.TripStartedCommand;
 import com.gooddaytaxi.support.application.port.in.trip.NotifyCanceledTripUsecase;
 import com.gooddaytaxi.support.application.port.in.trip.NotifyEndedTripUsecase;
 import com.gooddaytaxi.support.application.port.in.trip.NotifyStartedTripUsecase;
@@ -40,7 +40,7 @@ public class TripEndpoint {
         log.debug("[Check] Trip Started EventRequest 데이터: tripId={}, notifierId={}, occurredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occurredAt());
 
         // EventRequest DTO > Command 변환
-        NotifyTripStartedCommand command = NotifyTripStartedCommand.create(
+        TripStartedCommand command = TripStartedCommand.create(
                 pl.notificationOriginId(), pl.notifierId(),
                 pl.dispatchId(),
                 pl.driverId(), pl.passengerId(),
@@ -66,7 +66,7 @@ public class TripEndpoint {
         log.debug("[Check] Trip Ended EventRequest 데이터: tripId={}, notifierId={}, occurredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occurredAt());
 
         // EventRequest DTO > Command 변환
-        NotifyTripEndedCommand command = NotifyTripEndedCommand.create(
+        TripEndedCommand command = TripEndedCommand.create(
                 pl.notificationOriginId(), pl.notifierId(),
                 pl.dispatchId(),
                 pl.driverId(), pl.passengerId(),
@@ -94,7 +94,7 @@ public class TripEndpoint {
         log.debug("[Check] Trip Canceled EventRequest 데이터: tripId={}, driverId={}, cancelReason={}, canceledAt={}", pl.notificationOriginId(), pl.driverId(), pl.cancelReason(), pl.canceledAt());
 
         // EventRequest DTO > Command 변환
-        NotifyTripCanceledCommand command = NotifyTripCanceledCommand.create(
+        TripCanceledCommand command = TripCanceledCommand.create(
                 pl.notificationOriginId(), pl.notifierId(),
                 pl.dispatchId(),
                 pl.driverId(), pl.passengerId(),

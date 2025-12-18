@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
-public class NotifyRefundRejectedCommand extends Command {
+public class RefundRejectedCommand extends Command {
     private final UUID refundRequestId;
     private final UUID adminId;
     //    private final UUID dispatchId;
@@ -18,7 +18,7 @@ public class NotifyRefundRejectedCommand extends Command {
     private final String rejectReason;
     private final LocalDateTime rejectedAt;
 
-    private NotifyRefundRejectedCommand(
+    private RefundRejectedCommand(
             UUID notificationOriginId, UUID notifierId,
 //            UUID dispatchId,
             UUID tripId,
@@ -38,7 +38,7 @@ public class NotifyRefundRejectedCommand extends Command {
         this.rejectReason = rejectReason;
         this.rejectedAt = rejectedAt;
     }
-    public static NotifyRefundRejectedCommand create(
+    public static RefundRejectedCommand create(
             UUID notificationOriginId, UUID notifierId,
 //            UUID dispatchId,
             UUID tripId,
@@ -48,7 +48,7 @@ public class NotifyRefundRejectedCommand extends Command {
             LocalDateTime rejectedAt,
             Metadata metadata
     ) {
-        return new NotifyRefundRejectedCommand(notificationOriginId, notifierId, tripId, paymentId, passengerId, rejectReason, rejectedAt, metadata);
+        return new RefundRejectedCommand(notificationOriginId, notifierId, tripId, paymentId, passengerId, rejectReason, rejectedAt, metadata);
     }
 }
 

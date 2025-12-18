@@ -8,12 +8,11 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
- * 환불 요청 알림 Command
- * - REFUND_REQUEST_CREATED 이벤트 처리
+ * 결제 완료 알림 Command
+ * - PAYMENT_COMPLETED 이벤트 처리
  */
 @Getter
-public class NotifyRefundRequestedCommand extends Command {
-    private final UUID refundRequestId;
+public class PaymentCompletedCommand extends Command {
     //    private final UUID dispatchId;
     private final UUID tripId;
     private final UUID paymentId;
@@ -21,43 +20,37 @@ public class NotifyRefundRequestedCommand extends Command {
     private final UUID passengerId;
     private final Long amount;
     private final String paymentMethod;
-    private final String reason;
-    private final LocalDateTime requestedAt;
+    private final LocalDateTime approvedAt;
 
-    private NotifyRefundRequestedCommand(
+    private PaymentCompletedCommand(
             UUID notificationOriginId, UUID notifierId,
 //            UUID dispatchId,
             UUID tripId,
-            UUID paymentId,
             UUID driverId, UUID passengerId,
             Long amount, String paymentMethod,
-            String reason,
-            LocalDateTime requestedAt,
+            LocalDateTime approvedAt,
             Metadata metadata
     ) {
         super(notificationOriginId, notifierId, null, metadata);
-        this.refundRequestId = notificationOriginId;
+        this.paymentId = notificationOriginId;
 //        this.dispatchId = dispatchId;
         this.tripId = tripId;
-        this.paymentId = paymentId;
         this.driverId = driverId;
         this.passengerId = passengerId;
         this.amount = amount;
         this.paymentMethod = paymentMethod;
-        this.reason = reason;
-        this.requestedAt = requestedAt;
+        this.approvedAt = approvedAt;
+
     }
-    public static NotifyRefundRequestedCommand create(
+    public static PaymentCompletedCommand create(
             UUID notificationOriginId, UUID notifierId,
 //            UUID dispatchId,
             UUID tripId,
-            UUID paymentId,
             UUID driverId, UUID passengerId,
             Long amount, String paymentMethod,
-            String reason,
-            LocalDateTime requestedAt,
+            LocalDateTime approvedAt,
             Metadata metadata
     ) {
-        return new NotifyRefundRequestedCommand(notificationOriginId, notifierId, tripId, paymentId, driverId, passengerId, amount, paymentMethod, reason, requestedAt, metadata);
+        return new PaymentCompletedCommand(notificationOriginId, notifierId, tripId, driverId, passengerId, amount, paymentMethod, approvedAt, metadata);
     }
 }

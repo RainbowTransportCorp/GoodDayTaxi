@@ -39,7 +39,7 @@ public class PaymentService implements NotifyCompletedPaymentUsecase, NotifyRefu
      */
     @Transactional
     @Override
-    public void execute(NotifyPaymentCompletedCommand command) {
+    public void execute(PaymentCompletedCommand command) {
         // Notification 생성 및 저장
         Notification notification = Notification.from(command, NotificationType.PAYMENT_COMPLETED);
         notification.assignIds(null, command.getTripId(), command.getPaymentId(), command.getDriverId(), command.getPassengerId());
@@ -87,7 +87,7 @@ public class PaymentService implements NotifyCompletedPaymentUsecase, NotifyRefu
      */
     @Transactional
     @Override
-    public void request(NotifyRefundRequestedCommand command) {
+    public void request(RefundRequestedCommand command) {
         // Notification 생성 및 저장
         Notification notification = Notification.from(command, NotificationType.REFUND_REQUEST_CREATED);
         notification.assignIds(null, command.getTripId(), command.getPaymentId(), command.getDriverId(), command.getPassengerId());
@@ -141,7 +141,7 @@ public class PaymentService implements NotifyCompletedPaymentUsecase, NotifyRefu
      */
     @Transactional
     @Override
-    public void reject(NotifyRefundRejectedCommand command) {
+    public void reject(RefundRejectedCommand command) {
         // Notification 생성 및 저장
         Notification notification = Notification.from(command, NotificationType.REFUND_REQUEST_REJECTED);
         notification.assignIds(null, command.getTripId(), command.getPaymentId(), null, command.getPassengerId());
@@ -193,7 +193,7 @@ public class PaymentService implements NotifyCompletedPaymentUsecase, NotifyRefu
      */
     @Transactional
     @Override
-    public void complete(NotifyRefundCompletedCommand command) {
+    public void complete(RefundCompletedCommand command) {
         // Notification 생성 및 저장
         Notification notification = Notification.from(command, NotificationType.REFUND_COMPLETED);
         notification.assignIds(null, command.getTripId(), command.getPaymentId(), command.getDriverId(), command.getPassengerId());
@@ -306,7 +306,7 @@ public class PaymentService implements NotifyCompletedPaymentUsecase, NotifyRefu
      */
     @Transactional
     @Override
-    public void createSettlement(NotifyRefundSettlementCreatedCommand command) {
+    public void createSettlement(RefundSettlementCreatedCommand command) {
         // Notification 생성 및 저장
         Notification notification = Notification.from(command, NotificationType.REFUND_SETTLEMENT_CREATED);
         notification.assignIds(null, command.getTripId(), command.getPaymentId(), command.getDriverId(), null);

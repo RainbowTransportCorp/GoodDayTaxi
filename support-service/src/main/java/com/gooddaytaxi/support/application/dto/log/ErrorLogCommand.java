@@ -11,7 +11,7 @@ import java.util.UUID;
  * - ERROR_DETECTED 이벤트 처리
  */
 @Getter
-public class NotifyErrorLogCommand extends Command {
+public class ErrorLogCommand extends Command {
     private final UUID dispatchId;
     private final UUID tripId;
     private final UUID paymentId;
@@ -20,7 +20,7 @@ public class NotifyErrorLogCommand extends Command {
     private final String sourceNotificationType;
     private final String logType;
 
-    private NotifyErrorLogCommand(
+    private ErrorLogCommand(
             UUID notificationOriginId, UUID notifierId,
             UUID dispatchId, UUID tripId, UUID paymentId,
             UUID driverId, UUID passengerId,
@@ -64,7 +64,7 @@ public class NotifyErrorLogCommand extends Command {
 
         }
     }
-    public static NotifyErrorLogCommand create(
+    public static ErrorLogCommand create(
             UUID notificationOriginId, UUID notifierId,
             UUID dispatchId, UUID tripId, UUID paymentId,
             UUID driverId, UUID passengerId,
@@ -72,7 +72,7 @@ public class NotifyErrorLogCommand extends Command {
             String logMessage,
             Metadata metadata
     ) {
-        return new NotifyErrorLogCommand(notificationOriginId, notifierId, dispatchId, tripId, paymentId, driverId, passengerId, sourceNotificationType, logType, logMessage, metadata);
+        return new ErrorLogCommand(notificationOriginId, notifierId, dispatchId, tripId, paymentId, driverId, passengerId, sourceNotificationType, logType, logMessage, metadata);
     }
 }
 
