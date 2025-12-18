@@ -66,7 +66,12 @@ public class DispatchAssignmentLogRepositoryImpl implements DispatchAssignmentLo
                 )
                 .fetch();
     }
-  
+
+    /**
+     * 배차 시도한 dispatch 중 유효한
+     * @param dispatchId
+     * @return
+     */
     @Override
     public List<UUID> findAllDriverIdsByDispatchId(UUID dispatchId) {
         return queryFactory
