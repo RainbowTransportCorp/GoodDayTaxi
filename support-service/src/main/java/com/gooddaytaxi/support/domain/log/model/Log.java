@@ -1,10 +1,8 @@
 package com.gooddaytaxi.support.domain.log.model;
 
 import com.gooddaytaxi.common.jpa.model.BaseEntity;
-import com.gooddaytaxi.support.application.dto.Command;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -36,11 +34,11 @@ public class Log extends BaseEntity {
     @Column(name = "log_message", nullable = false, length = 500)
     private String logMessage;
 
-    @Column(name = "occurred_at", nullable = false)
-    private LocalDateTime occurredAt;
-
     @Column(name = "notification_id")
     private UUID notificationId;
+
+    @Column(name = "occurred_at", nullable = false)
+    private LocalDateTime occurredAt;
 
 
     /**
@@ -61,20 +59,19 @@ public class Log extends BaseEntity {
      * @param logType 로그 타입
      * @param logMessage 로그 메시지
      */
-    @Builder
-    private Log(String logMessage, LocalDateTime occurredAt, LogType logType, UUID notificationId) {
+    private Log(LogType logType, String logMessage, UUID notificationId, LocalDateTime occurredAt) {
         this.logMessage = logMessage;
         this.occurredAt = occurredAt;
         this.logType = logType;
         this.notificationId = notificationId;
     }
 
-    public static Log from(Command command, LogType logType, UUID notificationId) {
-        return new Log(command.getMessage(), command.getMetadata().occurredAt(), logType, notificationId);
+    public static Log create(LogType logType, String logMessage, UUID notificationId, LocalDateTime occurredAt) {
+        return new Log(logType, logMessage, notificationId, occurredAt);
     }
 
     /**
-     * 알림 소프트 삭제
+     * 로그 소프트 삭제
      *
      * @param deletedBy 삭제한 사용자 ID
      */

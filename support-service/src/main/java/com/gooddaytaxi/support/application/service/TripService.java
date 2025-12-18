@@ -44,7 +44,7 @@ public class TripService implements NotifyStartedTripUsecase, NotifyEndedTripUse
     @Override
     public void execute(TripStartedCommand command) {
         // Notification 생성 및 저장
-        Notification notification = Notification.from(command, NotificationType.TRIP_STARTED);
+        Notification notification = command.toEntity(NotificationType.TRIP_STARTED);
         notification.assignIds(command.getDispatchId(), command.getTripId(), null, command.getDriverId(), command.getPassengerId());
         log.debug("[Check] Notification 생성: tripId={}, driverId={}, passengerId={}", notification.getNotificationOriginId(), notification.getDriverId(), notification.getPassengerId());
 
@@ -86,7 +86,7 @@ public class TripService implements NotifyStartedTripUsecase, NotifyEndedTripUse
     @Override
     public void execute(TripEndedCommand command) {
         // Notification 생성 및 저장
-        Notification notification = Notification.from(command, NotificationType.TRIP_ENDED);
+        Notification notification = command.toEntity(NotificationType.TRIP_ENDED);
         notification.assignIds(command.getDispatchId(), command.getTripId(), null, command.getDriverId(), command.getPassengerId());
         log.debug("[Check] Notification 생성: tripId={}, driverId={}, passengerId={}", notification.getNotificationOriginId(), notification.getDriverId(), notification.getPassengerId());
 
@@ -128,7 +128,7 @@ public class TripService implements NotifyStartedTripUsecase, NotifyEndedTripUse
     @Override
     public void execute(TripCanceledCommand command) {
         // Notification 생성 및 저장
-        Notification notification = Notification.from(command, NotificationType.TRIP_CANCELED);
+        Notification notification = command.toEntity(NotificationType.TRIP_CANCELED);
         notification.assignIds(command.getDispatchId(), command.getTripId(), null, command.getDriverId(), command.getPassengerId());
         log.debug("[Check] Notification 생성: tripId={}, driverId={}", notification.getNotificationOriginId(), notification.getDriverId());
 

@@ -2,6 +2,8 @@ package com.gooddaytaxi.support.application.dto.payment;
 
 import com.gooddaytaxi.support.application.dto.Metadata;
 import com.gooddaytaxi.support.application.dto.Command;
+import com.gooddaytaxi.support.domain.notification.model.Notification;
+import com.gooddaytaxi.support.domain.notification.model.NotificationType;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -59,5 +61,9 @@ public class RefundRequestedCommand extends Command {
             Metadata metadata
     ) {
         return new RefundRequestedCommand(notificationOriginId, notifierId, tripId, paymentId, driverId, passengerId, amount, paymentMethod, reason, requestedAt, metadata);
+    }
+
+    public Notification toEntity(NotificationType notificationType) {
+        return Notification.create(this.getNotificationOriginId(), this.getNotifierId(), notificationType, this.getMessage());
     }
 }

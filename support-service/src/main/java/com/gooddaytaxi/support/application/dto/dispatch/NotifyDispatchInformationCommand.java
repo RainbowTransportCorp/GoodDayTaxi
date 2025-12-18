@@ -2,6 +2,8 @@ package com.gooddaytaxi.support.application.dto.dispatch;
 
 import com.gooddaytaxi.support.application.dto.Metadata;
 import com.gooddaytaxi.support.application.dto.Command;
+import com.gooddaytaxi.support.domain.notification.model.Notification;
+import com.gooddaytaxi.support.domain.notification.model.NotificationType;
 import lombok.Getter;
 
 import java.util.UUID;
@@ -46,5 +48,9 @@ public class NotifyDispatchInformationCommand extends Command {
     public String toString() {
         return "NotifyDispatchInformationCommand(driverId=%s, passengerId=%s, message=%s, dispatchId=%s)"
                 .formatted(driverId, passengerId, getMessage(), dispatchId);
+    }
+
+    public Notification toEntity(NotificationType notificationType) {
+        return Notification.create(this.getNotificationOriginId(), this.getNotifierId(), notificationType, this.getMessage());
     }
 }

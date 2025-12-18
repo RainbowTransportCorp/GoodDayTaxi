@@ -2,6 +2,10 @@ package com.gooddaytaxi.support.application.dto.log;
 
 import com.gooddaytaxi.support.application.dto.Command;
 import com.gooddaytaxi.support.application.dto.Metadata;
+import com.gooddaytaxi.support.domain.log.model.Log;
+import com.gooddaytaxi.support.domain.log.model.LogType;
+import com.gooddaytaxi.support.domain.notification.model.Notification;
+import com.gooddaytaxi.support.domain.notification.model.NotificationType;
 import lombok.Getter;
 
 import java.util.UUID;
@@ -73,6 +77,13 @@ public class ErrorLogCommand extends Command {
             Metadata metadata
     ) {
         return new ErrorLogCommand(notificationOriginId, notifierId, dispatchId, tripId, paymentId, driverId, passengerId, sourceNotificationType, logType, logMessage, metadata);
+    }
+
+    public Notification toEntity(NotificationType notificationType) {
+        return Notification.create(this.getNotificationOriginId(), this.getNotifierId(), notificationType, this.getMessage());
+    }
+    public Log toLogEntity(UUID notificationId) {
+        return Log.create(LogType.valueOf(this.logType), this.getMessage(), notificationId, this.getMetadata().occurredAt());
     }
 }
 

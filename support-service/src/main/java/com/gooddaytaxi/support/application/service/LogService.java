@@ -40,7 +40,7 @@ public class LogService implements NotifyErrorDetectedUsecase {
     @Override
     public void execute(ErrorLogCommand command) {
         // Notification 생성 및 저장
-        Notification notification = Notification.from(command, NotificationType.ERROR_DETECTED);
+        Notification notification = command.toEntity(NotificationType.ERROR_DETECTED);
         notification.assignIds(command.getDispatchId(), command.getTripId(), command.getPaymentId(), command.getDriverId(), command.getPassengerId());
 
         Notification savedNoti = notificationCommandPersistencePort.save(notification);
@@ -48,7 +48,7 @@ public class LogService implements NotifyErrorDetectedUsecase {
         log.debug("[Check] Notification Persistence 조회: notificationOriginId={}, notifierId={}, logType={}", savedNoti.getNotificationOriginId(), savedNoti.getNotifierId(), savedNoti.getNotificationType());
 
         // Log 생성 및 저장
-        Log logging = Log.from(command, LogType.valueOf(command.getLogType()), notification.getId());
+        Log logging = command.toLogEntity(notification.getId());
         Log savedLog = logCommandPersistencePort.save(logging);
 
         // 수신자: [ MASTER_ADMIN 관리자들 ]

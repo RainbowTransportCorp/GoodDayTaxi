@@ -2,6 +2,8 @@ package com.gooddaytaxi.support.application.dto.dispatch;
 
 import com.gooddaytaxi.support.application.dto.Metadata;
 import com.gooddaytaxi.support.application.dto.Command;
+import com.gooddaytaxi.support.domain.notification.model.Notification;
+import com.gooddaytaxi.support.domain.notification.model.NotificationType;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -47,5 +49,9 @@ public class NotifyDispatchCanceledCommand extends Command {
             Metadata metadata
     ) {
         return new NotifyDispatchCanceledCommand(notificationOriginId, notifierId, driverId, passengerId, message, canceledBy, canceledAt, metadata);
+    }
+
+    public Notification toEntity(NotificationType notificationType) {
+        return Notification.create(this.getNotificationOriginId(), this.getNotifierId(), notificationType, this.getMessage());
     }
 }
