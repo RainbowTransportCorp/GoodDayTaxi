@@ -322,18 +322,18 @@ services:
   #   networks:
   #     - gd-network
 
-  # support-service:
-  #   build:
-  #     context: ../support-service
-  #     dockerfile: Dockerfile
-  #   container_name: GD-SUPPORT-SERVICE
-  #   ports:
-  #     - "${SUPPORT_SERVICE_PORT}:8080"
-  #   depends_on:
-  #     - support-db
-  #     - server
-  #   networks:
-  #     - gd-network
+#   support-service:
+#     build:
+#       context: ../support-service
+#       dockerfile: Dockerfile
+#     container_name: GD-SUPPORT-SERVICE
+#     ports:
+#       - "${SUPPORT_SERVICE_PORT}:8080"
+#     depends_on:
+#       - support-db
+#       - server
+#     networks:
+#       - gd-network
 
 
 # ================
