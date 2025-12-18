@@ -13,8 +13,8 @@ import org.springframework.stereotype.Component;
 public class NotificationCommandPersistenceAdapter implements NotificationCommandPersistencePort {
     private final NotificationJpaRepository notificationJpaRepository;
 
-    /** 알림 저장, 삭제
-    *
+    /**
+    * 알림 저장, 삭제
     */
     @Override
     public Notification save(Notification notification) {
