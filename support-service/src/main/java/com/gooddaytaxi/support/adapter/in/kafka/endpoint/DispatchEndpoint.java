@@ -2,7 +2,7 @@ package com.gooddaytaxi.support.adapter.in.kafka.endpoint;
 
 import com.gooddaytaxi.support.adapter.in.kafka.dto.*;
 import com.gooddaytaxi.support.application.dto.Metadata;
-import com.gooddaytaxi.support.application.dto.dispatch.*;
+import com.gooddaytaxi.support.application.dto.input.dispatch.*;
 import com.gooddaytaxi.support.application.port.in.dispatch.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 public class DispatchEndpoint {
 
     private final NotifyDispatchUsecase notifyDispatchUsecase;
-    private final NotifyAcceptedCallUsecase notifyAcceptedCallUsecase;
+    private final NotifyCallAcceptUsecase notifyCallAcceptUsecase;
     private final NotifyDispatchTimeoutUsecase notifyDispatchTimeoutUsecase;
     private final NotifyDispatchCancelUsecase notifyDispatchCancelUsecase;
     private final NotifyDispatchRejectUsecase notifyDispatchRejectUsecase;
@@ -75,7 +75,7 @@ public class DispatchEndpoint {
         log.debug("[Transform] EventRequest >>> Command ➡️ {}", command);
 
         // 수락된 콜 알림 전송 서비스 호출
-        notifyAcceptedCallUsecase.execute(command);
+        notifyCallAcceptUsecase.execute(command);
     }
 
 

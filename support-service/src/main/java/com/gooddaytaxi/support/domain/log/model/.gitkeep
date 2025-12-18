@@ -1,5 +1,0 @@
-# Domain Model - Entity
-               - 이벤트 객체를 발행
-                    > 1. Command 받아 생성한 Entity DB에 저장 후, 도메인 이벤트 생성 및 이벤트 발행
-                    > 2. EventPublisherPort : Port 인터페이스 (application.command.port.outbound)
-                    > 3. EventPublisherAdapter : 실제로 Kafka 토픽에 메시지 발행 (adapter.outbound.kafka)

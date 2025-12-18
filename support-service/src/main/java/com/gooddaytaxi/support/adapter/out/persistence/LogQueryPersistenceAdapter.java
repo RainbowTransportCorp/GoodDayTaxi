@@ -1,8 +1,8 @@
 package com.gooddaytaxi.support.adapter.out.persistence;
 
 import com.gooddaytaxi.support.application.port.out.persistence.LogQueryPersistencePort;
-import com.gooddaytaxi.support.application.port.out.persistence.LogSpecifications;
-import com.gooddaytaxi.support.application.service.AdminLogFilter;
+import com.gooddaytaxi.support.application.query.specification.LogSpecifications;
+import com.gooddaytaxi.support.application.query.filter.AdminLogFilter;
 import com.gooddaytaxi.support.domain.log.model.Log;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

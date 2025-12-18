@@ -1,13 +1,13 @@
 package com.gooddaytaxi.support.adapter.in.web.controller;
 
 import com.gooddaytaxi.common.core.dto.ApiResponse;
-import com.gooddaytaxi.support.application.dto.log.LogResponse;
-import com.gooddaytaxi.support.application.dto.notification.NotificationResponse;
-import com.gooddaytaxi.support.application.port.in.web.admin.DeleteNotificationUsecase;
-import com.gooddaytaxi.support.application.port.in.web.admin.GetAllNotificationUsecase;
+import com.gooddaytaxi.support.application.dto.output.log.LogResponse;
+import com.gooddaytaxi.support.application.dto.output.notification.NotificationResponse;
+import com.gooddaytaxi.support.application.port.in.web.notification.DeleteNotificationUsecase;
+import com.gooddaytaxi.support.application.port.in.web.notification.GetAllNotificationUsecase;
 import com.gooddaytaxi.support.application.port.in.web.log.GetAllLogsUsecase;
-import com.gooddaytaxi.support.application.service.AdminLogFilter;
-import com.gooddaytaxi.support.application.service.AdminNotificationFilter;
+import com.gooddaytaxi.support.application.query.filter.AdminLogFilter;
+import com.gooddaytaxi.support.application.query.filter.AdminNotificationFilter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;

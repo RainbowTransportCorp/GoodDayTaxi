@@ -3,8 +3,8 @@ package com.gooddaytaxi.support.adapter.in.kafka.endpoint;
 
 import com.gooddaytaxi.support.adapter.in.kafka.dto.*;
 import com.gooddaytaxi.support.application.dto.Metadata;
-import com.gooddaytaxi.support.application.dto.payment.*;
-import com.gooddaytaxi.support.application.port.in.payment.NotifyCompletedPaymentUsecase;
+import com.gooddaytaxi.support.application.dto.input.payment.*;
+import com.gooddaytaxi.support.application.port.in.payment.NotifyPaymentCompleteUsecase;
 import com.gooddaytaxi.support.application.port.in.payment.NotifyRefundUsecase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class PaymentEndpoint {
 
-    private final NotifyCompletedPaymentUsecase notifyCompletedPaymentUsecase;
+    private final NotifyPaymentCompleteUsecase notifyPaymentCompleteUsecase;
     private final NotifyRefundUsecase notifyRefundUsecase;
 
     /**
@@ -46,7 +46,7 @@ public class PaymentEndpoint {
         log.debug("[Transform] EventRequest >>> Command ➡️ {}", command);
 
         // 결제 완료 알림 전송 서비스 호출
-        notifyCompletedPaymentUsecase.execute(command);
+        notifyPaymentCompleteUsecase.execute(command);
     }
 
 

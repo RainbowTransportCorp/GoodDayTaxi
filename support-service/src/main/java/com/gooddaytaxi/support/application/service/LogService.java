@@ -1,11 +1,11 @@
 package com.gooddaytaxi.support.application.service;
 
 import com.gooddaytaxi.support.application.dto.Metadata;
-import com.gooddaytaxi.support.application.dto.log.ErrorLogCommand;
-import com.gooddaytaxi.support.application.port.in.monitoring.NotifyErrorDetectedUsecase;
-import com.gooddaytaxi.support.application.port.out.internal.account.AccountDomainCommunicationPort;
+import com.gooddaytaxi.support.application.dto.input.log.ErrorDetectedCommand;
+import com.gooddaytaxi.support.application.port.in.monitoring.NotifyErrorDetectUsecase;
+import com.gooddaytaxi.support.application.port.out.internal.AccountDomainCommunicationPort;
 import com.gooddaytaxi.support.application.port.out.messaging.NotificationPushMessagingPort;
-import com.gooddaytaxi.support.application.port.out.messaging.QueuePushMessage;
+import com.gooddaytaxi.support.application.port.out.dto.QueuePushMessage;
 import com.gooddaytaxi.support.application.port.out.persistence.LogCommandPersistencePort;
 import com.gooddaytaxi.support.application.port.out.persistence.NotificationCommandPersistencePort;
 import com.gooddaytaxi.support.domain.log.model.Log;
@@ -27,7 +27,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Service
 @Transactional
-public class LogService implements NotifyErrorDetectedUsecase {
+public class LogService implements NotifyErrorDetectUsecase {
     private final NotificationCommandPersistencePort notificationCommandPersistencePort;
     private final LogCommandPersistencePort logCommandPersistencePort;
     private final AccountDomainCommunicationPort accountDomainCommunicationPort;
@@ -38,7 +38,7 @@ public class LogService implements NotifyErrorDetectedUsecase {
      */
     @Transactional
     @Override
-    public void execute(ErrorLogCommand command) {
+    public void execute(ErrorDetectedCommand command) {
         // Notification 생성 및 저장
         Notification notification = command.toEntity(NotificationType.ERROR_DETECTED);
         notification.assignIds(command.getDispatchId(), command.getTripId(), command.getPaymentId(), command.getDriverId(), command.getPassengerId());

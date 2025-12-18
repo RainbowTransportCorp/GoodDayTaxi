@@ -1,9 +1,12 @@
 package com.gooddaytaxi.support.application.service;
 
-import com.gooddaytaxi.support.application.dto.log.LogResponse;
-import com.gooddaytaxi.support.application.dto.notification.NotificationResponse;
-import com.gooddaytaxi.support.application.port.in.web.admin.DeleteNotificationUsecase;
-import com.gooddaytaxi.support.application.port.in.web.admin.GetAllNotificationUsecase;
+import com.gooddaytaxi.support.application.policy.UserRole;
+import com.gooddaytaxi.support.application.dto.output.log.LogResponse;
+import com.gooddaytaxi.support.application.dto.output.notification.NotificationResponse;
+import com.gooddaytaxi.support.application.query.filter.AdminLogFilter;
+import com.gooddaytaxi.support.application.query.filter.AdminNotificationFilter;
+import com.gooddaytaxi.support.application.port.in.web.notification.DeleteNotificationUsecase;
+import com.gooddaytaxi.support.application.port.in.web.notification.GetAllNotificationUsecase;
 import com.gooddaytaxi.support.application.port.in.web.log.GetAllLogsUsecase;
 import com.gooddaytaxi.support.application.port.out.persistence.LogQueryPersistencePort;
 import com.gooddaytaxi.support.application.port.out.persistence.NotificationQueryPersistencePort;

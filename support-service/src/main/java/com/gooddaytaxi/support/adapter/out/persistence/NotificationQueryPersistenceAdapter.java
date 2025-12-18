@@ -1,8 +1,8 @@
 package com.gooddaytaxi.support.adapter.out.persistence;
 
-import com.gooddaytaxi.support.application.port.out.persistence.NotificationSpecifications;
+import com.gooddaytaxi.support.application.query.specification.NotificationSpecifications;
 import com.gooddaytaxi.support.application.port.out.persistence.NotificationQueryPersistencePort;
-import com.gooddaytaxi.support.application.service.AdminNotificationFilter;
+import com.gooddaytaxi.support.application.query.filter.AdminNotificationFilter;
 import com.gooddaytaxi.support.domain.notification.model.Notification;
 import com.gooddaytaxi.support.domain.notification.model.NotificationType;
 import jakarta.persistence.EntityNotFoundException;

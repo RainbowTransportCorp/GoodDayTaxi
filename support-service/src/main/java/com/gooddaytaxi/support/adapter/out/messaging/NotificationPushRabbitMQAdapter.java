@@ -1,7 +1,7 @@
 package com.gooddaytaxi.support.adapter.out.messaging;
 
 import com.gooddaytaxi.support.adapter.out.messaging.config.RabbitMQConfig;
-import com.gooddaytaxi.support.application.port.out.messaging.QueuePushMessage;
+import com.gooddaytaxi.support.application.port.out.dto.QueuePushMessage;
 import com.gooddaytaxi.support.application.port.out.messaging.NotificationPushMessagingPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

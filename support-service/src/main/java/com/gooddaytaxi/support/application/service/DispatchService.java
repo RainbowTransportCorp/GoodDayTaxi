@@ -3,11 +3,11 @@ package com.gooddaytaxi.support.application.service;
 import com.gooddaytaxi.support.adapter.out.internal.account.dto.DriverProfile;
 import com.gooddaytaxi.support.adapter.out.internal.account.dto.VehicleInfo;
 import com.gooddaytaxi.support.application.dto.Metadata;
-import com.gooddaytaxi.support.application.dto.dispatch.*;
+import com.gooddaytaxi.support.application.dto.input.dispatch.*;
 import com.gooddaytaxi.support.application.port.in.dispatch.*;
-import com.gooddaytaxi.support.application.port.out.internal.account.AccountDomainCommunicationPort;
+import com.gooddaytaxi.support.application.port.out.internal.AccountDomainCommunicationPort;
 import com.gooddaytaxi.support.application.port.out.messaging.NotificationPushMessagingPort;
-import com.gooddaytaxi.support.application.port.out.messaging.QueuePushMessage;
+import com.gooddaytaxi.support.application.port.out.dto.QueuePushMessage;
 import com.gooddaytaxi.support.application.port.out.persistence.NotificationCommandPersistencePort;
 import com.gooddaytaxi.support.domain.notification.model.Notification;
 import com.gooddaytaxi.support.domain.notification.model.NotificationType;
@@ -30,7 +30,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Service
 @Transactional
-public class DispatchService implements NotifyDispatchUsecase, NotifyAcceptedCallUsecase, NotifyDispatchTimeoutUsecase, NotifyDispatchCancelUsecase, NotifyDispatchRejectUsecase {
+public class DispatchService implements NotifyDispatchUsecase, NotifyCallAcceptUsecase, NotifyDispatchTimeoutUsecase, NotifyDispatchCancelUsecase, NotifyDispatchRejectUsecase {
 
     private final NotificationCommandPersistencePort notificationCommandPersistencePort;
     private final NotificationPushMessagingPort notificationPushMessagingPort;
