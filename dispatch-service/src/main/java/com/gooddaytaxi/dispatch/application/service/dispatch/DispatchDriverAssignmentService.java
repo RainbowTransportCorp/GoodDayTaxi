@@ -34,8 +34,8 @@ public class DispatchDriverAssignmentService {
     private final DispatchRequestedCommandPort eventPort;
 
     /**
-     * 최초 배차 시도
-     * @param dispatchId
+     * 최초의 배차 시도
+     * @param dispatchId 배차 식별자
      */
     public void assignInitial(UUID dispatchId) {
 
@@ -62,10 +62,10 @@ public class DispatchDriverAssignmentService {
     }
 
     /**
-     * 재배차 시도
-     * @param dispatchId
-     * @param attemptNo
-     * @param filteredDrivers
+     * 재배차를 시도
+     * @param dispatchId 요청된 배차 식별자
+     * @param attemptNo 배차 요청 횟수
+     * @param filteredDrivers Account에서
      */
     public void assignWithFilter(UUID dispatchId, int attemptNo, List<UUID> filteredDrivers) {
 

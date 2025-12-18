@@ -8,7 +8,8 @@ function guardPassenger() {
 
     if (!token || role !== "PASSENGER") {
         alert("승객 전용 페이지입니다.");
-        window.location.href = "/login/index.html";
+
+        window.location.href = "/index.html";
         return false;
     }
     return true;

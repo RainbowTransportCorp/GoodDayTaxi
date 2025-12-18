@@ -7,6 +7,10 @@ import com.gooddaytaxi.dispatch.application.outbox.DispatchEventOutboxPort;
 import com.gooddaytaxi.dispatch.application.port.out.command.DispatchCanceledCommandPort;
 import org.springframework.stereotype.Component;
 
+/**
+ * 배차 취소(DISPATCH_CANCELED) 이벤트를
+ * Outbox 패턴을 통해 발행하는 Publisher 구현체.
+ */
 @Component
 public class DispatchCanceledEventPublisher
         extends BaseOutboxPublisher<DispatchCanceledPayload>

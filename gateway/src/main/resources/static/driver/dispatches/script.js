@@ -7,7 +7,7 @@ function loadDriverInfo() {
 
     if (role !== "DRIVER") {
         alert("이 페이지에 접근할 수 있는 권한이 없습니다.");
-        window.location.href = "/login/index.html";
+        window.location.href = "/index.html";
         return;
     }
 

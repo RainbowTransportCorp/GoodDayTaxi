@@ -2,8 +2,8 @@ package com.gooddaytaxi.dispatch.application.service.dispatch;
 
 import com.gooddaytaxi.dispatch.application.event.payload.DispatchTimeoutPayload;
 import com.gooddaytaxi.dispatch.application.port.out.command.DispatchCommandPort;
+import com.gooddaytaxi.dispatch.application.port.out.query.DispatchAssignmentLogQueryPort;
 import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
-import com.gooddaytaxi.dispatch.application.service.assignmentLog.AssignmentLogQueryService;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
 import com.gooddaytaxi.dispatch.domain.model.enums.ChangedBy;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
@@ -25,11 +25,11 @@ public class DispatchTimeoutService {
 
     private final DispatchQueryPort queryPort;
     private final DispatchCommandPort commandPort;
+    private final DispatchAssignmentLogQueryPort dispatchAssignmentLogQueryPort;
 
     private final DispatchDriverAssignmentService reassignService;
     private final DispatchHistoryService historyService;
     private final RetryPolicyService retryPolicyService;
-    private final AssignmentLogQueryService assignmentLogQueryService;
 
     private final DispatchTimeoutOutboxPublisher eventPort;
 
@@ -113,7 +113,7 @@ public class DispatchTimeoutService {
             );
 
             List<UUID> excludeDrivers =
-                    assignmentLogQueryService.findPreviouslyTriedDrivers(dispatch.getDispatchId());
+                  dispatchAssignmentLogQueryPort.findAllDriverIdsByDispatchId(dispatch.getDispatchId());
 
             reassignService.assignWithFilter(
                     dispatch.getDispatchId(),

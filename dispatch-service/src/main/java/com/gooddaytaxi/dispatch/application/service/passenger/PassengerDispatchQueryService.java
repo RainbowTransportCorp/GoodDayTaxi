@@ -22,16 +22,20 @@ import java.util.UUID;
 public class PassengerDispatchQueryService {
 
     private final DispatchQueryPort queryPort;
-    private final PassengerQueryPermissionValidator permissionValidator;
+    private final PassengerQueryPermissionValidator passengerQueryPermissionValidator;
+
 
     /**
-     * 승객의 콜 목록 조회
+     * 승객이 호출한 배차(콜)의 목록 조회
+     * @param passengerId 요청 승객의 식별자
+     * @param role 요청 승객의 권한
+     * @return 요청자가 호출했던 배차의 리스트
      */
     public List<DispatchSummaryResult> getDispatchList(UUID passengerId, UserRole role) {
 
         log.info("[PassengerDispatchList] 조회 요청 - passengerId={}", passengerId);
 
-        permissionValidator.validate(role);
+        passengerQueryPermissionValidator.validate(role);
 
         List<Dispatch> dispatches = queryPort.findAllByPassengerId(passengerId);
 
@@ -50,13 +54,17 @@ public class PassengerDispatchQueryService {
     }
 
     /**
-     * 승객의 콜 상세 정보 조회
+     * 특정 배차에 대한 상세 조회
+     * @param passengerId 요청자의 식별자
+     * @param role 요청자의 권한
+     * @param dispatchId 조회를 요청한 특정 배차의 식별자
+     * @return 특정 배차에 대한 상세 값
      */
     public DispatchDetailResult getDispatchDetail(UUID passengerId,UserRole role, UUID dispatchId) {
 
         log.info("[PassengerDispatchDetail] 조회 요청 - dispatchId={}", dispatchId);
 
-        permissionValidator.validate(role);
+        passengerQueryPermissionValidator.validate(role);
 
         Dispatch dispatch = queryPort
                 .findByIdAndPassengerId(dispatchId, passengerId)

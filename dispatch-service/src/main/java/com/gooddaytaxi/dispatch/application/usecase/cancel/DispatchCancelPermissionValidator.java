@@ -10,6 +10,12 @@ import java.util.UUID;
 @Component
 public class DispatchCancelPermissionValidator {
 
+    /**
+     * 배차를 취소할 때 권한 체크
+     * @param role 요청자의 권한
+     * @param requestPassengerId 요청한 승객의 식별자
+     * @param ownerPassengerId 배차를 생성한 승객 정보
+     */
     public void validate(
             UserRole role,
             UUID requestPassengerId,
