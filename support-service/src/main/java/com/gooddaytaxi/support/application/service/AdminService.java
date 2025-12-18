@@ -27,8 +27,7 @@ import java.util.UUID;
 public class AdminService implements GetAllNotificationUsecase, DeleteNotificationUsecase {
 
     private final NotificationQueryPersistencePort notificationQueryPersistencePort;
-    private static final UUID SYSTEM_UUID = UUID.fromString("99999999-9999-9999-9999-999999999999");  // DISPATCH_TIMEOUT 이벤트 notifierId
-
+    
     /**
      * 관리자의 알림 전체 조회 서비스
      */
