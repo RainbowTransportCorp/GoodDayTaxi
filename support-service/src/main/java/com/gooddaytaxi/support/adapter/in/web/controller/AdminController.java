@@ -2,7 +2,8 @@ package com.gooddaytaxi.support.adapter.in.web.controller;
 
 import com.gooddaytaxi.common.core.dto.ApiResponse;
 import com.gooddaytaxi.support.application.dto.notification.NotificationResponse;
-import com.gooddaytaxi.support.application.port.in.web.admin.GetAllNotificationForAdminUsecase;
+import com.gooddaytaxi.support.application.port.in.web.admin.DeleteNotificationUsecase;
+import com.gooddaytaxi.support.application.port.in.web.admin.GetAllNotificationUsecase;
 import com.gooddaytaxi.support.application.service.AdminNotificationFilter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -23,17 +24,18 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AdminController {
 
-    private final GetAllNotificationForAdminUsecase getAllNotificationForAdminUsecase;
+    private final GetAllNotificationUsecase getAllNotificationUsecase;
+    private final DeleteNotificationUsecase deleteNotificationUsecase;
 
-    /*
+    /**
      * 관리자의 전체 알림 목록 조회(필터링, 페이징)
-     * */
+     */
     @Operation(summary = "관리자의 알림 전체 조회", description = "관리자만 모든 알림 목록을 조회합니다.")
     @GetMapping("/notifications")
     public ResponseEntity<ApiResponse<Page<NotificationResponse>>> getAllNotifications(
             @Parameter(description = "사용자 ID (UUID)", required = true, example = "550e8400-e29b-41d4-a716-446655440000")
             @RequestHeader("X-User-UUID") String userId,
-            @Parameter(description = "사용자 역할 (ADMIN/MASTER_ADMIN/Driver/Passenger)", required = true, example = "DRIVER")
+            @Parameter(description = "사용자 역할 (ADMIN/MASTER_ADMIN/Driver/Passenger)", required = true, example = "MASTER_ADMIN")
             @RequestHeader("X-User-Role") String userRole,
 
             // 필터 파라미터
@@ -52,7 +54,7 @@ public class AdminController {
                 new AdminNotificationFilter(notificationOriginId, notifierId, notificationType, from, to);
         // 알림 목록 조회
         Page<NotificationResponse> response =
-                getAllNotificationForAdminUsecase.execute(
+                getAllNotificationUsecase.execute(
                         UUID.fromString(userId), userRole,
                         filter,
                         pageable);
@@ -60,6 +62,29 @@ public class AdminController {
         log.debug("[Response] 모든 알림 조회 완료");
 
         return ResponseEntity.ok(ApiResponse.success(response, "전체 알림 조회가 완료되었습니다"));
+    }
+
+    /**
+     * 관리자의 알림 삭제
+     */
+    @Operation(summary = "관리자의 알림 삭제", description = "관리자만 알림 삭제가 가능합니다.")
+    @GetMapping("/notifications/{notificationId}/delete")
+    public ResponseEntity<ApiResponse<NotificationResponse>> getAllNotifications(
+            @Parameter(description = "사용자 ID (UUID)", required = true, example = "550e8400-e29b-41d4-a716-446655440000")
+            @RequestHeader("X-User-UUID") String userId,
+            @Parameter(description = "사용자 역할 (ADMIN/MASTER_ADMIN/Driver/Passenger)", required = true, example = "MASTER_ADMIN")
+            @RequestHeader("X-User-Role") String userRole,
+            @Parameter(description = "알림 ID (UUID)", required = true, example = "550e8400-e29b-41d4-a716-446655440000")
+            @PathVariable String notificationId
+    ) {
+        log.debug("[Check] 사용자 ID: {}, 사용자 역할: {}", userId, userRole);
+
+        // 알림 삭제
+        deleteNotificationUsecase.execute(UUID.fromString(userId), userRole, UUID.fromString(notificationId));
+
+        log.debug("[Response] 알림 삭제 완료");
+
+        return ResponseEntity.ok(ApiResponse.success(null, "알림이 삭제되었습니다."));
     }
 
 }

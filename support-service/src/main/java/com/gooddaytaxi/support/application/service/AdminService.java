@@ -1,7 +1,8 @@
 package com.gooddaytaxi.support.application.service;
 
 import com.gooddaytaxi.support.application.dto.notification.NotificationResponse;
-import com.gooddaytaxi.support.application.port.in.web.admin.GetAllNotificationForAdminUsecase;
+import com.gooddaytaxi.support.application.port.in.web.admin.DeleteNotificationUsecase;
+import com.gooddaytaxi.support.application.port.in.web.admin.GetAllNotificationUsecase;
 import com.gooddaytaxi.support.application.port.out.persistence.NotificationQueryPersistencePort;
 import com.gooddaytaxi.support.domain.exception.SupportBusinessException;
 import com.gooddaytaxi.support.domain.exception.SupportErrorCode;
@@ -23,7 +24,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class AdminService implements GetAllNotificationForAdminUsecase {
+public class AdminService implements GetAllNotificationUsecase, DeleteNotificationUsecase {
 
     private final NotificationQueryPersistencePort notificationQueryPersistencePort;
     private static final UUID SYSTEM_UUID = UUID.fromString("99999999-9999-9999-9999-999999999999");  // DISPATCH_TIMEOUT 이벤트 notifierId
@@ -47,5 +48,23 @@ public class AdminService implements GetAllNotificationForAdminUsecase {
 
         return notifications.map(NotificationResponse::from);
 
+    }
+
+    /**
+     * 관리자의 알림 삭제 서비스
+     */
+    @Override
+    public void execute(UUID userId, String userRole, UUID notificationId) {
+        log.debug("[Check] 사용자 ID: {}, 사용자 역할: {}", userId, userRole);
+
+        UserRole role = UserRole.valueOf(userRole);
+
+        if (!(role.equals(UserRole.ADMIN) || role.equals(UserRole.MASTER_ADMIN))) {
+            throw new SupportBusinessException(SupportErrorCode.ACCESS_DENIED);
+        }
+
+        // 알림 삭제
+        Notification notification = notificationQueryPersistencePort.findById(notificationId);
+        notification.softDelete(userId);
     }
 }
