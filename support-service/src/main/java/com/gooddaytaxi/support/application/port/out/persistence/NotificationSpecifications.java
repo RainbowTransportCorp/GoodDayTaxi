@@ -13,9 +13,9 @@ import java.util.List;
  * - 사용자 알림 조회
  * - 도메인 흐름 기반 알림 조회
  */
-public final class AdminNotificationSpecifications {
+public final class NotificationSpecifications {
 
-    private AdminNotificationSpecifications() {}
+    private NotificationSpecifications() {}
 
     public static Specification<Notification> applyFilter(AdminNotificationFilter filter) {
 
