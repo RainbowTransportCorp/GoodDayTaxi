@@ -34,7 +34,7 @@ public class PaymentEndpoint {
         log.debug("[Check] Payment Completed EventRequest 데이터: paymentId={}, notifierId={}, occurredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occurredAt());
 
         // EventRequest DTO > Command 변환
-        NotifyPaymentCompletedCommand command = NotifyPaymentCompletedCommand.create(
+        PaymentCompletedCommand command = PaymentCompletedCommand.create(
                 pl.notificationOriginId(), pl.notifierId(),
 //                pl.dispatchId(),
                 pl.tripId(),
@@ -62,7 +62,7 @@ public class PaymentEndpoint {
         log.debug("[Check] Refund Request Created EventRequest 데이터: paymentId={}, notifierId={}, occurredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occurredAt());
 
         // EventRequest DTO > Command 변환
-        NotifyRefundRequestedCommand command = NotifyRefundRequestedCommand.create(
+        RefundRequestedCommand command = RefundRequestedCommand.create(
                 pl.notificationOriginId(), pl.notifierId(),
 //                pl.dispatchId(),
                 pl.tripId(),
@@ -90,7 +90,7 @@ public class PaymentEndpoint {
         log.debug("[Check] Refund Request Rejected EventRequest 데이터: paymentId={}, notifierId={}, occurredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occurredAt());
 
         // EventRequest DTO > Command 변환
-        NotifyRefundRejectedCommand command = NotifyRefundRejectedCommand.create(
+        RefundRejectedCommand command = RefundRejectedCommand.create(
                 pl.notificationOriginId(), pl.notifierId(),
 //                pl.dispatchId(),
                 pl.tripId(),
@@ -118,7 +118,7 @@ public class PaymentEndpoint {
         log.debug("[Check] Refund Request Rejected EventRequest 데이터: paymentId={}, notifierId={}, occurredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occurredAt());
 
         // EventRequest DTO > Command 변환
-        NotifyRefundCompletedCommand command = NotifyRefundCompletedCommand.create(
+        RefundCompletedCommand command = RefundCompletedCommand.create(
                 pl.notificationOriginId(), pl.notifierId(),
 //                pl.dispatchId(),
                 pl.tripId(),
@@ -153,7 +153,7 @@ public class PaymentEndpoint {
         log.debug("[Check] Refund Request to Driver EventRequest 데이터: tripId={}, paymentId={}, driverId={}, approvedAt={}", pl.tripId(), pl.notificationOriginId(), pl.driverId(), pl.approvedAt());
 
         // EventRequest DTO > Command 변환
-        NotifyRefundSettlementCreatedCommand command = NotifyRefundSettlementCreatedCommand.create(
+        RefundSettlementCreatedCommand command = RefundSettlementCreatedCommand.create(
                 pl.notificationOriginId(), pl.notifierId(),
 //                pl.dispatchId(),
                 pl.tripId(),

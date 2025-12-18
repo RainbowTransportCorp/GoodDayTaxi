@@ -2,6 +2,8 @@ package com.gooddaytaxi.support.application.dto.payment;
 
 import com.gooddaytaxi.support.application.dto.Metadata;
 import com.gooddaytaxi.support.application.dto.Command;
+import com.gooddaytaxi.support.domain.notification.model.Notification;
+import com.gooddaytaxi.support.domain.notification.model.NotificationType;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -12,7 +14,7 @@ import java.util.UUID;
  * - REFUND_REQUEST_CREATED 이벤트 처리
  */
 @Getter
-public class NotifyRefundRequestedCommand extends Command {
+public class RefundRequestedCommand extends Command {
     private final UUID refundRequestId;
     //    private final UUID dispatchId;
     private final UUID tripId;
@@ -24,7 +26,7 @@ public class NotifyRefundRequestedCommand extends Command {
     private final String reason;
     private final LocalDateTime requestedAt;
 
-    private NotifyRefundRequestedCommand(
+    private RefundRequestedCommand(
             UUID notificationOriginId, UUID notifierId,
 //            UUID dispatchId,
             UUID tripId,
@@ -47,7 +49,7 @@ public class NotifyRefundRequestedCommand extends Command {
         this.reason = reason;
         this.requestedAt = requestedAt;
     }
-    public static NotifyRefundRequestedCommand create(
+    public static RefundRequestedCommand create(
             UUID notificationOriginId, UUID notifierId,
 //            UUID dispatchId,
             UUID tripId,
@@ -58,6 +60,10 @@ public class NotifyRefundRequestedCommand extends Command {
             LocalDateTime requestedAt,
             Metadata metadata
     ) {
-        return new NotifyRefundRequestedCommand(notificationOriginId, notifierId, tripId, paymentId, driverId, passengerId, amount, paymentMethod, reason, requestedAt, metadata);
+        return new RefundRequestedCommand(notificationOriginId, notifierId, tripId, paymentId, driverId, passengerId, amount, paymentMethod, reason, requestedAt, metadata);
+    }
+
+    public Notification toEntity(NotificationType notificationType) {
+        return Notification.create(this.getNotificationOriginId(), this.getNotifierId(), notificationType, this.getMessage());
     }
 }

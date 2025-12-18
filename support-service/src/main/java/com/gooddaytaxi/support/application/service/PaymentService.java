@@ -39,9 +39,9 @@ public class PaymentService implements NotifyCompletedPaymentUsecase, NotifyRefu
      */
     @Transactional
     @Override
-    public void execute(NotifyPaymentCompletedCommand command) {
+    public void execute(PaymentCompletedCommand command) {
         // Notification 생성 및 저장
-        Notification notification = Notification.from(command, NotificationType.PAYMENT_COMPLETED);
+        Notification notification = command.toEntity(NotificationType.PAYMENT_COMPLETED);
         notification.assignIds(null, command.getTripId(), command.getPaymentId(), command.getDriverId(), command.getPassengerId());
         log.debug("[Check] Notification 생성: paymentId={}, driverId={}, passengerId={}, message={}", notification.getNotificationOriginId(), notification.getDriverId(), notification.getPassengerId(), notification.getMessage());
 
@@ -87,9 +87,9 @@ public class PaymentService implements NotifyCompletedPaymentUsecase, NotifyRefu
      */
     @Transactional
     @Override
-    public void request(NotifyRefundRequestedCommand command) {
+    public void request(RefundRequestedCommand command) {
         // Notification 생성 및 저장
-        Notification notification = Notification.from(command, NotificationType.REFUND_REQUEST_CREATED);
+        Notification notification = command.toEntity(NotificationType.REFUND_REQUEST_CREATED);
         notification.assignIds(null, command.getTripId(), command.getPaymentId(), command.getDriverId(), command.getPassengerId());
         log.debug("[Check] Notification 생성: refundRequestId={}, paymentId={}, driverId={}, passengerId={}, message={}", notification.getNotificationOriginId(), notification.getPaymentId(), notification.getDriverId(), notification.getNotifierId(), notification.getMessage());
 
@@ -141,9 +141,9 @@ public class PaymentService implements NotifyCompletedPaymentUsecase, NotifyRefu
      */
     @Transactional
     @Override
-    public void reject(NotifyRefundRejectedCommand command) {
+    public void reject(RefundRejectedCommand command) {
         // Notification 생성 및 저장
-        Notification notification = Notification.from(command, NotificationType.REFUND_REQUEST_REJECTED);
+        Notification notification = command.toEntity(NotificationType.REFUND_REQUEST_REJECTED);
         notification.assignIds(null, command.getTripId(), command.getPaymentId(), null, command.getPassengerId());
         log.debug("[Check] Notification 생성: refundRequestId={}, paymentId={}, adminId={}, passengerId={}, rejectReason={}", notification.getNotificationOriginId(), notification.getPaymentId(), notification.getNotifierId(), notification.getPassengerId(), command.getRejectReason());
 
@@ -193,9 +193,9 @@ public class PaymentService implements NotifyCompletedPaymentUsecase, NotifyRefu
      */
     @Transactional
     @Override
-    public void complete(NotifyRefundCompletedCommand command) {
+    public void complete(RefundCompletedCommand command) {
         // Notification 생성 및 저장
-        Notification notification = Notification.from(command, NotificationType.REFUND_COMPLETED);
+        Notification notification = command.toEntity(NotificationType.REFUND_COMPLETED);
         notification.assignIds(null, command.getTripId(), command.getPaymentId(), command.getDriverId(), command.getPassengerId());
         log.debug("[Check] Notification 생성: refundRequestId={}, paymentId={}, adminId={}, driverId={}, passengerId={}, refundReason={}", notification.getNotificationOriginId(), notification.getPaymentId(), notification.getNotifierId(), notification.getDriverId(), notification.getPassengerId(), command.getReason());
 
@@ -306,9 +306,9 @@ public class PaymentService implements NotifyCompletedPaymentUsecase, NotifyRefu
      */
     @Transactional
     @Override
-    public void createSettlement(NotifyRefundSettlementCreatedCommand command) {
+    public void createSettlement(RefundSettlementCreatedCommand command) {
         // Notification 생성 및 저장
-        Notification notification = Notification.from(command, NotificationType.REFUND_SETTLEMENT_CREATED);
+        Notification notification = command.toEntity(NotificationType.REFUND_SETTLEMENT_CREATED);
         notification.assignIds(null, command.getTripId(), command.getPaymentId(), command.getDriverId(), null);
         log.debug("[Check] Notification 생성: paymentId={}, adminId={}, driverId={}, reason={}", notification.getNotificationOriginId(), notification.getNotifierId(), notification.getDriverId(), command.getReason());
 

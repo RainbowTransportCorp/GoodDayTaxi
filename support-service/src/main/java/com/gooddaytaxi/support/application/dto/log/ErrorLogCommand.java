@@ -2,6 +2,10 @@ package com.gooddaytaxi.support.application.dto.log;
 
 import com.gooddaytaxi.support.application.dto.Command;
 import com.gooddaytaxi.support.application.dto.Metadata;
+import com.gooddaytaxi.support.domain.log.model.Log;
+import com.gooddaytaxi.support.domain.log.model.LogType;
+import com.gooddaytaxi.support.domain.notification.model.Notification;
+import com.gooddaytaxi.support.domain.notification.model.NotificationType;
 import lombok.Getter;
 
 import java.util.UUID;
@@ -11,7 +15,7 @@ import java.util.UUID;
  * - ERROR_DETECTED 이벤트 처리
  */
 @Getter
-public class NotifyErrorLogCommand extends Command {
+public class ErrorLogCommand extends Command {
     private final UUID dispatchId;
     private final UUID tripId;
     private final UUID paymentId;
@@ -20,7 +24,7 @@ public class NotifyErrorLogCommand extends Command {
     private final String sourceNotificationType;
     private final String logType;
 
-    private NotifyErrorLogCommand(
+    private ErrorLogCommand(
             UUID notificationOriginId, UUID notifierId,
             UUID dispatchId, UUID tripId, UUID paymentId,
             UUID driverId, UUID passengerId,
@@ -64,7 +68,7 @@ public class NotifyErrorLogCommand extends Command {
 
         }
     }
-    public static NotifyErrorLogCommand create(
+    public static ErrorLogCommand create(
             UUID notificationOriginId, UUID notifierId,
             UUID dispatchId, UUID tripId, UUID paymentId,
             UUID driverId, UUID passengerId,
@@ -72,7 +76,14 @@ public class NotifyErrorLogCommand extends Command {
             String logMessage,
             Metadata metadata
     ) {
-        return new NotifyErrorLogCommand(notificationOriginId, notifierId, dispatchId, tripId, paymentId, driverId, passengerId, sourceNotificationType, logType, logMessage, metadata);
+        return new ErrorLogCommand(notificationOriginId, notifierId, dispatchId, tripId, paymentId, driverId, passengerId, sourceNotificationType, logType, logMessage, metadata);
+    }
+
+    public Notification toEntity(NotificationType notificationType) {
+        return Notification.create(this.getNotificationOriginId(), this.getNotifierId(), notificationType, this.getMessage());
+    }
+    public Log toLogEntity(UUID notificationId) {
+        return Log.create(LogType.valueOf(this.logType), this.getMessage(), notificationId, this.getMetadata().occurredAt());
     }
 }
 

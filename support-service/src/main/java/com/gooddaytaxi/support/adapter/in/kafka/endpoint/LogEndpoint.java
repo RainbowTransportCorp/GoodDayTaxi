@@ -3,7 +3,7 @@ package com.gooddaytaxi.support.adapter.in.kafka.endpoint;
 import com.gooddaytaxi.support.adapter.in.kafka.dto.ErrorDetectedEventPayload;
 import com.gooddaytaxi.support.adapter.in.kafka.dto.EventRequest;
 import com.gooddaytaxi.support.application.dto.Metadata;
-import com.gooddaytaxi.support.application.dto.log.NotifyErrorLogCommand;
+import com.gooddaytaxi.support.application.dto.log.ErrorLogCommand;
 import com.gooddaytaxi.support.application.port.in.monitoring.NotifyErrorDetectedUsecase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +33,7 @@ public class LogEndpoint {
         log.debug("[Check] Error Detect EventRequest 데이터: notificationOriginId={}, notifierId={}, logType={}, occurredAt={}", pl.notificationOriginId(), pl.notifierId(), pl.logType(), metadata.occurredAt());
 
         // EventRequest DTO > Command 변환
-        NotifyErrorLogCommand command = NotifyErrorLogCommand.create(
+        ErrorLogCommand command = ErrorLogCommand.create(
                 pl.notificationOriginId(), pl.notifierId(),
                 pl.dispatchId(), pl.tripId(), pl.paymentId(),
                 pl.driverId(), pl.passengerId(),

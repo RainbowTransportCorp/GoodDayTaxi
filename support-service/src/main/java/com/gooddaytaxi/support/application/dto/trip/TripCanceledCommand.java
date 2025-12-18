@@ -2,6 +2,8 @@ package com.gooddaytaxi.support.application.dto.trip;
 
 import com.gooddaytaxi.support.application.dto.Command;
 import com.gooddaytaxi.support.application.dto.Metadata;
+import com.gooddaytaxi.support.domain.notification.model.Notification;
+import com.gooddaytaxi.support.domain.notification.model.NotificationType;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -12,7 +14,7 @@ import java.util.UUID;
  * - TRIP_CANCELED 이벤트 처리
  */
 @Getter
-public class NotifyTripCanceledCommand extends Command {
+public class TripCanceledCommand extends Command {
     private final UUID tripId;
     private final UUID dispatchId;
     private final UUID driverId;
@@ -20,7 +22,7 @@ public class NotifyTripCanceledCommand extends Command {
     private final String cancelReason;
     private final LocalDateTime canceledAt;
 
-    private NotifyTripCanceledCommand(
+    private TripCanceledCommand(
             UUID notificationOriginId, UUID notifierId,
             UUID dispatchId,
             UUID driverId, UUID passengerId,
@@ -37,7 +39,7 @@ public class NotifyTripCanceledCommand extends Command {
         this.canceledAt = canceledAt;
     }
 
-    public static NotifyTripCanceledCommand create(
+    public static TripCanceledCommand create(
             UUID notificationOriginId, UUID notifierId,
             UUID dispatchId,
             UUID driverId, UUID passengerId,
@@ -45,6 +47,10 @@ public class NotifyTripCanceledCommand extends Command {
             LocalDateTime canceledAt,
             Metadata metadata
     ) {
-        return new NotifyTripCanceledCommand(notificationOriginId, notifierId, dispatchId, driverId, passengerId, cancelReason, canceledAt, metadata);
+        return new TripCanceledCommand(notificationOriginId, notifierId, dispatchId, driverId, passengerId, cancelReason, canceledAt, metadata);
+    }
+
+    public Notification toEntity(NotificationType notificationType) {
+        return Notification.create(this.getNotificationOriginId(), this.getNotifierId(), notificationType, this.getMessage());
     }
 }
