@@ -5,7 +5,6 @@ import com.gooddaytaxi.support.application.dto.notification.NotificationResponse
 import com.gooddaytaxi.support.application.port.in.web.admin.DeleteNotificationUsecase;
 import com.gooddaytaxi.support.application.port.in.web.admin.GetAllNotificationUsecase;
 import com.gooddaytaxi.support.application.port.in.web.log.GetAllLogsUsecase;
-import com.gooddaytaxi.support.application.port.out.persistence.LogCommandPersistencePort;
 import com.gooddaytaxi.support.application.port.out.persistence.LogQueryPersistencePort;
 import com.gooddaytaxi.support.application.port.out.persistence.NotificationQueryPersistencePort;
 import com.gooddaytaxi.support.domain.exception.SupportBusinessException;
