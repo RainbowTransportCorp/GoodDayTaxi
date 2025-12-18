@@ -7,7 +7,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.UUID;
 
-public interface GetAllNotificationForAdminUsecase {
+public interface GetAllNotificationUsecase {
     Page<NotificationResponse> execute(
             UUID userId, String userRole,
             AdminNotificationFilter filter, // 필터링
