@@ -36,17 +36,6 @@ public class DispatchRepositoryImpl implements DispatchRepositoryCustom {
                 .stream().toList();
     }
 
-    @Override
-    public List<Dispatch> findByDriverIdAndStatus(UUID driverId, DispatchStatus status) {
-        return queryFactory
-                .selectFrom(dispatch)
-                .where(
-                        dispatch.driverId.eq(driverId),
-                        dispatch.dispatchStatus.eq(status)
-                )
-                .fetch();
-    }
-
     /**
      * 특정 승객의 특정 배차의 조회
      * @param dispatchId 요청한 특정 배차 식별자

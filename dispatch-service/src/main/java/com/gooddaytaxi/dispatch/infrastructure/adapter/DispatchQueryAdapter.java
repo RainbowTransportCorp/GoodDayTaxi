@@ -46,11 +46,6 @@ public class DispatchQueryAdapter implements DispatchQueryPort {
     }
 
     @Override
-    public List<Dispatch> findByDriverIdAndStatus(UUID driverId, DispatchStatus status) {
-        return dispatchRepository.findByDriverIdAndStatus(driverId, status);
-    }
-
-    @Override
     public Optional<Dispatch> findByIdAndPassengerId(UUID dispatchId, UUID passengerId) {
         return dispatchRepository.findByIdAndPassengerId(dispatchId,passengerId);
     }
