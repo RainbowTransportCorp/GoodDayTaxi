@@ -34,8 +34,8 @@ public class DispatchDriverAssignmentService {
     private final DispatchRequestedCommandPort eventPort;
 
     /**
-     * 최초 배차 시도
-     * @param dispatchId
+     * 최초의 배차 시도
+     * @param dispatchId 배차 식별자
      */
     public void assignInitial(UUID dispatchId) {
 

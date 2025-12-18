@@ -24,8 +24,12 @@ public class PassengerDispatchQueryService {
     private final DispatchQueryPort queryPort;
     private final PassengerQueryPermissionValidator permissionValidator;
 
+
     /**
-     * 승객의 콜 목록 조회
+     * 승객이 호출한 배차(콜)의 목록 조회
+     * @param passengerId 요청 승객의 식별자
+     * @param role 요청 승객의 권한
+     * @return 요청자가 호출했던 배차의 리스트
      */
     public List<DispatchSummaryResult> getDispatchList(UUID passengerId, UserRole role) {
 

@@ -61,7 +61,13 @@ public class Dispatch extends BaseEntity {
     @Column(name = "timeout_at")
     private LocalDateTime timeoutAt;
 
-    // ======== 정적 팩토리 메서드로 생성 ========
+    /**
+     * 배차 생성을 위한 정적 팩토리 메서드
+     * @param passengerId 요청 승객 식별자
+     * @param pickupAddress 요청하는 출발지 정보
+     * @param destinationAddress 요청하는 도착지 정보
+     * @return 생성된 배차 정보
+     */
     public static Dispatch create(
             UUID passengerId,
             String pickupAddress,
