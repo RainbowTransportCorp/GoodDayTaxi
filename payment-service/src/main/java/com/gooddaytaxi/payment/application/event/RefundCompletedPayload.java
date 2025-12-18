@@ -15,7 +15,7 @@ public record RefundCompletedPayload(
         String method,
         String pgProvider,
         UUID paymentId,
-        UUID passeangerId,
+        UUID passengerId,
         UUID driverId,
         UUID tripId,
         String reason,

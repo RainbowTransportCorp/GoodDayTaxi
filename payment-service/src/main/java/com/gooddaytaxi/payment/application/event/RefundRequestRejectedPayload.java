@@ -10,9 +10,9 @@ public record RefundRequestRejectedPayload(
         UUID notificationOriginId,
         UUID notifierId,   //이벤트 발동 유저 Id
         UUID paymentId,
-        UUID passeangerId,
+        UUID passengerId,
         UUID tripId,
-        String rejectedReason,
+        String rejectReason,
         LocalDateTime rejectedAt
 ) {
 

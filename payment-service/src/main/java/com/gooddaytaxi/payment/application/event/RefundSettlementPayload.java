@@ -6,7 +6,7 @@ import com.gooddaytaxi.payment.domain.enums.RefundReason;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-public record RefundSettlementCreatedPayload(
+public record RefundSettlementPayload(
         UUID notificationOriginId,
         UUID notifierId,   //이벤트 발동 유저 Id
         UUID paymentId,
@@ -17,8 +17,8 @@ public record RefundSettlementCreatedPayload(
         LocalDateTime approvedAt
 ) {
 
-    public static RefundSettlementCreatedPayload from(Payment payment, RefundReason reason, UUID notifierId) {
-        return new RefundSettlementCreatedPayload(
+    public static RefundSettlementPayload from(Payment payment, RefundReason reason, UUID notifierId) {
+        return new RefundSettlementPayload(
                 payment.getId(),
                 notifierId,
                 payment.getId(),

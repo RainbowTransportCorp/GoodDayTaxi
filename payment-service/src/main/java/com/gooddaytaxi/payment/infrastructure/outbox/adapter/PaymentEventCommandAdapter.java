@@ -5,17 +5,20 @@ import com.gooddaytaxi.payment.application.event.PaymentCompletePayload;
 import com.gooddaytaxi.payment.application.event.RefundCompletedPayload;
 import com.gooddaytaxi.payment.application.event.RefundRequestCreatePayload;
 import com.gooddaytaxi.payment.application.event.RefundRequestRejectedPayload;
-import com.gooddaytaxi.payment.application.event.RefundSettlementCreatedPayload;
+import com.gooddaytaxi.payment.application.event.RefundSettlementPayload;
 import com.gooddaytaxi.payment.application.port.out.event.PaymentEventOutboxPort;
 import com.gooddaytaxi.payment.application.port.out.event.PaymentEventCommandPort;
 import com.gooddaytaxi.payment.infrastructure.outbox.publisher.PaymentBaseOutboxPublisher;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class PaymentEventCommandAdapter extends PaymentBaseOutboxPublisher implements PaymentEventCommandPort {
 
     private static final String AGGREGATE_TYPE = "Payment";
-    private static final int VERSION = 1;
+
+    @Value("${payment.event.payload-version}")
+    private int VERSION;
 
     public PaymentEventCommandAdapter(ObjectMapper objectMapper, PaymentEventOutboxPort outboxPort) {
         super(objectMapper, outboxPort);
@@ -24,8 +27,8 @@ public class PaymentEventCommandAdapter extends PaymentBaseOutboxPublisher imple
     @Override
     public void publishPaymentCompleted(PaymentCompletePayload payload) {
         publish(
-                "PAYMENT_COMPLETE",
-                "payment.complete",
+                "PAYMENT_COMPLETED",
+                "payment.completed",
                 AGGREGATE_TYPE,
                 payload.notificationOriginId(),
                 payload.notificationOriginId().toString(),
@@ -61,10 +64,10 @@ public class PaymentEventCommandAdapter extends PaymentBaseOutboxPublisher imple
     }
 
     @Override
-    public void publishRefundSettlementCreated(RefundSettlementCreatedPayload payload) {
+    public void publishRefundSettlementCreated(RefundSettlementPayload payload) {
         publish(
-                "REFUND_SETTLEMENT_CREATED",
-                "refund.settlement.created",
+                "REFUND_SETTLEMENT",
+                "refund.settlement",
                 AGGREGATE_TYPE,
                 payload.notificationOriginId(),
                 payload.notificationOriginId().toString(),

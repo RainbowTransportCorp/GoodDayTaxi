@@ -4,7 +4,7 @@ import com.gooddaytaxi.payment.application.event.PaymentCompletePayload;
 import com.gooddaytaxi.payment.application.event.RefundCompletedPayload;
 import com.gooddaytaxi.payment.application.event.RefundRequestCreatePayload;
 import com.gooddaytaxi.payment.application.event.RefundRequestRejectedPayload;
-import com.gooddaytaxi.payment.application.event.RefundSettlementCreatedPayload;
+import com.gooddaytaxi.payment.application.event.RefundSettlementPayload;
 
 public interface PaymentEventCommandPort {
     void publishPaymentCompleted(PaymentCompletePayload payload);
@@ -13,7 +13,7 @@ public interface PaymentEventCommandPort {
 
     void publishRefundRequestRejected(RefundRequestRejectedPayload payload);
 
-    void publishRefundSettlementCreated(RefundSettlementCreatedPayload payload);
+    void publishRefundSettlementCreated(RefundSettlementPayload payload);
 
     void publishRefundCompleted(RefundCompletedPayload payload);
 }

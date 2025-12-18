@@ -14,6 +14,7 @@ import com.gooddaytaxi.payment.presentation.external.mapper.response.payment.Pay
 import com.gooddaytaxi.payment.presentation.external.mapper.response.payment.PaymentApproveResponseMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.util.UUID;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/payments")
@@ -43,8 +45,9 @@ public class PaymentController {
     //tosspay 결제 준비 API
     @GetMapping("/tosspay/ready")
     public ResponseEntity<Void> readyPayment(@RequestParam UUID tripId) {
-        UUID userId = UUID.fromString("c15f2e3a-a72f-47c8-861e-eb2451c1f7fd"); // 숭객
+        UUID userId = UUID.fromString("d184e6d9-69ea-46cc-a6ae-3571e53c1d5f"); // 숭객
         String role = "PASSENGER"; // 승객
+        log.info("toss.ready start: tripId: {}, userId: {}, role: {}", tripId, userId, role);
 
         // 1) 운행 요금 조회 + 결제 진행중으로 상태 변경
         Long fare = paymentService.tosspayReady(userId, role,tripId);
@@ -53,14 +56,15 @@ public class PaymentController {
         String orderId = "order-" + tripId;  // 실제로는 DB에 저장
         String customerKey = "customer-" + userId; // 예시
         long amount = fare; // 예: 운행 요금
-
+        log.info("toss.ready ended: tripId: {}, userId: {}, role: {}, amount: {}", tripId, userId, role, amount);
         // 2) checkout.html 로 리다이렉트 (동적 값 전달)
         URI redirect = URI.create(
-                "/checkout.html" +
+                "/passenger/payments/checkout.html" +
                         "?orderId=" + orderId +
                         "&customerKey=" + customerKey +
                         "&amount=" + amount
         );
+
 
 
         return ResponseEntity.status(HttpStatus.FOUND) // 302
