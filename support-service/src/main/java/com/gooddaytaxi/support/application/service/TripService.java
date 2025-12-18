@@ -3,10 +3,12 @@ package com.gooddaytaxi.support.application.service;
 import com.gooddaytaxi.support.application.dto.Metadata;
 import com.gooddaytaxi.support.application.dto.trip.TripCanceledCommand;
 import com.gooddaytaxi.support.application.dto.trip.TripEndedCommand;
+import com.gooddaytaxi.support.application.dto.trip.TripLocationUpdatedCommand;
 import com.gooddaytaxi.support.application.dto.trip.TripStartedCommand;
 import com.gooddaytaxi.support.application.port.in.trip.NotifyCanceledTripUsecase;
 import com.gooddaytaxi.support.application.port.in.trip.NotifyEndedTripUsecase;
 import com.gooddaytaxi.support.application.port.in.trip.NotifyStartedTripUsecase;
+import com.gooddaytaxi.support.application.port.in.trip.NotifyUpdatedLocationTripUsecase;
 import com.gooddaytaxi.support.application.port.out.internal.account.AccountDomainCommunicationPort;
 import com.gooddaytaxi.support.application.port.out.messaging.NotificationPushMessagingPort;
 import com.gooddaytaxi.support.application.port.out.messaging.QueuePushMessage;
@@ -31,7 +33,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Service
 @Transactional
-public class TripService implements NotifyStartedTripUsecase, NotifyEndedTripUsecase, NotifyCanceledTripUsecase {
+public class TripService implements NotifyStartedTripUsecase, NotifyEndedTripUsecase, NotifyCanceledTripUsecase, NotifyUpdatedLocationTripUsecase {
 
     private final NotificationCommandPersistencePort notificationCommandPersistencePort;
     private final NotificationPushMessagingPort notificationPushMessagingPort;
@@ -206,5 +208,52 @@ public class TripService implements NotifyStartedTripUsecase, NotifyEndedTripUse
 
         // 로그
         log.info("\uD83D\uDCE2 [Trip] Canceled! driverId={}, passengerId={}: {}",queuePushMessage.receivers().get(0), savedNoti.getPassengerId(), command.getCancelReason());
+    }
+
+
+    /**
+     * 수신자에게 운행 목적지 변경 알림 서비스
+     */
+    @Transactional
+    @Override
+    public void execute(TripLocationUpdatedCommand command) {
+        // Notification 생성 및 저장
+        Notification notification = command.toEntity(NotificationType.TRIP_LOCATION_UPDATED);
+        notification.assignIds(command.getDispatchId(), command.getTripId(), null, command.getDriverId(), null);
+        log.debug("[Check] Notification 생성: tripId={}, driverId={}, currentAddress={}", notification.getNotificationOriginId(), notification.getDriverId(), command.getCurrentAddress());
+
+        Notification savedNoti = notificationCommandPersistencePort.save(notification);
+//        Notification savedNoti = notificationQueryPersistencePort.findById(noti.getId());
+        log.debug("[Check] Notification Persistence 조회: tripId={}, driverId={}, currentAddress={}", savedNoti.getTripId(), savedNoti.getDriverId(), command.getCurrentAddress());
+
+        // 수신자: [ 기사 ]
+        List<UUID> receivers = new ArrayList<>();
+        receivers.add(savedNoti.getDriverId());
+        receivers.add(null);
+
+        // 알림 메시지 구성
+        String messageTitle = "\uD83D\uDCE2 목적지가 변경되었습니다";
+        Metadata metadata = command.getMetadata();
+        String messageBody = """
+                %s 일시에
+                원래의 목적지 %s에서
+                %s의 %s로 도착지가 변경되었습니다
+                """.formatted(
+                command.getLocationTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                command.getPreviousRegion(),
+                command.getRegion(),
+                command.getCurrentAddress()
+        );
+
+        // RabbitMQ: Queue에 Push
+        QueuePushMessage queuePushMessage = QueuePushMessage.create(receivers, metadata, messageTitle, messageBody);
+        notificationPushMessagingPort.push(queuePushMessage, "TRIP");
+        log.debug("[Push] RabbitMQ 메시지: {}", queuePushMessage.title());
+
+        // Push 알림: Slack, FCM 등 - RabbitMQ Listener 없이 직접 호출 시 사용
+//        notificationAlertExternalPort.sendDirectRequest(queuePushMessage);
+
+        // 로그
+        log.info("\uD83D\uDCE2 [Trip] Location Updated! driverId={}, previousRegion: {} → currentAddress: {}",queuePushMessage.receivers().get(0), command.getPreviousRegion(), command.getCurrentAddress());
     }
 }
