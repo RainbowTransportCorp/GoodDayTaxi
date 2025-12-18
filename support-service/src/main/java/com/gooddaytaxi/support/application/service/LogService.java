@@ -62,7 +62,7 @@ public class LogService implements NotifyErrorDetectedUsecase {
             bySource = "아래와 같은 문제가 발생하였습니다";
         } else {
             bySource = "⚠️ " + command.getSourceNotificationType() + " 시점에 아래와 같은 문제가 발생하였습니다";
-
+        }
         String messageBody = """
                 [ %s 발생 ]
                 ( %s )
@@ -88,6 +88,5 @@ public class LogService implements NotifyErrorDetectedUsecase {
         // 로그
         log.info("\uD83D\uDCE2 [Log] Created! notificationId={}, logType={}, message={}", notification.getId(), savedLog.getLogType(), savedLog.getLogMessage());
 
-    }
     }
 }
