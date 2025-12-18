@@ -47,6 +47,12 @@ public class DispatchRepositoryImpl implements DispatchRepositoryCustom {
                 .fetch();
     }
 
+    /**
+     * 특정 승객의 특정 배차의 조회
+     * @param dispatchId 요청한 특정 배차 식별자
+     * @param passengerId 요청한 특정 승객의 식별자
+     * @return 요청한 배차의 정보
+     */
     @Override
     public Optional<Dispatch> findByIdAndPassengerId(UUID dispatchId, UUID passengerId) {
         return Optional.ofNullable(

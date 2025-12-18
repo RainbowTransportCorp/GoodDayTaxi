@@ -118,6 +118,9 @@ public class Dispatch extends BaseEntity {
         this.acceptedAt = LocalDateTime.now();
     }
 
+    /**
+     * 승객에 의한 취소로 상태 전이
+     */
     public void cancelByPassenger() {
         if (dispatchStatus == DispatchStatus.CANCELED ||
                 dispatchStatus == DispatchStatus.TIMEOUT) {

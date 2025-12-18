@@ -27,8 +27,13 @@ public class DispatchCancelService {
     private final DispatchCanceledCommandPort eventPort;
     private final DispatchHistoryService historyService;
 
-    private final DispatchCancelPermissionValidator permissionValidator;
+    private final DispatchCancelPermissionValidator dispatchCancelPermissionValidator;
 
+    /**
+     * 승객이 특정 배차(콜)를 취소
+     * @param command 취소할 배차 정보와 요청한 승객정보
+     * @return 취소된 배차의 정보
+     */
     public DispatchCancelResult cancel(DispatchCancelCommand command) {
 
         log.info("[DispatchCancel] 요청 수신 - passengerId={}, dispatchId={}",
@@ -36,7 +41,7 @@ public class DispatchCancelService {
 
         Dispatch dispatch = queryPort.findById(command.getDispatchId());
 
-        permissionValidator.validate(command.getRole(), command.getPassengerId(), dispatch.getPassengerId());
+        dispatchCancelPermissionValidator.validate(command.getRole(), command.getPassengerId(), dispatch.getPassengerId());
 
         // 취소 전 상태 보관 (정책 판단용)
         DispatchStatus before = dispatch.getDispatchStatus();
