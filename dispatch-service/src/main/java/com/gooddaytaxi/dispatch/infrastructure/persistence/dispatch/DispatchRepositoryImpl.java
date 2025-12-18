@@ -19,11 +19,19 @@ public class DispatchRepositoryImpl implements DispatchRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
 
+    /**
+     * 특정 승객의 전체 배차 조회 (상태가 timeout인 경우 제외)
+     * @param passengerId 요청 승객의 식별자
+     * @return 특정 승객의 모든 배차 리스트
+     */
     @Override
     public List<Dispatch> findAllByPassengerId(UUID passengerId) {
         return queryFactory
                 .selectFrom(dispatch)
-                .where(dispatch.createdBy.eq(passengerId))
+                .where(
+                        dispatch.createdBy.eq(passengerId),
+                        dispatch.dispatchStatus.ne(DispatchStatus.TIMEOUT)
+                )
                 .orderBy(dispatch.requestCreatedAt.asc())
                 .stream().toList();
     }
