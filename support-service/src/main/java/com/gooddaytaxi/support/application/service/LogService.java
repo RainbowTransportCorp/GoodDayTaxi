@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -83,6 +84,9 @@ public class LogService implements NotifyErrorDetectedUsecase {
 
         // Push 알림: Slack, FCM 등 - RabbitMQ Listener 없이 직접 호출 시 사용
 //        notificationAlertExternalPort.sendDirectRequest(queuePushMessage);
+
+        // 알림 전송 시각 할당
+        savedNoti.assignMessageSendingTime(LocalDateTime.now());
 
         // 로그
         log.info("\uD83D\uDCE2 [Log] Created! notificationId={}, logType={}, message={}", notification.getId(), savedLog.getLogType(), savedLog.getLogMessage());

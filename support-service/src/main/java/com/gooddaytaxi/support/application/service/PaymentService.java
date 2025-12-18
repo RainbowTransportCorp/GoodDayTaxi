@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -77,6 +78,9 @@ public class PaymentService implements NotifyCompletedPaymentUsecase, NotifyRefu
         // Push 알림: Slack, FCM 등 - RabbitMQ Listener 없이 직접 호출 시 사용
 //        notificationAlertExternalPort.sendDirectRequest(queuePushMessage);
 
+        // 알림 전송 시각 할당
+        savedNoti.assignMessageSendingTime(LocalDateTime.now());
+
         // 로그
         log.info("\uD83D\uDCE2 [Payment] Completed! driverId={}, passengerId={}: {}(으)로 결제 완료",queuePushMessage.receivers().get(0), queuePushMessage.receivers().get(1), command.getPaymentMethod());
     }
@@ -132,6 +136,9 @@ public class PaymentService implements NotifyCompletedPaymentUsecase, NotifyRefu
         // Push 알림: Slack, FCM 등 - RabbitMQ Listener 없이 직접 호출 시 사용
 //        notificationAlertExternalPort.sendDirectRequest(queuePushMessage);
 
+        // 알림 전송 시각 할당
+        savedNoti.assignMessageSendingTime(LocalDateTime.now());
+
         // 로그
         log.info("\uD83D\uDCE2 [Refund] Requested! passengerId={}: {}(으)로 {}원 환불 요청", command.getNotifierId(), command.getPaymentMethod(), command.getAmount());
     }
@@ -183,6 +190,9 @@ public class PaymentService implements NotifyCompletedPaymentUsecase, NotifyRefu
 
         // Push 알림: Slack, FCM 등 - RabbitMQ Listener 없이 직접 호출 시 사용
 //        notificationAlertExternalPort.sendDirectRequest(queuePushMessage);
+
+        // 알림 전송 시각 할당
+        savedNoti.assignMessageSendingTime(LocalDateTime.now());
 
         // 로그
         log.info("\uD83D\uDCE2 [Refund] Rejected! passengerId={}: {} (상)의 사유로 환불 승인 거절", command.getNotifierId(), command.getRejectReason());
@@ -297,6 +307,9 @@ public class PaymentService implements NotifyCompletedPaymentUsecase, NotifyRefu
         // Push 알림: Slack, FCM 등 - RabbitMQ Listener 없이 직접 호출 시 사용
 //        notificationAlertExternalPort.sendDirectRequest(queuePushMessage);
 
+        // 알림 전송 시각 할당
+        savedNoti.assignMessageSendingTime(LocalDateTime.now());
+
         // 로그
         log.info("\uD83D\uDCE2 [Refund] Completed! refundRequestId={}: {} 처리 완료", command.getNotificationOriginId(), refundReason.getDescription());
     }
@@ -353,6 +366,9 @@ public class PaymentService implements NotifyCompletedPaymentUsecase, NotifyRefu
 
         // Push 알림: Slack, FCM 등 - RabbitMQ Listener 없이 직접 호출 시 사용
 //        notificationAlertExternalPort.sendDirectRequest(queuePushMessage);
+
+        // 알림 전송 시각 할당
+        savedNoti.assignMessageSendingTime(LocalDateTime.now());
 
         // 로그
         log.info("\uD83D\uDCE2 [Refund] Settlement Created! paymentId={}: {}(으)로 {}원 환불 진행 요청", command.getNotificationOriginId(), command.getMethod(), command.getAmount());

@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -77,6 +78,9 @@ public class TripService implements NotifyStartedTripUsecase, NotifyEndedTripUse
         // Push 알림: Slack, FCM 등 - RabbitMQ Listener 없이 직접 호출 시 사용
 //        notificationAlertExternalPort.sendDirectRequest(queuePushMessage);
 
+        // 알림 전송 시각 할당
+        savedNoti.assignMessageSendingTime(LocalDateTime.now());
+
         // 로그
         log.info("\uD83D\uDCE2 [Trip] Started! driverId={}, passengerId={}: {} >>> {}",queuePushMessage.receivers().get(0), queuePushMessage.receivers().get(1), command.getPickupAddress(), command.getDestinationAddress());
     }
@@ -118,6 +122,9 @@ public class TripService implements NotifyStartedTripUsecase, NotifyEndedTripUse
 
         // Push 알림: Slack, FCM 등 - RabbitMQ Listener 없이 직접 호출 시 사용
 //        notificationAlertExternalPort.sendDirectRequest(queuePushMessage);
+
+        // 알림 전송 시각 할당
+        savedNoti.assignMessageSendingTime(LocalDateTime.now());
 
         // 로그
         log.info("\uD83D\uDCE2 [Trip] Ended! driverId={}, passengerId={}: {} >>> {}",queuePushMessage.receivers().get(0), queuePushMessage.receivers().get(1), command.getPickupAddress(), command.getDestinationAddress());
@@ -206,6 +213,9 @@ public class TripService implements NotifyStartedTripUsecase, NotifyEndedTripUse
         // Push 알림: Slack, FCM 등 - RabbitMQ Listener 없이 직접 호출 시 사용
 //        notificationAlertExternalPort.sendDirectRequest(queuePushMessage);
 
+        // 알림 전송 시각 할당
+        savedNoti.assignMessageSendingTime(LocalDateTime.now());
+
         // 로그
         log.info("\uD83D\uDCE2 [Trip] Canceled! driverId={}, passengerId={}: {}",queuePushMessage.receivers().get(0), savedNoti.getPassengerId(), command.getCancelReason());
     }
@@ -252,6 +262,9 @@ public class TripService implements NotifyStartedTripUsecase, NotifyEndedTripUse
 
         // Push 알림: Slack, FCM 등 - RabbitMQ Listener 없이 직접 호출 시 사용
 //        notificationAlertExternalPort.sendDirectRequest(queuePushMessage);
+
+        // 알림 전송 시각 할당
+        savedNoti.assignMessageSendingTime(LocalDateTime.now());
 
         // 로그
         log.info("\uD83D\uDCE2 [Trip] Location Updated! driverId={}, previousRegion: {} → currentAddress: {}",queuePushMessage.receivers().get(0), command.getPreviousRegion(), command.getCurrentAddress());
