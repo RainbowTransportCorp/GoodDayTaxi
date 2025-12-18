@@ -1,8 +1,8 @@
 package com.gooddaytaxi.support.application.port.in.monitoring;
 
-import com.gooddaytaxi.support.application.dto.log.NotifyErrorLogCommand;
+import com.gooddaytaxi.support.application.dto.log.ErrorLogCommand;
 
 public interface NotifyErrorDetectedUsecase {
-    void execute(NotifyErrorLogCommand command);
+    void execute(ErrorLogCommand command);
 
 }

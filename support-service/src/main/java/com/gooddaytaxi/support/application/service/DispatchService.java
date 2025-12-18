@@ -43,7 +43,7 @@ public class DispatchService implements NotifyDispatchUsecase, NotifyAcceptedCal
     @Override
     public void execute(NotifyDispatchInformationCommand command) {
         // Notification 생성 및 저장
-        Notification notification = Notification.from(command, NotificationType.DISPATCH_REQUESTED);
+        Notification notification = command.toEntity(NotificationType.DISPATCH_REQUESTED);
         notification.assignIds(command.getDispatchId(), null, null, command.getDriverId(), command.getPassengerId());
 
         Notification savedNoti = notificationCommandPersistencePort.save(notification);
@@ -89,7 +89,7 @@ public class DispatchService implements NotifyDispatchUsecase, NotifyAcceptedCal
     @Override
     public void execute(NotifyDispatchAcceptedCommand command) {
         // Notification 생성 및 저장
-        Notification notification = Notification.from(command, NotificationType.DISPATCH_ACCEPTED);
+        Notification notification = command.toEntity(NotificationType.DISPATCH_ACCEPTED);
         notification.assignIds(command.getDispatchId(), null, null, command.getDriverId(), command.getPassengerId());
         log.debug("[Check] Notification 생성: dispatchId={}, driverId={}, passengerId={}, message={}", notification.getNotificationOriginId(), notification.getDriverId(), notification.getPassengerId(), notification.getMessage());
 
@@ -164,7 +164,7 @@ public class DispatchService implements NotifyDispatchUsecase, NotifyAcceptedCal
     @Override
     public void execute(NotifyDipsatchTimeoutCommand command) {
         // Notification 생성 및 저장
-        Notification notification = Notification.from(command, NotificationType.DISPATCH_TIMEOUT);
+        Notification notification = command.toEntity(NotificationType.DISPATCH_TIMEOUT);
         notification.assignIds(command.getDispatchId(), null, null, null, command.getPassengerId());
 
         Notification savedNoti = notificationCommandPersistencePort.save(notification);
@@ -207,7 +207,7 @@ public class DispatchService implements NotifyDispatchUsecase, NotifyAcceptedCal
     @Override
     public void execute(NotifyDispatchCanceledCommand command) {
         // Notification 생성 및 저장
-        Notification notification = Notification.from(command, NotificationType.DISPATCH_CANCELED);
+        Notification notification = command.toEntity(NotificationType.DISPATCH_CANCELED);
         notification.assignIds(command.getDispatchId(), null, null, command.getDriverId(), command.getPassengerId());
 
         Notification savedNoti = notificationCommandPersistencePort.save(notification);
@@ -259,7 +259,7 @@ public class DispatchService implements NotifyDispatchUsecase, NotifyAcceptedCal
     @Override
     public void execute(NotifyDispatchRejectedCommand command) {
         // Notification 생성 및 저장
-        Notification notification = Notification.from(command, NotificationType.DISPATCH_REJECTED);
+        Notification notification = command.toEntity(NotificationType.DISPATCH_REJECTED);
         notification.assignIds(command.getDispatchId(), null, null, command.getDriverId(), command.getPassengerId());
 
         Notification savedNoti = notificationCommandPersistencePort.save(notification);

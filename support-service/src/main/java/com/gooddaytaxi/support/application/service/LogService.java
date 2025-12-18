@@ -1,7 +1,7 @@
 package com.gooddaytaxi.support.application.service;
 
 import com.gooddaytaxi.support.application.dto.Metadata;
-import com.gooddaytaxi.support.application.dto.log.NotifyErrorLogCommand;
+import com.gooddaytaxi.support.application.dto.log.ErrorLogCommand;
 import com.gooddaytaxi.support.application.port.in.monitoring.NotifyErrorDetectedUsecase;
 import com.gooddaytaxi.support.application.port.out.internal.account.AccountDomainCommunicationPort;
 import com.gooddaytaxi.support.application.port.out.messaging.NotificationPushMessagingPort;
@@ -9,7 +9,6 @@ import com.gooddaytaxi.support.application.port.out.messaging.QueuePushMessage;
 import com.gooddaytaxi.support.application.port.out.persistence.LogCommandPersistencePort;
 import com.gooddaytaxi.support.application.port.out.persistence.NotificationCommandPersistencePort;
 import com.gooddaytaxi.support.domain.log.model.Log;
-import com.gooddaytaxi.support.domain.log.model.LogType;
 import com.gooddaytaxi.support.domain.notification.model.Notification;
 import com.gooddaytaxi.support.domain.notification.model.NotificationType;
 import jakarta.transaction.Transactional;
@@ -38,9 +37,9 @@ public class LogService implements NotifyErrorDetectedUsecase {
      */
     @Transactional
     @Override
-    public void execute(NotifyErrorLogCommand command) {
+    public void execute(ErrorLogCommand command) {
         // Notification 생성 및 저장
-        Notification notification = Notification.from(command, NotificationType.ERROR_DETECTED);
+        Notification notification = command.toEntity(NotificationType.ERROR_DETECTED);
         notification.assignIds(command.getDispatchId(), command.getTripId(), command.getPaymentId(), command.getDriverId(), command.getPassengerId());
 
         Notification savedNoti = notificationCommandPersistencePort.save(notification);
@@ -48,7 +47,7 @@ public class LogService implements NotifyErrorDetectedUsecase {
         log.debug("[Check] Notification Persistence 조회: notificationOriginId={}, notifierId={}, logType={}", savedNoti.getNotificationOriginId(), savedNoti.getNotifierId(), savedNoti.getNotificationType());
 
         // Log 생성 및 저장
-        Log logging = Log.from(command, LogType.valueOf(command.getLogType()), notification.getId());
+        Log logging = command.toLogEntity(notification.getId());
         Log savedLog = logCommandPersistencePort.save(logging);
 
         // 수신자: [ MASTER_ADMIN 관리자들 ]
@@ -62,7 +61,7 @@ public class LogService implements NotifyErrorDetectedUsecase {
             bySource = "아래와 같은 문제가 발생하였습니다";
         } else {
             bySource = "⚠️ " + command.getSourceNotificationType() + " 시점에 아래와 같은 문제가 발생하였습니다";
-
+        }
         String messageBody = """
                 [ %s 발생 ]
                 ( %s )
@@ -88,6 +87,5 @@ public class LogService implements NotifyErrorDetectedUsecase {
         // 로그
         log.info("\uD83D\uDCE2 [Log] Created! notificationId={}, logType={}, message={}", notification.getId(), savedLog.getLogType(), savedLog.getLogMessage());
 
-    }
     }
 }

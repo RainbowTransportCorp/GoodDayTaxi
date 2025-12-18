@@ -2,6 +2,8 @@ package com.gooddaytaxi.support.application.dto.payment;
 
 import com.gooddaytaxi.support.application.dto.Metadata;
 import com.gooddaytaxi.support.application.dto.Command;
+import com.gooddaytaxi.support.domain.notification.model.Notification;
+import com.gooddaytaxi.support.domain.notification.model.NotificationType;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -12,7 +14,7 @@ import java.util.UUID;
  * - PAYMENT_COMPLETED 이벤트 처리
  */
 @Getter
-public class NotifyPaymentCompletedCommand extends Command {
+public class PaymentCompletedCommand extends Command {
     //    private final UUID dispatchId;
     private final UUID tripId;
     private final UUID paymentId;
@@ -22,7 +24,7 @@ public class NotifyPaymentCompletedCommand extends Command {
     private final String paymentMethod;
     private final LocalDateTime approvedAt;
 
-    private NotifyPaymentCompletedCommand(
+    private PaymentCompletedCommand(
             UUID notificationOriginId, UUID notifierId,
 //            UUID dispatchId,
             UUID tripId,
@@ -42,7 +44,7 @@ public class NotifyPaymentCompletedCommand extends Command {
         this.approvedAt = approvedAt;
 
     }
-    public static NotifyPaymentCompletedCommand create(
+    public static PaymentCompletedCommand create(
             UUID notificationOriginId, UUID notifierId,
 //            UUID dispatchId,
             UUID tripId,
@@ -51,6 +53,10 @@ public class NotifyPaymentCompletedCommand extends Command {
             LocalDateTime approvedAt,
             Metadata metadata
     ) {
-        return new NotifyPaymentCompletedCommand(notificationOriginId, notifierId, tripId, driverId, passengerId, amount, paymentMethod, approvedAt, metadata);
+        return new PaymentCompletedCommand(notificationOriginId, notifierId, tripId, driverId, passengerId, amount, paymentMethod, approvedAt, metadata);
+    }
+
+    public Notification toEntity(NotificationType notificationType) {
+        return Notification.create(this.getNotificationOriginId(), this.getNotifierId(), notificationType, this.getMessage());
     }
 }
