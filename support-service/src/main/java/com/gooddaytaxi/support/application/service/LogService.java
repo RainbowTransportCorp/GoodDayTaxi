@@ -1,15 +1,14 @@
 package com.gooddaytaxi.support.application.service;
 
 import com.gooddaytaxi.support.application.dto.Metadata;
-import com.gooddaytaxi.support.application.dto.log.NotifyErrorLogCommand;
-import com.gooddaytaxi.support.application.port.in.monitoring.NotifyErrorDetectedUsecase;
-import com.gooddaytaxi.support.application.port.out.internal.account.AccountDomainCommunicationPort;
+import com.gooddaytaxi.support.application.dto.input.log.ErrorDetectedCommand;
+import com.gooddaytaxi.support.application.port.in.monitoring.NotifyErrorDetectUsecase;
+import com.gooddaytaxi.support.application.port.out.internal.AccountDomainCommunicationPort;
 import com.gooddaytaxi.support.application.port.out.messaging.NotificationPushMessagingPort;
-import com.gooddaytaxi.support.application.port.out.messaging.QueuePushMessage;
+import com.gooddaytaxi.support.application.port.out.dto.QueuePushMessage;
 import com.gooddaytaxi.support.application.port.out.persistence.LogCommandPersistencePort;
 import com.gooddaytaxi.support.application.port.out.persistence.NotificationCommandPersistencePort;
 import com.gooddaytaxi.support.domain.log.model.Log;
-import com.gooddaytaxi.support.domain.log.model.LogType;
 import com.gooddaytaxi.support.domain.notification.model.Notification;
 import com.gooddaytaxi.support.domain.notification.model.NotificationType;
 import jakarta.transaction.Transactional;
@@ -17,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,7 +27,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Service
 @Transactional
-public class LogService implements NotifyErrorDetectedUsecase {
+public class LogService implements NotifyErrorDetectUsecase {
     private final NotificationCommandPersistencePort notificationCommandPersistencePort;
     private final LogCommandPersistencePort logCommandPersistencePort;
     private final AccountDomainCommunicationPort accountDomainCommunicationPort;
@@ -38,9 +38,9 @@ public class LogService implements NotifyErrorDetectedUsecase {
      */
     @Transactional
     @Override
-    public void execute(NotifyErrorLogCommand command) {
+    public void execute(ErrorDetectedCommand command) {
         // Notification 생성 및 저장
-        Notification notification = Notification.from(command, NotificationType.ERROR_DETECTED);
+        Notification notification = command.toEntity(NotificationType.ERROR_DETECTED);
         notification.assignIds(command.getDispatchId(), command.getTripId(), command.getPaymentId(), command.getDriverId(), command.getPassengerId());
 
         Notification savedNoti = notificationCommandPersistencePort.save(notification);
@@ -48,7 +48,7 @@ public class LogService implements NotifyErrorDetectedUsecase {
         log.debug("[Check] Notification Persistence 조회: notificationOriginId={}, notifierId={}, logType={}", savedNoti.getNotificationOriginId(), savedNoti.getNotifierId(), savedNoti.getNotificationType());
 
         // Log 생성 및 저장
-        Log logging = Log.from(command, LogType.valueOf(command.getLogType()), notification.getId());
+        Log logging = command.toLogEntity(notification.getId());
         Log savedLog = logCommandPersistencePort.save(logging);
 
         // 수신자: [ MASTER_ADMIN 관리자들 ]
@@ -62,7 +62,7 @@ public class LogService implements NotifyErrorDetectedUsecase {
             bySource = "아래와 같은 문제가 발생하였습니다";
         } else {
             bySource = "⚠️ " + command.getSourceNotificationType() + " 시점에 아래와 같은 문제가 발생하였습니다";
-
+        }
         String messageBody = """
                 [ %s 발생 ]
                 ( %s )
@@ -85,9 +85,11 @@ public class LogService implements NotifyErrorDetectedUsecase {
         // Push 알림: Slack, FCM 등 - RabbitMQ Listener 없이 직접 호출 시 사용
 //        notificationAlertExternalPort.sendDirectRequest(queuePushMessage);
 
+        // 알림 전송 시각 할당
+        savedNoti.assignMessageSendingTime(LocalDateTime.now());
+
         // 로그
         log.info("\uD83D\uDCE2 [Log] Created! notificationId={}, logType={}, message={}", notification.getId(), savedLog.getLogType(), savedLog.getLogMessage());
 
-    }
     }
 }

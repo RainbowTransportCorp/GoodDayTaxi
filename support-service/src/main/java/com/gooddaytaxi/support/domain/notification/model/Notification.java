@@ -1,7 +1,6 @@
 package com.gooddaytaxi.support.domain.notification.model;
 
 import com.gooddaytaxi.common.jpa.model.BaseEntity;
-import com.gooddaytaxi.support.application.dto.Command;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -95,7 +94,6 @@ public class Notification extends BaseEntity {
      * @param notificationType     알림 타입
      * @param message              알림 메시지
      */
-//    @Builder
     private Notification(UUID notificationOriginId, UUID notifierId, NotificationType notificationType, String message) {
         this.notificationOriginId = notificationOriginId;
         this.notifierId = notifierId;
@@ -104,8 +102,8 @@ public class Notification extends BaseEntity {
         this.isRead = false;
     }
 
-    public static Notification from(Command command, NotificationType notificationType) {
-        return new Notification(command.getNotificationOriginId(), command.getNotifierId(), notificationType, command.getMessage());
+    public static Notification create(UUID notificationOriginId, UUID notifierId, NotificationType notificationType, String message) {
+        return new Notification(notificationOriginId, notifierId, notificationType, message);
     }
 
 
@@ -155,13 +153,4 @@ public class Notification extends BaseEntity {
     public void assignMessageSendingTime(LocalDateTime sendingTime) {
         this.notifiedAt = sendingTime;
     }
-
-    /**
-     * 메시지 수신자 설정
-     *
-     * @param receivers 메시지 전송 시각
-     */
-//    public void assignReceivers(List<UUID> receivers) {
-//        this.receivers = receivers;
-//    }
 }
