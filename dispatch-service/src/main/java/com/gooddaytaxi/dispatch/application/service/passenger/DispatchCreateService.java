@@ -28,7 +28,7 @@ public class DispatchCreateService {
     /**
      * 승객이 배차(콜) 호출
      * @param command 배차를 요청하는 승객과 주소정보
-     * @return
+     * @return 호출한 배차 정보
      */
     public DispatchCreateResult create(DispatchCreateCommand command) {
 
