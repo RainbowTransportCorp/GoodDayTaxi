@@ -1,5 +1,6 @@
 package com.gooddaytaxi.payment.application.port.out.core;
 
+import com.gooddaytaxi.payment.domain.entity.PaymentAttempt;
 import com.gooddaytaxi.payment.domain.repository.PaymentIdentityView;
 import com.gooddaytaxi.payment.domain.entity.Payment;
 import com.gooddaytaxi.payment.domain.entity.Refund;
@@ -11,9 +12,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface PaymentQueryPort {
-    Optional<Payment> findByTripId(UUID tripId);
-
     Optional<Payment> findById(UUID paymentId);
+
+    Optional<PaymentAttempt> findLastAttemptByPaymentId(UUID paymentId);
+
 
     Page<Payment> searchPayments( String method, String status, UUID passeangerId, UUID driverId, UUID tripId, LocalDateTime startDay, LocalDateTime endDay,  Pageable pageable);
 

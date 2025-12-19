@@ -1,6 +1,8 @@
 package com.gooddaytaxi.payment.infrastructure.repository;
 
 import com.gooddaytaxi.payment.domain.entity.Payment;
+import com.gooddaytaxi.payment.domain.entity.PaymentAttempt;
+import com.gooddaytaxi.payment.domain.entity.QPaymentAttempt;
 import com.gooddaytaxi.payment.domain.entity.Refund;
 import com.gooddaytaxi.payment.domain.enums.PaymentMethod;
 import com.gooddaytaxi.payment.domain.enums.PaymentStatus;
@@ -20,6 +22,7 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static com.gooddaytaxi.payment.domain.entity.QPayment.payment;
@@ -30,6 +33,18 @@ import static com.gooddaytaxi.payment.domain.entity.QRefund.refund;
 @RequiredArgsConstructor
 public class PaymentRepositoryImpl implements PaymentRepositoryCustom {
     private final JPAQueryFactory queryFactory;
+
+    @Override
+    public Optional<PaymentAttempt> findFirstByPaymentIdOrderByAttemptNoDesc(UUID paymentId) {
+        QPaymentAttempt a = QPaymentAttempt.paymentAttempt;
+        return Optional.ofNullable(
+                queryFactory.selectFrom(a)
+                        .where(a.payment.id.eq(paymentId))
+                        .orderBy(a.attemptNo.desc())
+                        .limit(1)
+                        .fetchOne()
+        );
+    }
 
     //결제 검색
     @Override

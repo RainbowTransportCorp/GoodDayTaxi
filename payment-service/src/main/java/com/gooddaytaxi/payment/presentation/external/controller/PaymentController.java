@@ -94,26 +94,26 @@ public class PaymentController {
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
     }
 
-    //결제 단건 조회
+    //결제 단건 조회 - 승객/기사용
     @GetMapping("/{paymentId}")
     public ResponseEntity<ApiResponse<PaymentReadResponseDto>> getPayment(@PathVariable UUID paymentId,
-                                                                          @RequestHeader(value = "X-User-UUID") UUID userId,
-                                                                          @RequestHeader(value = "X-User-Role") String role) {
+                                                                               @RequestHeader(value = "X-User-UUID") UUID userId,
+                                                                               @RequestHeader(value = "X-User-Role") String role) {
         PaymentReadResult result = paymentService.getPayment(paymentId, userId, role);
         PaymentReadResponseDto responseDto = PaymentReadResponseMapper.toResponse(result);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
     }
 
     //결제 검색 기능
-    @GetMapping("/search")
-    public ResponseEntity<ApiResponse<Page<PaymentReadResponseDto>>> searchPayment(@RequestBody @Valid PaymentSearchRequestDto requestDto,
-                                                                                   @RequestHeader(value = "X-User-UUID") UUID userId,
-                                                                                   @RequestHeader(value = "X-User-Role") String role) {
-        PaymentSearchCommand command = PaymentSearchMapper.toCommand(requestDto);
-        Page<PaymentReadResult> result = paymentService.searchPayment(command, userId, role);
-        Page<PaymentReadResponseDto> responseDto = PaymentReadResponseMapper.toPageResponse(result);
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
-    }
+//    @GetMapping("/search")
+//    public ResponseEntity<ApiResponse<Page<PaymentAdminReadResponseDto>>> searchPayment(@RequestBody @Valid PaymentSearchRequestDto requestDto,
+//                                                                                        @RequestHeader(value = "X-User-UUID") UUID userId,
+//                                                                                        @RequestHeader(value = "X-User-Role") String role) {
+//        PaymentSearchCommand command = PaymentSearchMapper.toCommand(requestDto);
+//        Page<PaymentAdminReadResult> result = paymentService.searchPayment(command, userId, role);
+//        Page<PaymentAdminReadResponseDto> responseDto = PaymentReadResponseMapper.toPageResponse(result);
+//        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
+//    }
 
     //결제 전 금액 변경
     @PutMapping("/amount")
