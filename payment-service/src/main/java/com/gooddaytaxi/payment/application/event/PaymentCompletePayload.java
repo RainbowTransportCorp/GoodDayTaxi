@@ -8,7 +8,7 @@ import java.util.UUID;
 public record PaymentCompletePayload(
         UUID notificationOriginId,
         UUID notifierId,   //이벤트 발동 유저 Id
-        UUID passeangerId,
+        UUID passengerId,
         UUID driverId,
         UUID tripId,
         Long amount,
