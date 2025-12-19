@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 배차 후보 기사에 대한 DispatchAssignmentLog의
@@ -18,6 +19,7 @@ import java.util.UUID;
  */
 @Slf4j
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class AssignmentLogLifecycleService {
 

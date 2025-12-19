@@ -158,16 +158,6 @@ public class Dispatch extends BaseEntity {
         this.timeoutAt = LocalDateTime.now();
     }
 
-
-    public void resetToAssigning() {
-        if (dispatchStatus != DispatchStatus.TIMEOUT) {
-            throw DispatchInvalidStateException.cannot(dispatchStatus, "재배차");
-        }
-
-        this.dispatchStatus = DispatchStatus.ASSIGNING;
-        this.assignedAt = LocalDateTime.now();
-    }
-
     public boolean isReassignTimeout(long elapsedSinceLastUpdateSeconds,
                                      long reassignTimeoutSeconds) {
         return dispatchStatus.isReassignable()

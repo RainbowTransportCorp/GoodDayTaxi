@@ -124,7 +124,7 @@ class DispatchDriverAssignmentServiceTest {
         verify(historyService).saveStatusChange(
                 eq(dispatchId),
                 eq(HistoryEventType.REASSIGN_REQUESTED),
-                eq(DispatchStatus.TIMEOUT),
+                eq(DispatchStatus.ASSIGNING),
                 eq(DispatchStatus.ASSIGNING),
                 eq(ChangedBy.SYSTEM),
                 any()
