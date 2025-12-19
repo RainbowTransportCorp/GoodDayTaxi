@@ -34,10 +34,9 @@ public class PaymentController {
     //결제 청구서 생성 - 실제로는 이벤트로만 생성, 이건 테스트용
     @PostMapping
     public ResponseEntity<ApiResponse<PaymentCreateResponseDto>> createPayment(@RequestBody @Valid PaymentCreateRequestDto requestDto,
-                                                                               @RequestHeader(value = "X-User-UUID", required = false) UUID userId,
-                                                                               @RequestHeader(value = "X-User-Role", required = false) String role) {
+                                                                               @RequestHeader(value = "X-User-UUID", required = false) UUID userId) {
         PaymentCreateCommand command = PaymentCreateMapper.toCommand(requestDto);
-        PaymentCreateResult result = paymentService.createPayment(command, userId, role);
+        PaymentCreateResult result = paymentService.createPayment(command, userId);
         PaymentCreateResponseDto responseDto = PaymentCreateResponseMapper.toResponse(result);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(responseDto));
     }
