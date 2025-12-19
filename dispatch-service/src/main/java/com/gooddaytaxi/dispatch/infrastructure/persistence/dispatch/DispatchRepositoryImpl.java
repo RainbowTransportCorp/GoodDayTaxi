@@ -29,12 +29,13 @@ public class DispatchRepositoryImpl implements DispatchRepositoryCustom {
         return queryFactory
                 .selectFrom(dispatch)
                 .where(
-                        dispatch.createdBy.eq(passengerId),
+                        dispatch.passengerId.eq(passengerId),
                         dispatch.dispatchStatus.ne(DispatchStatus.TIMEOUT)
                 )
                 .orderBy(dispatch.requestCreatedAt.asc())
-                .stream().toList();
+                .fetch();
     }
+
 
     /**
      * 특정 승객의 특정 배차의 조회
@@ -49,7 +50,8 @@ public class DispatchRepositoryImpl implements DispatchRepositoryCustom {
                         .selectFrom(dispatch)
                         .where(
                                 dispatch.dispatchId.eq(dispatchId),
-                                dispatch.passengerId.eq(passengerId)
+                                dispatch.passengerId.eq(passengerId),
+                                dispatch.dispatchStatus.ne(DispatchStatus.TIMEOUT)
                         )
                         .fetchOne()
         );

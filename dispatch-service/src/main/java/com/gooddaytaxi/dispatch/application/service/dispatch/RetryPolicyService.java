@@ -13,7 +13,4 @@ public class RetryPolicyService {
     public boolean isRetryLimitExceeded(Dispatch dispatch) {
         return dispatch.getReassignAttemptCount() >= MAX_RETRY;
     }
-    public int maxRetry() {
-        return MAX_RETRY;
-    }
 }
