@@ -4,6 +4,7 @@ import com.gooddaytaxi.payment.application.command.payment.*;
 import com.gooddaytaxi.payment.application.event.PaymentCompletePayload;
 import com.gooddaytaxi.payment.application.exception.PaymentErrorCode;
 import com.gooddaytaxi.payment.application.exception.PaymentException;
+import com.gooddaytaxi.payment.application.message.SuccessMessage;
 import com.gooddaytaxi.payment.application.port.out.core.ExternalPaymentPort;
 import com.gooddaytaxi.payment.application.port.out.core.PaymentCommandPort;
 import com.gooddaytaxi.payment.application.port.out.event.PaymentEventCommandPort;
@@ -68,7 +69,7 @@ public class PaymentService {
 
         paymentCommandPort.save(payment);
 
-        return new PaymentCreateResult(payment.getId(), payment.getMethod().name(), payment.getAmount().value());
+        return new PaymentCreateResult(payment.getId(), SuccessMessage.PAYMENT_CREATE_SUCCESS);
     }
 
     //토스페이 결제 준비
@@ -152,9 +153,7 @@ public class PaymentService {
 
         return new PaymentApproveResult(
                 payment.getId(),
-                payment.getAmount().value(),
-                payment.getStatus().name(),
-                payment.getMethod().name()
+                SuccessMessage.PAYMENT_APPROVE_SUCCESS
         );
     }
 
@@ -187,9 +186,7 @@ public class PaymentService {
 
         return new PaymentApproveResult(
                 payment.getId(),
-                payment.getAmount().value(),
-                payment.getStatus().name(),
-                payment.getMethod().name()
+                SuccessMessage.PAYMENT_APPROVE_SUCCESS
         );
     }
 
@@ -313,8 +310,7 @@ public class PaymentService {
 
         return new PaymentUpdateResult(
                 payment.getId(),
-                payment.getAmount().value(),
-                payment.getMethod().name()
+                SuccessMessage.PAYMENT_UPDATE_AMOUNT_SUCCESS
         );
     }
 
@@ -344,8 +340,7 @@ public class PaymentService {
 
         return new PaymentUpdateResult(
                 payment.getId(),
-                payment.getAmount().value(),
-                payment.getMethod().name()
+                SuccessMessage.PAYMENT_UPDATE_METHOD_SUCCESS
         );
     }
 
@@ -370,7 +365,7 @@ public class PaymentService {
 
         return new PaymentCancelResult(
                 payment.getId(),
-                payment.getStatus().name()
+                SuccessMessage.PAYMENT_CANCEL_SUCCESS
         );
     }
 

@@ -7,8 +7,6 @@ public class PaymentApproveResponseMapper {
     public static PaymentApproveResponseDto toResponse(PaymentApproveResult result) {
         return new PaymentApproveResponseDto(
                 result.paymentId(),
-                result.amount(),
-                result.status(),
-                result.method());
+                result.message().getMessage());
     }
 }
