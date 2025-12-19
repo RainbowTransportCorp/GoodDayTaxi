@@ -105,15 +105,15 @@ public class PaymentController {
     }
 
     //결제 검색 기능
-//    @GetMapping("/search")
-//    public ResponseEntity<ApiResponse<Page<PaymentAdminReadResponseDto>>> searchPayment(@RequestBody @Valid PaymentSearchRequestDto requestDto,
-//                                                                                        @RequestHeader(value = "X-User-UUID") UUID userId,
-//                                                                                        @RequestHeader(value = "X-User-Role") String role) {
-//        PaymentSearchCommand command = PaymentSearchMapper.toCommand(requestDto);
-//        Page<PaymentAdminReadResult> result = paymentService.searchPayment(command, userId, role);
-//        Page<PaymentAdminReadResponseDto> responseDto = PaymentReadResponseMapper.toPageResponse(result);
-//        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
-//    }
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<Page<PaymentReadResponseDto>>> searchPayment(@RequestBody @Valid PaymentSearchRequestDto requestDto,
+                                                                                        @RequestHeader(value = "X-User-UUID") UUID userId,
+                                                                                        @RequestHeader(value = "X-User-Role") String role) {
+        PaymentSearchCommand command = PaymentSearchMapper.toCommand(requestDto);
+        Page<PaymentReadResult> result = paymentService.searchPayment(command, userId, role);
+        Page<PaymentReadResponseDto> responseDto = PaymentReadResponseMapper.toPageResponse(result);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
+    }
 
     //결제 전 금액 변경
     @PutMapping("/amount")

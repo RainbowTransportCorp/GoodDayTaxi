@@ -4,7 +4,7 @@ import com.gooddaytaxi.common.core.dto.ApiResponse;
 import com.gooddaytaxi.payment.application.command.payment.PaymentSearchCommand;
 import com.gooddaytaxi.payment.application.result.payment.PaymentAdminReadResult;
 import com.gooddaytaxi.payment.application.service.PaymentService;
-import com.gooddaytaxi.payment.presentation.external.dto.request.payment.PaymentSearchRequestDto;
+import com.gooddaytaxi.payment.presentation.external.dto.request.payment.PaymentAdminSearchRequestDto;
 import com.gooddaytaxi.payment.presentation.external.dto.response.payment.PaymentAdminReadResponseDto;
 import com.gooddaytaxi.payment.presentation.external.mapper.command.payment.PaymentSearchMapper;
 import com.gooddaytaxi.payment.presentation.external.mapper.response.payment.PaymentReadResponseMapper;
@@ -29,23 +29,21 @@ public class PaymentAdminController {
 
     @GetMapping("/{paymentId}")
     public ResponseEntity<ApiResponse<PaymentAdminReadResponseDto>> getPayment(@PathVariable UUID paymentId,
-                                                                               @RequestHeader(value = "X-User-UUID") UUID userId,
                                                                                @RequestHeader(value = "X-User-Role") String role) {
-        PaymentAdminReadResult result = paymentService.getAdminPayment(paymentId, userId, role);
+        PaymentAdminReadResult result = paymentService.getAdminPayment(paymentId, role);
         PaymentAdminReadResponseDto responseDto = PaymentReadResponseMapper.toAdminResponse(result);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
     }
 
     //결제 검색 기능
-//    @GetMapping("/search")
-//    public ResponseEntity<ApiResponse<Page<PaymentAdminReadResponseDto>>> searchPayment(@RequestBody @Valid PaymentSearchRequestDto requestDto,
-//                                                                                        @RequestHeader(value = "X-User-UUID") UUID userId,
-//                                                                                        @RequestHeader(value = "X-User-Role") String role) {
-//        PaymentSearchCommand command = PaymentSearchMapper.toCommand(requestDto);
-//        Page<PaymentAdminReadResult> result = paymentService.searchAdminPayment(command, userId, role);
-//        Page<PaymentAdminReadResponseDto> responseDto = PaymentReadResponseMapper.toPageResponse(result);
-//        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
-//    }
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<Page<PaymentAdminReadResponseDto>>> searchPayment(@RequestBody @Valid PaymentAdminSearchRequestDto requestDto,
+                                                                                        @RequestHeader(value = "X-User-Role") String role) {
+        PaymentSearchCommand command = PaymentSearchMapper.toAdminCommand(requestDto);
+        Page<PaymentAdminReadResult> result = paymentService.searchAdminPayment(command, role);
+        Page<PaymentAdminReadResponseDto> responseDto = PaymentReadResponseMapper.toPageAdminResponse(result);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
+    }
 
 
 

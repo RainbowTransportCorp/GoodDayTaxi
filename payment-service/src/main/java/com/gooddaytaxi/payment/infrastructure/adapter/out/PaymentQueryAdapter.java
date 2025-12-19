@@ -1,10 +1,10 @@
 package com.gooddaytaxi.payment.infrastructure.adapter.out;
 
 import com.gooddaytaxi.payment.application.port.out.core.PaymentQueryPort;
-import com.gooddaytaxi.payment.domain.entity.PaymentAttempt;
-import com.gooddaytaxi.payment.domain.repository.PaymentIdentityView;
 import com.gooddaytaxi.payment.domain.entity.Payment;
+import com.gooddaytaxi.payment.domain.entity.PaymentAttempt;
 import com.gooddaytaxi.payment.domain.entity.Refund;
+import com.gooddaytaxi.payment.domain.repository.PaymentIdentityView;
 import com.gooddaytaxi.payment.domain.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -12,6 +12,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -33,6 +35,11 @@ public class PaymentQueryAdapter implements PaymentQueryPort {
     @Override
     public Page<Payment> searchPayments(String method, String status, UUID passeangerId, UUID driverId, UUID tripId, LocalDateTime startDay, LocalDateTime endDay, Pageable pageable) {
         return paymentRepository.searchPayments(method, status, passeangerId, driverId, tripId, startDay, endDay, pageable);
+    }
+
+    @Override
+    public Map<UUID, PaymentAttempt> findLastAttemptsByPaymentIds(List<UUID> paymentsIds) {
+        return paymentRepository.findLastAttemptsByPaymentIds(paymentsIds);
     }
 
     @Override

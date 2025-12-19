@@ -21,29 +21,16 @@ public class PaymentReadResponseMapper {
         );
     }
     public static PaymentAdminReadResponseDto toAdminResponse(PaymentAdminReadResult result) {
-        if (Objects.isNull(result.attemptResult())) {
-            return new PaymentAdminReadResponseDto(
-                    result.paymentId(),
-                    result.amount(),
-                    result.status(),
-                    result.method(),
-                    result.passengerId(),
-                    result.driverId(),
-                    result.tripId(),
-                    null,
-                    result.createdAt(),
-                    result.updatedAt()
-            );
-        }
         return new PaymentAdminReadResponseDto(
                 result.paymentId(),
                 result.amount(),
                 result.status(),
                 result.method(),
+                result.approvedAt(),
                 result.passengerId(),
                 result.driverId(),
                 result.tripId(),
-                toAttemptResponse(result.attemptResult()),
+                Objects.isNull(result.attemptResult())? null : toAttemptResponse(result.attemptResult()),
                 result.createdAt(),
                 result.updatedAt()
         );
@@ -59,7 +46,11 @@ public class PaymentReadResponseMapper {
         );
     }
 
-    public static Page<PaymentAdminReadResponseDto> toPageResponse(Page<PaymentAdminReadResult> result) {
+    public static Page<PaymentReadResponseDto> toPageResponse(Page<PaymentReadResult> result) {
+        return result.map(PaymentReadResponseMapper::toResponse);
+    }
+
+    public static Page<PaymentAdminReadResponseDto> toPageAdminResponse(Page<PaymentAdminReadResult> result) {
         return result.map(PaymentReadResponseMapper::toAdminResponse);
     }
 }
