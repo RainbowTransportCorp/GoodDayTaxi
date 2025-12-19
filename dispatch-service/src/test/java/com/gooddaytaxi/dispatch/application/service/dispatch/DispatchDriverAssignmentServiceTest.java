@@ -90,7 +90,7 @@ class DispatchDriverAssignmentServiceTest {
                 any()
         );
 
-        // 기사에게 요청 이벤트 발행됨
+        // 기사에게 요청하기 위한 알림 이벤트 발행됨 (dispatch -> support)
         verify(requestedCommandPort).publishRequested(any());
 
         // 배차 로그 저장 시도됨

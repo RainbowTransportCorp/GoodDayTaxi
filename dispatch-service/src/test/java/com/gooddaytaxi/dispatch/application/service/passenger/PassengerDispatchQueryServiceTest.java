@@ -2,6 +2,7 @@ package com.gooddaytaxi.dispatch.application.service.passenger;
 
 
 import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
+import com.gooddaytaxi.dispatch.application.query.DispatchDetailResult;
 import com.gooddaytaxi.dispatch.application.query.DispatchSummaryResult;
 import com.gooddaytaxi.dispatch.application.usecase.query.PassengerQueryPermissionValidator;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
@@ -12,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static com.gooddaytaxi.dispatch.application.exception.auth.UserRole.PASSENGER;
@@ -87,6 +89,35 @@ class PassengerDispatchQueryServiceTest {
 
 
     @Test
-    void getDispatchDetail() {
+    void 승객은_자신의_배차_상세를_조회할_수_있다() {
+        // given
+        UUID passengerId = UUID.randomUUID();
+        UUID dispatchId = UUID.randomUUID();
+
+        Dispatch dispatch = Dispatch.create(
+                passengerId,
+                "서울역",
+                "강남역"
+        );
+
+        when(dispatchQueryPort.findByIdAndPassengerId(dispatchId, passengerId))
+                .thenReturn(Optional.of(dispatch));
+
+        // when
+        DispatchDetailResult result =
+                dispatchQueryService.getDispatchDetail(
+                        passengerId,
+                        PASSENGER,
+                        dispatchId
+                );
+
+        // then
+        assertThat(result.getDispatchId()).isEqualTo(dispatch.getDispatchId());
+        assertThat(result.getPassengerId()).isEqualTo(passengerId);
+        assertThat(result.getPickupAddress()).isEqualTo("서울역");
+        assertThat(result.getDestinationAddress()).isEqualTo("강남역");
+
+        verify(permissionValidator).validate(PASSENGER);
+        verify(dispatchQueryPort).findByIdAndPassengerId(dispatchId, passengerId);
     }
 }
