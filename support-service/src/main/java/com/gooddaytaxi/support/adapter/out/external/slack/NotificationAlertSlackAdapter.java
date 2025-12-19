@@ -6,8 +6,8 @@ import com.gooddaytaxi.support.adapter.out.external.slack.dto.SlackMessageAlertR
 import com.gooddaytaxi.support.adapter.out.internal.account.dto.UserProfile;
 import com.gooddaytaxi.support.adapter.out.messaging.config.RabbitMQConfig;
 import com.gooddaytaxi.support.application.port.out.external.NotificationAlertExternalPort;
-import com.gooddaytaxi.support.application.port.out.internal.account.AccountDomainCommunicationPort;
-import com.gooddaytaxi.support.application.port.out.messaging.QueuePushMessage;
+import com.gooddaytaxi.support.application.port.out.internal.AccountDomainCommunicationPort;
+import com.gooddaytaxi.support.application.port.out.dto.QueuePushMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;

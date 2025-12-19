@@ -47,6 +47,17 @@ public class DispatchHistory extends BaseEntity {
     @Column(name = "reason")
     private String reason;
 
+    /**
+     * 배차 상태가 변경될 때
+     * 히스토리 저장을 위한 정적 팩토리 메서드
+     * @param dispatchId 변경된 특정 배차 식별자
+     * @param type 변경된 이벤트의 유형
+     * @param fromStatus 변경 전의 배차 상태
+     * @param toStatus 변경 후의 배차 상태
+     * @param changedBy 변경을 한 유저의 권한
+     * @param reason 변경 사유
+     * @return 변경되어 저장된 히스토리 정보
+     */
     public static DispatchHistory recordStatusChange(
             UUID dispatchId,
             String type,

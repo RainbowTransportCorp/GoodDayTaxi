@@ -1,7 +1,7 @@
 package com.gooddaytaxi.support.adapter.in.web.controller;
 
 import com.gooddaytaxi.common.core.dto.ApiResponse;
-import com.gooddaytaxi.support.application.dto.notification.NotificationResponse;
+import com.gooddaytaxi.support.application.dto.output.notification.NotificationResponse;
 import com.gooddaytaxi.support.application.port.in.web.notification.GetAllUserNotificationsUsecase;
 import com.gooddaytaxi.support.application.port.in.web.notification.UpdateNotrificationReadStatusUsecase;
 import io.swagger.v3.oas.annotations.Operation;
@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

@@ -3,7 +3,7 @@ const token = localStorage.getItem("accessToken");
 
 if (role !== "ADMIN" && role !== "MASTER_ADMIN") {
     alert("관리자만 접근할 수 있습니다.");
-    window.location.href = "/login/index.html";
+    window.location.href = "/index.html";
 }
 
 async function loadUsers() {
@@ -17,7 +17,7 @@ async function loadUsers() {
 
         if (res.status === 401) {
             alert("로그인이 만료되었습니다.");
-            window.location.href = "/login/index.html";
+            window.location.href = "/index.html";
             return;
         }
 

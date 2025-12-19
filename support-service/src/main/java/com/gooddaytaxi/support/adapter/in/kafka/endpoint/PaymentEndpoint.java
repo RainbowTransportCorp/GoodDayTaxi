@@ -3,8 +3,8 @@ package com.gooddaytaxi.support.adapter.in.kafka.endpoint;
 
 import com.gooddaytaxi.support.adapter.in.kafka.dto.*;
 import com.gooddaytaxi.support.application.dto.Metadata;
-import com.gooddaytaxi.support.application.dto.payment.*;
-import com.gooddaytaxi.support.application.port.in.payment.NotifyCompletedPaymentUsecase;
+import com.gooddaytaxi.support.application.dto.input.payment.*;
+import com.gooddaytaxi.support.application.port.in.payment.NotifyPaymentCompleteUsecase;
 import com.gooddaytaxi.support.application.port.in.payment.NotifyRefundUsecase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class PaymentEndpoint {
 
-    private final NotifyCompletedPaymentUsecase notifyCompletedPaymentUsecase;
+    private final NotifyPaymentCompleteUsecase notifyPaymentCompleteUsecase;
     private final NotifyRefundUsecase notifyRefundUsecase;
 
     /**
@@ -34,7 +34,7 @@ public class PaymentEndpoint {
         log.debug("[Check] Payment Completed EventRequest 데이터: paymentId={}, notifierId={}, occurredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occurredAt());
 
         // EventRequest DTO > Command 변환
-        NotifyPaymentCompletedCommand command = NotifyPaymentCompletedCommand.create(
+        PaymentCompletedCommand command = PaymentCompletedCommand.create(
                 pl.notificationOriginId(), pl.notifierId(),
 //                pl.dispatchId(),
                 pl.tripId(),
@@ -46,7 +46,7 @@ public class PaymentEndpoint {
         log.debug("[Transform] EventRequest >>> Command ➡️ {}", command);
 
         // 결제 완료 알림 전송 서비스 호출
-        notifyCompletedPaymentUsecase.execute(command);
+        notifyPaymentCompleteUsecase.execute(command);
     }
 
 
@@ -62,7 +62,7 @@ public class PaymentEndpoint {
         log.debug("[Check] Refund Request Created EventRequest 데이터: paymentId={}, notifierId={}, occurredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occurredAt());
 
         // EventRequest DTO > Command 변환
-        NotifyRefundRequestedCommand command = NotifyRefundRequestedCommand.create(
+        RefundRequestedCommand command = RefundRequestedCommand.create(
                 pl.notificationOriginId(), pl.notifierId(),
 //                pl.dispatchId(),
                 pl.tripId(),
@@ -90,7 +90,7 @@ public class PaymentEndpoint {
         log.debug("[Check] Refund Request Rejected EventRequest 데이터: paymentId={}, notifierId={}, occurredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occurredAt());
 
         // EventRequest DTO > Command 변환
-        NotifyRefundRejectedCommand command = NotifyRefundRejectedCommand.create(
+        RefundRejectedCommand command = RefundRejectedCommand.create(
                 pl.notificationOriginId(), pl.notifierId(),
 //                pl.dispatchId(),
                 pl.tripId(),
@@ -118,7 +118,7 @@ public class PaymentEndpoint {
         log.debug("[Check] Refund Request Rejected EventRequest 데이터: paymentId={}, notifierId={}, occurredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occurredAt());
 
         // EventRequest DTO > Command 변환
-        NotifyRefundCompletedCommand command = NotifyRefundCompletedCommand.create(
+        RefundCompletedCommand command = RefundCompletedCommand.create(
                 pl.notificationOriginId(), pl.notifierId(),
 //                pl.dispatchId(),
                 pl.tripId(),
@@ -153,7 +153,7 @@ public class PaymentEndpoint {
         log.debug("[Check] Refund Request to Driver EventRequest 데이터: tripId={}, paymentId={}, driverId={}, approvedAt={}", pl.tripId(), pl.notificationOriginId(), pl.driverId(), pl.approvedAt());
 
         // EventRequest DTO > Command 변환
-        NotifyRefundSettlementCreatedCommand command = NotifyRefundSettlementCreatedCommand.create(
+        RefundSettlementCreatedCommand command = RefundSettlementCreatedCommand.create(
                 pl.notificationOriginId(), pl.notifierId(),
 //                pl.dispatchId(),
                 pl.tripId(),

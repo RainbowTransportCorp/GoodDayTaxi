@@ -8,7 +8,7 @@ function guardDriver() {
 
     if (!token || role !== "DRIVER") {
         alert("기사 전용 페이지입니다.");
-        window.location.href = "/login/index.html";
+        window.location.href = "/index.html";
         return false;
     }
     return true;

@@ -189,7 +189,7 @@ public class Trip extends BaseEntity {
 
     public boolean cancel() {
         if (this.status == TripStatus.CREATED || this.status == TripStatus.READY) {
-            this.status = TripStatus.CANCELLED;
+            this.status = TripStatus.CANCELED;
             return true;
         }
         return false;

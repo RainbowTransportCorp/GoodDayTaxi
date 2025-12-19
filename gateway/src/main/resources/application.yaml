@@ -18,7 +18,7 @@ spring:
         - id: account-service
           uri: http://host.docker.internal:8201
           predicates:
-            - Path=/api/v*/account/**,/api/v*/auth/**,/api/v*/admin/users/** ,/internal/v*/account/**,
+            - Path=/api/v*/auth/**,/api/v*/users/**,/api/v*/drivers/**,/api/v*/admin/users/** ,/internal/v*/account/**,
 
         - id: dispatch-service
           uri: http://host.docker.internal:8202

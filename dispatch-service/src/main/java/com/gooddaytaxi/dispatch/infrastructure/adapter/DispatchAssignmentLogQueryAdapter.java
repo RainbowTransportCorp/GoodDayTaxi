@@ -25,4 +25,9 @@ public class DispatchAssignmentLogQueryAdapter implements DispatchAssignmentLogQ
         return dispatchAssignmentLogRepository.findPendingByCandidateDriver(driverId);
     }
 
+    @Override
+    public List<UUID> findAllDriverIdsByDispatchId(UUID dispatchId) {
+        return dispatchAssignmentLogRepository.findAllDriverIdsByDispatchId(dispatchId);
+    }
+
 }
