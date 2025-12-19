@@ -60,7 +60,6 @@ public class PaymentService {
                 throw new PaymentException(PaymentErrorCode.DUPLICATE_PAYMENT_EXISTS);
             else if (status.equals(PaymentStatus.COMPLETED)) throw new PaymentException(PaymentErrorCode.COMPLETED_PAYMENT);
         }
-//        paymentQueryPort.
         // 금액 검증
         Fare amount = Fare.of(command.amount());
         //결제 수단 검증

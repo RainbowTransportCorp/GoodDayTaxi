@@ -100,7 +100,7 @@ public class RefundService {
         paymentCommandPort.save(payment);
 
         //환불 완료 이벤트 발행
-        //여기서 이벤트 발행시 refundId가 존재하지 않으므로 트랜잭션 커밋 이후에 이벤트가 발행되도록 구현
+        //refundId 유무와 상관없이 save()가 커밋을 의미하지는 않아 롤백이 가능하므로 커밋 이후에 이벤트 발행되도록 구현
         applicationEventPublisher.publishEvent(
                 new RefundCompletedEvent(payment.getId(), userId)
         );
