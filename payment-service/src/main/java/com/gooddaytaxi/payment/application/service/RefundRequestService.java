@@ -7,6 +7,7 @@ import com.gooddaytaxi.payment.application.event.RefundRequestCreatePayload;
 import com.gooddaytaxi.payment.application.event.RefundRequestRejectedPayload;
 import com.gooddaytaxi.payment.application.exception.PaymentErrorCode;
 import com.gooddaytaxi.payment.application.exception.PaymentException;
+import com.gooddaytaxi.payment.application.message.SuccessMessage;
 import com.gooddaytaxi.payment.application.port.out.core.PaymentQueryPort;
 import com.gooddaytaxi.payment.application.port.out.core.RefundRequestCommandPort;
 import com.gooddaytaxi.payment.application.port.out.core.RefundRequestQueryPort;
@@ -56,7 +57,7 @@ public class RefundRequestService {
         //이벤트 발행
         eventCommandPort.publishRefundRequestCreated(RefundRequestCreatePayload.from(payment, request));
 
-        return new RefundRequestCreateResult(request.getId(), "환불 요청이 접수되었습니다.");
+        return new RefundRequestCreateResult(request.getId(), SuccessMessage.REQUEST_CREATE_SUUCCESS);
     }
 
     @Transactional(readOnly = true)
@@ -113,7 +114,7 @@ public class RefundRequestService {
             eventCommandPort.publishRefundRequestRejected(RefundRequestRejectedPayload.from(payment, request, userId));
         }
 
-        return new RefundRequestCreateResult(request.getId(), "환불 요청에 대한 응답이 처리되었습니다.");
+        return new RefundRequestCreateResult(request.getId(), SuccessMessage.REQUEST_RESPONSE_SUCCESS);
     }
 
     @Transactional
@@ -127,6 +128,6 @@ public class RefundRequestService {
         //환불 요청 상태가 REQUESTED 일때만 취소 가능
         validator.checkRefundRequestStatusRequested(request.getStatus());
         request.cancel();
-        return new RefundRequestCancelResult(request.getId(), "환불 요청이 취소되었습니다.");
+        return new RefundRequestCancelResult(request.getId(), SuccessMessage.REQUEST_CANCEL_SUCCESS);
     }
 }
