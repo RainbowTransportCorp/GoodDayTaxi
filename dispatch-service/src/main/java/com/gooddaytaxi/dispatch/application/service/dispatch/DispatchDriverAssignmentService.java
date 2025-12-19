@@ -18,9 +18,11 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class DispatchDriverAssignmentService {
 
@@ -33,6 +35,7 @@ public class DispatchDriverAssignmentService {
     private final DispatchHistoryService historyService;
     private final DispatchRequestedCommandPort eventPort;
 
+
     /**
      * 최초의 배차 시도
      *
@@ -40,8 +43,12 @@ public class DispatchDriverAssignmentService {
      */
     public void assignInitial(UUID dispatchId) {
 
-        Dispatch dispatch = queryPort.findById(dispatchId);
 
+        Dispatch dispatch = queryPort.findById(dispatchId);
+        log.error("[ASSIGN_INITIAL] dispatchId={} status={}",
+            dispatch.getDispatchId(),
+            dispatch.getDispatchStatus()
+        );
         // 최초 상태 전이
         dispatch.startAssigning();
         //배차 횟수 증가
@@ -73,9 +80,6 @@ public class DispatchDriverAssignmentService {
 
         Dispatch dispatch = queryPort.findById(dispatchId);
 
-        // 1. 상태 전이 (TIMEOUT → ASSIGNING)
-        dispatch.resetToAssigning();
-
         // 2. 재배차 횟수 증가
         dispatch.increaseReassignAttempt();
 
@@ -85,7 +89,7 @@ public class DispatchDriverAssignmentService {
         historyService.saveStatusChange(
                 dispatchId,
                 HistoryEventType.REASSIGN_REQUESTED,
-                DispatchStatus.TIMEOUT,
+                DispatchStatus.ASSIGNING,
                 DispatchStatus.ASSIGNING,
                 ChangedBy.SYSTEM,
                 "재배차 요청 전송 (attempt=" + dispatch.getReassignAttemptCount() + ")"
