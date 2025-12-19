@@ -19,7 +19,7 @@ public class TripEndedEventConsumer {
     private final PaymentService paymentService;
 
     @KafkaListener(
-            topics = "trip-ended",
+            topics = "trip.ended",
             groupId = "${spring.kafka.consumer.group-id}",
             containerFactory = "kafkaListenerContainerFactory")
     public void consume(EventEnvelope<?> envelope, Acknowledgment ack) {

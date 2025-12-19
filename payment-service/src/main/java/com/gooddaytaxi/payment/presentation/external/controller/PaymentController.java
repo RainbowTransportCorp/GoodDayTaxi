@@ -31,7 +31,7 @@ public class PaymentController {
 
     private final PaymentService paymentService;
 
-    //결제 청구서 생성
+    //결제 청구서 생성 - 실제로는 이벤트로만 생성, 이건 테스트용
     @PostMapping
     public ResponseEntity<ApiResponse<PaymentCreateResponseDto>> createPayment(@RequestBody @Valid PaymentCreateRequestDto requestDto,
                                                                                @RequestHeader(value = "X-User-UUID", required = false) UUID userId,
