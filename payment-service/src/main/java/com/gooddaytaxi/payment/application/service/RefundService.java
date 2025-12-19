@@ -7,6 +7,7 @@ import com.gooddaytaxi.payment.application.event.RefundSettlementPayload;
 import com.gooddaytaxi.payment.application.event.RefundCompletedEvent;
 import com.gooddaytaxi.payment.application.exception.PaymentErrorCode;
 import com.gooddaytaxi.payment.application.exception.PaymentException;
+import com.gooddaytaxi.payment.application.message.SuccessMessage;
 import com.gooddaytaxi.payment.application.port.out.core.ExternalPaymentPort;
 import com.gooddaytaxi.payment.application.port.out.core.PaymentCommandPort;
 import com.gooddaytaxi.payment.application.port.out.core.PaymentQueryPort;
@@ -105,7 +106,7 @@ public class RefundService {
                 new RefundCompletedEvent(payment.getId(), userId)
         );
 
-        return new RefundCreateResult(paymentId, "환불이 완료되었습니다!");
+        return new RefundCreateResult(paymentId, SuccessMessage.REFUND_CREATE_SUUCCESS);
     }
 
     //기사에게 환불 수행 알림
@@ -119,7 +120,7 @@ public class RefundService {
         //환불 수행 요청 이벤트 발행
         eventCommandPort.publishRefundSettlementCreated(RefundSettlementPayload.from(payment, refundReason, userId));
 
-        return new RefundCreateResult(paymentId, "기사 환불 수행 요청이 발송되었습니다.");
+        return new RefundCreateResult(paymentId, SuccessMessage.REFUND_SETTLEMENT_CREATE_SUUCCESS);
     }
 
     @Transactional
@@ -157,7 +158,7 @@ public class RefundService {
                 new RefundCompletedEvent(payment.getId(), userId)
         );
 
-        return new RefundCreateResult(paymentId, "환불이 완료되었습니다!");
+        return new RefundCreateResult(paymentId, SuccessMessage.REFUND_CREATE_SUUCCESS);
     }
 
     //디버그용 - 토스페이 외부결제 정보 조회
