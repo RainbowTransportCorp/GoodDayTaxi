@@ -22,7 +22,7 @@ public class OutboxRelay {
      * 일정 주기로 PENDING 상태의 Outbox Event 를 Polling 하여 Kafka로 전송하고,
      * 성공 시 PUBLISHED 로 변경한다.
      */
-    @Scheduled(fixedDelayString = "${outbox.relay.delay-ms:1000}")
+    @Scheduled(fixedDelayString = "${outbox.relay.delay-ms:5000}")
     public void relay() {
 
         List<OutboxEventModel> pending = outboxPort.findPending(100);
