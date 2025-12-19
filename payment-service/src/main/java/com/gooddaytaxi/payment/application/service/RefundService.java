@@ -3,7 +3,7 @@ package com.gooddaytaxi.payment.application.service;
 import com.gooddaytaxi.payment.application.command.refund.ExternalPaymentCancelCommand;
 import com.gooddaytaxi.payment.application.command.refund.RefundCreateCommand;
 import com.gooddaytaxi.payment.application.command.refund.RefundSearchCommand;
-import com.gooddaytaxi.payment.application.event.RefundSettlementCreatedPayload;
+import com.gooddaytaxi.payment.application.event.RefundSettlementPayload;
 import com.gooddaytaxi.payment.application.event.RefundCompletedEvent;
 import com.gooddaytaxi.payment.application.exception.PaymentErrorCode;
 import com.gooddaytaxi.payment.application.exception.PaymentException;
@@ -117,7 +117,7 @@ public class RefundService {
         validator.checkMethodPhysicalPayment(payment.getMethod());
         RefundReason refundReason = RefundReason.of(reason);
         //환불 수행 요청 이벤트 발행
-        eventCommandPort.publishRefundSettlementCreated(RefundSettlementCreatedPayload.from(payment, refundReason, userId));
+        eventCommandPort.publishRefundSettlementCreated(RefundSettlementPayload.from(payment, refundReason, userId));
 
         return new RefundCreateResult(paymentId, "기사 환불 수행 요청이 발송되었습니다.");
     }

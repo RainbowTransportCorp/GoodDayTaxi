@@ -66,4 +66,17 @@ public class PaymentEvent extends BaseEntity {
         this.retryCount = 0;
         this.publishedAt = LocalDateTime.now();
     }
+
+
+    public void increaseRetryCount() {
+        this.retryCount += 1;
+    }
+
+    public void updateLastErrorMessage(String message) {
+        this.errorMessage = message;
+    }
+
+    public void updateStatusToFailed() {
+        this.status = PaymentEventStatus.FAILED;
+    }
 }

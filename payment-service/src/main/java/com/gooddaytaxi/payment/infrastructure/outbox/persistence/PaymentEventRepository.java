@@ -6,7 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -19,13 +18,13 @@ public interface PaymentEventRepository extends JpaRepository<PaymentEvent, UUID
     """)
     List<PaymentEvent> findPending(Pageable pageable);
 
-    @Transactional
     @Modifying
     @Query("""
         UPDATE PaymentEvent e
         SET e.status = 'SENT',
             e.publishedAt = CURRENT_TIMESTAMP
         WHERE e.id = :eventId
-    """)
-    void updateStatusPublished(@Param("eventId") UUID eventId);
+            AND e.status = 'PENDING'
+    """)// 마지막줄은 중복 업데이트 방지용
+    int updateStatusPublished(@Param("eventId") UUID eventId);
 }

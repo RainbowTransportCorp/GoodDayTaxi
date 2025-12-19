@@ -66,11 +66,17 @@ public class DispatchAssignmentLogRepositoryImpl implements DispatchAssignmentLo
                 )
                 .fetch();
     }
-  
+
+    /**
+     * 배차를 시도했던 dispatch의 기사의 식별자 리스트
+     * @param dispatchId
+     * @return
+     */
     @Override
     public List<UUID> findAllDriverIdsByDispatchId(UUID dispatchId) {
         return queryFactory
                 .select(dispatchAssignmentLog.candidateDriverId)
+                .distinct()
                 .from(dispatchAssignmentLog)
                 .where(dispatchAssignmentLog.dispatchId.eq(dispatchId))
                 .fetch();

@@ -2,8 +2,8 @@ package com.gooddaytaxi.dispatch.application.service.dispatch;
 
 import com.gooddaytaxi.dispatch.application.event.payload.DispatchTimeoutPayload;
 import com.gooddaytaxi.dispatch.application.port.out.command.DispatchCommandPort;
+import com.gooddaytaxi.dispatch.application.port.out.query.DispatchAssignmentLogQueryPort;
 import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
-import com.gooddaytaxi.dispatch.application.service.assignmentLog.AssignmentLogQueryService;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
 import com.gooddaytaxi.dispatch.domain.model.enums.ChangedBy;
 import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
@@ -25,15 +25,15 @@ public class DispatchTimeoutService {
 
     private final DispatchQueryPort queryPort;
     private final DispatchCommandPort commandPort;
+    private final DispatchAssignmentLogQueryPort dispatchAssignmentLogQueryPort;
 
     private final DispatchDriverAssignmentService reassignService;
     private final DispatchHistoryService historyService;
     private final RetryPolicyService retryPolicyService;
-    private final AssignmentLogQueryService assignmentLogQueryService;
 
     private final DispatchTimeoutOutboxPublisher eventPort;
 
-    private static final int REASSIGN_TIMEOUT_SECONDS = 60;
+    private static final int REASSIGN_TIMEOUT_SECONDS = 120;
     private static final int FINAL_TIMEOUT_SECONDS = 600;
 
     public void runTimeoutCheck() {
@@ -68,21 +68,14 @@ public class DispatchTimeoutService {
         long elapsedTotal = Duration.between(dispatch.getRequestCreatedAt(), now).getSeconds();
         long elapsedSinceAssigning = Duration.between(dispatch.getUpdatedAt(), now).getSeconds();
 
-        // ============================================================
         // 1) 최종 타임아웃
-        // ============================================================
         if (elapsedTotal >= FINAL_TIMEOUT_SECONDS) {
             forceTimeoutByRetryLimit(dispatch);
             return;
         }
 
-        // ============================================================
         // 2) ASSIGNING / ASSIGNED → 재배차 판단
-        // ============================================================
-        //이쪽 예외처리...상태 판단에 대한 로직을 엔티티로 뺄 예정
-        if ((dispatch.getDispatchStatus() == DispatchStatus.ASSIGNING
-                || dispatch.getDispatchStatus() == DispatchStatus.ASSIGNED)
-                && elapsedSinceAssigning >= REASSIGN_TIMEOUT_SECONDS) {
+        if (dispatch.isReassignTimeout(elapsedSinceAssigning, REASSIGN_TIMEOUT_SECONDS)) {
 
             log.info(
                     "[TIMEOUT-REASSIGN] 재배차 판단 - dispatchId={} status={} elapsed={}s",
@@ -91,37 +84,21 @@ public class DispatchTimeoutService {
                     elapsedSinceAssigning
             );
 
-            // --- 재배차 한계 초과 → 종료 ---
             if (retryPolicyService.isRetryLimitExceeded(dispatch)) {
                 forceTimeoutByRetryLimit(dispatch);
                 return;
             }
 
-            // --- 재배차 진행 ---
-            DispatchStatus before = dispatch.getDispatchStatus();
-
-            dispatch.increaseReassignAttempt();
-            commandPort.save(dispatch);
-
-            historyService.saveStatusChange(
-                    dispatch.getDispatchId(),
-                    HistoryEventType.STATUS_CHANGED,
-                    before,
-                    DispatchStatus.ASSIGNING,
-                    ChangedBy.SYSTEM,
-                    null
-            );
-
             List<UUID> excludeDrivers =
-                    assignmentLogQueryService.findPreviouslyTriedDrivers(dispatch.getDispatchId());
+                    dispatchAssignmentLogQueryPort.findAllDriverIdsByDispatchId(dispatch.getDispatchId());
 
             reassignService.assignWithFilter(
                     dispatch.getDispatchId(),
-                    dispatch.getReassignAttemptCount(),
                     excludeDrivers
             );
         }
     }
+
 
 
     private void forceTimeoutByRetryLimit(Dispatch dispatch) {
@@ -134,7 +111,8 @@ public class DispatchTimeoutService {
                 before
         );
 
-        dispatch.terminateByRetryLimit();
+        //상태 전이
+        dispatch.timeout();
         commandPort.save(dispatch);
 
         historyService.saveStatusChange(

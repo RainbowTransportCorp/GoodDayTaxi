@@ -34,14 +34,18 @@ public class DispatchDriverAssignmentService {
     private final DispatchRequestedCommandPort eventPort;
 
     /**
-     * 최초 배차 시도
-     * @param dispatchId
+     * 최초의 배차 시도
+     *
+     * @param dispatchId 배차 식별자
      */
     public void assignInitial(UUID dispatchId) {
 
         Dispatch dispatch = queryPort.findById(dispatchId);
 
-        dispatch.startAssigning(); // 최초 상태 전이
+        // 최초 상태 전이
+        dispatch.startAssigning();
+        //배차 횟수 증가
+        dispatch.increaseReassignAttempt();
         commandPort.save(dispatch);
 
         historyService.saveStatusChange(
@@ -53,57 +57,46 @@ public class DispatchDriverAssignmentService {
                 "최초 배차시도"
         );
 
-        int attemptNo = 1; // 최초는 무조건 1
-
         List<UUID> candidates = driverPort.getAvailableDrivers(dispatch.getPickupAddress()).driverIds();
         if (candidates.isEmpty()) throw new DriverUnavailableException();
 
-        sendToDrivers(dispatch, candidates, attemptNo);
+        sendToDrivers(dispatch, candidates, dispatch.getReassignAttemptCount());
     }
 
     /**
-     * 재배차 시도
-     * @param dispatchId
-     * @param attemptNo
-     * @param filteredDrivers
+     * 재배차를 시도
+     *
+     * @param dispatchId      요청된 배차 식별자
+     * @param filteredDrivers Account에서
      */
-    public void assignWithFilter(UUID dispatchId, int attemptNo, List<UUID> filteredDrivers) {
+    public void assignWithFilter(UUID dispatchId, List<UUID> filteredDrivers) {
 
         Dispatch dispatch = queryPort.findById(dispatchId);
-        DispatchStatus before = dispatch.getDispatchStatus();
 
-        if (before == DispatchStatus.ASSIGNED) {
-            // ACCEPT 없이 시간이 지나서 재배차하는 경우
-            dispatch.resetToAssigning();
-            commandPort.save(dispatch);
+        // 1. 상태 전이 (TIMEOUT → ASSIGNING)
+        dispatch.resetToAssigning();
 
-            historyService.saveStatusChange(
-                    dispatchId,
-                    HistoryEventType.STATUS_CHANGED,
-                    DispatchStatus.ASSIGNED,
-                    DispatchStatus.ASSIGNING,
-                    ChangedBy.SYSTEM,
-                    "시간초과로 인한 재배차"
-            );
+        // 2. 재배차 횟수 증가
+        dispatch.increaseReassignAttempt();
 
-        } else if (before == DispatchStatus.ASSIGNING) {
-            // 이미 ASSIGNING이면 state transition 불필요
-            log.debug("[Assign] ASSIGNING 상태 유지 - resetToAssigning() 생략");
-        } else {
-            // 그 외 상태(REQUESTED, TIMEOUT 등)는 재배차 불가
-            log.warn("[Assign] 재배차 불가 상태={} - dispatchId={}", before, dispatchId);
-            return;
-        }
+        commandPort.save(dispatch);
 
-        // ====================================================
-        // 필터링된 기사 대상 배차 요청
-        // ====================================================
-        if (filteredDrivers.isEmpty()) {
-            log.warn("[Assign] 재배차 대상 기사 없음 - dispatchId={}", dispatchId);
-            return;
-        }
+        // 3. 재배차 히스토리
+        historyService.saveStatusChange(
+                dispatchId,
+                HistoryEventType.REASSIGN_REQUESTED,
+                DispatchStatus.TIMEOUT,
+                DispatchStatus.ASSIGNING,
+                ChangedBy.SYSTEM,
+                "재배차 요청 전송 (attempt=" + dispatch.getReassignAttemptCount() + ")"
+        );
 
-        sendToDrivers(dispatch, filteredDrivers, attemptNo);
+        // 4. 기사 재요청
+        sendToDrivers(
+                dispatch,
+                filteredDrivers,
+                dispatch.getReassignAttemptCount()
+        );
     }
 
 

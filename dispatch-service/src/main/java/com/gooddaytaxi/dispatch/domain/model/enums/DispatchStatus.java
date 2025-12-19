@@ -8,8 +8,24 @@ public enum DispatchStatus {
     CANCELED,   // 승객, 기사, 관리자 또는 시스템에 의해 취소됨
     TIMEOUT;      // 전체 배차 프로세스가 타임아웃됨
 
+    public boolean isReassignable() {
+        return this == ASSIGNING || this == ASSIGNED;
+    }
     public boolean isTerminal() {
         return this == TIMEOUT || this == CANCELED;
     }
+    public boolean canTimeout() {
+        return this == REQUESTED
+                || this == ASSIGNING
+                || this == ASSIGNED;
+    }
+
+    public boolean canForceTimeout() {
+        return this == REQUESTED
+                || this == ASSIGNING
+                || this == ASSIGNED
+                || this == ACCEPTED;
+    }
+
 }
 

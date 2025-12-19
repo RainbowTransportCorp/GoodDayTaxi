@@ -12,7 +12,7 @@ public record RefundRequestCreatePayload (
         Long amount,
         String method,
         UUID paymentId,
-        UUID passeangerId,
+        UUID passengerId,
         UUID driverId,
         UUID tripId,
         String reason,

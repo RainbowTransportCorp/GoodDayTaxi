@@ -2,8 +2,9 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8" />
-    <title>Good day Taxi – Passenger</title>
+    <title>Good day Taxi – Passenger Dispatch</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <link rel="stylesheet" href="/common/header.css">
     <script src="/common/header.js" defer></script>
 
@@ -15,7 +16,7 @@
 <header class="header">
     <div class="brand">
         <div class="brand-main">Good day Taxi</div>
-        <div class="brand-sub" id="brand-sub">무지개 운수</div>
+        <div class="brand-sub" id="brand-sub"></div>
     </div>
 
     <div class="user-box">
@@ -24,11 +25,11 @@
     </div>
 </header>
 
-<div class="page-container">
+<main class="page-container">
 
-    <!-- [1] 콜 생성 화면 -->
+    <!-- 콜 생성 -->
     <section id="create-section" class="card">
-        <h2 class="section-title">콜 요청하기</h2>
+        <h2 class="section-title">🚕 콜 요청하기</h2>
 
         <div class="form-group">
             <label>출발지</label>
@@ -43,22 +44,28 @@
         <button class="btn-primary" onclick="createDispatch()">콜 요청하기</button>
     </section>
 
-    <!-- [2] 배차 대기 화면 -->
+    <!-- 대기 -->
     <section id="waiting-section" class="card hidden">
         <h2 class="section-title">배차 요청 중...</h2>
-        <p id="waiting-text">기사님을 찾고 있습니다...</p>
+        <p id="waiting-text">기사님을 찾고 있습니다</p>
         <div class="loader"></div>
+
+        <button class="btn-cancel" onclick="cancelCurrentDispatch()">
+            콜 취소하기
+        </button>
     </section>
 
-    <!-- [3] 배차 상세 화면 -->
+    <!-- 상세 -->
     <section id="detail-section" class="card hidden">
-        <h2 class="section-title">배차 상세 정보</h2>
+        <h2 class="section-title">배차 상세</h2>
         <div id="detail-container"></div>
 
-        <button class="btn-primary" onclick="backToHome()">홈으로 돌아가기</button>
+        <button class="btn-primary" onclick="backToHome()">
+            홈으로
+        </button>
     </section>
 
-</div>
+</main>
 
 <script src="script.js"></script>
 </body>

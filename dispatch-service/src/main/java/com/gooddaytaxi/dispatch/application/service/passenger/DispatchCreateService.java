@@ -23,14 +23,19 @@ public class DispatchCreateService {
     private final DispatchHistoryCommandPort historyPort;
     private final DispatchDriverAssignmentService assignService;
 
-    private final DispatchCreatePermissionValidator permissionValidator;
+    private final DispatchCreatePermissionValidator dispatchCreatePermissionValidator;
 
+    /**
+     * 승객이 배차(콜) 호출
+     * @param command 배차를 요청하는 승객과 주소정보
+     * @return 호출한 배차 정보
+     */
     public DispatchCreateResult create(DispatchCreateCommand command) {
 
         log.info("[DispatchCreate] 요청 수신 - passengerId={}, pickup={}, destination={}",
                 command.getPassengerId(), command.getPickupAddress(), command.getDestinationAddress());
 
-        permissionValidator.validate(command.getRole());
+        dispatchCreatePermissionValidator.validate(command.getRole());
 
         Dispatch dispatch = Dispatch.create(
                 command.getPassengerId(),

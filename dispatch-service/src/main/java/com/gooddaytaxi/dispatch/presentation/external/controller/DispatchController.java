@@ -22,6 +22,9 @@ import com.gooddaytaxi.dispatch.presentation.external.mapper.response.DispatchCa
 import com.gooddaytaxi.dispatch.presentation.external.mapper.response.DispatchCreateResponseMapper;
 import com.gooddaytaxi.dispatch.presentation.external.mapper.response.DispatchDetailResponseMapper;
 import com.gooddaytaxi.dispatch.presentation.external.mapper.response.DispatchListResponseMapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +33,17 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * 승객(Passenger) 전용 배차 API 컨트롤러.
+ *
+ * 모든 요청은 Gateway에서 인증된 사용자 정보를 헤더로 전달받는다.
+ * - X-User-UUID : 요청 사용자 식별자
+ * - X-User-Role : 요청 사용자 역할
+ */
+@Tag(
+        name = "Passenger Dispatch API",
+        description = "승객(Passenger) 전용 콜 생성·조회·취소 API"
+)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/dispatches")
@@ -40,18 +54,25 @@ public class DispatchController {
     private final DispatchCancelService dispatchCancelService;
 
     /**
-     * 콜 생성 (승객)
-     *
-     * @param requestDto
-     * @return
+     * 승객이 택시를 호출(콜)
+     * @param requestDto 출발지와 도착지 주소
+     * @param passengerId 요청 승객 식별자
+     * @param role 요청 승객 역할
+     * @return 호출된 배차 정보
      */
+    @Operation(
+            summary = "콜 생성",
+            description = "승객이 새로운 콜(배차 요청)을 생성합니다."
+    )
     @PostMapping
     public ResponseEntity<ApiResponse<DispatchCreateResponseDto>> create(
             @RequestBody DispatchCreateRequestDto requestDto,
-            @RequestHeader(value = "X-User-UUID") UUID userId,
+            @Parameter(hidden = true)
+            @RequestHeader(value = "X-User-UUID") UUID passengerId,
+            @Parameter(hidden = true)
             @RequestHeader(value = "X-User-Role") String role
     ) {
-        DispatchCreateCommand createCommand = DispatchCreateCommandMapper.toCommand(userId, role, requestDto);
+        DispatchCreateCommand createCommand = DispatchCreateCommandMapper.toCommand(passengerId, role, requestDto);
         DispatchCreateResult createResult = dispatchCreateService.create(createCommand);
         DispatchCreateResponseDto responseDto = DispatchCreateResponseMapper.toCreateResponse(createResult);
 
@@ -59,13 +80,20 @@ public class DispatchController {
     }
 
     /**
-     * 콜 전체 조회 (승객)
-     *
-     * @return
+     * 승객이 호출했던 콜 전체를 조회
+     * @param passengerId 요청 승객 식별자
+     * @param role 요청 승객 역할
+     * @return 요청한 승객이 호출한 콜 전체 리스트
      */
+    @Operation(
+            summary = "콜 전체 조회",
+            description = "승객이 본인이 생성한 콜 목록을 조회합니다."
+    )
     @GetMapping
     public ResponseEntity<ApiResponse<List<DispatchListResponseDto>>> getDispatches(
+            @Parameter(hidden = true)
             @RequestHeader(value = "X-User-UUID") UUID passengerId,
+            @Parameter(hidden = true)
             @RequestHeader(value = "X-User-Role") String role
 
     ) {
@@ -78,40 +106,65 @@ public class DispatchController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-
     /**
-     * 콜 상세조회(승객)
-     *
-     * @param dispatchId
-     * @return
+     * 승객이 호출한 특정 배차의 상세 조회
+     * @param dispatchId 특정 배차의 식별자
+     * @param passengerId 요청 승객 식별자
+     * @param role 요청 승객 역할
+     * @return 특정 콜에 대한 상세값
      */
+    @Operation(
+            summary = "콜 상세 조회",
+            description = "승객이 특정 콜의 상세 정보를 조회합니다."
+    )
     @GetMapping("/{dispatchId}")
     public ResponseEntity<ApiResponse<DispatchDetailResponseDto>> getDispatchDetail(
             @PathVariable UUID dispatchId,
+            @Parameter(hidden = true)
             @RequestHeader(value = "X-User-UUID") UUID passengerId,
+            @Parameter(hidden = true)
             @RequestHeader(value = "X-User-Role") String role
     ) {
-        DispatchDetailResult dispatchDetailResult = passengerDispatchQueryService.getDispatchDetail(passengerId, UserRole.valueOf(role), dispatchId);
-        DispatchDetailResponseDto responseDto = DispatchDetailResponseMapper.toDispatchDetailResponse(dispatchDetailResult);
+        DispatchDetailResult dispatchDetailResult =
+                passengerDispatchQueryService.getDispatchDetail(
+                        passengerId,
+                        UserRole.valueOf(role),
+                        dispatchId
+                );
+
+        DispatchDetailResponseDto responseDto =
+                DispatchDetailResponseMapper.toDispatchDetailResponse(dispatchDetailResult);
 
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
     }
 
     /**
-     * 콜 취소 (승객)
-     *
-     * @param dispatchId
-     * @return
+     * 승객이 특정 배차(콜) 취소
+     * @param dispatchId 특정 배차의 식별자
+     * @param passengerId 요청 승객 식별자
+     * @param role 요청 승객 역할
+     * @return 취소된 배차 정보
      */
+    @Operation(
+            summary = "콜 취소",
+            description = "승객이 생성한 콜을 취소합니다."
+    )
     @PatchMapping("/{dispatchId}/cancel")
     public ResponseEntity<ApiResponse<DispatchCancelResponseDto>> cancel(
             @PathVariable UUID dispatchId,
+            @Parameter(hidden = true)
             @RequestHeader(value = "X-User-UUID") UUID passengerId,
+            @Parameter(hidden = true)
             @RequestHeader(value = "X-User-Role") String role
     ) {
-        DispatchCancelCommand command = DispatchCancelCommandMapper.toCommand(passengerId, role, dispatchId);
-        DispatchCancelResult result = dispatchCancelService.cancel(command);
-        DispatchCancelResponseDto responseDto = DispatchCancelResponseMapper.toCancelResponse(result);
+        DispatchCancelCommand command =
+                DispatchCancelCommandMapper.toCommand(passengerId, role, dispatchId);
+
+        DispatchCancelResult result =
+                dispatchCancelService.cancel(command);
+
+        DispatchCancelResponseDto responseDto =
+                DispatchCancelResponseMapper.toCancelResponse(result);
 
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
     }

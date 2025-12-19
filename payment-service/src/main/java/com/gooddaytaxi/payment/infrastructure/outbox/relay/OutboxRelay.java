@@ -42,6 +42,7 @@ public class OutboxRelay {
                         event.eventId(), event.topic(), event.eventType());
 
             } catch (Exception ex) {
+                outboxPort.markFailed(event.eventId(), ex.getMessage());
                 log.error("[PAYMENT-OUTBOX-ERROR] id={} topic={} error={}",
                         event.eventId(), event.topic(), ex.getMessage());
             }

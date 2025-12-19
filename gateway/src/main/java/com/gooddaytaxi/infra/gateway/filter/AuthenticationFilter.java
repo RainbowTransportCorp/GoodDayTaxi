@@ -25,7 +25,7 @@ import java.util.List;
 public class AuthenticationFilter implements GlobalFilter, Ordered {
 
     private static final List<String> PUBLIC_API_PREFIXES =
-            List.of("/internal/", "/v3/api-docs", "/swagger-ui", "/api/v1/auth/");
+            List.of("/internal/", "/v3/api-docs", "/swagger-ui", "/api/v1/auth/","/api/v1/payments/tosspay");
 
     private static final String SYSTEM_UUID = "99999999-9999-9999-9999-999999999999";
     private static final String BEARER = "Bearer ";

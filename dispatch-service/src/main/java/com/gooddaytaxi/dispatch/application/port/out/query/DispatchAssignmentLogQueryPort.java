@@ -6,5 +6,8 @@ import java.util.List;
 import java.util.UUID;
 
 public interface DispatchAssignmentLogQueryPort {
+
     List<Dispatch> findAssigningByCandidateDriver(UUID driverId);
+
+    List<UUID> findAllDriverIdsByDispatchId(UUID dispatchId);
 }

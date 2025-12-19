@@ -11,4 +11,6 @@ public interface PaymentEventOutboxPort {
     List<OutboxEventModel> findPending(int limit);
 
     void markPublished(UUID eventId);
+
+    void markFailed(UUID eventId, String message);
 }

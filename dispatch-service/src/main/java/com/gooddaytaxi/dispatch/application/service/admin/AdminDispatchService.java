@@ -50,7 +50,7 @@ public class AdminDispatchService {
         DispatchStatus before = dispatch.getDispatchStatus();
 
         // 도메인 상태 전이
-        dispatch.forceTimeout(); // REQUESTED / ASSIGNING만 허용
+        dispatch.forceTimeout(); // REQUESTED / ASSIGNING / ASSIGNED / ACCEPTED 모두 허용
 
         commandPort.save(dispatch);
 

@@ -17,11 +17,6 @@ public interface DispatchQueryPort {
 
     Dispatch findById(UUID dispatchId);
 
-    List<Dispatch> findByDriverIdAndStatus(
-            UUID driverId,
-            DispatchStatus status
-    );
-
     List<Dispatch> findTimeoutCandidates();
 
     Optional<Dispatch> findByIdAndPassengerId(

@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gooddaytaxi.payment.application.event.EventEnvelope;
 import com.gooddaytaxi.payment.application.outbox.OutboxEventModel;
 import com.gooddaytaxi.payment.application.port.out.event.PaymentEventOutboxPort;
-import com.gooddaytaxi.payment.infrastructure.outbox.PaymentOutboxException;
+import com.gooddaytaxi.payment.infrastructure.outbox.exception.PaymentOutboxException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

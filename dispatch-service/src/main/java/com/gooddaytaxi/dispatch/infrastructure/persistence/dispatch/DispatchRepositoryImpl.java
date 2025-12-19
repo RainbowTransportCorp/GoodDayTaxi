@@ -19,26 +19,30 @@ public class DispatchRepositoryImpl implements DispatchRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
 
+    /**
+     * 특정 승객의 전체 배차 조회 (상태가 timeout인 경우 제외)
+     * @param passengerId 요청 승객의 식별자
+     * @return 특정 승객의 모든 배차 리스트
+     */
     @Override
     public List<Dispatch> findAllByPassengerId(UUID passengerId) {
         return queryFactory
                 .selectFrom(dispatch)
-                .where(dispatch.createdBy.eq(passengerId))
-                .orderBy(dispatch.requestCreatedAt.asc())
-                .stream().toList();
-    }
-
-    @Override
-    public List<Dispatch> findByDriverIdAndStatus(UUID driverId, DispatchStatus status) {
-        return queryFactory
-                .selectFrom(dispatch)
                 .where(
-                        dispatch.driverId.eq(driverId),
-                        dispatch.dispatchStatus.eq(status)
+                        dispatch.passengerId.eq(passengerId),
+                        dispatch.dispatchStatus.ne(DispatchStatus.TIMEOUT)
                 )
+                .orderBy(dispatch.requestCreatedAt.asc())
                 .fetch();
     }
 
+
+    /**
+     * 특정 승객의 특정 배차의 조회
+     * @param dispatchId 요청한 특정 배차 식별자
+     * @param passengerId 요청한 특정 승객의 식별자
+     * @return 요청한 배차의 정보
+     */
     @Override
     public Optional<Dispatch> findByIdAndPassengerId(UUID dispatchId, UUID passengerId) {
         return Optional.ofNullable(
@@ -46,7 +50,8 @@ public class DispatchRepositoryImpl implements DispatchRepositoryCustom {
                         .selectFrom(dispatch)
                         .where(
                                 dispatch.dispatchId.eq(dispatchId),
-                                dispatch.passengerId.eq(passengerId)
+                                dispatch.passengerId.eq(passengerId),
+                                dispatch.dispatchStatus.ne(DispatchStatus.TIMEOUT)
                         )
                         .fetchOne()
         );

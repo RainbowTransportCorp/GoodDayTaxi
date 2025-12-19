@@ -3,7 +3,6 @@ package com.gooddaytaxi.support.domain.log.model;
 import com.gooddaytaxi.common.jpa.model.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -35,11 +34,11 @@ public class Log extends BaseEntity {
     @Column(name = "log_message", nullable = false, length = 500)
     private String logMessage;
 
-    @Column(name = "occurred_at", nullable = false)
-    private LocalDateTime occurredAt;
-
     @Column(name = "notification_id")
     private UUID notificationId;
+
+    @Column(name = "occurred_at", nullable = false)
+    private LocalDateTime occurredAt;
 
 
     /**
@@ -60,30 +59,24 @@ public class Log extends BaseEntity {
      * @param logType 로그 타입
      * @param logMessage 로그 메시지
      */
-    @Builder
-    public Log(LogType logType, String logMessage) {
-        this.logType = logType;
+    private Log(LogType logType, String logMessage, UUID notificationId, LocalDateTime occurredAt) {
         this.logMessage = logMessage;
-        this.occurredAt = LocalDateTime.now();
+        this.occurredAt = occurredAt;
+        this.logType = logType;
+        this.notificationId = notificationId;
     }
 
+    public static Log create(LogType logType, String logMessage, UUID notificationId, LocalDateTime occurredAt) {
+        return new Log(logType, logMessage, notificationId, occurredAt);
+    }
 
     /**
-     * 알림 소프트 삭제
+     * 로그 소프트 삭제
      *
      * @param deletedBy 삭제한 사용자 ID
      */
     public void softDelete(UUID deletedBy) {
         this.deletedAt = LocalDateTime.now();
         this.deletedBy = deletedBy;
-    }
-
-    /**
-     * 알림 ID Setter - 알림 관련 장애인 경우 필요
-     *
-     * @param notificationId 알림 ID
-     */
-    public void setNotificationId(UUID notificationId) {
-        this.notificationId = notificationId;
     }
 }

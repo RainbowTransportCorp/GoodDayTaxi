@@ -13,9 +13,10 @@ public enum NotificationType {
     DISPATCH_CANCELED, // 배차 취소 알림
     DISPATCH_REJECTED, // 배차 거절 알림
 
-
     TRIP_STARTED,      // 운행 시작 알림
     TRIP_ENDED,        // 운행 종료 알림
+    TRIP_CANCELED,     // 운행 취소 알림
+    TRIP_LOCATION_UPDATED, // 운행 중 목적지 변경 알림
 
     PAYMENT_COMPLETED, // 결제 완료 알림
     REFUND_REQUEST_CREATED, // 환불 요청 알림
