@@ -16,7 +16,7 @@ import com.gooddaytaxi.payment.application.port.out.event.PaymentEventCommandPor
 import com.gooddaytaxi.payment.application.result.payment.ExternalPaymentConfirmResult;
 import com.gooddaytaxi.payment.application.result.refund.ExternalPaymentCancelResult;
 import com.gooddaytaxi.payment.application.result.refund.RefundCreateResult;
-import com.gooddaytaxi.payment.application.result.refund.RefundReadResult;
+import com.gooddaytaxi.payment.application.result.refund.RefundAdminReadResult;
 import com.gooddaytaxi.payment.application.validator.PaymentValidator;
 import com.gooddaytaxi.payment.domain.entity.Payment;
 import com.gooddaytaxi.payment.domain.entity.Refund;
@@ -173,7 +173,7 @@ public class RefundService {
     }
 
     @Transactional(readOnly = true)
-    public RefundReadResult getRefund(UUID paymentId, UUID userId, String role) {
+    public RefundAdminReadResult getRefund(UUID paymentId, UUID userId, String role) {
         Payment payment = paymentQueryPort.findById(paymentId).orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
         //권한 체크
         UserRole userRole = UserRole.of(role);
@@ -184,7 +184,7 @@ public class RefundService {
         //환불 정보 가져오기
         Refund refund = payment.getRefund();
 
-        return new RefundReadResult(
+        return new RefundAdminReadResult(
                 refund.getId(),
                 refund.getStatus().name(),
                 refund.getReason().getDescription(),
@@ -202,7 +202,7 @@ public class RefundService {
 
     //환불 검색
     @Transactional(readOnly = true)
-    public Page<RefundReadResult> searchRefund(RefundSearchCommand command, UUID userId, String role) {
+    public Page<RefundAdminReadResult> searchRefund(RefundSearchCommand command, UUID userId, String role) {
         UUID passeangerId = command.passengerId();
         UUID driverId = command.driverId();
         //승객인 경우 본인 승객아이디로 승객아이디 고정
@@ -236,7 +236,7 @@ public class RefundService {
         );
 
         return refunds.map(
-                refund -> new RefundReadResult(
+                refund -> new RefundAdminReadResult(
                         refund.getId(),
                         refund.getStatus().name(),
                         refund.getReason().getDescription(),

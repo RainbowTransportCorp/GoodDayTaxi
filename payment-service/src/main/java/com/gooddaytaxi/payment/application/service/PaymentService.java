@@ -21,9 +21,7 @@ import com.gooddaytaxi.payment.domain.vo.PaymentSortBy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import static com.gooddaytaxi.payment.application.service.CommonService.toPageable;
 
 @Slf4j
 @Service
@@ -41,6 +41,7 @@ public class PaymentService {
     private final PaymentQueryPort paymentQueryPort;
     private final ExternalPaymentPort externalPaymentPort;
     private final PaymentEventCommandPort eventCommandPort;
+    private final PaymentReader paymentReader;
     private final PaymentFailureRecorder failureRecorder;
     private final PaymentValidator validator;
 
@@ -169,8 +170,7 @@ public class PaymentService {
         validator.checkRoleDriver(UserRole.of(role));
 
         //운행 아이디로 결제 청구서 조회
-        Payment payment = paymentQueryPort.findById(paymentId)
-                .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+        Payment payment = paymentReader.getPayment(paymentId);
 
         //해당 기사가 맞는지 확인
         validator.checkDriverPermission(userId, payment.getDriverId());
@@ -195,7 +195,7 @@ public class PaymentService {
 
     //결제 청구서 단건 조회 - 승객/기사용
     public PaymentReadResult getPayment(UUID paymentId, UUID userId, String role) {
-        Payment payment = paymentQueryPort.findById(paymentId).orElseThrow(()-> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+        Payment payment = paymentReader.getPayment(paymentId);
         //승객이나 기사만 가능
         validator.checkRolePassengerAndDriver(UserRole.of(role));
         //승객인 경우 본인 승객아이디인지 확인
@@ -212,7 +212,7 @@ public class PaymentService {
 
     //결제 청구서 관리자용 단건 조회
     public PaymentAdminReadResult getAdminPayment(UUID paymentId, String role) {
-        Payment payment = paymentQueryPort.findById(paymentId).orElseThrow(()-> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+        Payment payment = paymentReader.getPayment(paymentId);
         //승객인 경우 본인 승객아이디인지 확인
         validator.checkRoleAdminAndMaster(UserRole.of(role));
         //결제 수단이 토스페이인경우 마지막 결제 내용도 포함
@@ -278,7 +278,7 @@ public class PaymentService {
         //정렬조건 체크
         PaymentSortBy.checkValid(command.sortBy()); //enum 검증용
         //pageable 생성
-        Pageable pageable = toPageable(command.sortAscending(),command.page(), command.size(), command.sortBy());
+        Pageable pageable = CommonService.toPageable(command.sortAscending(),command.page(), command.size(), command.sortBy());
 
         Page<Payment> payments = paymentQueryPort.searchPayments(
                 command.method(),
@@ -317,8 +317,7 @@ public class PaymentService {
         //기사만 가능
         validator.checkRoleDriver(UserRole.of(role));
 
-        Payment payment = paymentQueryPort.findById(command.paymentId())
-                .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+        Payment payment = paymentReader.getPayment(command.paymentId());
 
         //결제 금액이 같으면 불가
         if(payment.getAmount().value() == command.amount()) throw new PaymentException(PaymentErrorCode.PAYMENT_AMOUNT_SAME);
@@ -344,9 +343,7 @@ public class PaymentService {
         //기사만 가능
         validator.checkRoleDriver(UserRole.of(role));
 
-
-        Payment payment = paymentQueryPort.findById(command.paymentId())
-                .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+        Payment payment = paymentReader.getPayment(command.paymentId());
 
         PaymentMethod method = PaymentMethod.of(command.method());
         //결제 수단이 같으면 불가
@@ -373,8 +370,7 @@ public class PaymentService {
         //기사 또는 최고관리자만 가능
         validator.checkRoleDriverOrMaster(UserRole.of(role));
 
-        Payment payment = paymentQueryPort.findById(command.paymentId())
-                .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+        Payment payment = paymentReader.getPayment(command.paymentId());
 
         //기사는 해당 청구서의 기사만 가능
         if(UserRole.of(role) == UserRole.DRIVER) validator.checkDriverPermission(userId, payment.getDriverId());
@@ -390,13 +386,6 @@ public class PaymentService {
                 payment.getId(),
                 SuccessMessage.PAYMENT_CANCEL_SUCCESS
         );
-    }
-    //pageable 생성
-    private static Pageable toPageable (boolean sortAscending, int page, int size, String sortBy) {
-        //오름차순/내림차순
-        Sort.Direction direction = sortAscending ? Sort.Direction.ASC : Sort.Direction.DESC;
-        //데이터 조회
-        return PageRequest.of(page-1, size, Sort.by(direction, sortBy));
     }
     //마지막 시도 목록 가져오기
     private Map<UUID, AttemptReadResult> loadLastAttempts(Page<Payment> payments) {

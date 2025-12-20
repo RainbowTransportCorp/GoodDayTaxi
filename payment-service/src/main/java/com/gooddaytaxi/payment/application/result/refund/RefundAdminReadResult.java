@@ -1,9 +1,9 @@
-package com.gooddaytaxi.payment.presentation.external.dto.response.refund;
+package com.gooddaytaxi.payment.application.result.refund;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-public record RefundReadResponseDto(UUID refundId,
+public record RefundAdminReadResult(UUID refundId,
                                     String status,
                                     String reason,
                                     String detailReason,
@@ -14,5 +14,6 @@ public record RefundReadResponseDto(UUID refundId,
                                     UUID paymentId,
                                     Long amount,
                                     LocalDateTime createdAt,
-                                    LocalDateTime updatedAt) {
+                                    LocalDateTime updatedAt
+                               ) {
 }
