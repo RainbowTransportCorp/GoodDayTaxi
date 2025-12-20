@@ -1,18 +1,12 @@
 package com.gooddaytaxi.payment.presentation.external.dto.response.refund;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
-public record RefundReadResponseDto(UUID refundId,
-                                    String status,
-                                    String reason,
-                                    String detailReason,
-                                    UUID requestId,
-                                    LocalDateTime canceledAt,
-                                    String transactionKey,
-                                    String pgFailReason,
-                                    UUID paymentId,
-                                    Long amount,
-                                    LocalDateTime createdAt,
-                                    LocalDateTime updatedAt) {
+public record RefundReadResponseDto(
+        String status,
+        Long amount,
+        String reason,
+        String detailReason,
+        LocalDateTime refundedAt
+) {
 }

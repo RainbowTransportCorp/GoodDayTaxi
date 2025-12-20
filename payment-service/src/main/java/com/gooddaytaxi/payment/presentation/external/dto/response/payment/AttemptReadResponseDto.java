@@ -5,6 +5,6 @@ import java.time.LocalDateTime;
 public record AttemptReadResponseDto(String status,
                                      String pgMethod,
                                      String pgProvider,
-                                     LocalDateTime approvedAt,
+                                     LocalDateTime pgApprovedAt,
                                      String failDetail) {
 }

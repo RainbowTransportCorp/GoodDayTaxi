@@ -33,12 +33,11 @@ public class TripEndedEventConsumer {
                 payload.finalFare(),
                 "CARD",
                 payload.passengerId(),
-                payload.driverId(),
                 payload.notificationOriginId()
         );
 
         //이벤트 처리 로직
-        paymentService.createPayment(command, payload.notifierId(), "DRIVER");
+        paymentService.createPayment(command, payload.driverId());
 
         //처리 완료 후 커밋
         ack.acknowledge();

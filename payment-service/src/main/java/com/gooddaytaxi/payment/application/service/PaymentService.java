@@ -4,10 +4,11 @@ import com.gooddaytaxi.payment.application.command.payment.*;
 import com.gooddaytaxi.payment.application.event.PaymentCompletePayload;
 import com.gooddaytaxi.payment.application.exception.PaymentErrorCode;
 import com.gooddaytaxi.payment.application.exception.PaymentException;
+import com.gooddaytaxi.payment.application.message.SuccessMessage;
 import com.gooddaytaxi.payment.application.port.out.core.ExternalPaymentPort;
 import com.gooddaytaxi.payment.application.port.out.core.PaymentCommandPort;
-import com.gooddaytaxi.payment.application.port.out.event.PaymentEventCommandPort;
 import com.gooddaytaxi.payment.application.port.out.core.PaymentQueryPort;
+import com.gooddaytaxi.payment.application.port.out.event.PaymentEventCommandPort;
 import com.gooddaytaxi.payment.application.result.payment.*;
 import com.gooddaytaxi.payment.application.validator.PaymentValidator;
 import com.gooddaytaxi.payment.domain.entity.Payment;
@@ -20,13 +21,16 @@ import com.gooddaytaxi.payment.domain.vo.PaymentSortBy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
+
+import static com.gooddaytaxi.payment.application.service.CommonService.toPageable;
 
 @Slf4j
 @Service
@@ -37,16 +41,15 @@ public class PaymentService {
     private final PaymentQueryPort paymentQueryPort;
     private final ExternalPaymentPort externalPaymentPort;
     private final PaymentEventCommandPort eventCommandPort;
+    private final PaymentReader paymentReader;
     private final PaymentFailureRecorder failureRecorder;
     private final PaymentValidator validator;
 
 
     @Transactional
-    public PaymentCreateResult createPayment(PaymentCreateCommand command, UUID userId, String role) {
-        //승객아이디, 운전자아이디, 탑승아이디 검증은 운행에서 받아올 계획이므로 없음
+    public PaymentCreateResult createPayment(PaymentCreateCommand command, UUID userId) {
+        //승객아이디, 운전자아이디, 탑승아이디, 기사롤 검증은 운행에서 받아올 계획이므로 없음
         UUID tripId = command.tripId();
-        //유저의 역할이 기사인지 확인
-        validator.checkRoleDriver(UserRole.of(role));
 
         //해당 여행 아이디로 이미 결제 청구서가 존재하는지 확인
         // 대기, 진행중, 실패, 완료된 청구서는 다시 생성 불가
@@ -60,18 +63,17 @@ public class PaymentService {
                 throw new PaymentException(PaymentErrorCode.DUPLICATE_PAYMENT_EXISTS);
             else if (status.equals(PaymentStatus.COMPLETED)) throw new PaymentException(PaymentErrorCode.COMPLETED_PAYMENT);
         }
-//        paymentQueryPort.
         // 금액 검증
         Fare amount = Fare.of(command.amount());
         //결제 수단 검증
         PaymentMethod method = PaymentMethod.of(command.method());
 
         //결제 청구서 생성
-        Payment payment = new Payment(amount,  method, command.passengerId(), command.driverId(), tripId);
+        Payment payment = new Payment(amount,  method, command.passengerId(), userId, tripId);
 
         paymentCommandPort.save(payment);
 
-        return new PaymentCreateResult(payment.getId(), payment.getMethod().name(), payment.getAmount().value());
+        return new PaymentCreateResult(payment.getId(), SuccessMessage.PAYMENT_CREATE_SUCCESS);
     }
 
     //토스페이 결제 준비
@@ -155,9 +157,7 @@ public class PaymentService {
 
         return new PaymentApproveResult(
                 payment.getId(),
-                payment.getAmount().value(),
-                payment.getStatus().name(),
-                payment.getMethod().name()
+                SuccessMessage.PAYMENT_APPROVE_SUCCESS
         );
     }
 
@@ -170,8 +170,7 @@ public class PaymentService {
         validator.checkRoleDriver(UserRole.of(role));
 
         //운행 아이디로 결제 청구서 조회
-        Payment payment = paymentQueryPort.findById(paymentId)
-                .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+        Payment payment = paymentReader.getPayment(paymentId);
 
         //해당 기사가 맞는지 확인
         validator.checkDriverPermission(userId, payment.getDriverId());
@@ -190,35 +189,46 @@ public class PaymentService {
 
         return new PaymentApproveResult(
                 payment.getId(),
-                payment.getAmount().value(),
-                payment.getStatus().name(),
-                payment.getMethod().name()
+                SuccessMessage.PAYMENT_APPROVE_SUCCESS
         );
     }
 
-    //결제 청구서 단건 조회
+    //결제 청구서 단건 조회 - 승객/기사용
     public PaymentReadResult getPayment(UUID paymentId, UUID userId, String role) {
-        Payment payment = paymentQueryPort.findById(paymentId).orElseThrow(()-> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
-        //승객인 경우 본인 승객아이디인지 확인
-        if (UserRole.of(role) == UserRole.PASSENGER) validator.checkPassengerPermission(userId, payment.getPassengerId());
-        else if (UserRole.of(role) == UserRole.DRIVER) validator.checkDriverPermission(userId, payment.getDriverId());
-        AttemptReadResult attemptResult = null;
-        //결제 수단이 토스페이인경우 마지막 결제 내용도 포함
-        if(payment.getMethod() == PaymentMethod.TOSS_PAY) {
-            PaymentAttempt lastAttempt = payment.getAttempts().get(0);
-            attemptResult = new AttemptReadResult(
-                    lastAttempt.getStatus().toString(),
-                    lastAttempt.getPgMethod(),
-                    lastAttempt.getPgProvider(),
-                    lastAttempt.getPgApprovedAt(),
-                    lastAttempt.getFailDetail()
-            );
-        }
+        //승객이나 기사만 가능
+        UserRole userRole = UserRole.of(role);
+        validator.checkRolePassengerAndDriver(userRole);
+
+        Payment payment = paymentReader.getPayment(paymentId);
+        //승객/기사 본인인지 확인
+        validator.checkPassengerAndDriverPermission(userRole, userId, payment.getPassengerId(), payment.getDriverId());
+
         return new PaymentReadResult(
                 payment.getId(),
                 payment.getAmount().value(),
                 payment.getStatus().name(),
                 payment.getMethod().name(),
+                payment.getApprovedAt()
+        );
+    }
+
+    //결제 청구서 관리자용 단건 조회
+    public PaymentAdminReadResult getAdminPayment(UUID paymentId, String role) {
+        Payment payment = paymentReader.getPayment(paymentId);
+        //승객인 경우 본인 승객아이디인지 확인
+        validator.checkRoleAdminAndMaster(UserRole.of(role));
+        //결제 수단이 토스페이인경우 마지막 결제 내용도 포함
+        AttemptReadResult attemptResult = null;
+        if(payment.getMethod() == PaymentMethod.TOSS_PAY &&!(payment.getStatus() == PaymentStatus.PENDING||payment.getStatus() == PaymentStatus.IN_PROCESS)) {
+            attemptResult = paymentQueryPort.findLastAttemptByPaymentId(paymentId).map(
+                    this::toAttemptReadResult).orElse(null);
+        }
+        return new PaymentAdminReadResult(
+                payment.getId(),
+                payment.getAmount().value(),
+                payment.getStatus().name(),
+                payment.getMethod().name(),
+                payment.getApprovedAt(),
                 payment.getPassengerId(),
                 payment.getDriverId(),
                 payment.getTripId(),
@@ -228,69 +238,79 @@ public class PaymentService {
         );
     }
 
-    //결제 청구서 검색
+    //결제 청구서 검색 - 승객/기사용
     @Transactional(readOnly = true)
     public Page<PaymentReadResult> searchPayment(PaymentSearchCommand command, UUID userId, String role) {
-        UUID passeangerId = command.passengerId();
-        UUID driverId = command.driverId();
-        //승객인 경우 본인 승객아이디로 승객아이디 고정
-        if (UserRole.of(role) == UserRole.PASSENGER) {
-            passeangerId = userId;
-        //기사인 경우 본인 기사아이디로 기사 아이디 고정
-        } else if (UserRole.of(role) == UserRole.DRIVER) {
-            driverId = userId;
-        }
-        //매니저이면 모두 가능
-
+        //승객/기사 롤 체크
+        UserRole userRole = UserRole.of(role);
+        validator.checkRolePassengerAndDriver(userRole);
         //정렬조건 체크
         PaymentSortBy.checkValid(command.sortBy()); //enum 검증용
-        //오름차순/내림차순
-        Sort.Direction direction = command.sortAscending() ? Sort.Direction.ASC : Sort.Direction.DESC;
+        //pageable 생성
+        Pageable pageable = toPageable(command.sortAscending(),command.page(), command.size(), command.sortBy());
 
-        //데이터 조회
-        Pageable pageable = PageRequest.of(command.page()-1, command.size(), Sort.by(direction, command.sortBy()));
         Page<Payment> payments = paymentQueryPort.searchPayments(
                 command.method(),
                 command.status(),
-                passeangerId,
-                driverId,
-                command.tripId(),
+                userRole == UserRole.PASSENGER ? userId : null,
+                userRole == UserRole.DRIVER ? userId : null,
+                null,
                 command.startDay(),
                 command.endDay(),
                 pageable
         );
 
         //결과값 반환
-        return payments.map(payment -> {
-            AttemptReadResult attemptResult = null;
-            if(payment.getMethod() == PaymentMethod.TOSS_PAY) {
-                //아직 결제 전이면 시도 없음
-                if(!(payment.getStatus() == PaymentStatus.PENDING ||payment.getStatus() == PaymentStatus.IN_PROCESS) ){
-                    PaymentAttempt lastAttempt = payment.getAttempts().get(0);
-                    attemptResult = new AttemptReadResult(
-                            lastAttempt.getStatus().toString(),
-                            lastAttempt.getPgMethod(),
-                            lastAttempt.getPgProvider(),
-                            lastAttempt.getPgApprovedAt(),
-                            lastAttempt.getFailDetail()
-                    );
-                }
-
-            }
-            return new PaymentReadResult(
+        return payments.map(payment ->
+            new PaymentReadResult(
                     payment.getId(),
                     payment.getAmount().value(),
                     payment.getStatus().name(),
                     payment.getMethod().name(),
+                    payment.getApprovedAt()
+            )
+        );
+    }
+
+    //결제 청구서 검색 - 관리자용
+    @Transactional(readOnly = true)
+    public Page<PaymentAdminReadResult> searchAdminPayment(PaymentSearchCommand command, String role) {
+        //관리자 롤 체크
+        validator.checkRoleAdminAndMaster(UserRole.of(role));
+        //정렬조건 체크
+        PaymentSortBy.checkValid(command.sortBy()); //enum 검증용
+        //pageable 생성
+        Pageable pageable = CommonService.toPageable(command.sortAscending(),command.page(), command.size(), command.sortBy());
+
+        Page<Payment> payments = paymentQueryPort.searchPayments(
+                command.method(),
+                command.status(),
+                command.passengerId(),
+                command.driverId(),
+                command.tripId(),
+                command.startDay(),
+                command.endDay(),
+                pageable
+        );
+        //마지막 시도 목록 가져오기
+        Map<UUID, AttemptReadResult> attemptMap = loadLastAttempts(payments);
+
+        //결과값 반환
+        return payments.map(payment ->
+            new PaymentAdminReadResult(
+                    payment.getId(),
+                    payment.getAmount().value(),
+                    payment.getStatus().name(),
+                    payment.getMethod().name(),
+                    payment.getApprovedAt(),
                     payment.getPassengerId(),
                     payment.getDriverId(),
                     payment.getTripId(),
-                    attemptResult,
+                    attemptMap.get(payment.getId()),
                     payment.getCreatedAt(),
                     payment.getUpdatedAt()
-            );
-        });
-
+            )
+        );
     }
 
     //결제 금액 변경
@@ -299,8 +319,7 @@ public class PaymentService {
         //기사만 가능
         validator.checkRoleDriver(UserRole.of(role));
 
-        Payment payment = paymentQueryPort.findById(command.paymentId())
-                .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+        Payment payment = paymentReader.getPayment(command.paymentId());
 
         //결제 금액이 같으면 불가
         if(payment.getAmount().value() == command.amount()) throw new PaymentException(PaymentErrorCode.PAYMENT_AMOUNT_SAME);
@@ -316,11 +335,9 @@ public class PaymentService {
 
         return new PaymentUpdateResult(
                 payment.getId(),
-                payment.getAmount().value(),
-                payment.getMethod().name()
+                SuccessMessage.PAYMENT_UPDATE_AMOUNT_SUCCESS
         );
     }
-
 
     //결제 수단 변경
     @Transactional
@@ -328,9 +345,7 @@ public class PaymentService {
         //기사만 가능
         validator.checkRoleDriver(UserRole.of(role));
 
-
-        Payment payment = paymentQueryPort.findById(command.paymentId())
-                .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+        Payment payment = paymentReader.getPayment(command.paymentId());
 
         PaymentMethod method = PaymentMethod.of(command.method());
         //결제 수단이 같으면 불가
@@ -347,8 +362,7 @@ public class PaymentService {
 
         return new PaymentUpdateResult(
                 payment.getId(),
-                payment.getAmount().value(),
-                payment.getMethod().name()
+                SuccessMessage.PAYMENT_UPDATE_METHOD_SUCCESS
         );
     }
 
@@ -358,8 +372,7 @@ public class PaymentService {
         //기사 또는 최고관리자만 가능
         validator.checkRoleDriverOrMaster(UserRole.of(role));
 
-        Payment payment = paymentQueryPort.findById(command.paymentId())
-                .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+        Payment payment = paymentReader.getPayment(command.paymentId());
 
         //기사는 해당 청구서의 기사만 가능
         if(UserRole.of(role) == UserRole.DRIVER) validator.checkDriverPermission(userId, payment.getDriverId());
@@ -373,7 +386,44 @@ public class PaymentService {
 
         return new PaymentCancelResult(
                 payment.getId(),
-                payment.getStatus().name()
+                SuccessMessage.PAYMENT_CANCEL_SUCCESS
+        );
+    }
+    //마지막 시도 목록 가져오기
+    private Map<UUID, AttemptReadResult> loadLastAttempts(Page<Payment> payments) {
+        List<UUID> ids = payments.getContent().stream()
+                .filter(p ->needAttempt(p.getMethod(), p.getStatus()))
+                .map(Payment::getId)
+                .toList();
+
+        if (ids.isEmpty()) {
+            return Map.of();
+        }
+
+        return paymentQueryPort.findLastAttemptsByPaymentIds(ids)
+                .entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        e -> toAttemptReadResult(e.getValue())
+                ));
+    }
+
+    //결제 시도가 있는 조건
+    private boolean needAttempt(PaymentMethod method, PaymentStatus status) {
+        return method == PaymentMethod.TOSS_PAY
+                && status != PaymentStatus.PENDING
+                && status != PaymentStatus.IN_PROCESS;
+    }
+
+
+    //결제시도 result로 변경
+    private AttemptReadResult toAttemptReadResult(PaymentAttempt attempt) {
+        return new AttemptReadResult(
+                attempt.getStatus().toString(),
+                attempt.getPgMethod(),
+                attempt.getPgProvider(),
+                attempt.getPgApprovedAt(),
+                attempt.getFailDetail()
         );
     }
 

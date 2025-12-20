@@ -7,7 +7,7 @@ public class RefundRequestCreateResponseMapper {
     public static RefundReqeustCreateResponseDto toResponse(RefundRequestCreateResult result) {
         return new RefundReqeustCreateResponseDto(
                 result.refundRequestId(),
-                result.message()
+                result.message().getMessage()
         );
     }
 }

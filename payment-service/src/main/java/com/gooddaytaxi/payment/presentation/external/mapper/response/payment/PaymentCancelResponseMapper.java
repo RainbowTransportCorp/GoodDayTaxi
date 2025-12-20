@@ -7,7 +7,7 @@ public class PaymentCancelResponseMapper {
     public static PaymentCancelResponseDto toResponse(PaymentCancelResult result) {
         return new PaymentCancelResponseDto(
                 result.id(),
-                result.status()
+                result.message().getMessage()
         );
     }
 }
