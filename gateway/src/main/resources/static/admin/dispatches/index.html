@@ -33,11 +33,13 @@
         <select id="statusFilter">
             <option value="">전체 상태</option>
             <option value="REQUESTED">요청됨</option>
+            <option value="ASSIGNING">배정중</option>
             <option value="ASSIGNED">배정됨</option>
-            <option value="COMPLETED">완료</option>
-            <option value="CANCELLED">취소</option>
+            <option value="ACCEPTED">수락됨</option>
+            <option value="CANCELED">취소</option>
             <option value="TIMEOUT">타임아웃</option>
         </select>
+
 
         <button onclick="loadDispatches()">조회</button>
     </div>

@@ -38,28 +38,52 @@ public class AdminDispatchController {
     private final AdminDispatchService adminService;
 
     /**
-     * 관리자 배차 목록 조회 (ADMIN, MASTER_ADMIN)
+     * 관리자 배차 전체 목록 조회 (ADMIN, MASTER_ADMIN)
      */
     @Operation(
-            summary = "관리자 배차 목록 조회",
-            description = "관리자가 배차 목록을 조회합니다. 상태 필터링이 가능합니다."
+        summary = "관리자 배차 전체 조회",
+        description = "관리자가 모든 배차 목록을 조회합니다."
     )
     @GetMapping
-    public ResponseEntity<ApiResponse<List<AdminDispatchListResponseDto>>> getDispatches(
-            @Parameter(hidden = true)
-            @RequestHeader(value = "X-User-Role") String role,
-            @RequestParam(required = false) DispatchStatus status
+    public ResponseEntity<ApiResponse<List<AdminDispatchListResponseDto>>> getAllDispatches(
+        @Parameter(hidden = true)
+        @RequestHeader(value = "X-User-Role") String role
     ) {
         UserRole userRole = UserRole.valueOf(role);
 
         List<AdminDispatchListResult> results =
-                adminQueryService.getDispatches(userRole, status);
+            adminQueryService.getAllDispatches(userRole);
 
         List<AdminDispatchListResponseDto> response =
-                AdminDispatchResponseMapper.toListResponses(results);
+            AdminDispatchResponseMapper.toListResponses(results);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
+
+    /**
+     * 관리자 배차 상태별 목록 조회 (ADMIN, MASTER_ADMIN)
+     */
+    @Operation(
+        summary = "관리자 배차 상태별 조회",
+        description = "관리자가 특정 상태의 배차 목록을 조회합니다."
+    )
+    @GetMapping(params = "status")
+    public ResponseEntity<ApiResponse<List<AdminDispatchListResponseDto>>> getDispatchesByStatus(
+        @Parameter(hidden = true)
+        @RequestHeader(value = "X-User-Role") String role,
+        @RequestParam DispatchStatus status
+    ) {
+        UserRole userRole = UserRole.valueOf(role);
+
+        List<AdminDispatchListResult> results =
+            adminQueryService.getDispatchesByStatus(userRole, status);
+
+        List<AdminDispatchListResponseDto> response =
+            AdminDispatchResponseMapper.toListResponses(results);
+
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
 
     /**
      * 관리자 배차 상세 조회 (ADMIN, MASTER_ADMIN)
