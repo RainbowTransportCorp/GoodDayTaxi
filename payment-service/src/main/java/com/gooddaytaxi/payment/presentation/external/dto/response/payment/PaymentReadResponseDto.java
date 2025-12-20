@@ -7,10 +7,5 @@ public record PaymentReadResponseDto(UUID paymentId,
                                      Long amount,
                                      String status,
                                      String method,
-                                     UUID passengerId,
-                                     UUID driverId,
-                                     UUID tripId,
-                                     AttemptReadResponseDto attemptResult,
-                                     LocalDateTime createdAt,
-                                     LocalDateTime updatedAt) {
+                                     LocalDateTime approvedAt) {
 }

@@ -10,8 +10,6 @@ public record RefundSearchRequestDto(Integer page,
                                      String status,  //환불상태
                                      String reason,  //환불사유(enum값)
                                      @JsonProperty("existRequest") Boolean existRequest, //환불요청 존재 여부
-                                     UUID passengerId,
-                                     UUID driverId,
                                      UUID tripId,
                                      String method,
                                      Long minAmount,   //최소 환불금액

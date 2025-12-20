@@ -3,16 +3,10 @@ package com.gooddaytaxi.payment.presentation.external.dto.request.requestRefund;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 
-import java.util.UUID;
-
 public record RefundRequestSearchRequestDto(Integer page,
                                             Integer size,
-                                            UUID paymentId,
                                             String status,  //환불 요청 상태
                                             String reasonKeyword,  //환불 사유 키워드
-                                            String method,  //결제 수단
-                                            UUID passengerId,
-                                            UUID driverId,
                                             @NotBlank String searchPeriod,
                                             String startDay,
                                             String endDay,

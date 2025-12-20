@@ -7,7 +7,7 @@ public class RefundRequestCancelResponseMapper {
     public static RefundReqeustCancelResponseDto toResponse(RefundRequestCancelResult result) {
         return new RefundReqeustCancelResponseDto(
                 result.requestId(),
-                result.message()
+                result.message().getMessage()
         );
     }
 }

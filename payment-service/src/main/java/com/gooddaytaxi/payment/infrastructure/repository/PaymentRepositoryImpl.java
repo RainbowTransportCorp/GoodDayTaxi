@@ -1,6 +1,8 @@
 package com.gooddaytaxi.payment.infrastructure.repository;
 
 import com.gooddaytaxi.payment.domain.entity.Payment;
+import com.gooddaytaxi.payment.domain.entity.PaymentAttempt;
+import com.gooddaytaxi.payment.domain.entity.QPaymentAttempt;
 import com.gooddaytaxi.payment.domain.entity.Refund;
 import com.gooddaytaxi.payment.domain.enums.PaymentMethod;
 import com.gooddaytaxi.payment.domain.enums.PaymentStatus;
@@ -9,6 +11,7 @@ import com.gooddaytaxi.payment.domain.enums.RefundStatus;
 import com.gooddaytaxi.payment.domain.repository.PaymentRepositoryCustom;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.*;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,9 +21,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.gooddaytaxi.payment.domain.entity.QPayment.payment;
 import static com.gooddaytaxi.payment.domain.entity.QRefund.refund;
@@ -30,6 +32,18 @@ import static com.gooddaytaxi.payment.domain.entity.QRefund.refund;
 @RequiredArgsConstructor
 public class PaymentRepositoryImpl implements PaymentRepositoryCustom {
     private final JPAQueryFactory queryFactory;
+
+    @Override
+    public Optional<PaymentAttempt> findFirstByPaymentIdOrderByAttemptNoDesc(UUID paymentId) {
+        QPaymentAttempt a = QPaymentAttempt.paymentAttempt;
+        return Optional.ofNullable(
+                queryFactory.selectFrom(a)
+                        .where(a.payment.id.eq(paymentId))
+                        .orderBy(a.attemptNo.desc())
+                        .limit(1)
+                        .fetchOne()
+        );
+    }
 
     //결제 검색
     @Override
@@ -63,6 +77,44 @@ public class PaymentRepositoryImpl implements PaymentRepositoryCustom {
         total = total != null ? total : 0L; // 결과개수가 0이면 null이 반환되므로 0으로 처리
         return new PageImpl<>(payments, pageable, total);
     }
+
+    @Override
+    public Map<UUID, PaymentAttempt> findLastAttemptsByPaymentIds(List<UUID> paymentIds) {
+        if (paymentIds == null || paymentIds.isEmpty()) return Map.of();
+
+        QPaymentAttempt a  = QPaymentAttempt.paymentAttempt;
+        QPaymentAttempt a2 = new QPaymentAttempt("a2");
+
+        List<PaymentAttempt> lastAttempts = queryFactory
+                .selectFrom(a)
+                .where(a.payment.id.in(paymentIds)
+                                .and(a.attemptNo.eq(
+                                        JPAExpressions.select(a2.attemptNo.max())
+                                                        .from(a2)
+                                                        .where(a2.payment.id.eq(a.payment.id))
+                                        )
+                                )
+                )
+                .fetch();
+
+        // attemptNo 동률이 원천적으로 불가능(UNIQUE)하면 아래 toMap 그대로 OK
+        return lastAttempts.stream()
+                .collect(Collectors.toMap(
+                        att -> att.getPayment().getId(),
+                        att -> att
+                ));
+    }
+
+    @Override
+    public Optional<Payment> findByIdWithRefund(UUID paymentId) {
+        return Optional.ofNullable(
+                queryFactory.selectFrom(payment)
+                        .leftJoin(payment.refund, refund).fetchJoin()
+                        .where(payment.id.eq(paymentId))
+                        .fetchOne()
+        );
+    }
+
 
     //환불 검색
     @Override

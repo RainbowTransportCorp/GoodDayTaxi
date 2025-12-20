@@ -55,7 +55,6 @@ public class Payment extends BaseEntity {
     private List<PaymentAttempt> attempts = new ArrayList<>();
 
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "payment")
-    @JoinColumn(name = "refund_id")
     private Refund refund;
 
 
