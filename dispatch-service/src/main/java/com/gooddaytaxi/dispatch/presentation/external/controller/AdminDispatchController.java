@@ -67,7 +67,7 @@ public class AdminDispatchController {
         summary = "관리자 배차 상태별 조회",
         description = "관리자가 특정 상태의 배차 목록을 조회합니다."
     )
-    @GetMapping("/status")
+    @GetMapping(params = "status")
     public ResponseEntity<ApiResponse<List<AdminDispatchListResponseDto>>> getDispatchesByStatus(
         @Parameter(hidden = true)
         @RequestHeader(value = "X-User-Role") String role,
