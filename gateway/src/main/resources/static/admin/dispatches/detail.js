@@ -36,10 +36,10 @@ async function loadDetail() {
     document.getElementById("status").textContent = d.status;
     document.getElementById("passenger").textContent = d.passengerId ?? "-";
     document.getElementById("driver").textContent = d.driverId ?? "-";
-    document.getElementById("pickup").textContent = d.pickupAddress;
-    document.getElementById("dropoff").textContent = d.dropoffAddress;
-    document.getElementById("fare").textContent = d.fare ? `${d.fare}원` : "-";
-    document.getElementById("createdAt").textContent = d.createdAt;
+    document.getElementById("pickup").textContent = d.pickupAddress ?? "-";
+    document.getElementById("dropoff").textContent = d.destinationAddress ?? "-";
+    document.getElementById("createdAt").textContent = formatDate(d.assignedAt);
+
 
     // MASTER_ADMIN만 버튼 표시
     if (role !== "MASTER_ADMIN" || d.status === "TIMEOUT") {

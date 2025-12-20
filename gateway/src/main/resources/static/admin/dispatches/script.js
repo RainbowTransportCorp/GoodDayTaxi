@@ -10,8 +10,8 @@ const API_BASE = "/api/v1/admin/dispatches";
 
 async function loadDispatches() {
     const status = document.getElementById("statusFilter").value;
-    const token = localStorage.getItem("accessToken");
     const role = localStorage.getItem("role");
+    const token = localStorage.getItem("accessToken");
 
     let url = API_BASE;
     if (status) {
@@ -30,7 +30,10 @@ async function loadDispatches() {
     body.innerHTML = "";
 
     if (!json.success || json.data.length === 0) {
-        body.innerHTML = `<tr><td colspan="6">조회된 배차가 없습니다.</td></tr>`;
+        body.innerHTML = `
+            <tr>
+                <td colspan="6">조회된 배차가 없습니다.</td>
+            </tr>`;
         return;
     }
 
@@ -38,11 +41,11 @@ async function loadDispatches() {
         body.insertAdjacentHTML("beforeend", `
             <tr onclick="goDetail('${d.dispatchId}')">
                 <td>${d.dispatchId}</td>
-                <td>${d.passengerId || "-"}</td>
-                <td>${d.driverId || "-"}</td>
+                <td>${d.passengerId ?? "-"}</td>
+                <td>${d.driverId ?? "-"}</td>
                 <td class="status ${d.status}">${d.status}</td>
-                <td>${d.fare ?? "-"}</td>
-                <td>${d.createdAt}</td>
+                <td>-</td>
+                <td>${formatDate(d.createdAt)}</td>
             </tr>
         `);
     });
@@ -50,6 +53,11 @@ async function loadDispatches() {
 
 function goDetail(id) {
     location.href = `/admin/dispatches/detail.html?id=${id}`;
+}
+
+function formatDate(dateStr) {
+    if (!dateStr) return "-";
+    return dateStr.replace("T", " ").substring(0, 19);
 }
 
 loadDispatches();
