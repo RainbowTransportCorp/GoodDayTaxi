@@ -23,6 +23,12 @@ public class AdminDispatchQueryService {
 
     private final AdminPermissionValidator adminPermissionValidator;
 
+    /**
+     * 일반 관리자 및 최고 관리자가 배차를 전체 조회
+     * @param role 요청자의 권한
+     * @param status 조회하고 싶은 배차의 상태
+     * @return 상태값에 따른 배차 목록
+     */
     public List<AdminDispatchListResult> getDispatches(UserRole role, DispatchStatus status) {
 
         adminPermissionValidator.validateAdminRead(role);
@@ -45,6 +51,12 @@ public class AdminDispatchQueryService {
                 .toList();
     }
 
+    /**
+     * 관리자 및 최고 관리자가 특정 배차의 상세정보를 조회
+     * @param role 요청자의 권한
+     * @param dispatchId 요청한 특정 배차의 식별자
+     * @return 요청된 배차의 상세정보
+     */
     public AdminDispatchDetailResult getDispatchDetail(
             UserRole role,
             UUID dispatchId
