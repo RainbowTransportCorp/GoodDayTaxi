@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>결제하기 | Good day Taxi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      margin: 0;
+      background: #f7f7fb;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+    }
+
+    .container {
+      max-width: 420px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+
+    .title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .row {
+      margin-bottom: 14px;
+      font-size: 14px;
+    }
+
+    .label {
+      color: #777;
+      margin-bottom: 4px;
+    }
+
+    .value {
+      font-weight: 600;
+    }
+
+    .fare {
+      font-size: 28px;
+      font-weight: 800;
+      color: #8A5DF6;
+      margin: 16px 0;
+    }
+
+    .btn-pay {
+      width: 100%;
+      padding: 16px;
+      border-radius: 999px;
+      border: none;
+      background: #8A5DF6;
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-pay:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+  <div class="card">
+    <div class="title">🚕 운행이 완료되었습니다</div>
+
+    <div class="row">
+      <div class="label">출발지</div>
+      <div class="value" id="pickup">-</div>
+    </div>
+
+    <div class="row">
+      <div class="label">도착지</div>
+      <div class="value" id="destination">-</div>
+    </div>
+
+    <div class="row">
+      <div class="label">결제 금액</div>
+      <div class="fare" id="fare">₩ 0</div>
+    </div>
+
+    <button class="btn-pay" id="payBtn" onclick="goToPayment()">
+      결제하기
+    </button>
+  </div>
+</div>
+
+<script>
+  const tripId = new URLSearchParams(location.search).get("tripId");
+  const userUuid = localStorage.getItem("userUuid");
+  const role = "PASSENGER";
+
+  if (!tripId) {
+    alert("잘못된 접근입니다.");
+    location.href = "../../index.html";
+  }
+
+  async function loadPaymentInfo() {
+    // 👉 Payment 담당자가 만든 API 기준
+    // (운행 요금 조회 or 결제 생성 전 단계)
+    const res = await fetch(`/api/v1/payments?tripId=${tripId}`, {
+      headers: {
+        "X-User-UUID": userUuid,
+        "X-User-Role": role
+      }
+    });
+
+    if (!res.ok) {
+      alert("결제 정보를 불러오지 못했습니다.");
+      return;
+    }
+
+    const json = await res.json();
+    const data = json.data;
+
+    document.getElementById("pickup").textContent = data.pickupAddress ?? "-";
+    document.getElementById("destination").textContent = data.destinationAddress ?? "-";
+    document.getElementById("fare").textContent =
+        `₩ ${data.amount.toLocaleString()}`;
+  }
+
+  function goToPayment() {
+    // 👉 이때만 Toss 결제로 이동
+    window.location.href =
+        `/api/v1/payments/tosspay/ready?tripId=${tripId}`;
+  }
+
+  loadPaymentInfo();
+</script>
+
+</body>
+</html>
