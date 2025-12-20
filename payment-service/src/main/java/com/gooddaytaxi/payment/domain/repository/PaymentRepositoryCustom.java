@@ -17,6 +17,8 @@ public interface PaymentRepositoryCustom {
     Page<Payment> searchPayments(String method, String status, UUID passeangerId, UUID driverId, UUID tripId, LocalDateTime startDay, LocalDateTime endDay, Pageable pageable);
     Map<UUID, PaymentAttempt> findLastAttemptsByPaymentIds(List<UUID> paymentIds);
 
+    Optional<Payment> findByIdWithRefund(UUID paymentId);
+
     Page<Refund> searchRefunds(String status, String reason, Boolean existRequest, UUID passeangerId, UUID driverId, UUID tripId, String method, Long minAmount, Long maxAmount, LocalDateTime startDay, LocalDateTime endDay, Pageable pageable);
 
 }

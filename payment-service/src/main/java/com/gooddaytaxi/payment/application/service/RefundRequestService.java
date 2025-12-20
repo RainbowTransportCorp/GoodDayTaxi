@@ -13,6 +13,7 @@ import com.gooddaytaxi.payment.application.port.out.core.RefundRequestCommandPor
 import com.gooddaytaxi.payment.application.port.out.core.RefundRequestQueryPort;
 import com.gooddaytaxi.payment.application.port.out.event.PaymentEventCommandPort;
 import com.gooddaytaxi.payment.application.result.payment.PaymentAdminReadResult;
+import com.gooddaytaxi.payment.application.result.refund.PgRefundResult;
 import com.gooddaytaxi.payment.application.result.refund.RefundAdminReadResult;
 import com.gooddaytaxi.payment.application.result.refundRequest.RefundRequestAdminReadResult;
 import com.gooddaytaxi.payment.application.result.refundRequest.RefundRequestCancelResult;
@@ -64,6 +65,7 @@ public class RefundRequestService {
         return new RefundRequestCreateResult(request.getId(), SuccessMessage.REQUEST_CREATE_SUUCCESS);
     }
 
+    //환불 요청 단건 조회 - 승객만 가능
     @Transactional(readOnly = true)
     public RefundRequestReadResult getRefundRequest(UUID requestId, UUID userId, String role) {
         validator.checkRolePassenger(UserRole.of(role));
@@ -71,10 +73,8 @@ public class RefundRequestService {
         RefundRequest request = getRequest(requestId);
         PaymentIdentityView payment = paymentQueryPort.findIdentityViewById(request.getPaymentId()).orElseThrow(()-> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
-        //승객일 경우 본인 요청건만 조회 가능
-        if(UserRole.of(role).equals(UserRole.PASSENGER)) validator.checkPassengerPermission(userId, payment.getPassengerId());
-        //기사일 경우 본인 요청건만 조회 가능
-        else validator.checkDriverPermission(userId, payment.getDriverId());
+        //본인 요청건만 조회 가능
+        validator.checkPassengerPermission(userId, payment.getPassengerId());
 
         return new RefundRequestReadResult(request.getId(), request.getPaymentId(), request.getReason(), request.getResponse(), request.getStatus());
     }
@@ -210,11 +210,10 @@ public class RefundRequestService {
                 refund.getReason().getDescription(),
                 refund.getDetailReason(),
                 refund.getRequestId(),
-                refund.getCanceledAt(),
-                refund.getTransactionKey(),
-                refund.getPgFailReason(),
+                refund.getRefundedAt(),
                 refund.getPayment().getId(),
                 refund.getPayment().getAmount().value(),
+                new PgRefundResult(refund.getTransactionKey(), refund.getPgFailReason(), refund.getCanceledAt()),
                 refund.getCreatedAt(),
                 refund.getUpdatedAt()
         );

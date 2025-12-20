@@ -60,8 +60,10 @@ public enum PaymentErrorCode {
     REFUND_REQUEST_STATUS_INVALID(HttpStatus.CONFLICT, "RR004", "현재 환불 요청의 상태에서는 요청한 작업을 수행할 수 없습니다"),
 
     //Refund
+    //404 — NOT_FOUND
+    REFUND_NOT_FOUND(HttpStatus.NOT_FOUND, "R001", "해당하는 환불을 찾을 수 없습니다"),
     //409 — CONFLICT
-    REFUND_REQUEST_PAYMENT_MISMATCH(HttpStatus.CONFLICT, "R001", "해당 환불 요청의 결제와 실제 결제가 맞지 않습니다."),
+    REFUND_REQUEST_PAYMENT_MISMATCH(HttpStatus.CONFLICT, "R002", "해당 환불 요청의 결제와 실제 결제가 맞지 않습니다."),
 
 
     //공통요청

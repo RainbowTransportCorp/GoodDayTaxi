@@ -3,8 +3,8 @@ package com.gooddaytaxi.payment.application.service;
 import com.gooddaytaxi.payment.application.command.refund.ExternalPaymentCancelCommand;
 import com.gooddaytaxi.payment.application.command.refund.RefundCreateCommand;
 import com.gooddaytaxi.payment.application.command.refund.RefundSearchCommand;
-import com.gooddaytaxi.payment.application.event.RefundSettlementPayload;
 import com.gooddaytaxi.payment.application.event.RefundCompletedEvent;
+import com.gooddaytaxi.payment.application.event.RefundSettlementPayload;
 import com.gooddaytaxi.payment.application.exception.PaymentErrorCode;
 import com.gooddaytaxi.payment.application.exception.PaymentException;
 import com.gooddaytaxi.payment.application.message.SuccessMessage;
@@ -14,9 +14,7 @@ import com.gooddaytaxi.payment.application.port.out.core.PaymentQueryPort;
 import com.gooddaytaxi.payment.application.port.out.core.RefundRequestQueryPort;
 import com.gooddaytaxi.payment.application.port.out.event.PaymentEventCommandPort;
 import com.gooddaytaxi.payment.application.result.payment.ExternalPaymentConfirmResult;
-import com.gooddaytaxi.payment.application.result.refund.ExternalPaymentCancelResult;
-import com.gooddaytaxi.payment.application.result.refund.RefundCreateResult;
-import com.gooddaytaxi.payment.application.result.refund.RefundAdminReadResult;
+import com.gooddaytaxi.payment.application.result.refund.*;
 import com.gooddaytaxi.payment.application.validator.PaymentValidator;
 import com.gooddaytaxi.payment.domain.entity.Payment;
 import com.gooddaytaxi.payment.domain.entity.Refund;
@@ -28,12 +26,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -47,6 +44,7 @@ public class RefundService {
     private final RefundRequestQueryPort requestQueryPort;
     private final PaymentEventCommandPort eventCommandPort;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final PaymentReader paymentReader;
     private final PaymentFailureRecorder failureRecorder;
     private final PaymentValidator validator;
 
@@ -123,6 +121,7 @@ public class RefundService {
         return new RefundCreateResult(paymentId, SuccessMessage.REFUND_SETTLEMENT_CREATE_SUUCCESS);
     }
 
+    //실물결제 환불 확인 완료 - 관리자용
     @Transactional
     public RefundCreateResult registerPhysicalRefund(UUID paymentId, RefundCreateCommand command, UUID userId, String role) {
         //롤이 관리자인지 확인
@@ -161,28 +160,38 @@ public class RefundService {
         return new RefundCreateResult(paymentId, SuccessMessage.REFUND_CREATE_SUUCCESS);
     }
 
-    //디버그용 - 토스페이 외부결제 정보 조회
-    public String getExternalTossPay(UUID paymentId) {
-        Payment payment = paymentQueryPort.findById(paymentId).orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
-
-        String paymentKey = payment.getAttempts().get(0).getPaymentKey();
-        log.info("DEBUG local cancel paymentKey={}", paymentKey);
-
-        ExternalPaymentConfirmResult dto = externalPaymentPort.getPayment(paymentKey);
-        return dto.toString();
-    }
-
+    //환불 단건조회
     @Transactional(readOnly = true)
-    public RefundAdminReadResult getRefund(UUID paymentId, UUID userId, String role) {
-        Payment payment = paymentQueryPort.findById(paymentId).orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+    public RefundReadResult getRefund(UUID paymentId, UUID userId, String role) {
         //권한 체크
         UserRole userRole = UserRole.of(role);
-        //승객이나 운잔자이면 본인 결제값인지 확인, 관리자는 통과
-        if(userRole == UserRole.PASSENGER) validator.checkPassengerPermission(userId, payment.getPassengerId());
-        else if(userRole == UserRole.DRIVER) validator.checkDriverPermission(userId, payment.getDriverId());
-
+        validator.checkRolePassengerAndDriver(userRole);
+        Payment payment = paymentQueryPort.findByIdWithRefund(paymentId).orElseThrow(()-> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
         //환불 정보 가져오기
-        Refund refund = payment.getRefund();
+        Refund refund = getRefund(payment);
+        //승객이나 운잔자이면 본인 결제값인지 확인, 관리자는 통과
+        validator.checkPassengerAndDriverPermission(userRole, userId, payment.getPassengerId(), payment.getDriverId());
+
+        return new RefundReadResult(
+                refund.getStatus().name(),
+                payment.getAmount().value(),
+                refund.getReason().getDescription(),
+                userRole == UserRole.PASSENGER? refund.getDetailReason(): null,
+                refund.getRefundedAt()
+        );
+    }
+
+
+
+    //환불 단건조회 - 관리자용
+    @Transactional(readOnly = true)
+    public RefundAdminReadResult getAdminRefund(UUID paymentId, String role) {
+        //권한 체크
+        validator.checkRoleAdminAndMaster(UserRole.of(role));
+
+        Payment payment = paymentQueryPort.findByIdWithRefund(paymentId).orElseThrow(()-> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+        //환불 정보 가져오기
+        Refund refund = getRefund(payment);
 
         return new RefundAdminReadResult(
                 refund.getId(),
@@ -190,11 +199,10 @@ public class RefundService {
                 refund.getReason().getDescription(),
                 refund.getDetailReason(),
                 refund.getRequestId(),
-                refund.getCanceledAt(),
-                refund.getTransactionKey(),
-                refund.getPgFailReason(),
-                refund.getPayment().getId(),
-                refund.getPayment().getAmount().value(),
+                refund.getRefundedAt(),
+                payment.getId(),
+                payment.getAmount().value(),
+                new PgRefundResult(refund.getTransactionKey(),refund.getPgFailReason(),refund.getCanceledAt()),
                 refund.getCreatedAt(),
                 refund.getUpdatedAt()
         );
@@ -202,30 +210,56 @@ public class RefundService {
 
     //환불 검색
     @Transactional(readOnly = true)
-    public Page<RefundAdminReadResult> searchRefund(RefundSearchCommand command, UUID userId, String role) {
-        UUID passeangerId = command.passengerId();
-        UUID driverId = command.driverId();
-        //승객인 경우 본인 승객아이디로 승객아이디 고정
-            if (UserRole.of(role) == UserRole.PASSENGER) {
-            passeangerId = userId;
-            //기사인 경우 본인 기사아이디로 기사 아이디 고정
-        } else if (UserRole.of(role) == UserRole.DRIVER) {
-            driverId = userId;
-        }
+    public Page<RefundReadResult> searchRefund(RefundSearchCommand command, UUID userId, String role) {
+        UserRole userRole = UserRole.of(role);
+        validator.checkRolePassengerAndDriver(userRole);
         //정렬조건 체크
         RefundSortBy.checkValid(command.sortBy()); //enum 검증용
-        //오름차순/내림차순
-        Sort.Direction direction = command.sortAscending() ? Sort.Direction.ASC : Sort.Direction.DESC;
 
-        //데이터 조회
-        Pageable pageable = PageRequest.of(command.page()-1, command.size(), Sort.by(direction, command.sortBy()));
+        //pageable 생성
+        Pageable pageable = CommonService.toPageable(command.sortAscending(),command.page(), command.size(), command.sortBy());
 
         Page<Refund> refunds = paymentQueryPort.searchRefunds(
                 command.status(),
                 command.reason(),
                 command.existRequest(),
-                passeangerId,
-                driverId,
+                userRole == UserRole.PASSENGER? userId : null,
+                userRole == UserRole.DRIVER? userId : null,
+                command.tripId(),
+                command.method(),
+                command.minAmount(),
+                command.maxAmount(),
+                command.startDay(),
+                command.endDay(),
+                pageable
+        );
+
+        return refunds.map(
+                refund -> new RefundReadResult(
+                        refund.getStatus().name(),
+                        refund.getPayment().getAmount().value(),
+                        refund.getReason().getDescription(),
+                        userRole == UserRole.PASSENGER? refund.getDetailReason(): null,
+                        refund.getRefundedAt()
+                )
+        );
+    }
+
+    //환불 검색 - 관리자용
+    @Transactional(readOnly = true)
+    public Page<RefundAdminReadResult> searchAdminRefund(RefundSearchCommand command, String role) {
+        validator.checkRoleAdminAndMaster(UserRole.of(role));
+        //정렬조건 체크
+        RefundSortBy.checkValid(command.sortBy()); //enum 검증용
+        //pageable 생성
+        Pageable pageable = CommonService.toPageable(command.sortAscending(),command.page(), command.size(), command.sortBy());
+
+        Page<Refund> refunds = paymentQueryPort.searchRefunds(
+                command.status(),
+                command.reason(),
+                command.existRequest(),
+                command.passengerId(),
+                command.driverId(),
                 command.tripId(),
                 command.method(),
                 command.minAmount(),
@@ -242,20 +276,29 @@ public class RefundService {
                         refund.getReason().getDescription(),
                         refund.getDetailReason(),
                         refund.getRequestId(),
-                        refund.getCanceledAt(),
-                        refund.getTransactionKey(),
-                        refund.getPgFailReason(),
+                        refund.getRefundedAt(),
                         refund.getPayment().getId(),
                         refund.getPayment().getAmount().value(),
+                        new PgRefundResult(refund.getTransactionKey(),refund.getPgFailReason(),refund.getCanceledAt()),
                         refund.getCreatedAt(),
                         refund.getUpdatedAt()
                 )
         );
     }
 
+    //디버그용 - 토스페이 외부결제 정보 조회
+    public String getExternalTossPay(UUID paymentId) {
+        Payment payment = paymentQueryPort.findById(paymentId).orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+
+        String paymentKey = payment.getAttempts().get(0).getPaymentKey();
+        log.info("DEBUG local cancel paymentKey={}", paymentKey);
+
+        ExternalPaymentConfirmResult dto = externalPaymentPort.getPayment(paymentKey);
+        return dto.toString();
+    }
+
     private Payment loadAndValidatePayment(UUID paymentId) {
-        Payment payment = paymentQueryPort.findById(paymentId)
-                .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+        Payment payment = paymentReader.getPayment(paymentId);
         validator.checkPaymentStatusCompleted(payment.getStatus());
         return payment;
     }
@@ -265,5 +308,9 @@ public class RefundService {
         validator.checkRefundRequestApproved(request.getStatus());
         if(!request.getPaymentId().equals(paymentId))
             throw new PaymentException(PaymentErrorCode.REFUND_REQUEST_PAYMENT_MISMATCH);
+    }
+    private Refund getRefund(Payment payment) {
+        return Optional.ofNullable(payment.getRefund())
+                .orElseThrow(() -> new PaymentException(PaymentErrorCode.REFUND_NOT_FOUND));
     }
 }

@@ -52,11 +52,16 @@ public class PaymentValidator {
             throw new PaymentException(PaymentErrorCode.MASTER_ADMIN_ROLE_REQUIRED);
         }
     }
-    //유저의 역할이 마스터 관리자거나 관리자인지 확인
+    //유저의 역할이 승객이거나 기사인지 확인
     public void checkRolePassengerAndDriver(UserRole role) {
         if(!(role == UserRole.PASSENGER || role == UserRole.DRIVER)) {
             throw new PaymentException(PaymentErrorCode.PASSENGER_AND_DRIVER_ROLE_REQUIRED);
         }
+    }
+    //해당 승객이 맞는지 확인
+    public void checkPassengerAndDriverPermission(UserRole role, UUID userId, UUID passangerId, UUID driverId) {
+        if (role == UserRole.PASSENGER) checkPassengerPermission(userId, passangerId);
+        else checkDriverPermission(userId, driverId);
     }
     //유저의 역할이 마스터 관리자거나 관리자인지 확인
     public void checkRoleAdminAndMaster(UserRole role) {
@@ -69,10 +74,6 @@ public class PaymentValidator {
         if(!(role == UserRole.MASTER_ADMIN|| role == UserRole.DRIVER)) {
             throw new PaymentException(PaymentErrorCode.DRIVER_MASTER_ROLE_REQUIRED);
         }
-    }
-    //승객인 경우 불가
-    public void notAllowedPassenger(UserRole role) {
-        if(role == UserRole.PASSENGER) throw new PaymentException(PaymentErrorCode.PASSENGER_ROLE_NOT_ALLOWED);
     }
 
     //결제 수단이 토스페이인지 확인

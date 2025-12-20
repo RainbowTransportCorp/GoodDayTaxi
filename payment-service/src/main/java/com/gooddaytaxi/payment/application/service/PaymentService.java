@@ -195,12 +195,14 @@ public class PaymentService {
 
     //결제 청구서 단건 조회 - 승객/기사용
     public PaymentReadResult getPayment(UUID paymentId, UUID userId, String role) {
-        Payment payment = paymentReader.getPayment(paymentId);
         //승객이나 기사만 가능
-        validator.checkRolePassengerAndDriver(UserRole.of(role));
-        //승객인 경우 본인 승객아이디인지 확인
-        if (UserRole.of(role) == UserRole.PASSENGER) validator.checkPassengerPermission(userId, payment.getPassengerId());
-        else if (UserRole.of(role) == UserRole.DRIVER) validator.checkDriverPermission(userId, payment.getDriverId());
+        UserRole userRole = UserRole.of(role);
+        validator.checkRolePassengerAndDriver(userRole);
+
+        Payment payment = paymentReader.getPayment(paymentId);
+        //승객/기사 본인인지 확인
+        validator.checkPassengerAndDriverPermission(userRole, userId, payment.getPassengerId(), payment.getDriverId());
+
         return new PaymentReadResult(
                 payment.getId(),
                 payment.getAmount().value(),

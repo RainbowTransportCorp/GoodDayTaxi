@@ -48,6 +48,12 @@ public class PaymentQueryAdapter implements PaymentQueryPort {
     }
 
     @Override
+    public Optional<Payment> findByIdWithRefund(UUID paymentId) {
+        return paymentRepository.findByIdWithRefund(paymentId);
+    }
+
+
+    @Override
     public Payment findLastByTripIdAndStatusForCreate(UUID tripId) {
         return paymentRepository.findLastByTripIdAndStatusForCreate(tripId);
     }

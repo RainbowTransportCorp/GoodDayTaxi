@@ -23,6 +23,8 @@ public interface PaymentQueryPort {
 
     boolean existByTripIdAndNotStatusForCreate(UUID tripId);
 
+    Optional<Payment> findByIdWithRefund(UUID paymentId);
+
     Payment findLastByTripIdAndStatusForCreate(UUID tripId);
 
     Page<Refund> searchRefunds(String status, String reason, Boolean existRequest, UUID passeangerId, UUID driverId, UUID tripId, String method, Long minAmount, Long maxAmount, LocalDateTime localDateTime, LocalDateTime localDateTime1, Pageable pageable);

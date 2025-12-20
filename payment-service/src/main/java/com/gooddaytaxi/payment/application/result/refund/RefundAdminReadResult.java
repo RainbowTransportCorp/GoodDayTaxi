@@ -8,11 +8,10 @@ public record RefundAdminReadResult(UUID refundId,
                                     String reason,
                                     String detailReason,
                                     UUID requestId,
-                                    LocalDateTime canceledAt,
-                                    String transactionKey,
-                                    String pgFailReason,
+                                    LocalDateTime refundedAt,
                                     UUID paymentId,
                                     Long amount,
+                                    PgRefundResult pgRefund,
                                     LocalDateTime createdAt,
                                     LocalDateTime updatedAt
                                ) {

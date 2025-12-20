@@ -9,10 +9,9 @@ public record RefundAdminReadResponseDto(UUID refundId,
                                          String detailReason,
                                          UUID requestId,
                                          LocalDateTime canceledAt,
-                                         String transactionKey,
-                                         String pgFailReason,
                                          UUID paymentId,
                                          Long amount,
+                                         PgRefundResponseDto pgRefund,
                                          LocalDateTime createdAt,
                                          LocalDateTime updatedAt) {
 }

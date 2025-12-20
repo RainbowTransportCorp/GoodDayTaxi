@@ -105,6 +105,17 @@ public class PaymentRepositoryImpl implements PaymentRepositoryCustom {
                 ));
     }
 
+    @Override
+    public Optional<Payment> findByIdWithRefund(UUID paymentId) {
+        return Optional.ofNullable(
+                queryFactory.selectFrom(payment)
+                        .leftJoin(payment.refund, refund).fetchJoin()
+                        .where(payment.id.eq(paymentId))
+                        .fetchOne()
+        );
+    }
+
+
     //환불 검색
     @Override
     public Page<Refund> searchRefunds(String status, String reason, Boolean existRequest, UUID passeangerId, UUID driverId, UUID tripId, String method, Long minAmount, Long maxAmount, LocalDateTime startDay, LocalDateTime endDay, Pageable pageable) {
