@@ -45,7 +45,7 @@ class AdminDispatchServiceTest {
     AdminDispatchService adminDispatchService;
 
     @Test
-    void forceTimeout() {
+    void 마스터관리자가_강제타임아웃하면_배차상태가_TIMEOUT으로_변경된다() {
         // given
         UUID dispatchId = UUID.randomUUID();
         UUID passengerId = UUID.randomUUID();
