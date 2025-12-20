@@ -1,10 +1,8 @@
 package com.gooddaytaxi.dispatch.application.service.driver;
 
 import com.gooddaytaxi.dispatch.application.event.payload.DispatchAcceptedPayload;
-import com.gooddaytaxi.dispatch.application.event.payload.TripCreateRequestPayload;
 import com.gooddaytaxi.dispatch.application.port.out.command.DispatchAcceptedCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.command.DispatchCommandPort;
-import com.gooddaytaxi.dispatch.application.port.out.command.TripCreateRequestCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
 import com.gooddaytaxi.dispatch.application.service.assignmentLog.AssignmentLogLifecycleService;
 import com.gooddaytaxi.dispatch.application.service.dispatch.DispatchHistoryService;

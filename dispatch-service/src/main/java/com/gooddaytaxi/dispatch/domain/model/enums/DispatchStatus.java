@@ -8,7 +8,7 @@ public enum DispatchStatus {
     CANCELED,   // 승객, 기사, 관리자 또는 시스템에 의해 취소됨
     TIMEOUT,      // 전체 배차 프로세스가 타임아웃됨
     TRIP_REQUEST, // Trip 서비스에 운행 생성 요청을 보낸 상태 (응답 대기)
-    IN_TRIP;        // TripStarted 이벤트를 수신하여 실제 운행이 시작된 상태
+    TRIP_READY;  // Trip 서비스에서 운행 대기중이라는 응답을 받은 상태
 
     public boolean isReassignable() {
         return this == ASSIGNING || this == ASSIGNED;
@@ -33,18 +33,17 @@ public enum DispatchStatus {
     }
 
     /**
-     * TripStarted 이벤트를 기다리는 상태인지 여부 확인
+     * TripReady 이벤트를 기다리는 상태인지 여부 확인
      */
-    public boolean isWaitingTripStart() {
+    public boolean isWaitingTripReady() {
         return this == TRIP_REQUEST;
     }
 
     /**
-     * 이미 운행이 시작된 상태인지 여부 확인
+     * 이미 운행이 대기중인지 확인
      */
-    public boolean isInTrip() {
-        return this == IN_TRIP;
+    public boolean isTripReady() {
+        return this == TRIP_READY;
     }
-
 }
 

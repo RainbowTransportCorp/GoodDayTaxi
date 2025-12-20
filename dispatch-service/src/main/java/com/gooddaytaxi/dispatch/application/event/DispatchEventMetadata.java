@@ -42,6 +42,13 @@ public enum DispatchEventMetadata {
             "trip.create.request",
             "Dispatch",
             1
+    ),
+
+    TRIP_READY_TIMEOUT(
+        "ERROR_DETECTED",
+            "error.detected",
+            "Dispatch",
+            1
     );
 
     public final String eventType;

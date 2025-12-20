@@ -172,8 +172,8 @@ public class Dispatch extends BaseEntity {
      */
     public void markTripRequest() {
 
-        // 이미 Trip 요청을 보냈거나 운행이 시작된 상태면 재요청 불가
-        if (dispatchStatus.isWaitingTripStart() || dispatchStatus.isInTrip()) {
+        // 이미 Trip 요청을 보냈거나 운행 대기중이라면 요청 불가
+        if (dispatchStatus.isWaitingTripReady() || dispatchStatus.isTripReady()) {
             throw DispatchInvalidStateException.cannot(
                 dispatchStatus,
                 "운행 요청"
@@ -185,18 +185,17 @@ public class Dispatch extends BaseEntity {
 
 
     /**
-     * TripStarted 이벤트 수신 시 호출
-     * (TRIP_REQUESTED → IN_TRIP)
+     * TripReady 이벤트 수신 시 호출
+     * (TRIP_REQUESTED → TRIP_READY)
      */
-    public void markTripStarted() {
-        if (!dispatchStatus.isWaitingTripStart()) {
+    public void markTripReady() {
+        if (!dispatchStatus.isWaitingTripReady()) {
             throw DispatchInvalidStateException.cannot(
                 dispatchStatus,
-                "운행 시작"
+                "운행 대기"
             );
         }
-        this.dispatchStatus = DispatchStatus.IN_TRIP;
+        this.dispatchStatus = DispatchStatus.TRIP_READY;
     }
-
 
 }
