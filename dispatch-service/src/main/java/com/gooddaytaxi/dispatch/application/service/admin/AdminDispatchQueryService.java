@@ -25,30 +25,54 @@ public class AdminDispatchQueryService {
 
     /**
      * 일반 관리자 및 최고 관리자가 배차를 전체 조회
+     *
      * @param role 요청자의 권한
-     * @param status 조회하고 싶은 배차의 상태
-     * @return 상태값에 따른 배차 목록
+     * @return 배차 전체 목록
      */
-    public List<AdminDispatchListResult> getDispatches(UserRole role, DispatchStatus status) {
+    public List<AdminDispatchListResult> getAllDispatches(UserRole role) {
 
         adminPermissionValidator.validateAdminRead(role);
 
-        List<Dispatch> dispatches =
-                (status == null)
-                        ? queryPort.findAll()
-                        : queryPort.findByStatus(status);
-        return dispatches.stream()
-                .map(dispatch -> AdminDispatchListResult.builder()
-                        .dispatchId(dispatch.getDispatchId())
-                        .passengerId(dispatch.getPassengerId())
-                        .driverId(dispatch.getDriverId())
-                        .status(dispatch.getDispatchStatus())
-                        .reassignCount(dispatch.getReassignAttemptCount())
-                        .requestedAt(dispatch.getRequestCreatedAt())
-                        .updatedAt(dispatch.getUpdatedAt())
-                        .build()
-                )
-                .toList();
+        return queryPort.findAll().stream()
+            .map(dispatch -> AdminDispatchListResult.builder()
+                .dispatchId(dispatch.getDispatchId())
+                .passengerId(dispatch.getPassengerId())
+                .driverId(dispatch.getDriverId())
+                .status(dispatch.getDispatchStatus())
+                .reassignCount(dispatch.getReassignAttemptCount())
+                .requestedAt(dispatch.getRequestCreatedAt())
+                .updatedAt(dispatch.getUpdatedAt())
+                .build()
+            )
+            .toList();
+    }
+
+    /**
+     * 일반 관리자 및 최고 관리자가 배차를 상태별로 조회
+     *
+     * @param role 요청자의 권한
+     * @param status 조회하고 싶은 배차 상태
+     * @return 상태값에 따른 배차 목록
+     */
+    public List<AdminDispatchListResult> getDispatchesByStatus(
+        UserRole role,
+        DispatchStatus status
+    ) {
+
+        adminPermissionValidator.validateAdminRead(role);
+
+        return queryPort.findByStatus(status).stream()
+            .map(dispatch -> AdminDispatchListResult.builder()
+                .dispatchId(dispatch.getDispatchId())
+                .passengerId(dispatch.getPassengerId())
+                .driverId(dispatch.getDriverId())
+                .status(dispatch.getDispatchStatus())
+                .reassignCount(dispatch.getReassignAttemptCount())
+                .requestedAt(dispatch.getRequestCreatedAt())
+                .updatedAt(dispatch.getUpdatedAt())
+                .build()
+            )
+            .toList();
     }
 
     /**
