@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>요금 정책 관리</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet" href="/common/header.css">
+  <script src="/common/header.js" defer></script>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+<header class="header">
+  <div class="brand">
+    <div class="brand-main">Good day Taxi</div>
+    <div class="brand-sub">요금 정책</div>
+  </div>
+
+  <div class="user-box">
+    <span id="user-name"></span>
+    <button class="btn-logout" onclick="logout()">로그아웃</button>
+  </div>
+</header>
+
+<main class="page">
+  <h1 class="page-title">💰 요금 정책 관리</h1>
+
+  <!-- 생성 -->
+  <section class="card">
+    <h2>정책 생성 (선택)</h2>
+    <p class="desc">요금 정책은 선택 사항이며, 없을 경우 기본 요금이 적용됩니다.</p>
+
+    <div class="form">
+      <select id="policyType">
+        <option value="">정책 타입 선택 (옵션)</option>
+        <option value="STANDARD">STANDARD</option>
+        <option value="PREMIUM">PREMIUM</option>
+        <option value="NIGHT_SURCHARGE">NIGHT_SURCHARGE</option>
+      </select>
+
+      <input id="baseDistance" type="number" step="0.1" min="0" placeholder="기본 거리 (km)" />
+      <input id="baseFare" type="number" min="0" placeholder="기본 요금 (원)" />
+      <input id="distRateKm" type="number" min="0" placeholder="거리당 요금 (원/km)" />
+      <input id="timeRate" type="number" min="0" placeholder="시간당 요금 (원/분)" />
+
+      <button onclick="createPolicy()">생성</button>
+    </div>
+  </section>
+
+  <!-- 목록 -->
+  <section class="card">
+    <h2>정책 목록</h2>
+
+    <table class="policy-table">
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>타입</th>
+        <th>기본 거리</th>
+        <th>기본 요금</th>
+        <th>거리 요금</th>
+        <th>시간 요금</th>
+      </tr>
+      </thead>
+      <tbody id="policyBody"></tbody>
+    </table>
+  </section>
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>

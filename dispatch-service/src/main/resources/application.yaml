@@ -2,8 +2,8 @@ server:
   port: ${service.port}
 
 spring:
-#  profiles:
-#   active: ${SPRING_PROFILES.ACTIVE:docker} - 서비스 자체를 띄울 때 사용
+  profiles:
+   active: local
   config:
     import:
       - secrets.yaml
@@ -81,6 +81,7 @@ springdoc:
   swagger-ui:
     path: /swagger-ui
 
-service:
-  account:
-    url: http://localhost:8201
+
+logging:
+  level:
+    com.gooddaytaxi.support: DEBUG # INFO, DEBUG, WARN, ERROR

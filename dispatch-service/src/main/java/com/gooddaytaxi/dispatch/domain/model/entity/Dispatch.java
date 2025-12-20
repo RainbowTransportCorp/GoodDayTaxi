@@ -63,16 +63,13 @@ public class Dispatch extends BaseEntity {
 
     /**
      * 배차 생성을 위한 정적 팩토리 메서드
-     * @param passengerId 요청 승객 식별자
-     * @param pickupAddress 요청하는 출발지 정보
+     *
+     * @param passengerId        요청 승객 식별자
+     * @param pickupAddress      요청하는 출발지 정보
      * @param destinationAddress 요청하는 도착지 정보
      * @return 생성된 배차 정보
      */
-    public static Dispatch create(
-            UUID passengerId,
-            String pickupAddress,
-            String destinationAddress
-    ) {
+    public static Dispatch create(UUID passengerId, String pickupAddress, String destinationAddress) {
         Dispatch d = new Dispatch();
         d.passengerId = passengerId;
         d.pickupAddress = pickupAddress;
@@ -87,10 +84,7 @@ public class Dispatch extends BaseEntity {
 
     public void startAssigning() {
         if (dispatchStatus != DispatchStatus.REQUESTED) {
-            throw DispatchInvalidStateException.cannot(
-                    dispatchStatus,
-                    "배차 시작"
-            );
+            throw DispatchInvalidStateException.cannot(dispatchStatus, "배차 시작");
         }
         this.dispatchStatus = DispatchStatus.ASSIGNING;
     }
@@ -98,9 +92,7 @@ public class Dispatch extends BaseEntity {
 
     public void assignedTo(UUID driverId) {
         if (dispatchStatus != DispatchStatus.ASSIGNING) {
-            throw new DispatchCannotAssignException(
-                    "배차 상태가 ASSIGNING일 때만 기사 배정이 가능합니다. 현재 상태=" + dispatchStatus
-            );
+            throw new DispatchCannotAssignException("배차 상태가 ASSIGNING일 때만 기사 배정이 가능합니다. 현재 상태=" + dispatchStatus);
         }
 
         this.dispatchStatus = DispatchStatus.ASSIGNED;
@@ -122,9 +114,7 @@ public class Dispatch extends BaseEntity {
      * 승객에 의한 취소로 상태 전이
      */
     public void cancelByPassenger() {
-        if (dispatchStatus == DispatchStatus.CANCELED ||
-                dispatchStatus == DispatchStatus.TIMEOUT) {
-
+        if (dispatchStatus.isTerminal()) {
             throw new DispatchCannotCancelException();
         }
 
@@ -132,17 +122,13 @@ public class Dispatch extends BaseEntity {
         this.canceledAt = LocalDateTime.now();
     }
 
-
     /**
      * 기사 1명이 배차 요청을 거절
      * - ASSIGNING 상태에서만 가능
      */
     public void rejectedByDriver() {
         if (dispatchStatus != DispatchStatus.ASSIGNING) {
-            throw DispatchInvalidStateException.cannot(
-                    dispatchStatus,
-                    "기사 거절"
-            );
+            throw DispatchInvalidStateException.cannot(dispatchStatus, "기사 거절");
         }
     }
 
@@ -151,10 +137,11 @@ public class Dispatch extends BaseEntity {
     }
 
     public void timeout() {
-        if (dispatchStatus != DispatchStatus.ASSIGNED) {
+        if (!dispatchStatus.canTimeout()) {
+
             throw DispatchInvalidStateException.cannot(
                     dispatchStatus,
-                    "타임아웃 처리"
+                    "이미 종료되었거나 확정된 배차는 타임아웃 처리할 수 없습니다"
             );
         }
 
@@ -163,43 +150,17 @@ public class Dispatch extends BaseEntity {
     }
 
     public void forceTimeout() {
-        if (dispatchStatus != DispatchStatus.REQUESTED &&
-                dispatchStatus != DispatchStatus.ASSIGNING) {
-
-            throw DispatchInvalidStateException.cannot(
-                    dispatchStatus,
-                    "강제 타임아웃"
-            );
+        if (!dispatchStatus.canForceTimeout()) {
+            throw DispatchInvalidStateException.cannot(dispatchStatus, "강제 타임아웃");
         }
 
         this.dispatchStatus = DispatchStatus.TIMEOUT;
         this.timeoutAt = LocalDateTime.now();
     }
 
-
-    public void resetToAssigning() {
-        if (dispatchStatus != DispatchStatus.TIMEOUT) {
-            throw DispatchInvalidStateException.cannot(
-                    dispatchStatus,
-                    "재배차"
-            );
-        }
-
-        this.dispatchStatus = DispatchStatus.ASSIGNING;
-        this.assignedAt = LocalDateTime.now();
-    }
-
-    public void terminateByRetryLimit() {
-        if (dispatchStatus == DispatchStatus.TIMEOUT ||
-                dispatchStatus == DispatchStatus.CANCELED) {
-
-            throw DispatchInvalidStateException.cannot(
-                    dispatchStatus,
-                    "재시도 한계 종료"
-            );
-        }
-
-        this.dispatchStatus = DispatchStatus.TIMEOUT;
-        this.timeoutAt = LocalDateTime.now();
+    public boolean isReassignTimeout(long elapsedSinceLastUpdateSeconds,
+                                     long reassignTimeoutSeconds) {
+        return dispatchStatus.isReassignable()
+                && elapsedSinceLastUpdateSeconds >= reassignTimeoutSeconds;
     }
 }

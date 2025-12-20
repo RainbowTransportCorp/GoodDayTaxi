@@ -13,9 +13,11 @@ import com.gooddaytaxi.dispatch.domain.model.enums.HistoryEventType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class DispatchCreateService {
 
@@ -28,7 +30,7 @@ public class DispatchCreateService {
     /**
      * 승객이 배차(콜) 호출
      * @param command 배차를 요청하는 승객과 주소정보
-     * @return
+     * @return 호출한 배차 정보
      */
     public DispatchCreateResult create(DispatchCreateCommand command) {
 

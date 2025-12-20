@@ -14,9 +14,9 @@ async function signup() {
         phone_number: document.getElementById("phone").value,
         slack_id: document.getElementById("slackId").value || null,
         role: document.getElementById("role").value,
-        vehicleNumber: document.getElementById("vehicleNumber")?.value || null,
-        vehicleType: document.getElementById("vehicleType")?.value || null,
-        vehicleColor: document.getElementById("vehicleColor")?.value || null
+        vehicle_number: document.getElementById("vehicleNumber")?.value || null,
+        vehicle_type: document.getElementById("vehicleType")?.value || null,
+        vehicle_color: document.getElementById("vehicleColor")?.value || null
     };
 
     const res = await fetch(BASE_URL, {

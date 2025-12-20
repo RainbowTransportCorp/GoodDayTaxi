@@ -7,6 +7,7 @@ import com.gooddaytaxi.dispatch.application.query.DispatchDetailResult;
 import com.gooddaytaxi.dispatch.application.query.DispatchSummaryResult;
 import com.gooddaytaxi.dispatch.application.usecase.query.PassengerQueryPermissionValidator;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
+import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -42,6 +43,7 @@ public class PassengerDispatchQueryService {
         log.info("[PassengerDispatchList] 조회 완료 - count={}", dispatches.size());
 
         return dispatches.stream()
+                .filter(d -> d.getDispatchStatus() != DispatchStatus.TIMEOUT) //Service testCode를 위해 필터 추가
                 .map(d -> DispatchSummaryResult.builder()
                         .dispatchId(d.getDispatchId())
                         .pickupAddress(d.getPickupAddress())

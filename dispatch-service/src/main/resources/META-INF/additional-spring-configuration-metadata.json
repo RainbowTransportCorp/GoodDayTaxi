@@ -45,6 +45,7 @@
       "type": "java.lang.String",
       "description": "Description for kafka.topic.dispatch."
     },
+    ,
     {
       "name": "service.account.url",
       "type": "java.lang.String",
