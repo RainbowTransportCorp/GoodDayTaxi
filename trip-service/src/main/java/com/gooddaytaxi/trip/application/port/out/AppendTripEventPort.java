@@ -44,4 +44,18 @@ public interface AppendTripEventPort {
             LocalDateTime canceledAt
     );
 
+
+
+    UUID appendTripLocationUpdated(
+            UUID tripId,
+            UUID notifierId,
+            UUID dispatchId,
+            UUID driverId,
+            String currentAddress,
+            String region,
+            String previousRegion,
+            Long sequence,
+            LocalDateTime locationTime
+    );
+
 }

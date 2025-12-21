@@ -1,13 +1,11 @@
 package com.gooddaytaxi.trip.application.service;
 
 
-import com.gooddaytaxi.trip.application.command.CancelTripCommand;
-import com.gooddaytaxi.trip.application.command.EndTripCommand;
-import com.gooddaytaxi.trip.application.command.StartTripCommand;
-import com.gooddaytaxi.trip.application.command.TripCreateCommand;
+import com.gooddaytaxi.trip.application.command.*;
 import com.gooddaytaxi.trip.application.port.out.*;
 import com.gooddaytaxi.trip.application.result.*;
 import com.gooddaytaxi.trip.domain.model.Trip;
+import com.gooddaytaxi.trip.domain.model.enums.TripStatus;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +28,7 @@ public class TripService {
     private final LoadTripsByPassengerPort loadTripsByPassengerPort;
     private final LoadTripsByDriverPort loadTripsByDriverPort;
     private final AppendTripEventPort appendTripEventPort;
-
+    private final TripLocationStatePort tripLocationStatePort;
 
 
     @Transactional
@@ -214,6 +212,58 @@ public class TripService {
                 items
         );
     }
+
+    @Transactional
+    public TripLocationUpdatedResult publishLocationUpdate(UpdateTripLocationCommand command) {
+
+        Trip trip = loadTripByIdPort.loadTripById(command.tripId())
+                .orElseThrow(() -> new EntityNotFoundException("Trip not found. tripId=" + command.tripId()));
+
+        // STARTED에서만 발행
+        if (trip.getStatus() != TripStatus.STARTED) {
+            throw new IllegalStateException(
+                    "STARTED 상태에서만 위치 업데이트 이벤트를 발행할 수 있습니다. status=" + trip.getStatus()
+            );
+        }
+
+        // region 변경 감지 + sequence 계산 (DB lock)
+        TripLocationStatePort.NextSequenceResult locationChange =
+                tripLocationStatePort.computeNext(trip.getTripId(), command.region());
+
+        // 변경 없으면 발행 안 함 (스킵)
+        if (!locationChange.changed()) {
+            return new TripLocationUpdatedResult(
+                    trip.getTripId(),
+                    false,
+                    locationChange.nextSequence(),
+                    locationChange.previousRegion(),
+                    locationChange.currentRegion()
+            );
+        }
+
+        // 변경 있으면 outbox 적재
+        appendTripEventPort.appendTripLocationUpdated(
+                trip.getTripId(),
+                command.notifierId(),
+                trip.getDispatchId(),
+                trip.getDriverId(),
+                command.currentAddress(),
+                command.region(),
+                locationChange.previousRegion(),
+                locationChange.nextSequence(),
+                java.time.LocalDateTime.now()
+        );
+
+        return new TripLocationUpdatedResult(
+                trip.getTripId(),
+                true,
+                locationChange.nextSequence(),
+                locationChange.previousRegion(),
+                locationChange.currentRegion()
+        );
+    }
+
+
 
 
 

@@ -3,7 +3,7 @@ package com.gooddaytaxi.trip.domain.model.enums;
 public enum TripEventType {
 
     STATUS_CHANGE,
-    LOCATION_UPDATE,
+    TRIP_LOCATION_UPDATED,
     TRIP_CREATED,
     TRIP_ASSIGNED,
     TRIP_STARTED,
