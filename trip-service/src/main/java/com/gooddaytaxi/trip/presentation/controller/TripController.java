@@ -1,10 +1,7 @@
 package com.gooddaytaxi.trip.presentation.controller;
 
 import com.gooddaytaxi.common.core.dto.ApiResponse;
-import com.gooddaytaxi.trip.application.command.CancelTripCommand;
-import com.gooddaytaxi.trip.application.command.EndTripCommand;
-import com.gooddaytaxi.trip.application.command.StartTripCommand;
-import com.gooddaytaxi.trip.application.command.TripCreateCommand;
+import com.gooddaytaxi.trip.application.command.*;
 import com.gooddaytaxi.trip.application.result.*;
 import com.gooddaytaxi.trip.application.service.TripService;
 
@@ -39,6 +36,7 @@ public class TripController {
     private final TripEndResponseMapper tripEndResponseMapper;
     private final PassengerTripHistoryResponseMapper passengerTripHistoryResponseMapper;
     private final DriverTripHistoryResponseMapper driverTripHistoryResponseMapper;
+    private final TripLocationUpdatedResponseMapper tripLocationUpdatedResponseMapper;
 
 
 
@@ -181,6 +179,26 @@ public class TripController {
         DriverTripHistoryResponse response =
                 driverTripHistoryResponseMapper.toResponse(result);
 
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+
+    @PutMapping("/{tripId}/location")
+    public ResponseEntity<ApiResponse<TripLocationUpdatedResponse>> updateLocation(
+            @PathVariable UUID tripId,
+            @RequestHeader(value = "x-user-uuid", required = false) UUID notifierId,
+            @RequestParam String currentAddress,
+            @RequestParam String region
+    ) {
+        UUID finalNotifierId = notifierId != null
+                ? notifierId
+                : UUID.fromString("99999999-9999-9999-9999-999999999999");
+
+        TripLocationUpdatedResult result = tripService.publishLocationUpdate(
+                new UpdateTripLocationCommand(tripId, finalNotifierId, currentAddress, region)
+        );
+
+        TripLocationUpdatedResponse response = tripLocationUpdatedResponseMapper.toResponse(result);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

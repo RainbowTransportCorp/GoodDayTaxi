@@ -8,6 +8,7 @@ import com.gooddaytaxi.trip.infrastructure.messaging.outbox.entity.TripEventOutb
 import com.gooddaytaxi.trip.infrastructure.messaging.outbox.repository.TripEventOutboxJpaRepository;
 import com.gooddaytaxi.trip.infrastructure.messaging.payload.TripCanceledPayload;
 import com.gooddaytaxi.trip.infrastructure.messaging.payload.TripEndedPayload;
+import com.gooddaytaxi.trip.infrastructure.messaging.payload.TripLocationUpdatedPayload;
 import com.gooddaytaxi.trip.infrastructure.messaging.payload.TripStartedPayload;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -189,5 +190,59 @@ public class TripOutboxAppender implements AppendTripEventPort {
 
 
     }
+
+    @Override
+    @Transactional
+    public UUID appendTripLocationUpdated(
+            UUID tripId,
+            UUID notifierId,
+            UUID dispatchId,
+            UUID driverId,
+            String currentAddress,
+            String region,
+            String previousRegion,
+            Long sequence,
+            LocalDateTime locationTime
+    ) {
+        TripLocationUpdatedPayload payload = new TripLocationUpdatedPayload(
+                tripId,
+                tripId,   // notificationOriginId
+                notifierId,
+                dispatchId,
+                driverId,
+                currentAddress,
+                region,
+                previousRegion,
+                sequence,
+                locationTime
+        );
+
+        UUID eventId = UUID.randomUUID();
+
+        EventEnvelope<TripLocationUpdatedPayload> envelope = new EventEnvelope<>(
+                eventId,
+                PAYLOAD_VERSION,
+                TripEventType.TRIP_LOCATION_UPDATED.name(),
+                LocalDateTime.now(),
+                payload
+        );
+
+        try {
+            String payloadJson = objectMapper.writeValueAsString(envelope);
+
+            TripEventOutbox outbox = TripEventOutbox.createPendingEvent(
+                    tripId,
+                    TripEventType.TRIP_LOCATION_UPDATED,
+                    payloadJson
+            );
+
+            outboxRepository.save(outbox);
+            return eventId;
+
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to serialize TRIP_LOCATION_UPDATED event", e);
+        }
+    }
+
 
 }

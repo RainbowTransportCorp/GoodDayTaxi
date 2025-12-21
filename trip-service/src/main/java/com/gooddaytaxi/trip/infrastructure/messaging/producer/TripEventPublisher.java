@@ -45,7 +45,8 @@ public class TripEventPublisher {
             case TRIP_STARTED -> "trip.started";
             case TRIP_ENDED -> "trip.ended";
             case TRIP_CANCELED -> "trip.canceled";
-            default -> "trip.events";
+            case TRIP_LOCATION_UPDATED -> "trip.location.updated";
+            default ->  throw new IllegalStateException("Unknown eventType: " + eventType);
         };
     }
 }
