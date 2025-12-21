@@ -2,8 +2,11 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>결제하기 | Good day Taxi</title>
+  <title>결제 / 환불 내역 | Good day Taxi</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet" href="/common/header.css">
+  <script src="/common/header.js" defer></script>
 
   <style>
     body {
@@ -12,133 +15,148 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
     }
 
-    .container {
-      max-width: 420px;
-      margin: 40px auto;
+    .page {
+      max-width: 900px;
+      margin: 32px auto;
       padding: 0 20px;
     }
 
-    .card {
+    .page-title {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
       background: white;
-      border-radius: 20px;
-      padding: 28px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.06);
     }
 
-    .title {
-      font-size: 20px;
-      font-weight: 700;
-      margin-bottom: 16px;
-    }
-
-    .row {
-      margin-bottom: 14px;
+    th, td {
+      padding: 14px 16px;
       font-size: 14px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
     }
 
-    .label {
-      color: #777;
-      margin-bottom: 4px;
-    }
-
-    .value {
+    th {
+      background: #fafafa;
       font-weight: 600;
     }
 
-    .fare {
-      font-size: 28px;
-      font-weight: 800;
-      color: #8A5DF6;
-      margin: 16px 0;
+    tr:last-child td {
+      border-bottom: none;
     }
 
-    .btn-pay {
-      width: 100%;
-      padding: 16px;
-      border-radius: 999px;
-      border: none;
-      background: #8A5DF6;
-      color: white;
-      font-size: 16px;
+    .amount {
       font-weight: 700;
-      cursor: pointer;
+      color: #8A5DF6;
     }
 
-    .btn-pay:disabled {
-      background: #ccc;
-      cursor: not-allowed;
+    .status {
+      font-weight: 700;
+    }
+
+    .PAID { color: #2e7d32; }
+    .READY { color: #555; }
+    .CANCELLED { color: #c62828; }
+    .REFUND_REQUESTED { color: #ef6c00; }
+    .REFUNDED { color: #1565c0; }
+
+    .empty {
+      text-align: center;
+      padding: 40px;
+      color: #777;
     }
   </style>
 </head>
 
 <body>
-
-<div class="container">
-  <div class="card">
-    <div class="title">🚕 운행이 완료되었습니다</div>
-
-    <div class="row">
-      <div class="label">출발지</div>
-      <div class="value" id="pickup">-</div>
-    </div>
-
-    <div class="row">
-      <div class="label">도착지</div>
-      <div class="value" id="destination">-</div>
-    </div>
-
-    <div class="row">
-      <div class="label">결제 금액</div>
-      <div class="fare" id="fare">₩ 0</div>
-    </div>
-
-    <button class="btn-pay" id="payBtn" onclick="goToPayment()">
-      결제하기
-    </button>
+<header class="header">
+  <div class="brand">
+    <div class="brand-main">Good day Taxi</div>
+    <div class="brand-sub">결제 / 환불</div>
   </div>
-</div>
+
+  <div class="user-box">
+    <span id="user-name"></span>
+    <button class="btn-logout" onclick="logout()">로그아웃</button>
+  </div>
+</header>
+
+<main class="page">
+  <h1 class="page-title">💳 결제 / 환불 내역</h1>
+
+  <table>
+    <thead>
+    <tr>
+      <th>결제 ID</th>
+      <th>운행 ID</th>
+      <th>금액</th>
+      <th>결제 수단</th>
+      <th>상태</th>
+      <th>결제 시각</th>
+    </tr>
+    </thead>
+    <tbody id="paymentBody"></tbody>
+  </table>
+</main>
 
 <script>
-  const tripId = new URLSearchParams(location.search).get("tripId");
+  const API_BASE = "/api/v1/payments/search";
+  const token = localStorage.getItem("accessToken");
   const userUuid = localStorage.getItem("userUuid");
   const role = "PASSENGER";
 
-  if (!tripId) {
-    alert("잘못된 접근입니다.");
-    location.href = "/passenger/index.html";
-  }
+  async function loadPayments() {
+    const body = document.getElementById("paymentBody");
 
-  async function loadPaymentInfo() {
-    // 👉 Payment 담당자가 만든 API 기준
-    // (운행 요금 조회 or 결제 생성 전 단계)
-    const res = await fetch(`/api/v1/payments?tripId=${tripId}`, {
+    const res = await fetch(API_BASE, {
+      method: "POST",
       headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
         "X-User-UUID": userUuid,
         "X-User-Role": role
-      }
+      },
+      body: JSON.stringify({
+        page: 0,
+        size: 20
+      })
     });
 
-    if (!res.ok) {
-      alert("결제 정보를 불러오지 못했습니다.");
+    const json = await res.json();
+
+    if (!json.success || json.data.content.length === 0) {
+      body.innerHTML = `
+        <tr>
+          <td colspan="6" class="empty">결제 내역이 없습니다.</td>
+        </tr>
+      `;
       return;
     }
 
-    const json = await res.json();
-    const data = json.data;
+    body.innerHTML = "";
 
-    document.getElementById("pickup").textContent = data.pickupAddress ?? "-";
-    document.getElementById("destination").textContent = data.destinationAddress ?? "-";
-    document.getElementById("fare").textContent =
-        `₩ ${data.amount.toLocaleString()}`;
+    json.data.content.forEach(p => {
+      body.insertAdjacentHTML("beforeend", `
+        <tr>
+          <td>${p.paymentId}</td>
+          <td>${p.tripId}</td>
+          <td class="amount">₩ ${p.amount.toLocaleString()}</td>
+          <td>${p.method}</td>
+          <td class="status ${p.status}">${p.status}</td>
+          <td>${p.createdAt}</td>
+        </tr>
+      `);
+    });
   }
 
-  function goToPayment() {
-    // 👉 이때만 Toss 결제로 이동
-    window.location.href =
-        `/api/v1/payments/tosspay/ready?tripId=${tripId}`;
-  }
-
-  loadPaymentInfo();
+  loadPayments();
 </script>
 
 </body>

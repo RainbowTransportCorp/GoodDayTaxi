@@ -163,4 +163,39 @@ public class Dispatch extends BaseEntity {
         return dispatchStatus.isReassignable()
                 && elapsedSinceLastUpdateSeconds >= reassignTimeoutSeconds;
     }
+
+    // ======== Trip 연계 상태 전이 ========
+
+    /**
+     * Trip 서비스에 운행 생성을 요청한 상태로 전이
+     * (Dispatch ACCEPTED → TRIP_REQUEST)
+     */
+    public void markTripRequest() {
+
+        // 이미 Trip 요청을 보냈거나 운행 대기중이라면 요청 불가
+        if (dispatchStatus.isWaitingTripReady() || dispatchStatus.isTripReady()) {
+            throw DispatchInvalidStateException.cannot(
+                dispatchStatus,
+                "운행 요청"
+            );
+        }
+
+        this.dispatchStatus = DispatchStatus.TRIP_REQUEST;
+    }
+
+
+    /**
+     * TripReady 이벤트 수신 시 호출
+     * (TRIP_REQUESTED → TRIP_READY)
+     */
+    public void markTripReady() {
+        if (!dispatchStatus.isWaitingTripReady()) {
+            throw DispatchInvalidStateException.cannot(
+                dispatchStatus,
+                "운행 대기"
+            );
+        }
+        this.dispatchStatus = DispatchStatus.TRIP_READY;
+    }
+
 }

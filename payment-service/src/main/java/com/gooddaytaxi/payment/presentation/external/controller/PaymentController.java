@@ -34,10 +34,9 @@ public class PaymentController {
     //결제 청구서 생성 - 실제로는 이벤트로만 생성, 이건 테스트용
     @PostMapping
     public ResponseEntity<ApiResponse<PaymentCreateResponseDto>> createPayment(@RequestBody @Valid PaymentCreateRequestDto requestDto,
-                                                                               @RequestHeader(value = "X-User-UUID", required = false) UUID userId,
-                                                                               @RequestHeader(value = "X-User-Role", required = false) String role) {
+                                                                               @RequestHeader(value = "X-User-UUID", required = false) UUID userId) {
         PaymentCreateCommand command = PaymentCreateMapper.toCommand(requestDto);
-        PaymentCreateResult result = paymentService.createPayment(command, userId, role);
+        PaymentCreateResult result = paymentService.createPayment(command, userId);
         PaymentCreateResponseDto responseDto = PaymentCreateResponseMapper.toResponse(result);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(responseDto));
     }
@@ -95,11 +94,11 @@ public class PaymentController {
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
     }
 
-    //결제 단건 조회
+    //결제 단건 조회 - 승객/기사용
     @GetMapping("/{paymentId}")
     public ResponseEntity<ApiResponse<PaymentReadResponseDto>> getPayment(@PathVariable UUID paymentId,
-                                                                          @RequestHeader(value = "X-User-UUID") UUID userId,
-                                                                          @RequestHeader(value = "X-User-Role") String role) {
+                                                                               @RequestHeader(value = "X-User-UUID") UUID userId,
+                                                                               @RequestHeader(value = "X-User-Role") String role) {
         PaymentReadResult result = paymentService.getPayment(paymentId, userId, role);
         PaymentReadResponseDto responseDto = PaymentReadResponseMapper.toResponse(result);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
@@ -108,8 +107,8 @@ public class PaymentController {
     //결제 검색 기능
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<Page<PaymentReadResponseDto>>> searchPayment(@RequestBody @Valid PaymentSearchRequestDto requestDto,
-                                                                                   @RequestHeader(value = "X-User-UUID") UUID userId,
-                                                                                   @RequestHeader(value = "X-User-Role") String role) {
+                                                                                        @RequestHeader(value = "X-User-UUID") UUID userId,
+                                                                                        @RequestHeader(value = "X-User-Role") String role) {
         PaymentSearchCommand command = PaymentSearchMapper.toCommand(requestDto);
         Page<PaymentReadResult> result = paymentService.searchPayment(command, userId, role);
         Page<PaymentReadResponseDto> responseDto = PaymentReadResponseMapper.toPageResponse(result);

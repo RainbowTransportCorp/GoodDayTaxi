@@ -105,9 +105,10 @@
 
     // 상태 분기
     if (trip.tripStatus === "COMPLETED") {
-      // 운행 종료 → 결제 페이지 이동
-      window.location.href = `/passenger/payments/index.html?tripId=${tripId}`;
+      //운행종료 -> 운행완료 페이지로 이동
+      window.location.href = `/passenger/trips/completed.html?tripId=${tripId}`;
     }
+
   }
 
   // 5초마다 운행 상태 확인

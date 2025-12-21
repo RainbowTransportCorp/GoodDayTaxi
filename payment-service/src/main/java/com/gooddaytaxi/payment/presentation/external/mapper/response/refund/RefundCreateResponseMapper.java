@@ -5,6 +5,6 @@ import com.gooddaytaxi.payment.presentation.external.dto.response.refund.RefundC
 
 public class RefundCreateResponseMapper {
     public static RefundCreateResponseDto toResponse(RefundCreateResult result) {
-        return new RefundCreateResponseDto(result.paymentId(), result.message());
+        return new RefundCreateResponseDto(result.paymentId(), result.message().getMessage());
     }
 }

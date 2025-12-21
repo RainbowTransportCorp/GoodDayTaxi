@@ -9,7 +9,6 @@ public class PaymentCreateMapper {
                 requestDto.amount(),
                 requestDto.method(),
                 requestDto.passengerId(),
-                requestDto.driverId(),
                 requestDto.tripId());
     }
 }

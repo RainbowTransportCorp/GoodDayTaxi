@@ -7,7 +7,6 @@ public class PaymentUpdateResponseMapper {
     public static PaymentUpdateResponseDto toResponse(PaymentUpdateResult result) {
         return new PaymentUpdateResponseDto(
                 result.paymentId(),
-                result.amount(),
-                result.method());
+                result.message().getMessage());
     }
 }
