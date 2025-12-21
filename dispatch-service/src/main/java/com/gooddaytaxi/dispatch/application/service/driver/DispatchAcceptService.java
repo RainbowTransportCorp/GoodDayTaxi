@@ -1,13 +1,12 @@
 package com.gooddaytaxi.dispatch.application.service.driver;
 
 import com.gooddaytaxi.dispatch.application.event.payload.DispatchAcceptedPayload;
-import com.gooddaytaxi.dispatch.application.event.payload.TripCreateRequestPayload;
 import com.gooddaytaxi.dispatch.application.port.out.command.DispatchAcceptedCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.command.DispatchCommandPort;
-import com.gooddaytaxi.dispatch.application.port.out.command.TripCreateRequestCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
 import com.gooddaytaxi.dispatch.application.service.assignmentLog.AssignmentLogLifecycleService;
 import com.gooddaytaxi.dispatch.application.service.dispatch.DispatchHistoryService;
+import com.gooddaytaxi.dispatch.application.service.dispatch.DispatchTripRequestService;
 import com.gooddaytaxi.dispatch.application.usecase.accept.DispatchAcceptCommand;
 import com.gooddaytaxi.dispatch.application.usecase.accept.DispatchAcceptPermissionValidator;
 import com.gooddaytaxi.dispatch.application.usecase.accept.DispatchAcceptResult;
@@ -32,10 +31,10 @@ public class DispatchAcceptService {
     private final DispatchCommandPort commandPort;
 
     private final AssignmentLogLifecycleService assignmentLogService;
+    private final DispatchTripRequestService dispatchTripRequestService;
     private final DispatchHistoryService historyService;
 
     private final DispatchAcceptedCommandPort acceptedEventPort;
-    private final TripCreateRequestCommandPort tripEventPort;
 
     private final DispatchLockManager lockManager;
 
@@ -95,9 +94,9 @@ public class DispatchAcceptService {
             acceptedEventPort.publishAccepted(
                     DispatchAcceptedPayload.from(dispatch, command.getDriverId())
             );
-            tripEventPort.publishTripCreateRequest(
-                    TripCreateRequestPayload.from(dispatch)
-            );
+
+            // Trip 생성 요청 (후속 단계)
+            dispatchTripRequestService.requestTrip(dispatch.getDispatchId());
 
             log.info("[Accept] 이벤트 발행 완료 - dispatchId={}", dispatch.getDispatchId());
 

@@ -43,12 +43,8 @@ public class DispatchDriverAssignmentService {
      */
     public void assignInitial(UUID dispatchId) {
 
-
         Dispatch dispatch = queryPort.findById(dispatchId);
-        log.error("[ASSIGN_INITIAL] dispatchId={} status={}",
-            dispatch.getDispatchId(),
-            dispatch.getDispatchStatus()
-        );
+
         // 최초 상태 전이
         dispatch.startAssigning();
         //배차 횟수 증가
@@ -127,7 +123,7 @@ public class DispatchDriverAssignmentService {
                 assignmentLogPort.save(logEntity);
 
             } catch (Exception e) {
-                log.error("[Assign] assignmentLog 저장 실패 - dispatchId={} driverId={} err={}",
+                log.error("[ASSIGN] assignmentLog 저장 실패 - dispatchId={} driverId={} err={}",
                         dispatch.getDispatchId(), driverId, e.getMessage());
             }
         }
