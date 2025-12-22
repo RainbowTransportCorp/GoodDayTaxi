@@ -76,5 +76,6 @@ public class FarePolicyController {
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
+
 }
 
