@@ -76,17 +76,20 @@ springdoc:
         url: /api/v1/supports/api-docs
 
 
-
 eureka:
-  client:
-    service-url:
-      defaultZone: http://${EUREKA_HOSTNAME:server}:${EUREKA_PORT:8080}/eureka/
+  instance:
+    prefer-ip-address: ${EUREKA_INSTANCE_PREFERIPADDRESS:true}
 
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://${EUREKA_HOSTNAME}:${EUREKA_PORT:8761}/eureka/
 
 management:
   zipkin:
     tracing:
-      endpoint: http://zipkin:${ZIPKIN_PORT:9411}/api/v2/spans
+      endpoint: http://${ZIPKIN_HOSTNAME}:${ZIPKIN_PORT:9411}/api/v2/spans
 
 jwt:
   secret-key: ${JWT_SECRET_KEY}
