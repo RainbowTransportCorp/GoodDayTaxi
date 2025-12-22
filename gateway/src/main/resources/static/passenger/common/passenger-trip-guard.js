@@ -34,17 +34,30 @@ async function passengerTripGuard({ onTrip } = {}) {
 
     if (onTrip) onTrip(trip); // ⭐ trip 상태로 화면 렌더링 할 때
 
+// 👇 이미 페이지가 그 상태에 맞는 곳이면 이동하지 않게
     switch (trip.status) {
       case "READY":
-        location.href = "/passenger/trips/ready.html";
+        if (!location.pathname.includes("ready.html")) {
+          location.href = "/passenger/trips/ready.html";
+        }
         break;
+
       case "STARTED":
-        location.href = "/passenger/trips/active.html";
+        if (!location.pathname.includes("active.html")) {
+          location.href = "/passenger/trips/active.html";
+        }
         break;
+
       case "ENDED":
+        // 항상 completed.html은 query로 접근하니 무조건 이동
         location.href = `/passenger/trips/completed.html?tripId=${trip.tripId}`;
         break;
+
+      default:
+        console.warn("예상치 못한 상태값:", trip.status);
+        location.href = "/passenger/dashboard/index.html";
     }
+
   } catch (e) {
     console.error("guard 처리 실패", e);
     alert("서버 응답을 확인할 수 없습니다.");
