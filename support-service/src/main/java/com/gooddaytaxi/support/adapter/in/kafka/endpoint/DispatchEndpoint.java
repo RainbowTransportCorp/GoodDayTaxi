@@ -28,7 +28,6 @@ public class DispatchEndpoint {
      */
     @KafkaListener(topics = "dispatch.requested", groupId = "support-service", concurrency = "1")
     public void onDispatchRequested(EventRequest req) {
-        log.info("💗💗💗💗 Requested Request: {}", req.toString());
         // Metadata
         Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occurredAt());
         // Payload
@@ -56,7 +55,6 @@ public class DispatchEndpoint {
      */
     @KafkaListener(topics = "dispatch.accepted", groupId = "support-service", concurrency = "1")
     public void onDispatchAccepted(EventRequest req) {
-        log.info("💗💗💗💗 Accepted Request: {}", req.toString());
         // Metadata
         Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occurredAt());
         // Payload
@@ -84,7 +82,6 @@ public class DispatchEndpoint {
      */
     @KafkaListener(topics = "dispatch.timeout", groupId = "support-service", concurrency = "1")
     public void onDispatchTimeOut(EventRequest req) {
-        log.info("💗💗💗💗 Timeout Request: {}", req.toString());
 
         // Metadata
         Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occurredAt());
@@ -113,8 +110,6 @@ public class DispatchEndpoint {
      */
     @KafkaListener(topics = "dispatch.canceled", groupId = "support-service", concurrency = "1")
     public void onDispatchCancelled(EventRequest req) {
-
-        log.info("💗💗💗💗 Canceled Request: {}", req.toString());
         // Metadata
         Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occurredAt());
         // Payload
@@ -143,7 +138,6 @@ public class DispatchEndpoint {
      */
     @KafkaListener(topics = "dispatch.rejected", groupId = "support-service", concurrency = "1")
     public void onDispatchRejected(EventRequest req) {
-        log.info("💗💗💗💗 Rejected Request: {}", req.toString());
         // Metadata
         Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occurredAt());
         // Payload
