@@ -1,18 +1,3 @@
 spring:
-  config:
-    import:
-      - secrets.yml
   application:
     name: server
-
-server:
-  port: ${service.port}
-
-eureka:
-  instance:
-    hostname: GD-EUREKA                    # 도커 컨테이너명과 일치시킴
-  client:
-    register-with-eureka: false
-    fetch-registry: false
-  service-url:
-    defaultZone: http://server:${service.port}/eureka/

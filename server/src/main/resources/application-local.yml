@@ -1,0 +1,16 @@
+spring:
+  config:
+    import:
+      - secrets.yml
+
+server:
+  port: ${service.port}
+
+eureka:
+  instance:
+    hostname: GD-EUREKA                    # 도커 컨테이너명과 일치시킴 | 로컬 실행의 경우, localhost
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+  service-url:                             # ❗로컬에서 필요한지 논의 필요
+    defaultZone: http://server:${service.port}/eureka/
