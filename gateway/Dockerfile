@@ -1,31 +1,31 @@
+# syntax=docker/dockerfile:1.7
+
 # ============================
 # 1) Build Stage
 # ============================
-FROM eclipse-temurin:17-jdk AS builder
-WORKDIR /app
+FROM gradle:8.7-jdk17 AS builder
+WORKDIR /workspace
 
-COPY gradlew .
-COPY gradle ./gradle
-COPY build.gradle .
-COPY settings.gradle .
-COPY src ./src
+COPY gradlew gradlew
+COPY gradle gradle
+COPY build.gradle settings.gradle ./
+COPY src src
 
 RUN chmod +x gradlew
-
-RUN ./gradlew bootJar
+RUN ./gradlew clean bootJar -x test
 
 # ============================
 # 2) Run Stage
 # ============================
-FROM eclipse-temurin:17-jre
+FROM eclipse-temurin:17-jre AS runtime
 WORKDIR /app
 
-# application.yaml 복사
-COPY src/main/resources/application.yaml ./application.yaml
-COPY src/main/resources/secrets.yaml ./secrets.yaml
+COPY --from=builder /workspace/build/libs/*.jar app.jar
 
-# jar 복사
-COPY --from=builder /app/build/libs/*.jar app.jar
-
+# 스프링 기본 8080
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+
+# 필요하면 compose에서 JAVA_OPTS로 넣기
+ENV JAVA_OPTS=""
+
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
