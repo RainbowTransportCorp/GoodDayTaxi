@@ -97,10 +97,6 @@
   </div>
 </div>
 
-<!-- 1️⃣ 공통 가드 -->
-<script src="/passenger/common/passenger-trip-guard.js"></script>
-
-<!-- 2️⃣ 스크립트 -->
 <script>
   const tripId = new URLSearchParams(location.search).get("tripId");
   const userUuid = localStorage.getItem("userUuid");
@@ -117,21 +113,59 @@
     window.location.href = `/api/v1/payments/tosspay/ready?tripId=${tripId}`;
   }
 
-  async function loadPaymentInfo() {
-    if (!tripId || !userUuid || !token) {
-      alert("잘못된 접근입니다.");
+  async function passengerTripGuardForCompleted() {
+    if (!token || !userUuid) {
+      alert("로그인이 필요합니다.");
       location.href = "/index.html";
       return;
     }
 
     try {
-      const res = await fetch(`/api/v1/payments?tripId=${tripId}`, {
-        headers
-      });
+      const res = await fetch("/api/v1/trips/passengers/active", { headers });
 
       if (!res.ok) {
-        throw new Error("결제 정보를 불러올 수 없습니다.");
+        console.error("trip 상태 조회 실패", res.status);
+        alert("운행 상태를 확인할 수 없습니다.");
+        location.href = "/passenger/dashboard/index.html";
+        return;
       }
+
+      const { data: trip } = await res.json();
+
+      // ⭐ 이 페이지는 ENDED 상태에서만 허용됨
+      if (trip.status !== "ENDED") {
+        if (trip.status === "READY") {
+          location.href = "/passenger/trips/ready.html";
+        } else if (trip.status === "STARTED") {
+          location.href = "/passenger/trips/active.html";
+        } else {
+          location.href = "/passenger/dashboard/index.html";
+        }
+        return;
+      }
+
+      // tripId가 일치하지 않으면 정상 처리 방해됨
+      if (trip.tripId !== tripId) {
+        alert("운행 정보가 일치하지 않습니다.");
+        location.href = "/passenger/dashboard/index.html";
+        return;
+      }
+
+      // guard 통과 → 결제 정보 조회
+      loadPaymentInfo();
+
+    } catch (e) {
+      console.error("guard 처리 실패", e);
+      alert("서버 응답을 확인할 수 없습니다.");
+      location.href = "/passenger/dashboard/index.html";
+    }
+  }
+
+  async function loadPaymentInfo() {
+    try {
+      const res = await fetch(`/api/v1/payments?tripId=${tripId}`, { headers });
+
+      if (!res.ok) throw new Error("결제 정보 조회 실패");
 
       const { data } = await res.json();
 
@@ -140,15 +174,14 @@
       document.getElementById("fare").textContent =
           `₩ ${Number(data.amount).toLocaleString()}`;
     } catch (e) {
-      console.error("결제 정보 조회 실패:", e);
+      console.error(e);
       alert("결제 정보를 불러올 수 없습니다.");
       location.href = "/passenger/dashboard/index.html";
     }
   }
 
   window.addEventListener("DOMContentLoaded", () => {
-    passengerTripGuard();   // ⭐ 가드 우선
-    loadPaymentInfo();      // ✅ 그 다음 결제 정보 조회
+    passengerTripGuardForCompleted();
   });
 </script>
 

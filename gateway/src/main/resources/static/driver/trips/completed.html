@@ -81,6 +81,12 @@
 <script>
   const token = localStorage.getItem("accessToken");
   const uuid = localStorage.getItem("userUuid");
+  const role = localStorage.getItem("role");
+
+  if (!token || !uuid || role !== "DRIVER") {
+    alert("로그인이 필요합니다.");
+    location.href = "/index.html";
+  }
 
   async function loadTripInfo() {
     try {
@@ -96,26 +102,27 @@
         throw new Error("운행 정보를 불러오지 못했습니다.");
       }
 
-      const json = await res.json();
-      const trip = json.data;
+      const { data: trip } = await res.json();
 
-      if (trip.status !== "ENDED") {
-        // 다른 상태면 해당 페이지로 이동
-        if (trip.status === "READY") {
-          location.href = "/driver/trips/ready.html";
-        } else if (trip.status === "STARTED") {
-          location.href = "/driver/trips/active.html";
-        } else {
-          location.href = "/driver/dashboard/index.html";
+      if (!trip || trip.status !== "ENDED") {
+        switch (trip?.status) {
+          case "READY":
+            location.href = "/driver/trips/ready.html";
+            return;
+          case "STARTED":
+            location.href = "/driver/trips/active.html";
+            return;
+          default:
+            location.href = "/driver/dashboard/index.html";
+            return;
         }
-        return;
       }
 
       document.getElementById("pickup").textContent = trip.pickupAddress ?? "-";
       document.getElementById("destination").textContent = trip.destinationAddress ?? "-";
 
     } catch (e) {
-      console.error(e);
+      console.error("운행 정보 오류:", e);
       alert("운행 정보를 불러오지 못했습니다.");
       location.href = "/driver/dashboard/index.html";
     }
