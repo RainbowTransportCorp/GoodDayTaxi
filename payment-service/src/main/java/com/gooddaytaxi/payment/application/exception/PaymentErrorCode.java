@@ -42,6 +42,7 @@ public enum PaymentErrorCode {
     PAYMENT_STATUS_INVALID(HttpStatus.CONFLICT, "P026", "현재 결제 상태에서는 요청한 작업을 수행할 수 없습니다"),
     DUPLICATE_PAYMENT_EXISTS(HttpStatus.CONFLICT, "P027", "이미 진행중인 결제 청구서가 있습니다"),
     COMPLETED_PAYMENT(HttpStatus.CONFLICT, "P028", "이미 완료된 결제 청구서가 있습니다"),
+    IDEMPOTENCY_CONFLICT(HttpStatus.CONFLICT, "P028", "이미 처리 중인 동일한 결제 요청이 있습니다"),
 
 
     //502 — BAD_GATEWAY

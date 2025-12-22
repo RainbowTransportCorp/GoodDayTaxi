@@ -65,6 +65,9 @@ dependencies {
     implementation 'org.springframework.kafka:spring-kafka'
     testImplementation 'org.springframework.kafka:spring-kafka-test'
 
+    // Spring Data Redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }

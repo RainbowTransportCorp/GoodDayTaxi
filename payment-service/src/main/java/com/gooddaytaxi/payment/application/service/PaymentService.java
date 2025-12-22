@@ -9,6 +9,7 @@ import com.gooddaytaxi.payment.application.port.out.core.ExternalPaymentPort;
 import com.gooddaytaxi.payment.application.port.out.core.PaymentCommandPort;
 import com.gooddaytaxi.payment.application.port.out.core.PaymentQueryPort;
 import com.gooddaytaxi.payment.application.port.out.event.PaymentEventCommandPort;
+import com.gooddaytaxi.payment.application.port.out.redis.RedisPort;
 import com.gooddaytaxi.payment.application.result.payment.*;
 import com.gooddaytaxi.payment.application.validator.PaymentValidator;
 import com.gooddaytaxi.payment.domain.entity.Payment;
@@ -25,6 +26,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -41,6 +43,7 @@ public class PaymentService {
     private final PaymentQueryPort paymentQueryPort;
     private final ExternalPaymentPort externalPaymentPort;
     private final PaymentEventCommandPort eventCommandPort;
+    private final RedisPort redisPort;
     private final PaymentReader paymentReader;
     private final PaymentFailureRecorder failureRecorder;
     private final PaymentValidator validator;
@@ -105,7 +108,7 @@ public class PaymentService {
 
     //토스페이 결제 승인
     @Transactional
-    public PaymentApproveResult approveTossPayment(PaymentTossPayCommand command, UUID userId, String role) {
+    public PaymentApproveResult approveTossPayment(PaymentTossPayCommand command, UUID userId, String role, String idempotencyKey) {
         log.info("TossPay External Confirm Payment requested: paymentKey={}, orderId={}, amount={}",
                 command.paymentKey(), command.orderId(), command.amount());
 
@@ -121,9 +124,12 @@ public class PaymentService {
         //결제 청구서 상태가 '결제 진행 중'인지 확인
         if(!(payment.getStatus() == PaymentStatus.IN_PROCESS)) throw new PaymentException(PaymentErrorCode.PAYMENT_STATUS_INVALID);
 
-
-        //멱등성 키 생성
-        UUID idempotencyKey = UUID.randomUUID();
+        //멱등성 키 확인
+        //멱등 선점: 같은 idempotencyKey 요청은 60초 동안 재시도 차단
+        String redisKey = "payment:idemp:" + idempotencyKey;
+        if (!redisPort.setIfAbsent(redisKey, "IN_PROGRESS", Duration.ofSeconds(60))) {
+            throw new PaymentException(PaymentErrorCode.IDEMPOTENCY_CONFLICT);
+        }
 
         //시도 횟수 계산
         int attemptNo = payment.getAttempts().size()+1;
@@ -131,7 +137,7 @@ public class PaymentService {
 
 
         //tosspay 결제 승인 요청
-        ExternalPaymentConfirmResult result = externalPaymentPort.confirm(idempotencyKey.toString(),
+        ExternalPaymentConfirmResult result = externalPaymentPort.confirm(idempotencyKey,
                 new ExternalPaymentConfirmCommand(command.paymentKey(), command.orderId(), command.amount()));
 
         //실패시 실패 기록 및 예외 던지기
@@ -149,6 +155,7 @@ public class PaymentService {
         //데이터 저장
         payment.addAttempt(attempt);
         payment.updateStatusToComplete();  //처리중에서 완료로 변경
+        redisPort.set(redisKey, "COMPLETED", Duration.ofMinutes(3));   //성공 시 COMPLETED로 마킹 후 3분 동안 재호출 방지
 
         log.info("TossPay Payment approved successfully for orderId={}, requestedAt={}, approveAt={}", command.orderId(), result.requestedAt(), result.approvedAt());
 
