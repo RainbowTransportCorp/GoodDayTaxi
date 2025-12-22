@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>운행 대기 중 | Good day Taxi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      margin: 0;
+      background: #f7f7fb;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+    }
+
+    .container {
+      max-width: 420px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    .title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .row {
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+
+    .label {
+      color: #777;
+    }
+
+    .value {
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    .status {
+      margin-top: 24px;
+      padding: 14px;
+      border-radius: 12px;
+      text-align: center;
+      font-weight: 700;
+      background: #8A5DF6;
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+<div class="container">
+  <div class="card">
+    <div class="title">🚕 기사님이 도착 중입니다</div>
+
+    <div class="row">
+      <div class="label">출발지</div>
+      <div class="value" id="pickup">-</div>
+    </div>
+
+    <div class="row">
+      <div class="label">도착지</div>
+      <div class="value" id="destination">-</div>
+    </div>
+
+    <div class="status" id="statusBox">
+      운행 대기 중
+    </div>
+  </div>
+</div>
+
+<script>
+  const TOKEN = localStorage.getItem("accessToken");
+  const UUID = localStorage.getItem("userUuid");
+
+  async function loadTrip() {
+    const res = await fetch("/api/v1/trips/passengers/active", {
+      headers: {
+        "Authorization": `Bearer ${TOKEN}`,
+        "X-User-UUID": UUID,
+        "X-User-Role": "PASSENGER"
+      }
+    });
+
+    // ✅ active trip 없음 → 정상 처리
+    if (res.status === 404 || res.status === 204) {
+      location.href = "/passenger/dispatches/index.html";
+      return;
+    }
+
+    // ❌ 진짜 서버 에러만
+    if (!res.ok) {
+      location.href = "/common/error.html";
+      return;
+    }
+
+    const { data: trip } = await res.json();
+
+    document.getElementById("pickup").textContent =
+        trip.pickupAddress ?? "-";
+    document.getElementById("destination").textContent =
+        trip.destinationAddress ?? "-";
+
+    switch (trip.status) {
+      case "READY":
+        // 이 페이지 유지
+        break;
+
+      case "STARTED":
+        location.href = "/passenger/trips/active.html";
+        break;
+
+      case "ENDED":
+        location.href =
+            `/passenger/trips/completed.html?tripId=${trip.id}`;
+        break;
+
+      default:
+        location.href = "/passenger/index.html";
+    }
+  }
+
+  loadTrip();
+  setInterval(loadTrip, 5000);
+</script>
+</body>
+</html>

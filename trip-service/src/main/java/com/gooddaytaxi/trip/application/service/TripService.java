@@ -6,6 +6,7 @@ import com.gooddaytaxi.trip.application.port.out.*;
 import com.gooddaytaxi.trip.application.result.*;
 import com.gooddaytaxi.trip.domain.model.Trip;
 import com.gooddaytaxi.trip.domain.model.enums.TripStatus;
+import com.gooddaytaxi.trip.domain.model.enums.UserRole;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,8 @@ public class TripService {
     private final LoadTripsByDriverPort loadTripsByDriverPort;
     private final AppendTripEventPort appendTripEventPort;
     private final TripLocationStatePort tripLocationStatePort;
+    private final LoadActiveTripByDriverPort loadActiveTripByDriverPort;
+    private final LoadActiveTripByPassengerPort loadActiveTripByPassengerPort;
 
 
     @Transactional
@@ -264,7 +267,32 @@ public class TripService {
     }
 
 
+    @Transactional
+    public TripItem getActiveTripByPassenger(UUID passengerId, UserRole role) {
 
+        Trip trip = loadActiveTripByPassengerPort
+            .loadActiveTripByPassengerId(passengerId)
+            .orElseThrow(() ->
+                new EntityNotFoundException(
+                    "Active trip not found for passengerId=" + passengerId
+                )
+            );
 
+        return TripItem.from(trip);
+    }
+
+    @Transactional
+    public TripItem getActiveTripByDriver(UUID driverId, UserRole role) {
+
+        Trip trip = loadActiveTripByDriverPort
+            .loadActiveTripByDriverId(driverId)
+            .orElseThrow(() ->
+                new EntityNotFoundException(
+                    "Active trip not found for driverId=" + driverId
+                )
+            );
+
+        return TripItem.from(trip);
+    }
 
 }
