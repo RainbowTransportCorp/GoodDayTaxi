@@ -131,10 +131,7 @@
     // 🔀 상태별 이동
     switch (trip.status) {
       case "READY":
-        // 이미 active 페이지면 아무 것도 안 함
-        if (!location.pathname.endsWith("/ready.html")) {
-          location.href = "/driver/trips/ready.html";
-        }
+        //이 페이지 유지
         break;
 
       case "STARTED":

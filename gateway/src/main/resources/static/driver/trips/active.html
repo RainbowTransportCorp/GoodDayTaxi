@@ -127,7 +127,7 @@
       const json = await res.json();
       const trip = json.data;
 
-      currentTripId = trip.tripId;
+      currentTripId = trip.id;
 
       document.getElementById("pickup").textContent =
           trip.pickupAddress ?? "-";
@@ -159,9 +159,6 @@
           alert("운행이 취소되었습니다.");
           location.href = "/driver/dashboard/index.html";
           return;
-
-        default:
-          throw new Error("UNKNOWN_STATUS");
       }
 
     } catch (e) {
@@ -180,7 +177,7 @@
       }
     });
 
-    loadActiveTrip();
+    await loadActiveTrip();
   }
 
   loadActiveTrip();
