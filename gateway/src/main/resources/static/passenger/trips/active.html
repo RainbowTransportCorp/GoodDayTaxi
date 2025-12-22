@@ -78,6 +78,8 @@
     location.href = "/index.html";
   }
 
+  let pollingId = null;
+
   async function loadActiveTrip() {
     try {
       const res = await fetch("/api/v1/trips/passengers/active", {
@@ -88,54 +90,50 @@
         }
       });
 
-      if (!res.ok) throw new Error("ACTIVE_TRIP_NOT_FOUND");
+      if (!res.ok) throw new Error("NO_ACTIVE_TRIP");
 
       const json = await res.json();
       const trip = json.data;
 
-      // 기본 정보 표시
       document.getElementById("pickup").textContent =
           trip.pickupAddress ?? "-";
 
       document.getElementById("destination").textContent =
           trip.destinationAddress ?? "-";
 
-      // 상태 분기
-      switch (trip.tripStatus) {
+      const statusEl = document.getElementById("status");
 
+      switch (trip.status) {
         case "READY":
-          document.getElementById("status").textContent =
-              "기사 배차 완료 · 출발 대기 중";
+          statusEl.textContent = "기사 배차 완료 · 출발 대기 중";
           break;
 
         case "STARTED":
-          document.getElementById("status").textContent =
-              "운행 중";
+          statusEl.textContent = "운행 중";
           break;
 
         case "ENDED":
-          // 🔥 운행 종료 → 결제 페이지
+          clearInterval(pollingId);
           window.location.href =
-              `/passenger/trips/completed.html?tripId=${trip.tripId}`;
+              `/passenger/trips/completed.html?tripId=${trip.id}`;
           return;
 
         case "CANCELED":
+          clearInterval(pollingId);
           alert("운행이 취소되었습니다.");
           location.href = "/passenger/dashboard/index.html";
           return;
-
-        default:
-          throw new Error("UNKNOWN_TRIP_STATUS");
       }
 
     } catch (e) {
-      // active trip이 없거나 예외 발생
+      if (document.visibilityState === "hidden") return;
+      console.error(e);
       location.href = "/common/error.html";
     }
   }
 
   loadActiveTrip();
-  setInterval(loadActiveTrip, 5000);
+  pollingId = setInterval(loadActiveTrip, 5000);
 </script>
 </body>
 </html>

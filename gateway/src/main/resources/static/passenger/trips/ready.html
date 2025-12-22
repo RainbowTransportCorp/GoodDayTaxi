@@ -22,17 +22,17 @@
       background: white;
       border-radius: 20px;
       padding: 28px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
     }
 
     .title {
       font-size: 20px;
-      font-weight: 800;
-      margin-bottom: 16px;
+      font-weight: 700;
+      margin-bottom: 20px;
     }
 
     .row {
-      margin-bottom: 14px;
+      margin-bottom: 12px;
       font-size: 14px;
     }
 
@@ -51,22 +51,8 @@
       border-radius: 12px;
       text-align: center;
       font-weight: 700;
-      background: #EDE7FF;
-      color: #5B3EF0;
-    }
-
-    .loader {
-      margin: 20px auto 0;
-      width: 36px;
-      height: 36px;
-      border: 4px solid #eee;
-      border-top: 4px solid #8A5DF6;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+      background: #8A5DF6;
+      color: white;
     }
   </style>
 </head>
@@ -74,7 +60,7 @@
 <body>
 <div class="container">
   <div class="card">
-    <div class="title">🚕 기사님 도착 대기 중</div>
+    <div class="title">🚕 기사님이 도착 중입니다</div>
 
     <div class="row">
       <div class="label">출발지</div>
@@ -86,47 +72,60 @@
       <div class="value" id="destination">-</div>
     </div>
 
-    <div class="status">
-      기사님이 곧 도착합니다
-      <div class="loader"></div>
+    <div class="status" id="statusBox">
+      운행 대기 중
     </div>
   </div>
 </div>
 
 <script>
-  const token = localStorage.getItem("accessToken");
-  const userUuid = localStorage.getItem("userUuid");
+  const TOKEN = localStorage.getItem("accessToken");
+  const UUID = localStorage.getItem("userUuid");
 
   async function loadTrip() {
-    try {
-      const res = await fetch("/api/v1/trips/passengers/active", {
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "X-User-UUID": userUuid,
-          "X-User-Role": "PASSENGER"
-        }
-      });
-
-      if (!res.ok) throw new Error();
-
-      const json = await res.json();
-      const trip = json.data;
-
-      document.getElementById("pickup").textContent = trip.pickupAddress;
-      document.getElementById("destination").textContent = trip.destinationAddress;
-
-      // 🚦 상태 분기
-      if (trip.tripStatus === "STARTED") {
-        window.location.href = "/passenger/trips/active.html";
+    const res = await fetch("/api/v1/trips/passengers/active", {
+      headers: {
+        "Authorization": `Bearer ${TOKEN}`,
+        "X-User-UUID": UUID,
+        "X-User-Role": "PASSENGER"
       }
+    });
 
-      if (trip.tripStatus === "ENDED") {
-        window.location.href =
-            `/passenger/trips/completed.html?tripId=${trip.tripId}`;
-      }
+    // ✅ active trip 없음 → 정상 처리
+    if (res.status === 404 || res.status === 204) {
+      location.href = "/passenger/index.html";
+      return;
+    }
 
-    } catch {
+    // ❌ 진짜 서버 에러만
+    if (!res.ok) {
       location.href = "/common/error.html";
+      return;
+    }
+
+    const { data: trip } = await res.json();
+
+    document.getElementById("pickup").textContent =
+        trip.pickupAddress ?? "-";
+    document.getElementById("destination").textContent =
+        trip.destinationAddress ?? "-";
+
+    switch (trip.status) {
+      case "READY":
+        // 이 페이지 유지
+        break;
+
+      case "STARTED":
+        location.href = "/passenger/trips/active.html";
+        break;
+
+      case "ENDED":
+        location.href =
+            `/passenger/trips/completed.html?tripId=${trip.id}`;
+        break;
+
+      default:
+        location.href = "/passenger/index.html";
     }
   }
 

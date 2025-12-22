@@ -99,67 +99,62 @@
   const token = localStorage.getItem("accessToken");
   const userUuid = localStorage.getItem("userUuid");
 
-  let currentTripId = null;
-
   async function loadTrip() {
-    try {
-      const res = await fetch("/api/v1/trips/passengers/active", {
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "X-User-UUID": userUuid,
-          "X-User-Role": "PASSENGER"
-        }
-      });
-
-      if (!res.ok) throw new Error();
-
-      const { data: trip } = await res.json();
-
-      // 상태별 페이지 이동
-      if (trip.tripStatus === "READY") {
-        // 운행 대기
-        location.href = "/passenger/trips/ready.html";
-      }
-
-      if (trip.tripStatus === "STARTED") {
-        // 운행 중
-        location.href = "/passenger/trips/active.html";
-      }
-
-      if (trip.tripStatus === "ENDED") {
-        // 결제 페이지
-        location.href =
-            `/passenger/trips/completed.html?tripId=${trip.tripId}`;
-      }
-
-    } catch {
-      // active trip 없음
-      location.href = "/passenger/index.html";
-    }
-  }
-
-
-  async function startTrip() {
-    if (!currentTripId) return;
-
-    const res = await fetch(`/api/v1/trips/${currentTripId}/start`, {
-      method: "PUT",
+    const res = await fetch("/api/v1/trips/drivers/active", {
       headers: {
         "Authorization": `Bearer ${token}`,
-        "x-user-uuid": userUuid
+        "X-User-UUID": userUuid,
+        "X-User-Role": "DRIVER"
       }
     });
 
-    if (!res.ok) {
-      alert("운행 시작 실패");
+    // ✅ active trip 없음 → 정상 처리
+    if (res.status === 404 || res.status === 204) {
+      location.href = "driver/dispatches/index.html";
       return;
     }
 
-    location.href = "/driver/trips/active.html";
+    // ❌ 진짜 에러만 처리
+    if (!res.ok) {
+      location.href = "/common/error.html";
+      return;
+    }
+
+    const { data: trip } = await res.json();
+
+    // 정보 표시
+    document.getElementById("pickup").textContent =
+        trip.pickupAddress ?? "-";
+    document.getElementById("destination").textContent =
+        trip.destinationAddress ?? "-";
+
+    // 🔀 상태별 이동
+    switch (trip.status) {
+      case "READY":
+        // 이미 active 페이지면 아무 것도 안 함
+        if (!location.pathname.endsWith("/ready.html")) {
+          location.href = "/driver/trips/ready.html";
+        }
+        break;
+
+      case "STARTED":
+        location.href = "/driver/trips/active.html";
+        break;
+
+      case "ENDED":
+        location.href =
+            `/driver/trips/completed.html?tripId=${trip.id}`;
+        break;
+
+      default:
+        // CREATED, CANCELED 등
+        location.href = "/driver/index.html";
+    }
   }
 
   loadTrip();
   setInterval(loadTrip, 5000);
 </script>
+
 </body>
 </html>

@@ -90,7 +90,7 @@
 
     <div class="status" id="status">상태 확인 중...</div>
 
-    <!-- READY 상태일 때만 노출 -->
+    <!-- READY 상태일 때만 노출  / 이 부분에 레디 말고 스타티드에 운행완료 버튼 나오는 것도 추가해야함 -->
     <button
         id="startBtn"
         class="btn btn-start"
@@ -138,7 +138,7 @@
       const statusEl = document.getElementById("status");
       const startBtn = document.getElementById("startBtn");
 
-      switch (trip.tripStatus) {
+      switch (trip.status) {
 
         case "READY":
           statusEl.textContent = "배차 완료 · 출발 대기";
@@ -152,7 +152,7 @@
 
         case "ENDED":
           window.location.href =
-              `/driver/trips/completed.html?tripId=${trip.tripId}`;
+              `/driver/trips/completed.html?tripId=${trip.id}`;
           return;
 
         case "CANCELED":
