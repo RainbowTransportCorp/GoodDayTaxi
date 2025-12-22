@@ -822,12 +822,12 @@ public class DispatchService {
 
 ### **개발팀 소개**
 
-| 역할     | 이름  | 담당 영역            | GitHub                                   |
-|--------|-----|------------------|------------------------------------------|
-| **팀장** | 진주양 | DisPatch Service | [@wooxexn](https://github.com/wooxexn)   |
+| 역할     | 이름  | 담당 영역            | GitHub                            |
+|--------|-----|------------------|-----------------------------------|
+| **팀장** | 진주양 | DisPatch Service | [@juyangjin](https://github.com/juyangjin)   |
 | **부팀장** | 이호준 | Trip Service     | [@jake8771](https://github.com/jake8771) |
-| **팀원** | 고민정 | Support Service  | [@minjko](https://github.com/minjko)     |
+| **팀원** | 고민정 | Support Service  | [@minjko](https://github.com/minjko) |
 | **팀원** | 김진비 | Payment Service  | [@wlsql852](https://github.com/wlsql852) |
-| **팀원** | 전우선 | Account Service  | [@wooxexn](https://github.com/wooxexn)   |
+| **팀원** | 전우선 | Account Service  | [@wooxexn](https://github.com/wooxexn) |
 
 ---
