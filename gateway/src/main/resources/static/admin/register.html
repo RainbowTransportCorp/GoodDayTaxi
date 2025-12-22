@@ -146,8 +146,8 @@
     </div>
 
     <div class="form-group">
-      <label for="phoneNumber">전화번호</label>
-      <input type="text" id="phoneNumber" required />
+      <label for="phone">전화번호</label>
+      <input type="text" id="phone" required />
     </div>
 
     <div class="form-group">
@@ -169,27 +169,30 @@
 </div>
 
 <script>
+  const BASE_URL = "/api/v1/auth/signup";
+
   document.getElementById("adminRegisterForm").addEventListener("submit", async function (e) {
     e.preventDefault();
 
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-    const name = document.getElementById("name").value;
-    const phoneNumber = document.getElementById("phoneNumber").value;
-    const slackId = document.getElementById("slackId").value;
-    const role = document.getElementById("role").value;
-
-    const payload = {
-      email, password, name, phoneNumber, slackId, role
+    const body = {
+      email: document.getElementById("email").value,
+      password: document.getElementById("password").value,
+      name: document.getElementById("name").value,
+      phone_number: document.getElementById("phone").value,
+      slack_id: document.getElementById("slackId").value || null,
+      role: document.getElementById("role").value,
+      vehicle_number: null,
+      vehicle_type: null,
+      vehicle_color: null
     };
 
     try {
-      const res = await fetch("/api/v1/auth/signup", {
+      const res = await fetch(BASE_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(body)
       });
 
       const json = await res.json();
@@ -202,7 +205,7 @@
       alert("관리자 등록이 완료되었습니다.");
       location.href = "/index.html";
     } catch (err) {
-      console.error(err);
+      console.error("에러 발생", err);
       alert("에러 발생. 다시 시도해주세요.");
     }
   });
