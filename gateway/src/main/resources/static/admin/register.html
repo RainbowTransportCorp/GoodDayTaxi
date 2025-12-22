@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>관리자 등록 | Good Day Taxi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    /* 기본 박스 사이징 */
+    * {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #5c3ec8;
+      --primary-dark: #3f2c96;
+      --gradient-bg: linear-gradient(135deg, #e6e0ff 40%, #f4f1ff 100%);
+      --radius: 20px;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      background: var(--gradient-bg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    .signup-container {
+      width: 90%;
+      max-width: 460px;
+      margin: 60px auto;
+      padding: 36px 32px 48px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: var(--radius);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+    }
+
+    .brand {
+      text-align: center;
+      font-size: 30px;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .subtitle {
+      text-align: center;
+      margin-top: 6px;
+      margin-bottom: 28px;
+      font-size: 15px;
+      color: #666;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    label {
+      font-size: 14px;
+      font-weight: 600;
+      color: #444;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 14px;
+      border-radius: 14px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+      background: #f9f9fb;
+      transition: 0.2s;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--primary);
+      background: #fff;
+      box-shadow: 0 0 8px rgba(92, 62, 200, 0.3);
+      outline: none;
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 16px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+      box-shadow: 0 6px 18px rgba(92, 62, 200, 0.35);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(92, 62, 200, 0.45);
+    }
+
+    .link {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .link a {
+      color: var(--primary);
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    @media (max-width: 480px) {
+      .signup-container {
+        padding: 28px;
+        border-radius: 14px;
+      }
+
+      .brand {
+        font-size: 26px;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="signup-container">
+  <div class="brand">Good Day Admin</div>
+  <div class="subtitle">관리자 계정을 등록합니다</div>
+
+  <form id="adminRegisterForm">
+    <div class="form-group">
+      <label for="email">이메일</label>
+      <input type="email" id="email" required />
+    </div>
+
+    <div class="form-group">
+      <label for="password">비밀번호</label>
+      <input type="password" id="password" required />
+    </div>
+
+    <div class="form-group">
+      <label for="name">이름</label>
+      <input type="text" id="name" required />
+    </div>
+
+    <div class="form-group">
+      <label for="phoneNumber">전화번호</label>
+      <input type="text" id="phoneNumber" required />
+    </div>
+
+    <div class="form-group">
+      <label for="slackId">슬랙 ID</label>
+      <input type="text" id="slackId" required />
+    </div>
+
+    <div class="form-group">
+      <label for="role">권한</label>
+      <select id="role" required>
+        <option value="">-- 선택 --</option>
+        <option value="ADMIN">일반 관리자</option>
+        <option value="MASTER_ADMIN">마스터 관리자</option>
+      </select>
+    </div>
+
+    <button type="submit" class="btn-primary">등록하기</button>
+  </form>
+</div>
+
+<script>
+  document.getElementById("adminRegisterForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    const name = document.getElementById("name").value;
+    const phoneNumber = document.getElementById("phoneNumber").value;
+    const slackId = document.getElementById("slackId").value;
+    const role = document.getElementById("role").value;
+
+    const payload = {
+      email, password, name, phoneNumber, slackId, role
+    };
+
+    try {
+      const res = await fetch("/api/v1/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const json = await res.json();
+
+      if (!json.success) {
+        alert(json.message || "회원가입 실패");
+        return;
+      }
+
+      alert("관리자 등록이 완료되었습니다.");
+      location.href = "/index.html";
+    } catch (err) {
+      console.error(err);
+      alert("에러 발생. 다시 시도해주세요.");
+    }
+  });
+</script>
+</body>
+</html>

@@ -79,24 +79,25 @@
 </div>
 
 <script>
+  const tripId = new URLSearchParams(location.search).get("tripId");
   const token = localStorage.getItem("accessToken");
   const uuid = localStorage.getItem("userUuid");
   const role = localStorage.getItem("role");
 
-  if (!token || !uuid || role !== "DRIVER") {
+  if (!token || !uuid || role !== "DRIVER" || !tripId) {
     alert("로그인이 필요합니다.");
     location.href = "/index.html";
   }
 
+  const headers = {
+    "Authorization": `Bearer ${token}`,
+    "X-User-UUID": uuid,
+    "X-User-Role": "DRIVER"
+  };
+
   async function loadTripInfo() {
     try {
-      const res = await fetch("/api/v1/trips/drivers/active", {
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "X-User-UUID": uuid,
-          "X-User-Role": "DRIVER"
-        }
-      });
+      const res = await fetch(`/api/v1/trips/${tripId}`, { headers });
 
       if (!res.ok) {
         throw new Error("운행 정보를 불러오지 못했습니다.");
@@ -104,18 +105,20 @@
 
       const { data: trip } = await res.json();
 
-      if (!trip || trip.status !== "ENDED") {
-        switch (trip?.status) {
-          case "READY":
-            location.href = "/driver/trips/ready.html";
-            return;
-          case "STARTED":
-            location.href = "/driver/trips/active.html";
-            return;
-          default:
-            location.href = "/driver/dashboard/index.html";
-            return;
-        }
+      // ENDED 상태가 아니면 리디렉션
+      switch (trip.status) {
+        case "READY":
+          location.href = "/driver/trips/ready.html";
+          return;
+        case "STARTED":
+          location.href = "/driver/trips/active.html";
+          return;
+        case "ENDED":
+          // 정상, 아래에서 처리
+          break;
+        default:
+          location.href = "/driver/dashboard/index.html";
+          return;
       }
 
       document.getElementById("pickup").textContent = trip.pickupAddress ?? "-";
@@ -130,5 +133,6 @@
 
   loadTripInfo();
 </script>
+
 </body>
 </html>

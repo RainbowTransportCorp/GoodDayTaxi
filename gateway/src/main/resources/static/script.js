@@ -13,11 +13,10 @@ async function login() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-            email: email,
+            email,
             password: pw
         })
     });
-
 
     const json = await res.json();
 
@@ -35,123 +34,112 @@ async function login() {
 
     switch (data.role) {
         case "PASSENGER":
-            await redirectPassengerByTripState();
+            await redirectPassengerAfterLogin();
             break;
+
         case "DRIVER":
-            await redirectDriverByTripState();
+            await redirectDriverAfterLogin();
             break;
+
         case "ADMIN":
         case "MASTER_ADMIN":
             location.href = "/admin/dashboard/index.html";
             break;
+
         default:
             alert("알 수 없는 역할입니다.");
     }
 }
 
-/* ================= PASSENGER ================= */
-async function redirectPassengerByTripState() {
+/* =================================================
+   PASSENGER: 로그인 후 상태 복구 (핵심)
+================================================= */
+async function redirectPassengerAfterLogin() {
     const token = localStorage.getItem("accessToken");
     const uuid = localStorage.getItem("userUuid");
 
+    const headers = {
+        "Authorization": `Bearer ${token}`,
+        "X-User-UUID": uuid,
+        "X-User-Role": "PASSENGER"
+    };
+
     try {
-        const res = await fetch("/api/v1/trips/passengers/active", {
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "X-User-UUID": uuid,
-                "X-User-Role": "PASSENGER"
+        /* 1️⃣ 먼저 active 운행 확인 */
+        const tripRes = await fetch("/api/v1/trips/passengers/active", { headers });
+
+        if (tripRes.ok) {
+            const { data: trip } = await tripRes.json();
+
+            if (trip?.tripId) {
+                switch (trip.status) {
+                    case "READY":
+                        location.href = `/passenger/trips/ready.html?tripId=${trip.tripId}`;
+                        return;
+                    case "STARTED":
+                        location.href = `/passenger/trips/active.html?tripId=${trip.tripId}`;
+                        return;
+                }
             }
-        });
-
-        if (res.status === 404 || res.status === 204) {
-            location.href = "/passenger/dashboard/index.html";
-            return;
         }
 
-        if (res.status === 401 || res.status === 403) {
-            alert("세션이 만료되었습니다. 다시 로그인해주세요.");
-            location.href = "/index.html";
-            return;
+        /* 2️⃣ active 없음 → 미결제 ENDED 운행 있는지 결제 조회 */
+        const paymentRes = await fetch("/api/v1/payments/latest", { headers });
+
+        // 💡 이 API는
+        // - 미결제 ENDED 운행 있으면 200 + tripId
+        // - 없으면 404 / 204 라고 가정
+        if (paymentRes.ok) {
+            const { data: payment } = await paymentRes.json();
+
+            if (payment?.tripId && payment.status !== "PAID") {
+                location.href = `/passenger/trips/completed.html?tripId=${payment.tripId}`;
+                return;
+            }
         }
 
-        if (!res.ok) {
-            throw new Error("PASSENGER_TRIP_SYNC_FAIL");
-        }
-
-        const { data: trip } = await res.json();
-
-        if (!trip?.tripId) {
-            console.warn("응답에 tripId 없음", trip);
-            alert("운행 정보가 올바르지 않습니다.");
-            location.href = "/passenger/dashboard/index.html";
-            return;
-        }
-
-        switch (trip.status) {
-            case "READY":
-                location.href = `/passenger/trips/ready.html?tripId=${trip.tripId}`;
-                break;
-            case "STARTED":
-                location.href = `/passenger/trips/active.html?tripId=${trip.tripId}`;
-                break;
-            case "ENDED":
-                location.href = `/passenger/trips/completed.html?tripId=${trip.tripId}`;
-                break;
-            default:
-                console.warn("알 수 없는 trip status", trip.status);
-                location.href = "/passenger/dashboard/index.html";
-        }
+        /* 3️⃣ 아무 것도 없으면 대시보드 */
+        location.href = "/passenger/dashboard/index.html";
 
     } catch (e) {
-        console.error("승객 운행 상태 동기화 실패", e);
+        console.error("승객 로그인 후 상태 복구 실패", e);
         location.href = "/passenger/dashboard/index.html";
     }
 }
 
-/* ================= DRIVER ================= */
-async function redirectDriverByTripState() {
+/* =================================================
+   DRIVER: 로그인 후 상태 복구
+================================================= */
+async function redirectDriverAfterLogin() {
     const token = localStorage.getItem("accessToken");
     const uuid = localStorage.getItem("userUuid");
 
+    const headers = {
+        "Authorization": `Bearer ${token}`,
+        "X-User-UUID": uuid,
+        "X-User-Role": "DRIVER"
+    };
+
     try {
-        const res = await fetch("/api/v1/trips/drivers/active", {
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "X-User-UUID": uuid,
-                "X-User-Role": "DRIVER"
+        const res = await fetch("/api/v1/trips/drivers/active", { headers });
+
+        if (res.ok) {
+            const { data: trip } = await res.json();
+
+            switch (trip.status) {
+                case "READY":
+                    location.href = "/driver/trips/ready.html";
+                    return;
+                case "STARTED":
+                    location.href = "/driver/trips/active.html";
+                    return;
             }
-        });
-
-        if (res.status === 404 || res.status === 204) {
-            location.href = "/driver/dashboard/index.html";
-            return;
         }
 
-        if (res.status === 401 || res.status === 403) {
-            alert("세션이 만료되었습니다. 다시 로그인해주세요.");
-            location.href = "/index.html";
-            return;
-        }
-
-        if (!res.ok) {
-            throw new Error("DRIVER_TRIP_SYNC_FAIL");
-        }
-
-        const { data: trip } = await res.json();
-
-        switch (trip.status) {
-            case "READY":
-                location.href = "/driver/trips/ready.html";
-                break;
-            case "STARTED":
-                location.href = "/driver/trips/active.html";
-                break;
-            default:
-                location.href = "/driver/dashboard/index.html";
-        }
+        location.href = "/driver/dashboard/index.html";
 
     } catch (e) {
-        console.error("기사 운행 상태 동기화 실패", e);
+        console.error("기사 로그인 후 상태 복구 실패", e);
         location.href = "/driver/dashboard/index.html";
     }
 }

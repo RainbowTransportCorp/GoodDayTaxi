@@ -101,78 +101,51 @@
   const tripId = new URLSearchParams(location.search).get("tripId");
   const userUuid = localStorage.getItem("userUuid");
   const token = localStorage.getItem("accessToken");
-  const role = "PASSENGER";
+
+  if (!token || !userUuid || !tripId) {
+    alert("로그인이 필요합니다.");
+    location.href = "/index.html";
+  }
 
   const headers = {
     "Authorization": `Bearer ${token}`,
     "X-User-UUID": userUuid,
-    "X-User-Role": role
+    "X-User-Role": "PASSENGER"
   };
 
   function goToPayment() {
     window.location.href = `/api/v1/payments/tosspay/ready?tripId=${tripId}`;
   }
 
-  async function passengerTripGuardForCompleted() {
-    if (!token || !userUuid) {
-      alert("로그인이 필요합니다.");
-      location.href = "/index.html";
-      return;
-    }
-
-    try {
-      const res = await fetch("/api/v1/trips/passengers/active", { headers });
-
-      if (!res.ok) {
-        console.error("trip 상태 조회 실패", res.status);
-        alert("운행 상태를 확인할 수 없습니다.");
-        location.href = "/passenger/dashboard/index.html";
-        return;
-      }
-
-      const { data: trip } = await res.json();
-
-      // ⭐ 이 페이지는 ENDED 상태에서만 허용됨
-      if (trip.status !== "ENDED") {
-        if (trip.status === "READY") {
-          location.href = "/passenger/trips/ready.html";
-        } else if (trip.status === "STARTED") {
-          location.href = "/passenger/trips/active.html";
-        } else {
-          location.href = "/passenger/dashboard/index.html";
-        }
-        return;
-      }
-
-      // tripId가 일치하지 않으면 정상 처리 방해됨
-      if (trip.tripId !== tripId) {
-        alert("운행 정보가 일치하지 않습니다.");
-        location.href = "/passenger/dashboard/index.html";
-        return;
-      }
-
-      // guard 통과 → 결제 정보 조회
-      loadPaymentInfo();
-
-    } catch (e) {
-      console.error("guard 처리 실패", e);
-      alert("서버 응답을 확인할 수 없습니다.");
-      location.href = "/passenger/dashboard/index.html";
-    }
-  }
-
   async function loadPaymentInfo() {
     try {
       const res = await fetch(`/api/v1/payments?tripId=${tripId}`, { headers });
 
-      if (!res.ok) throw new Error("결제 정보 조회 실패");
+      // ❌ 결제 정보 없음 → 잘못된 접근
+      if (res.status === 404 || res.status === 204) {
+        alert("결제 정보를 찾을 수 없습니다.");
+        location.href = "/passenger/dashboard/index.html";
+        return;
+      }
+
+      if (!res.ok) {
+        throw new Error("PAYMENT_FETCH_FAIL");
+      }
 
       const { data } = await res.json();
 
-      document.getElementById("pickup").textContent = data.pickupAddress ?? "-";
-      document.getElementById("destination").textContent = data.destinationAddress ?? "-";
+      document.getElementById("pickup").textContent =
+          data.pickupAddress ?? "-";
+      document.getElementById("destination").textContent =
+          data.destinationAddress ?? "-";
       document.getElementById("fare").textContent =
           `₩ ${Number(data.amount).toLocaleString()}`;
+
+      // 이미 결제 완료면 success로
+      if (data.status === "PAID") {
+        location.href = `/passenger/payments/success.html?tripId=${tripId}`;
+      }
+
     } catch (e) {
       console.error(e);
       alert("결제 정보를 불러올 수 없습니다.");
@@ -180,10 +153,9 @@
     }
   }
 
-  window.addEventListener("DOMContentLoaded", () => {
-    passengerTripGuardForCompleted();
-  });
+  window.addEventListener("DOMContentLoaded", loadPaymentInfo);
 </script>
+
 
 </body>
 </html>
