@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>운행 대기 중 | Good day Taxi</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
   <style>
     body {
       margin: 0;
@@ -56,7 +55,6 @@
     }
   </style>
 </head>
-
 <body>
 <div class="container">
   <div class="card">
@@ -72,65 +70,61 @@
       <div class="value" id="destination">-</div>
     </div>
 
-    <div class="status" id="statusBox">
-      운행 대기 중
-    </div>
+    <div class="status" id="statusBox">운행 대기 중</div>
   </div>
 </div>
 
+<!-- 공통 trip 상태 가드 -->
+<script src="/passenger/common/passenger-trip-guard.js"></script>
+
 <script>
-  const TOKEN = localStorage.getItem("accessToken");
-  const UUID = localStorage.getItem("userUuid");
+  // ================= 기본 정보 =================
+  const tripId = new URLSearchParams(location.search).get("tripId");
+  const userUuid = localStorage.getItem("userUuid");
+  const token = localStorage.getItem("accessToken");
 
-  async function loadTrip() {
-    const res = await fetch("/api/v1/trips/passengers/active", {
-      headers: {
-        "Authorization": `Bearer ${TOKEN}`,
-        "X-User-UUID": UUID,
-        "X-User-Role": "PASSENGER"
-      }
-    });
-
-    // ✅ active trip 없음 → 정상 처리
-    if (res.status === 404 || res.status === 204) {
-      location.href = "/passenger/dispatches/index.html";
-      return;
-    }
-
-    // ❌ 진짜 서버 에러만
-    if (!res.ok) {
-      location.href = "/common/error.html";
-      return;
-    }
-
-    const { data: trip } = await res.json();
-
-    document.getElementById("pickup").textContent =
-        trip.pickupAddress ?? "-";
-    document.getElementById("destination").textContent =
-        trip.destinationAddress ?? "-";
-
-    switch (trip.status) {
-      case "READY":
-        // 이 페이지 유지
-        break;
-
-      case "STARTED":
-        location.href = "/passenger/trips/active.html";
-        break;
-
-      case "ENDED":
-        location.href =
-            `/passenger/trips/completed.html?tripId=${trip.id}`;
-        break;
-
-      default:
-        location.href = "/passenger/index.html";
-    }
+  if (!tripId || !userUuid || !token) {
+    alert("잘못된 접근입니다.");
+    location.href = "/index.html";
   }
 
-  loadTrip();
-  setInterval(loadTrip, 5000);
+  const defaultHeaders = {
+    "Authorization": `Bearer ${token}`,
+    "X-User-UUID": userUuid,
+    "X-User-Role": "PASSENGER"
+  };
+
+  // ================= 상태 polling =================
+  function pollTripStatus() {
+    setInterval(async () => {
+      try {
+        const res = await fetch("/api/v1/trips/passengers/active", {
+          headers: defaultHeaders
+        });
+
+        if (!res.ok) return;
+
+        const { data: trip } = await res.json();
+
+        if (trip.status === "STARTED") {
+          location.href = "/passenger/trips/active.html";
+        }
+      } catch (e) {
+        console.error("운행 상태 확인 중 오류", e);
+      }
+    }, 3000); // 3초마다 체크
+  }
+
+  // ================= Toss 결제 이동 =================
+  function goToPayment() {
+    window.location.href = `/api/v1/payments/tosspay/ready?tripId=${tripId}`;
+  }
+
+  // ================= 초기 실행 =================
+  window.addEventListener("DOMContentLoaded", () => {
+    passengerTripGuard(); // 공통 가드
+    pollTripStatus();     // 상태 전환 감지
+  });
 </script>
 </body>
 </html>

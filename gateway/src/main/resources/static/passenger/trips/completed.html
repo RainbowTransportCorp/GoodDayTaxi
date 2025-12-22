@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>결제하기 | Good day Taxi</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
   <style>
     body {
       margin: 0;
@@ -98,47 +97,59 @@
   </div>
 </div>
 
+<!-- 1️⃣ 공통 가드 -->
+<script src="/passenger/common/passenger-trip-guard.js"></script>
+
+<!-- 2️⃣ 스크립트 -->
 <script>
   const tripId = new URLSearchParams(location.search).get("tripId");
   const userUuid = localStorage.getItem("userUuid");
+  const token = localStorage.getItem("accessToken");
   const role = "PASSENGER";
 
-  if (!tripId) {
-    alert("잘못된 접근입니다.");
-    location.href = "../../index.html";
+  const headers = {
+    "Authorization": `Bearer ${token}`,
+    "X-User-UUID": userUuid,
+    "X-User-Role": role
+  };
+
+  function goToPayment() {
+    window.location.href = `/api/v1/payments/tosspay/ready?tripId=${tripId}`;
   }
 
   async function loadPaymentInfo() {
-    // 👉 Payment 담당자가 만든 API 기준
-    // (운행 요금 조회 or 결제 생성 전 단계)
-    const res = await fetch(`/api/v1/payments?tripId=${tripId}`, {
-      headers: {
-        "X-User-UUID": userUuid,
-        "X-User-Role": role
-      }
-    });
-
-    if (!res.ok) {
-      alert("결제 정보를 불러오지 못했습니다.");
+    if (!tripId || !userUuid || !token) {
+      alert("잘못된 접근입니다.");
+      location.href = "/index.html";
       return;
     }
 
-    const json = await res.json();
-    const data = json.data;
+    try {
+      const res = await fetch(`/api/v1/payments?tripId=${tripId}`, {
+        headers
+      });
 
-    document.getElementById("pickup").textContent = data.pickupAddress ?? "-";
-    document.getElementById("destination").textContent = data.destinationAddress ?? "-";
-    document.getElementById("fare").textContent =
-        `₩ ${data.amount.toLocaleString()}`;
+      if (!res.ok) {
+        throw new Error("결제 정보를 불러올 수 없습니다.");
+      }
+
+      const { data } = await res.json();
+
+      document.getElementById("pickup").textContent = data.pickupAddress ?? "-";
+      document.getElementById("destination").textContent = data.destinationAddress ?? "-";
+      document.getElementById("fare").textContent =
+          `₩ ${Number(data.amount).toLocaleString()}`;
+    } catch (e) {
+      console.error("결제 정보 조회 실패:", e);
+      alert("결제 정보를 불러올 수 없습니다.");
+      location.href = "/passenger/dashboard/index.html";
+    }
   }
 
-  function goToPayment() {
-    // 👉 이때만 Toss 결제로 이동
-    window.location.href =
-        `/api/v1/payments/tosspay/ready?tripId=${tripId}`;
-  }
-
-  loadPaymentInfo();
+  window.addEventListener("DOMContentLoaded", () => {
+    passengerTripGuard();   // ⭐ 가드 우선
+    loadPaymentInfo();      // ✅ 그 다음 결제 정보 조회
+  });
 </script>
 
 </body>

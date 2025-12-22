@@ -33,35 +33,45 @@ async function initPassengerPage() {
             }
         });
 
-        if (res.ok) {
-            const json = await res.json();
-            const trip = json.data;
-
-            // 운행 대기
-            if (trip.status === "READY") {
-                location.href = "/passenger/trips/ready.html";
-                return;
-            }
-
-            // 운행 중
-            if (trip.status === "STARTED") {
-                location.href = "/passenger/trips/active.html";
-                return;
-            }
-
-            // 운행 종료
-            if (trip.status === "ENDED") {
-                location.href =
-                    `/passenger/trips/completed.html?tripId=${trip.id}`;
-                return;
-            }
+        // ✅ 운행 없으면 그냥 콜 화면 유지
+        if (res.status === 404 || res.status === 204) {
+            show("create-section");
+            return;
         }
-    } catch (e) {
-        // active trip 없음 → 그냥 콜 생성 화면
-    }
 
-    show("create-section");
+        if (!res.ok) {
+            const errorText = await res.text();
+            console.error("운행 상태 조회 실패:", res.status, errorText);
+
+            // 토큰 만료면 로그인 페이지로
+            if (res.status === 401 || res.status === 403) {
+                alert("로그인이 만료되었습니다. 다시 로그인해주세요.");
+                location.href = "/index.html";
+                return;
+            }
+
+            // 서버 오류는 사용자에게 안내 후 홈으로
+            alert("운행 상태를 확인할 수 없습니다. 잠시 후 다시 시도해주세요.");
+            location.href = "/passenger/dashboard/index.html";
+            return;
+        }
+
+        const { data: trip } = await res.json();
+
+        if (trip.status === "READY") {
+            location.href = "/passenger/trips/ready.html";
+        } else if (trip.status === "STARTED") {
+            location.href = "/passenger/trips/active.html";
+        } else if (trip.status === "ENDED") {
+            location.href =
+                `/passenger/trips/completed.html?tripId=${trip.tripId}`;
+        }
+
+    } catch {
+        show("create-section");
+    }
 }
+
 
 /* ================= 콜 생성 ================= */
 async function createDispatch() {
@@ -96,49 +106,28 @@ async function createDispatch() {
         "기사님을 찾고 있습니다…";
 
     show("waiting-section");
-    startDispatchPolling();
+    startTripPolling();
 }
 
-/* ================= 배차 상태 폴링 ================= */
-function startDispatchPolling() {
+function startTripPolling() {
     pollingTimer = setInterval(async () => {
-        try {
-            const res = await fetch(`${BASE_URL}/${currentDispatchId}`, {
-                headers: { "Authorization": `Bearer ${token}` }
-            });
-
-            if (!res.ok) return;
-
-            const json = await res.json();
-            if (!json.success) return;
-
-            const status = json.data.status;
-
-            // 🚕 배차 대기
-            if (["REQUESTED", "ASSIGNING", "ASSIGNED"].includes(status)) {
-                show("waiting-section");
-                return;
+        const res = await fetch(TRIP_ACTIVE_URL, {
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "X-User-UUID": userUuid,
+                "X-User-Role": "PASSENGER"
             }
+        });
 
-            // 🚕 기사 수락 → Trip 생성 대기 / 완료
-            if (["ACCEPTED", "TRIP_REQUEST", "TRIP_READY"].includes(status)) {
+        if (res.ok) {
+            const { data: trip } = await res.json();
+
+            if (trip.status === "READY") {
                 clearInterval(pollingTimer);
                 location.href = "/passenger/trips/ready.html";
-                return;
             }
-
-            // ❌ 종료
-            if (["TIMEOUT", "CANCELED"].includes(status)) {
-                clearInterval(pollingTimer);
-                alert("배차가 종료되었습니다.");
-                backToHome();
-            }
-
-        } catch (e) {
-            clearInterval(pollingTimer);
-            location.href = "/common/error.html";
         }
-    }, 3000);
+    }, 3000); // 3초마다 체크
 }
 
 /* ================= 콜 취소 ================= */

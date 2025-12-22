@@ -122,8 +122,6 @@
         }
       });
 
-      if (!res.ok) throw new Error("NO_ACTIVE_TRIP");
-
       const json = await res.json();
       const trip = json.data;
 
