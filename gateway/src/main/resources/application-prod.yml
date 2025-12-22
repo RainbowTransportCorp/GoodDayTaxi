@@ -1,0 +1,92 @@
+server:
+  port: ${GATEWAY_PORT:8080}
+
+spring:
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+
+      routes:
+
+        # ============================
+        # Account Service
+        # ============================
+        - id: account-service
+          uri: lb://account-service
+          predicates:
+            - Path=/api/v*/auth/**,/api/v*/users/**,/api/v*/drivers/**,/api/v*/admin/users/**,/internal/v*/account/**
+
+        # ============================
+        # Dispatch Service
+        # ============================
+        - id: dispatch-service
+          uri: lb://dispatch-service
+          predicates:
+            - Path=/api/v*/dispatches/**,/api/v*/admin/dispatches/**,/internal/v*/dispatches/**
+
+        # ============================
+        # Trip Service
+        # ============================
+        - id: trip-service
+          uri: lb://trip-service
+          predicates:
+            - Path=/api/v*/trips/**,/api/v*/policies/**,/api/v*/admin/trips/**,/internal/v*/trips/**
+
+        # ============================
+        # Payment Service
+        # ============================
+        - id: payment-service
+          uri: lb://payment-service
+          predicates:
+            - Path=/api/v*/payments/**,/api/v*/refunds/**,/api/v*/refund/requests/**,/api/v*/admin/payments/**,/api/v*/admin/refunds/**,/api/v*/admin/refund/requests/**,/internal/v*/payments/**
+
+        # ============================
+        # Support Service
+        # ============================
+        - id: support-service
+          uri: lb://support-service
+          predicates:
+            - Path=/api/v*/supports/**,/api/v*/admin/supports/**,/internal/v*/supports/**
+
+# ============================
+# Swagger (Gateway 통합)
+# ============================
+springdoc:
+  swagger-ui:
+    path: /docs
+    display-request-duration: true
+    urls:
+
+      - name: account-service
+        url: /api/v1/accounts/api-docs
+
+      - name: dispatch-service
+        url: /api/v1/dispatches/api-docs
+
+      - name: trip-service
+        url: /api/v1/trips/api-docs
+
+      - name: payment-service
+        url: /api/v1/payments/api-docs
+
+      - name: support-service
+        url: /api/v1/supports/api-docs
+
+
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_HOSTNAME:server}:${EUREKA_PORT:8080}/eureka/
+
+
+management:
+  zipkin:
+    tracing:
+      endpoint: http://zipkin:${ZIPKIN_PORT:9411}/api/v2/spans
+
+jwt:
+  secret-key: ${JWT_SECRET_KEY}

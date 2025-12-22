@@ -1,0 +1,102 @@
+server:
+  port: ${service.port}
+
+spring:
+  config:
+    import:
+      - secrets.yml
+  cloud:
+    gateway:
+      routes:
+        - id: account-service
+          uri: http://host.docker.internal:8201
+          predicates:
+            - Path=/api/v*/auth/**,/api/v*/users/**,/api/v*/drivers/**,/api/v*/admin/users/** ,/internal/v*/account/**,
+
+        - id: dispatch-service
+          uri: http://host.docker.internal:8202
+          predicates:
+            - Path=/api/v*/dispatches/**,/api/v*/admin/dispatches/**,/internal/v*/dispatches/**
+
+        - id: trip-service
+          uri: http://host.docker.internal:8203
+          predicates:
+            - Path=/api/v*/trips/**,/api/v*/policies/**,/api/v*/admin/trips/**,/internal/v*/trips/**
+
+        - id: payment-service
+          uri: http://host.docker.internal:8204
+          predicates:
+            - Path=/api/v*/payments/**,/api/v*/admin/payments/**,/internal/v*/payments/**,/api/v*/refunds/**,/api/v*/refund/requests/**,/api/v*/admin/refunds/**,/api/v*/admin/refund/requests/**
+
+        - id: support-service
+          uri: http://host.docker.internal:8205
+          predicates:
+            - Path=/api/v*/supports/**,/api/v*/admin/supports/**,/internal/v*/supports/**
+
+
+springdoc:
+  swagger-ui:
+    path: /docs
+    urls:
+
+      # -----------------------------
+      # Trip-service
+      # -----------------------------
+      - name: trip-service-v1
+        url: /api/v1/trips/api-docs
+      - name: trip-service-v2
+        url: /api/v2/trips/api-docs
+      - name: trip-service-v3
+        url: /api/v3/trips/api-docs
+
+      # -----------------------------
+      # Dispatch-service
+      # -----------------------------
+      - name: dispatch-service-v1
+        url: /api/v1/dispatches/api-docs
+      - name: dispatch-service-v2
+        url: /api/v2/dispatches/api-docs
+      - name: dispatch-service-v3
+        url: /api/v3/dispatches/api-docs
+
+      # -----------------------------
+      # Payment-service
+      # -----------------------------
+      - name: payment-service-v1
+        url: /api/v1/payments/api-docs
+      - name: payment-service-v2
+        url: /api/v2/payments/api-docs
+      - name: payment-service-v3
+        url: /api/v3/payments/api-docs
+
+      # -----------------------------
+      # Account-service
+      # -----------------------------
+      - name: account-service-v1
+        url: /api/v1/accounts/api-docs
+      - name: account-service-v2
+        url: /api/v2/accounts/api-docs
+      - name: account-service-v3
+        url: /api/v3/accounts/api-docs
+
+      # -----------------------------
+      # Support-service
+      # -----------------------------
+      - name: support-service-v1
+        url: /api/v1/supports/api-docs
+      - name: support-service-v2
+        url: /api/v2/supports/api-docs
+      - name: support-service-v3
+        url: /api/v3/supports/api-docs
+
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://server:${eureka.port}/eureka/   # Docker 컨테이너 명|서비스 명 / localhost
+
+
+management:
+  zipkin:
+    tracing:
+      endpoint: http://zipkin:${zipkin.port}/api/v2/spans
