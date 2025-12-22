@@ -95,7 +95,6 @@ async function redirectPassengerByTripState() {
                 location.href = `/passenger/trips/active.html?tripId=${trip.tripId}`;
                 break;
             case "ENDED":
-            case "COMPLETED":
                 location.href = `/passenger/trips/completed.html?tripId=${trip.tripId}`;
                 break;
             default:

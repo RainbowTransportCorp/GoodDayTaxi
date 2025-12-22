@@ -32,9 +32,8 @@ async function passengerTripGuard({ onTrip } = {}) {
 
     const { data: trip } = await res.json();
 
-    if (onTrip) onTrip(trip); // ⭐ trip 상태로 화면 렌더링 할 때
+    if (onTrip) onTrip(trip);
 
-// 👇 이미 페이지가 그 상태에 맞는 곳이면 이동하지 않게
     switch (trip.status) {
       case "READY":
         if (!location.pathname.includes("ready.html")) {
@@ -49,13 +48,33 @@ async function passengerTripGuard({ onTrip } = {}) {
         break;
 
       case "ENDED":
-        // 항상 completed.html은 query로 접근하니 무조건 이동
-        location.href = `/passenger/trips/completed.html?tripId=${trip.tripId}`;
-        break;
+        // 💳 결제 여부 확인
+        try {
+          const payRes = await fetch(`/api/v1/payments?tripId=${trip.tripId}`, {
+            headers: {
+              "Authorization": `Bearer ${token}`,
+              "X-User-UUID": uuid,
+              "X-User-Role": "PASSENGER"
+            }
+          });
 
-      default:
-        console.warn("예상치 못한 상태값:", trip.status);
-        location.href = "/passenger/dashboard/index.html";
+          if (payRes.ok) {
+            const { data: payment } = await payRes.json();
+
+            if (payment.status === "PAID") {
+              location.href = `/passenger/trips/completed.html?tripId=${trip.tripId}`;
+            } else {
+              location.href = `/passenger/payments/index.html?tripId=${trip.tripId}`;
+            }
+          } else {
+            // 결제 조회 실패 시에도 결제 페이지로 이동 시도
+            location.href = `/passenger/payments/index.html?tripId=${trip.tripId}`;
+          }
+        } catch (e) {
+          console.error("결제 조회 실패", e);
+          location.href = `/passenger/payments/index.html?tripId=${trip.tripId}`;
+        }
+        break;
     }
 
   } catch (e) {
