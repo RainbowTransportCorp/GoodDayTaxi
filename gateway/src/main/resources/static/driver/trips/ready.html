@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>운행 대기 중 | Good day Taxi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      margin: 0;
+      background: #f7f7fb;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+    }
+
+    .container {
+      max-width: 420px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+
+    .title {
+      font-size: 20px;
+      font-weight: 800;
+      margin-bottom: 16px;
+    }
+
+    .row {
+      margin-bottom: 14px;
+      font-size: 14px;
+    }
+
+    .label {
+      color: #777;
+      margin-bottom: 4px;
+    }
+
+    .value {
+      font-weight: 600;
+    }
+
+    .status {
+      margin-top: 24px;
+      padding: 14px;
+      border-radius: 12px;
+      text-align: center;
+      font-weight: 700;
+      background: #8A5DF6;
+      color: white;
+    }
+
+    .btn-start {
+      width: 100%;
+      margin-top: 20px;
+      padding: 16px;
+      border-radius: 999px;
+      border: none;
+      background: #8A5DF6;
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+<div class="container">
+  <div class="card">
+    <div class="title">🚕 운행 대기 중</div>
+
+    <div class="row">
+      <div class="label">출발지</div>
+      <div class="value" id="pickup">-</div>
+    </div>
+
+    <div class="row">
+      <div class="label">도착지</div>
+      <div class="value" id="destination">-</div>
+    </div>
+
+    <div class="status">
+      승객 탑승 대기 중
+    </div>
+
+    <button class="btn-start" onclick="startTrip()">
+      운행 시작
+    </button>
+  </div>
+</div>
+
+<script>
+  const token = localStorage.getItem("accessToken");
+  const userUuid = localStorage.getItem("userUuid");
+
+  let currentTripId = null;
+
+  async function loadTrip() {
+    try {
+      const res = await fetch("/api/v1/trips/passengers/active", {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "X-User-UUID": userUuid,
+          "X-User-Role": "PASSENGER"
+        }
+      });
+
+      if (!res.ok) throw new Error();
+
+      const { data: trip } = await res.json();
+
+      // 상태별 페이지 이동
+      if (trip.tripStatus === "READY") {
+        // 운행 대기
+        location.href = "/passenger/trips/ready.html";
+      }
+
+      if (trip.tripStatus === "STARTED") {
+        // 운행 중
+        location.href = "/passenger/trips/active.html";
+      }
+
+      if (trip.tripStatus === "ENDED") {
+        // 결제 페이지
+        location.href =
+            `/passenger/trips/completed.html?tripId=${trip.tripId}`;
+      }
+
+    } catch {
+      // active trip 없음
+      location.href = "/passenger/index.html";
+    }
+  }
+
+
+  async function startTrip() {
+    if (!currentTripId) return;
+
+    const res = await fetch(`/api/v1/trips/${currentTripId}/start`, {
+      method: "PUT",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "x-user-uuid": userUuid
+      }
+    });
+
+    if (!res.ok) {
+      alert("운행 시작 실패");
+      return;
+    }
+
+    location.href = "/driver/trips/active.html";
+  }
+
+  loadTrip();
+  setInterval(loadTrip, 5000);
+</script>
+</body>
+</html>
