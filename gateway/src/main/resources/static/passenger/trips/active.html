@@ -92,6 +92,7 @@
   };
 
   let pollingId = null;
+  let previousTripStatus = null;
 
   function renderTrip(trip) {
     document.getElementById("pickup").textContent = trip.pickupAddress ?? "-";
@@ -102,29 +103,52 @@
   async function pollTripStatus() {
     try {
       const res = await fetch("/api/v1/trips/passengers/active", { headers });
-      if (!res.ok) return;
+
+      if (res.status === 401 || res.status === 403) {
+        alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+        location.href = "/index.html";
+        return;
+      }
+
+      if (res.status === 404 || res.status === 204) {
+        location.href = "/passenger/dashboard/index.html";
+        return;
+      }
+
+      if (!res.ok) {
+        console.warn("트립 상태 조회 실패", res.status);
+        return;
+      }
 
       const { data: trip } = await res.json();
-      if (!trip) return;
-
-      renderTrip(trip);
-
-      if (trip.status === "COMPLETED") {
-        clearInterval(pollingId);
-        location.href = `/passenger/trips/completed.html?tripId=${trip.tripId}`;
+      if (!trip || !trip.status) {
+        console.warn("응답에 trip 없음 또는 상태 없음", trip);
+        return;
       }
+
+      // 🚨 상태 변화 체크
+      if (trip.status !== previousTripStatus) {
+        previousTripStatus = trip.status;
+
+        if (trip.status === "COMPLETED" || trip.status === "ENDED") {
+          clearInterval(pollingId);
+          location.href = `/passenger/trips/completed.html?tripId=${trip.tripId}`;
+          return;
+        }
+
+        // READY나 STARTED는 stay (이 페이지 유지)
+        renderTrip(trip);
+      }
+
     } catch (e) {
       console.error("운행 상태 polling 실패", e);
     }
   }
 
   window.addEventListener("DOMContentLoaded", () => {
-    // 2️⃣ 진입 시 한 번 가드
-    passengerTripGuard();
-
-    // 3️⃣ 상태 polling 시작
-    pollTripStatus();
-    pollingId = setInterval(pollTripStatus, 3000);
+    passengerTripGuard(); // 진입 시 한 번 가드
+    pollTripStatus();     // 초기 상태 확인
+    pollingId = setInterval(pollTripStatus, 3000); // 이후 주기적 polling
   });
 </script>
 

@@ -137,7 +137,8 @@ async function rejectCall(id) {
       method: "PATCH",
       headers: {
         "Authorization": `Bearer ${TOKEN}`,
-        "X-User-UUID": UUID
+        "X-User-UUID": UUID,
+        "X-User-Role": ROLE
       }
     });
 

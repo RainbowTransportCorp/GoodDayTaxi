@@ -26,22 +26,22 @@
 
     .title {
       font-size: 20px;
-      font-weight: 700;
-      margin-bottom: 20px;
+      font-weight: 800;
+      margin-bottom: 16px;
     }
 
     .row {
-      margin-bottom: 12px;
+      margin-bottom: 14px;
       font-size: 14px;
     }
 
     .label {
       color: #777;
+      margin-bottom: 4px;
     }
 
     .value {
       font-weight: 600;
-      margin-top: 4px;
     }
 
     .status {
@@ -56,9 +56,10 @@
   </style>
 </head>
 <body>
+
 <div class="container">
   <div class="card">
-    <div class="title">🚕 기사님이 도착 중입니다</div>
+    <div class="title">🚕 운행 대기 중</div>
 
     <div class="row">
       <div class="label">출발지</div>
@@ -70,20 +71,17 @@
       <div class="value" id="destination">-</div>
     </div>
 
-    <div class="status" id="statusBox">운행 대기 중</div>
+    <div class="status">
+      기사님 배차 완료! 운행 시작을 기다리는 중입니다.
+    </div>
   </div>
 </div>
 
-<!-- 공통 trip 상태 가드 -->
-<script src="/passenger/common/passenger-trip-guard.js"></script>
-
 <script>
-  // ================= 기본 정보 =================
-  const tripId = new URLSearchParams(location.search).get("tripId");
   const userUuid = localStorage.getItem("userUuid");
   const token = localStorage.getItem("accessToken");
 
-  if (!tripId || !userUuid || !token) {
+  if (!userUuid || !token) {
     alert("잘못된 접근입니다.");
     location.href = "/index.html";
   }
@@ -94,37 +92,62 @@
     "X-User-Role": "PASSENGER"
   };
 
-  // ================= 상태 polling =================
-  function pollTripStatus() {
-    setInterval(async () => {
-      try {
-        const res = await fetch("/api/v1/trips/passengers/active", {
-          headers: defaultHeaders
-        });
+  async function fetchTripInfo() {
+    try {
+      const res = await fetch("/api/v1/trips/passengers/active", {
+        headers: defaultHeaders
+      });
 
-        if (!res.ok) return;
-
-        const { data: trip } = await res.json();
-
-        if (trip.status === "STARTED") {
-          location.href = "/passenger/trips/active.html";
+      if (!res.ok) {
+        if (res.status === 404 || res.status === 204) {
+          location.href = "/passenger/dashboard/index.html";
+          return;
         }
-      } catch (e) {
-        console.error("운행 상태 확인 중 오류", e);
+
+        if (res.status === 401 || res.status === 403) {
+          alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+          location.href = "/index.html";
+          return;
+        }
+
+        throw new Error("Trip fetch failed");
       }
-    }, 3000); // 3초마다 체크
+
+      const { data: trip } = await res.json();
+
+      if (!trip || !trip.status) {
+        location.href = "/passenger/dashboard/index.html";
+        return;
+      }
+
+      document.getElementById("pickup").textContent = trip.pickupAddress ?? "-";
+      document.getElementById("destination").textContent = trip.destinationAddress ?? "-";
+
+      // 상태 확인해서 이동
+      switch (trip.status) {
+        case "READY":
+          // stay on this page
+          break;
+        case "STARTED":
+          location.href = `/passenger/trips/active.html?tripId=${trip.tripId}`;
+          break;
+        case "ENDED":
+        case "COMPLETED":
+          location.href = `/passenger/trips/completed.html?tripId=${trip.tripId}`;
+          break;
+        default:
+          location.href = "/passenger/dashboard/index.html";
+      }
+
+    } catch (e) {
+      console.error("운행 정보 조회 실패", e);
+      location.href = "/passenger/dashboard/index.html";
+    }
   }
 
-  // ================= Toss 결제 이동 =================
-  function goToPayment() {
-    window.location.href = `/api/v1/payments/tosspay/ready?tripId=${tripId}`;
-  }
-
-  // ================= 초기 실행 =================
-  window.addEventListener("DOMContentLoaded", () => {
-    passengerTripGuard(); // 공통 가드
-    pollTripStatus();     // 상태 전환 감지
-  });
+  fetchTripInfo();
+  setInterval(fetchTripInfo, 5000);
 </script>
+
 </body>
 </html>

@@ -70,6 +70,11 @@
       background: #2e7d32;
       color: white;
     }
+
+    .btn-end {
+      background: #f44336;
+      color: white;
+    }
   </style>
 </head>
 
@@ -90,7 +95,6 @@
 
     <div class="status" id="status">상태 확인 중...</div>
 
-    <!-- READY 상태일 때만 노출  / 이 부분에 레디 말고 스타티드에 운행완료 버튼 나오는 것도 추가해야함 -->
     <button
         id="startBtn"
         class="btn btn-start"
@@ -98,6 +102,15 @@
         style="display:none"
     >
       운행 시작
+    </button>
+
+    <button
+        id="endBtn"
+        class="btn btn-end"
+        onclick="endTrip()"
+        style="display:none"
+    >
+      운행 완료
     </button>
   </div>
 </div>
@@ -122,22 +135,26 @@
         }
       });
 
-      const json = await res.json();
-      const trip = json.data;
+      if (!res.ok) {
+        throw new Error("Trip fetch failed");
+      }
 
+      const { data: trip } = await res.json();
       currentTripId = trip.id;
 
-      document.getElementById("pickup").textContent =
-          trip.pickupAddress ?? "-";
-
-      document.getElementById("destination").textContent =
-          trip.destinationAddress ?? "-";
+      // 주소 표시
+      document.getElementById("pickup").textContent = trip.pickupAddress ?? "-";
+      document.getElementById("destination").textContent = trip.destinationAddress ?? "-";
 
       const statusEl = document.getElementById("status");
       const startBtn = document.getElementById("startBtn");
+      const endBtn = document.getElementById("endBtn");
+
+      // 버튼 숨기기 초기화
+      startBtn.style.display = "none";
+      endBtn.style.display = "none";
 
       switch (trip.status) {
-
         case "READY":
           statusEl.textContent = "배차 완료 · 출발 대기";
           startBtn.style.display = "block";
@@ -145,21 +162,25 @@
 
         case "STARTED":
           statusEl.textContent = "운행 중";
-          startBtn.style.display = "none";
+          endBtn.style.display = "block";
           break;
 
         case "ENDED":
-          window.location.href =
-              `/driver/trips/completed.html?tripId=${trip.id}`;
+        case "COMPLETED":
+          location.href = `/driver/trips/completed.html?tripId=${trip.id}`;
           return;
 
         case "CANCELED":
           alert("운행이 취소되었습니다.");
           location.href = "/driver/dashboard/index.html";
           return;
+
+        default:
+          location.href = "/driver/dashboard/index.html";
       }
 
     } catch (e) {
+      console.error("로드 실패:", e);
       location.href = "/common/error.html";
     }
   }
@@ -178,8 +199,23 @@
     await loadActiveTrip();
   }
 
+  async function endTrip() {
+    if (!currentTripId) return;
+
+    await fetch(`/api/v1/trips/${currentTripId}/end`, {
+      method: "PUT",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "X-User-UUID": driverUuid
+      }
+    });
+
+    await loadActiveTrip();
+  }
+
   loadActiveTrip();
   setInterval(loadActiveTrip, 5000);
 </script>
+
 </body>
 </html>
