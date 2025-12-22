@@ -15,20 +15,21 @@ public class TripJpaRepositoryImpl implements TripJpaRepositoryCustom {
 
     /**
      * 승객은 운행중 상태만 조회가 가능
+     *
      * @param passengerId 요청 승객 식별자
      * @return 운행정보
      */
     @Override
     public Optional<Trip> findActiveByPassengerId(UUID passengerId) {
         return em.createQuery("""
-            select t
-            from Trip t
-            where t.passengerId = :passengerId
-              and t.status = :status
-            order by t.startTime desc
-        """, Trip.class)
+                    select t
+                    from Trip t
+                    where t.passengerId = :passengerId
+                    and t.status in (:statuses)
+                    order by t.startTime desc
+                """, Trip.class)
             .setParameter("passengerId", passengerId)
-            .setParameter("status", TripStatus.STARTED)
+            .setParameter("statuses", List.of(TripStatus.READY, TripStatus.STARTED))
             .setMaxResults(1)
             .getResultStream()
             .findFirst();
@@ -37,6 +38,7 @@ public class TripJpaRepositoryImpl implements TripJpaRepositoryCustom {
 
     /**
      * 기사는 운행 대기와 운행중 상태 모두 조회 가능
+     *
      * @param driverId 요청 기사 식별자
      * @return 운행정보
      */
