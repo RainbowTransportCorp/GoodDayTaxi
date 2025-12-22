@@ -6,13 +6,15 @@
 FROM gradle:8.7-jdk17 AS builder
 WORKDIR /workspace
 
+ENV GRADLE_OPTS="-Xmx384m -Xms128m -Dorg.gradle.daemon=false"
+
 COPY gradlew gradlew
 COPY gradle gradle
 COPY build.gradle settings.gradle ./
 COPY src src
 
 RUN chmod +x gradlew
-RUN ./gradlew clean bootJar -x test
+RUN ./gradlew clean bootJar -x test --no-daemon --stacktrace
 
 # ============================
 # 2) Run Stage
