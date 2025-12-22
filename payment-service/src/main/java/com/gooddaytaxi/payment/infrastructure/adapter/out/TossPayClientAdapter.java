@@ -16,7 +16,6 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.UUID;
 
 @Slf4j
 @Component
@@ -53,10 +52,10 @@ public class TossPayClientAdapter implements ExternalPaymentPort {
     }
 
     @Override
-    public ExternalPaymentCancelResult cancelTosspayPayment(String paymentKey, UUID idempotencyKey, ExternalPaymentCancelCommand command) {
+    public ExternalPaymentCancelResult cancelTosspayPayment(String paymentKey, String idempotencyKey, ExternalPaymentCancelCommand command) {
         TossPayCancelRequestDto requestDto = new TossPayCancelRequestDto(command.cancelReason());
         try {
-            TossPayCancelResponseDto response = tosspayClient.cancelPayment(paymentKey, idempotencyKey.toString(), requestDto);
+            TossPayCancelResponseDto response = tosspayClient.cancelPayment(paymentKey, idempotencyKey, requestDto);
             TossCancelDetail cancel = response.cancels().get(0);
             log.info("TossPay cancel cancelAt: {}, cancelAmount: {}, cancelReason: {}, transactionKey: {}",
                     cancel.canceledAt(), cancel.cancelAmount(), cancel.cancelReason(), cancel.transactionKey());

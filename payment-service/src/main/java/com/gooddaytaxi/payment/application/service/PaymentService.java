@@ -128,7 +128,7 @@ public class PaymentService {
         //멱등 선점: 같은 idempotencyKey 요청은 60초 동안 재시도 차단
         String redisKey = "payment:idemp:" + idempotencyKey;
         if (!redisPort.setIfAbsent(redisKey, "IN_PROGRESS", Duration.ofSeconds(60))) {
-            throw new PaymentException(PaymentErrorCode.IDEMPOTENCY_CONFLICT);
+            throw new PaymentException(PaymentErrorCode.IDEMPOTENCY_PAYMENT_CONFLICT);
         }
 
         //시도 횟수 계산
@@ -226,7 +226,7 @@ public class PaymentService {
         validator.checkRoleAdminAndMaster(UserRole.of(role));
         //결제 수단이 토스페이인경우 마지막 결제 내용도 포함
         AttemptReadResult attemptResult = null;
-        if(payment.getMethod() == PaymentMethod.TOSS_PAY &&!(payment.getStatus() == PaymentStatus.PENDING||payment.getStatus() == PaymentStatus.IN_PROCESS)) {
+        if(needAttempt(payment.getMethod(), payment.getStatus())) {
             attemptResult = paymentQueryPort.findLastAttemptByPaymentId(paymentId).map(
                     this::toAttemptReadResult).orElse(null);
         }

@@ -13,10 +13,12 @@ import com.gooddaytaxi.payment.application.port.out.core.PaymentCommandPort;
 import com.gooddaytaxi.payment.application.port.out.core.PaymentQueryPort;
 import com.gooddaytaxi.payment.application.port.out.core.RefundRequestQueryPort;
 import com.gooddaytaxi.payment.application.port.out.event.PaymentEventCommandPort;
+import com.gooddaytaxi.payment.application.port.out.redis.RedisPort;
 import com.gooddaytaxi.payment.application.result.payment.ExternalPaymentConfirmResult;
 import com.gooddaytaxi.payment.application.result.refund.*;
 import com.gooddaytaxi.payment.application.validator.PaymentValidator;
 import com.gooddaytaxi.payment.domain.entity.Payment;
+import com.gooddaytaxi.payment.domain.entity.PaymentAttempt;
 import com.gooddaytaxi.payment.domain.entity.Refund;
 import com.gooddaytaxi.payment.domain.entity.RefundRequest;
 import com.gooddaytaxi.payment.domain.enums.RefundReason;
@@ -30,6 +32,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -44,12 +47,13 @@ public class RefundService {
     private final RefundRequestQueryPort requestQueryPort;
     private final PaymentEventCommandPort eventCommandPort;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final RedisPort redisPort;
     private final PaymentReader paymentReader;
     private final PaymentFailureRecorder failureRecorder;
     private final PaymentValidator validator;
 
     @Transactional
-    public RefundCreateResult confirmTosspayRefund(UUID paymentId, RefundCreateCommand command, UUID userId, String role) {
+    public RefundCreateResult confirmTosspayRefund(UUID paymentId, RefundCreateCommand command, UUID userId, String role, String idempotencyKey) {
         //롤이 최고관리자인지 확인
         validator.checkRoleMasterAdmin(UserRole.of(role));
 
@@ -61,11 +65,17 @@ public class RefundService {
         //환불 요청이 있다면 해당 요청이 승인된 상태인지 확인 + 해당 요청의 결제  실제결제가 일치하는지 확인
         if(command.requestId() != null) loadAndValidateApprovedRequest(command, payment.getId());
 
+        //멱등성 키 확인
+        //멱등 선점: 같은 idempotencyKey 요청은 60초 동안 재시도 차단
+        String redisKey = "payment:refund:idemp:" + idempotencyKey;
+        if (!redisPort.setIfAbsent(redisKey, "IN_PROGRESS", Duration.ofSeconds(60))) {
+            throw new PaymentException(PaymentErrorCode.IDEMPOTENCY_REFUND_CONFLICT);
+        }
+
 
         //해당 결제으 마지막 시도의 pamentKey 가져오기
-        String paymentKey = payment.getAttempts().get(0).getPaymentKey();
-        //멱등성 키 생성
-        UUID idempotencyKey = UUID.randomUUID();
+        PaymentAttempt lastAttempt = paymentQueryPort.findLastAttemptByPaymentId(paymentId).orElseThrow(()->new PaymentException(PaymentErrorCode.PAYMENT_ATTEMPT_NOT_FOUND));
+        String paymentKey = lastAttempt.getPaymentKey();
         //환불 사유 매핑
         RefundReason reason = RefundReason.of(command.reason());
 
@@ -73,7 +83,8 @@ public class RefundService {
         Refund refund = new Refund(
                 reason,
                 command.incidentAt()+"|"+command.incidentSummary(),
-                command.requestId()
+                command.requestId(),
+                idempotencyKey
         );
         //토스에 환불 요청
         ExternalPaymentCancelResult result = externalPaymentPort.cancelTosspayPayment(paymentKey, idempotencyKey, new ExternalPaymentCancelCommand(reason.getDescription()));
@@ -97,6 +108,7 @@ public class RefundService {
         payment.registerRefund(refund, true);
 
         paymentCommandPort.save(payment);
+        redisPort.set(redisKey, "COMPLETED", Duration.ofMinutes(3));   //성공 시 COMPLETED로 마킹 후 3분 동안 재호출 방지
 
         //환불 완료 이벤트 발행
         //refundId 유무와 상관없이 save()가 커밋을 의미하지는 않아 롤백이 가능하므로 커밋 이후에 이벤트 발행되도록 구현
