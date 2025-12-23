@@ -12,7 +12,7 @@ COPY build.gradle settings.gradle ./
 COPY src src
 
 RUN chmod +x gradlew
-RUN ./gradlew :account-service:bootJar -x test --no-daemon
+RUN ./gradlew bootJar -x test --no-daemon
 
 # ============================
 # 2) Run Stage
