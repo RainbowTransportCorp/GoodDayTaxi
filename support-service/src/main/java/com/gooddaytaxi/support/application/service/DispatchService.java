@@ -30,7 +30,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Service
 @Transactional
-public class DispatchService implements NotifyDispatchUsecase, NotifyCallAcceptUsecase, NotifyDispatchTimeoutUsecase, NotifyDispatchCancelUsecase, NotifyDispatchRejectUsecase {
+public class DispatchService implements NotifyDispatchUsecase, NotifyCallAcceptUsecase, NotifyDispatchTimeoutUsecase, NotifyDispatchCancelUsecase, NotifyDispatchRejectUsecase, NotifyDispatchForceTimeoutUsecase {
 
     private final NotificationCommandPersistencePort notificationCommandPersistencePort;
     private final NotificationPushMessagingPort notificationPushMessagingPort;
@@ -309,5 +309,53 @@ public class DispatchService implements NotifyDispatchUsecase, NotifyCallAcceptU
         // 로그
         log.info("\uD83D\uDCE2 [DISPATCH] Rejected! dispatchId={}, driverId={}, rejectedAt={}", command.getDispatchId(), command.getDriverId(), command.getRejectedAt());
 
+    }
+
+    /**
+     * 강제 운행 종료 알림 서비스
+     * */
+    @Transactional
+    @Override
+    public void execute(NotifyDipsatchForceTimeoutCommand command) {
+        // Notification 생성 및 저장
+        Notification notification = command.toEntity(NotificationType.DISPATCH_FORCE_TIMEOUT);
+        notification.assignIds(command.getDispatchId(), null, null, command.getDriverId(), null);
+
+        Notification savedNoti = notificationCommandPersistencePort.save(notification);
+//        Notification savedNoti = notificationQueryPersistencePort.findById(noti.getId());
+        log.debug("[Check] Notification Persistence 조회: dispatchId={}, driverId={}, force={}", savedNoti.getDispatchId(), savedNoti.getDriverId(), command.getForcedByRole());
+
+        // 수신자: [ 기사, 승객 ]
+        List<UUID> receivers = new ArrayList<>();
+        receivers.add(savedNoti.getDriverId());
+        receivers.add(null);
+
+        // 알림 메시지 구성
+        String messageTitle = "\uD83D\uDCE2 운행을 시작할 수 없습니다.";
+        Metadata metadata = command.getMetadata();
+        String messageBody = """
+                [ %s ]
+                배차 %s 상태에서 %s
+                (%s)
+                """.formatted(
+                command.getReason(),
+                command.getPreviousStatus(),
+                command.getMessage(),
+                command.getForceTimeoutAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+        );
+
+        // RabbitMQ: Queue에 Push
+        QueuePushMessage queuePushMessage = QueuePushMessage.create(receivers, metadata, messageTitle, messageBody);
+        notificationPushMessagingPort.push(queuePushMessage, "DISPATCH");
+        log.debug("[Push] RabbitMQ 메시지: {}", messageTitle);
+
+        // Push 알림: Slack, FCM 등 - RabbitMQ Listener 없이 직접 호출 시 사용
+//        notificationAlertExternalPort.sendDirectRequest(queuePushMessage);
+
+        // 알림 전송 시각 할당
+        savedNoti.assignMessageSendingTime(LocalDateTime.now());
+
+        // 로그
+        log.info("\uD83D\uDCE2 [DISPATCH] Force Timeout! dispatchId={}, driverId={}, forceTimeout={}", savedNoti.getDispatchId(), savedNoti.getDriverId(), command.getForceTimeoutAt());
     }
 }

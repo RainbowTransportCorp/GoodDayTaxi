@@ -22,13 +22,13 @@ public class DispatchEndpoint {
     private final NotifyDispatchTimeoutUsecase notifyDispatchTimeoutUsecase;
     private final NotifyDispatchCancelUsecase notifyDispatchCancelUsecase;
     private final NotifyDispatchRejectUsecase notifyDispatchRejectUsecase;
+    private final NotifyDispatchForceTimeoutUsecase notifyDispatchForceTimeoutUsecase;
 
     /**
      * 특정 기사에게 배차 요청이 왔을 때 기사에게 손님의 Call 요청 알림 전송 이벤트 리스너
      */
     @KafkaListener(topics = "dispatch.requested", groupId = "support-service", concurrency = "1")
     public void onDispatchRequested(EventRequest req) {
-        log.info("💗💗💗💗 Requested Request: {}", req.toString());
         // Metadata
         Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occurredAt());
         // Payload
@@ -56,7 +56,6 @@ public class DispatchEndpoint {
      */
     @KafkaListener(topics = "dispatch.accepted", groupId = "support-service", concurrency = "1")
     public void onDispatchAccepted(EventRequest req) {
-        log.info("💗💗💗💗 Accepted Request: {}", req.toString());
         // Metadata
         Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occurredAt());
         // Payload
@@ -84,7 +83,6 @@ public class DispatchEndpoint {
      */
     @KafkaListener(topics = "dispatch.timeout", groupId = "support-service", concurrency = "1")
     public void onDispatchTimeOut(EventRequest req) {
-        log.info("💗💗💗💗 Timeout Request: {}", req.toString());
 
         // Metadata
         Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occurredAt());
@@ -113,8 +111,6 @@ public class DispatchEndpoint {
      */
     @KafkaListener(topics = "dispatch.canceled", groupId = "support-service", concurrency = "1")
     public void onDispatchCancelled(EventRequest req) {
-
-        log.info("💗💗💗💗 Canceled Request: {}", req.toString());
         // Metadata
         Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occurredAt());
         // Payload
@@ -143,7 +139,6 @@ public class DispatchEndpoint {
      */
     @KafkaListener(topics = "dispatch.rejected", groupId = "support-service", concurrency = "1")
     public void onDispatchRejected(EventRequest req) {
-        log.info("💗💗💗💗 Rejected Request: {}", req.toString());
         // Metadata
         Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occurredAt());
         // Payload
@@ -164,5 +159,37 @@ public class DispatchEndpoint {
 
         // 배차 취소 알림 전송 서비스 호출
         notifyDispatchRejectUsecase.execute(command);
+    }
+
+
+    /**
+     * MASTER_ADMIN 관리자가 운행 시작 직전 배차에 대해 강제 타임아웃으로 운행 시작을 금지하도록 기사에 알림을 전송하는 이벤트 리스너
+     */
+    @KafkaListener(topics = "dispatch.force-timeout", groupId = "support-service", concurrency = "1")
+    public void onDispatchForceTimeOut(EventRequest req) {
+
+        // Metadata
+        Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occurredAt());
+        // Payload
+        DispatchForceTimeoutEventPayload pl = req.convertPayload(DispatchForceTimeoutEventPayload.class);
+        log.debug("[Check] Dispatch Force Timeout EventRequest 데이터: dispatchId={}, reason={}, forceTimeoutAt={}", pl.dispatchId(), pl.reason(), pl.forceTimeoutAt());
+
+        // EventRequest DTO > Command 변환
+        NotifyDipsatchForceTimeoutCommand command = NotifyDipsatchForceTimeoutCommand.create(
+                pl.notificationOriginId(),
+                pl.forcedById(),
+                pl.driverId(),
+                pl.forcedByRole(),
+                pl.previousStatus(),
+                pl.forceTimeoutAt(),
+                pl.reason(),
+                pl.message(),
+                pl.tripRequestMayHaveBeenSent(),
+                metadata
+        );
+        log.debug("[Transform] EventRequest >>> Command ➡️ {}", command);
+
+        // 강제 운행 종료 알림 전송 서비스 호출
+        notifyDispatchForceTimeoutUsecase.execute(command);
     }
 }
