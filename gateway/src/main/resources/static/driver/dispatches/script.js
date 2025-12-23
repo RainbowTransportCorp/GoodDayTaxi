@@ -4,6 +4,9 @@ const UUID = localStorage.getItem("userUuid");
 const ROLE = localStorage.getItem("role");
 
 const DISPATCH_BASE = "/api/v1/dispatches/driver";
+const ACTIVE_TRIP_URL = "/api/v1/trips/drivers/active";
+
+let activePollingTimer = null;
 
 /* ================= 권한 체크 ================= */
 if (ROLE !== "DRIVER") {
@@ -11,10 +14,10 @@ if (ROLE !== "DRIVER") {
   location.href = "/index.html";
 }
 
-/* ================= ⭐ 핵심: 현재 운행 상태 확인 ================= */
+/* ================= 현재 운행 상태 확인 ================= */
 async function checkActiveTrip() {
   try {
-    const res = await fetch("/api/v1/trips/drivers/active", {
+    const res = await fetch(ACTIVE_TRIP_URL, {
       headers: {
         "Authorization": `Bearer ${TOKEN}`,
         "X-User-UUID": UUID,
@@ -28,40 +31,58 @@ async function checkActiveTrip() {
       return;
     }
 
-    if (res.status === 404 || res.status === 204) {
-      await loadPending(); // 운행 없음
+    if (res.status === 204 || res.status === 404) {
+      await loadPending(); // 현재 운행 없음
       return;
     }
 
     if (!res.ok) {
-      console.error("운행 상태 조회 실패:", res.status);
-      alert("운행 상태 확인 중 문제가 발생했습니다.");
+      console.error("운행 상태 조회 실패:", res.status, await res.text());
       return;
     }
 
     const { data: trip } = await res.json();
-    const pathname = location.pathname;
+    const path = location.pathname;
 
     if (trip.status === "READY") {
-      if (!pathname.endsWith("ready.html")) {
+      stopPolling();
+      if (!path.endsWith("ready.html")) {
         location.href = "/driver/trips/ready.html";
       }
-    } else if (trip.status === "STARTED") {
-      if (!pathname.endsWith("active.html")) {
+      return;
+    }
+
+    if (trip.status === "STARTED") {
+      stopPolling();
+      if (!path.endsWith("active.html")) {
         location.href = "/driver/trips/active.html";
       }
+      return;
     }
 
   } catch (e) {
-    console.error("네트워크 예외:", e);
-    alert("서버 연결 중 문제가 발생했습니다.");
+    console.error("운행 상태 조회 예외:", e);
   }
 }
 
+/* ================= 폴링 시작 ================= */
+function startPolling() {
+  stopPolling();
+  activePollingTimer = setInterval(checkActiveTrip, 3000);
+}
+
+function stopPolling() {
+  if (activePollingTimer) {
+    clearInterval(activePollingTimer);
+    activePollingTimer = null;
+  }
+}
 
 /* ================= 대기 콜 목록 ================= */
 async function loadPending() {
   const list = document.getElementById("dispatch-list");
+  if (!list) return;
+
   list.innerHTML = "<div class='empty'>대기 콜 불러오는 중...</div>";
 
   try {
@@ -116,23 +137,23 @@ async function acceptCall(id) {
     });
 
     if (!res.ok) {
-      const errText = await res.text();
-      console.error("콜 수락 실패:", res.status, errText);
-      alert("콜 수락에 실패했습니다. 이미 수락된 콜일 수 있어요.");
+      console.error("콜 수락 실패:", res.status, await res.text());
+      alert("콜 수락에 실패했습니다.");
       return;
     }
 
     const json = await res.json();
-
     if (!json.success) {
-      alert(json.message || "콜 수락에 실패했습니다.");
+      alert(json.message || "콜 수락 실패");
       return;
     }
 
-    location.href = "/driver/trips/ready.html";
+    // ✅ 서버 상태 반영 기다림
+    startPolling();
+
   } catch (e) {
     console.error("콜 수락 중 오류:", e);
-    alert("콜 수락 요청 중 문제가 발생했습니다.");
+    alert("콜 수락 중 문제가 발생했습니다.");
   }
 }
 
@@ -160,3 +181,7 @@ async function rejectCall(id) {
     alert("콜 거절 요청 중 문제가 발생했습니다.");
   }
 }
+
+/* ================= 실행 ================= */
+checkActiveTrip();
+startPolling();
