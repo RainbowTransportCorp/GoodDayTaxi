@@ -1,61 +1,61 @@
 :root {
-    --primary: #8A5DF6;
-    --primary-soft: #EDE7FF;
-    --bg: #f7f7fb;
-    --card: #ffffff;
-    --text: #222;
-    --radius: 18px;
+  --primary: #8A5DF6;
+  --primary-soft: #EDE7FF;
+  --bg: #f7f7fb;
+  --card: #ffffff;
+  --text: #222;
+  --radius: 18px;
 }
 
 body {
-    margin: 0;
-    background: var(--bg);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    color: var(--text);
+  margin: 0;
+  background: var(--bg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--text);
 }
 
 /* Layout */
 .dashboard {
-    max-width: 1100px;
-    margin: 32px auto;
-    padding: 0 20px;
+  max-width: 1100px;
+  margin: 32px auto;
+  padding: 0 20px;
 }
 
 .dashboard-title {
-    font-size: 24px;
-    font-weight: 800;
-    margin-bottom: 24px;
+  font-size: 24px;
+  font-weight: 800;
+  margin-bottom: 24px;
 }
 
 /* Grid */
 .card-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
 }
 
 /* Card */
 .card {
-    background: var(--card);
-    border-radius: var(--radius);
-    padding: 22px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.06);
-    cursor: pointer;
-    transition: transform .15s ease, box-shadow .15s ease;
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 22px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 28px rgba(0,0,0,0.08);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
 }
 
 .card-title {
-    font-size: 16px;
-    font-weight: 700;
-    margin-bottom: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 8px;
 }
 
 .card-desc {
-    font-size: 13px;
-    color: #666;
+  font-size: 13px;
+  color: #666;
 }

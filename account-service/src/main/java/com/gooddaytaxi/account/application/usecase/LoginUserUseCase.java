@@ -8,6 +8,7 @@ import com.gooddaytaxi.account.domain.service.JwtTokenProvider;
 import com.gooddaytaxi.account.domain.service.PasswordEncoder;
 import com.gooddaytaxi.account.domain.exception.AccountBusinessException;
 import com.gooddaytaxi.account.domain.exception.AccountErrorCode;
+import com.gooddaytaxi.common.core.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -53,6 +54,6 @@ public class LoginUserUseCase {
         String refreshToken = jwtTokenProvider.generateRefreshToken(user);
         
         log.info("로그인 성공: userUuid={}, email={}, role={}", user.getUserUuid(), command.getEmail(), user.getRole());
-        return new LoginResult(accessToken, refreshToken, user.getUserUuid().toString(), user.getRole().name());
+        return new LoginResult(accessToken, refreshToken, user.getUserUuid().toString(), user.getRole().name(), user.getEmail());
     }
 }

@@ -16,7 +16,6 @@ public record CreateTripRequest(
         @NotNull(message = "기사 ID는 필수입니다.")
         UUID driverId,
 
-
         @NotNull(message = "배차 ID는 필수입니다.")
         UUID dispatchId,
 

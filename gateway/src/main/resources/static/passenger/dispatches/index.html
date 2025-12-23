@@ -6,24 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link rel="stylesheet" href="/common/header.css">
-    <script src="/common/header.js" defer></script>
-
     <link rel="stylesheet" href="style.css">
+    <script src="/common/header.js" defer></script>
+    <script src="script.js" defer></script>
 </head>
 
 <body>
-
-<header class="header">
-    <div class="brand">
-        <div class="brand-main">Good day Taxi</div>
-        <div class="brand-sub" id="brand-sub"></div>
-    </div>
-
-    <div class="user-box">
-        <span id="user-name"></span>
-        <button class="btn-logout" onclick="logout()">로그아웃</button>
-    </div>
-</header>
+<!-- ✅ 공통 헤더 -->
+<header class="header"></header>
 
 <main class="page-container">
 
@@ -50,23 +40,16 @@
         <p id="waiting-text">기사님을 찾고 있습니다</p>
         <div class="loader"></div>
 
-        <button class="btn-cancel" onclick="cancelCurrentDispatch()">
-            콜 취소하기
-        </button>
+        <button class="btn-cancel" onclick="cancelCurrentDispatch()">콜 취소하기</button>
     </section>
 
     <!-- 상세 -->
     <section id="detail-section" class="card hidden">
         <h2 class="section-title">배차 상세</h2>
         <div id="detail-container"></div>
-
-        <button class="btn-primary" onclick="backToHome()">
-            홈으로
-        </button>
+        <button class="btn-primary" onclick="backToHome()">홈으로</button>
     </section>
 
 </main>
-
-<script src="script.js"></script>
 </body>
 </html>

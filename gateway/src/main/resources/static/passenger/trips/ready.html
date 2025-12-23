@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <title>운행 대기 중 | Good day Taxi</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- ✅ 공통 헤더 포함 -->
+  <link rel="stylesheet" href="/common/header.css">
+  <script src="/common/header.js" defer></script>
+
   <style>
     body {
       margin: 0;
@@ -56,6 +61,9 @@
   </style>
 </head>
 <body>
+
+<!-- ✅ 공통 헤더 -->
+<header class="header"></header>
 
 <div class="container">
   <div class="card">
@@ -120,20 +128,24 @@
         return;
       }
 
+      // ✅ 상태 렌더링
       document.getElementById("pickup").textContent = trip.pickupAddress ?? "-";
       document.getElementById("destination").textContent = trip.destinationAddress ?? "-";
 
-      // 상태 확인해서 이동
+      // ✅ 인디케이터 노출을 위한 상태 저장
+      localStorage.setItem("tripId", trip.id);
+      localStorage.setItem("tripStatus", trip.status);
+
+      // ✅ 상태 변화에 따른 페이지 이동
       switch (trip.status) {
         case "READY":
           // stay on this page
           break;
         case "STARTED":
-          location.href = `/passenger/trips/active.html?tripId=${trip.tripId}`;
+          location.href = `/passenger/trips/active.html?tripId=${trip.id}`;
           break;
         case "ENDED":
-        case "COMPLETED":
-          location.href = `/passenger/trips/completed.html?tripId=${trip.tripId}`;
+          location.href = `/passenger/trips/ended.html`;
           break;
         default:
           location.href = "/passenger/dashboard/index.html";

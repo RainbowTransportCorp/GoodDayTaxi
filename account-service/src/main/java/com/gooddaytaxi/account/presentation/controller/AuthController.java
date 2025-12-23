@@ -69,7 +69,7 @@ public class AuthController {
         UserLoginCommand command = new UserLoginCommand(request.getEmail(), request.getPassword());
         
         LoginResult result = loginUserUseCase.execute(command);
-        LoginResponse response = LoginResponse.of(result.getAccessToken(), result.getRefreshToken(), result.getUserUuid(), result.getRole());
+        LoginResponse response = LoginResponse.of(result.getAccessToken(), result.getRefreshToken(), result.getUserUuid(), result.getRole(), result.getEmail());
         
         return ResponseEntity.ok(ApiResponse.success(response, "로그인이 완료되었습니다."));
     }

@@ -62,7 +62,7 @@ async function passengerTripGuard({ onTrip } = {}) {
             const { data: payment } = await payRes.json();
 
             if (payment.status === "PAID") {
-              location.href = `/passenger/trips/completed.html?tripId=${trip.tripId}`;
+              location.href = `../trips/ended.html`;
             } else {
               location.href = `/passenger/payments/index.html?tripId=${trip.tripId}`;
             }
