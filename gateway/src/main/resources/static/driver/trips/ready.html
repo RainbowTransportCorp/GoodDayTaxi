@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>운행 대기 중 | Good day Taxi</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/common/header.css" />
+  <script src="/common/header.js" defer></script>
   <style>
     body {
       margin: 0;
       background: #f7f7fb;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
     .container {
@@ -22,16 +23,16 @@
       background: white;
       border-radius: 20px;
       padding: 28px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
     }
 
     .title {
       font-size: 20px;
       font-weight: 800;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
     }
 
-    .row {
+    .info {
       margin-bottom: 14px;
       font-size: 14px;
     }
@@ -45,7 +46,7 @@
       font-weight: 600;
     }
 
-    .status {
+    .status-box {
       margin-top: 24px;
       padding: 14px;
       border-radius: 12px;
@@ -54,150 +55,89 @@
       background: #8A5DF6;
       color: white;
     }
-
-    .btn-start {
-      width: 100%;
-      margin-top: 20px;
-      padding: 16px;
-      border-radius: 999px;
-      border: none;
-      background: #8A5DF6;
-      color: white;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-    }
   </style>
 </head>
-
 <body>
-<div class="container">
-  <div class="card">
-    <div class="title">🚕 운행 대기 중</div>
+<header class="header"></header>
 
-    <div class="row">
+<main class="container">
+  <div class="card">
+    <h1 class="title">🚕 운행 대기 중</h1>
+
+    <div class="info">
       <div class="label">출발지</div>
       <div class="value" id="pickup">-</div>
     </div>
 
-    <div class="row">
+    <div class="info">
       <div class="label">도착지</div>
       <div class="value" id="destination">-</div>
     </div>
 
-    <div class="status">
-      승객 탑승을 기다리고 있습니다
-    </div>
-
-    <button class="btn-start" onclick="startTrip()">
-      운행 시작
-    </button>
+    <div class="status-box">운행 시작 대기 중입니다</div>
   </div>
-</div>
+</main>
 
 <script>
   const token = localStorage.getItem("accessToken");
   const userUuid = localStorage.getItem("userUuid");
-  const role = localStorage.getItem("role");
-
-  // 🔐 최소 권한 체크 (tripId는 보지 않는다)
-  if (!token || !userUuid || role !== "DRIVER") {
-    alert("기사 전용 페이지입니다.");
-    location.href = "/index.html";
-  }
-
   const headers = {
     "Authorization": `Bearer ${token}`,
     "X-User-UUID": userUuid,
     "X-User-Role": "DRIVER"
   };
 
-  let currentTripId = null;
+  function redirectBasedOnStatus(status, tripId) {
+    switch (status) {
+      case "READY":
+        break;
+      case "STARTED":
+        location.href = `active.html?tripId=${tripId}`;
+        break;
+      case "ENDED":
+        location.href = `ended.html?tripId=${tripId}`;
+        break;
+      default:
+        location.href = "/driver/dashboard/index.html";
+    }
+  }
 
-  async function loadTrip() {
+  async function fetchTrip() {
     try {
       const res = await fetch("/api/v1/trips/drivers/active", { headers });
 
-      // 🚕 운행 없음 → 배차 리스트로
-      if (res.status === 404 || res.status === 204) {
-        location.href = "/driver/dispatches/index.html";
-        return;
-      }
-
-      // 🔐 인증 문제
       if (res.status === 401 || res.status === 403) {
         alert("세션이 만료되었습니다. 다시 로그인해주세요.");
         location.href = "/index.html";
         return;
       }
 
-      if (!res.ok) {
-        throw new Error("DRIVER_TRIP_FETCH_FAIL");
+      if (res.status === 404 || res.status === 204) {
+        location.href = "/driver/dashboard/index.html";
+        return;
       }
 
       const { data: trip } = await res.json();
-
       if (!trip || !trip.status) {
-        location.href = "/driver/dispatches/index.html";
+        location.href = "/driver/dashboard/index.html";
         return;
       }
 
-      currentTripId = trip.tripId;
+      // 렌더링
+      document.getElementById("pickup").textContent = trip.pickupAddress ?? "-";
+      document.getElementById("destination").textContent = trip.destinationAddress ?? "-";
 
-      document.getElementById("pickup").textContent =
-          trip.pickupAddress ?? "-";
-      document.getElementById("destination").textContent =
-          trip.destinationAddress ?? "-";
-
-      // 🔀 상태 기반 이동
-      switch (trip.status) {
-        case "READY":
-          // 이 페이지 유지
-          break;
-
-        case "STARTED":
-          location.href = `/driver/trips/active.html?tripId=${trip.tripId}`;
-          break;
-
-        case "ENDED":
-          location.href = `ended.html`;
-          break;
-
-        default:
-          location.href = "/driver/dispatches/index.html";
-      }
-
+      redirectBasedOnStatus(trip.status, trip.tripId);
     } catch (e) {
-      console.error("기사 운행 정보 조회 실패", e);
-      location.href = "/driver/dispatches/index.html";
+      console.error("운행 정보 조회 실패", e);
+      location.href = "/driver/dashboard/index.html";
     }
   }
 
-  async function startTrip() {
-    if (!currentTripId) return;
-
-    try {
-      const res = await fetch(`/api/v1/trips/${currentTripId}/start`, {
-        method: "PATCH",
-        headers
-      });
-
-      if (!res.ok) {
-        alert("운행 시작에 실패했습니다.");
-        return;
-      }
-
-      location.href = `/driver/trips/active.html?tripId=${currentTripId}`;
-
-    } catch (e) {
-      console.error("운행 시작 실패", e);
-      alert("운행 시작 중 오류가 발생했습니다.");
-    }
-  }
-
-  loadTrip();
-  setInterval(loadTrip, 5000);
+  window.addEventListener("DOMContentLoaded", () => {
+    fetchTrip();
+    setInterval(fetchTrip, 5000);
+  });
 </script>
-
 </body>
 </html>
