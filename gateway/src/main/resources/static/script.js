@@ -111,15 +111,27 @@ async function redirectPassengerAfterLogin() {
       }
     }
 
-    // ✅ 결제 API 조회 (예외 없이 localStorage만)
-    const paymentRes = await fetch("/api/v1/payments/latest", { headers });
+    // ✅ 결제 API 조회 (search 기반으로 변경)
+    const searchParams = new URLSearchParams({
+      page: 0,
+      size: 1,
+      status: "REQUESTED",
+      searchPeriod: "ALL", // 필수
+      sortBy: "createdAt",
+      sortAscending: false
+    });
+
+    const paymentRes = await fetch(`/api/v1/payments/search?${searchParams.toString()}`, { headers });
 
     if (paymentRes.ok) {
       const payJson = await safeReadJson(paymentRes);
-      const payment = payJson?.data ?? null;
+      const paymentList = payJson?.data?.content ?? [];
 
-      if (payment?.tripId && payment.status !== "PAID") {
-        localStorage.setItem("unpaidTrip", JSON.stringify(payment));
+      if (paymentList.length > 0) {
+        const latest = paymentList[0];
+        if (latest.tripId && latest.status !== "PAID") {
+          localStorage.setItem("unpaidTrip", JSON.stringify(latest));
+        }
       }
     }
 
@@ -166,5 +178,6 @@ async function redirectDriverAfterLogin() {
   } catch (e) {
     console.error("🚨 기사 로그인 후 상태 복구 실패:", e);
   }
+
   location.href = "/driver/dashboard/index.html";
 }
