@@ -14,6 +14,8 @@ spring:
     driver-class-name: org.postgresql.Driver
     username: ${postgres.user}
     password: ${postgres.password}
+    hikari:
+      connection-init-sql: "SET lock_timeout TO '3s'"
 
   data:
     redis:

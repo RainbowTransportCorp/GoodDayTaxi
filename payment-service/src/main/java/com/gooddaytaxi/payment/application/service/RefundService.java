@@ -58,7 +58,9 @@ public class RefundService {
         validator.checkRoleMasterAdmin(UserRole.of(role));
 
         //해당 결제가 있는지 확인하고 완료 상태인지 검증
-        Payment payment = loadAndValidatePayment(paymentId);
+        Payment payment = paymentQueryPort.findByIdWithLock(paymentId)
+                .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+        validator.checkPaymentStatusCompleted(payment.getStatus());
 
         //결제 수단이 토스페이인지 확인
         validator.checkMethodTossPay(payment.getMethod());

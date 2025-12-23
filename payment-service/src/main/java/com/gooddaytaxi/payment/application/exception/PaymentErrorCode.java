@@ -45,6 +45,10 @@ public enum PaymentErrorCode {
     COMPLETED_PAYMENT(HttpStatus.CONFLICT, "P028", "이미 완료된 결제 청구서가 있습니다"),
     IDEMPOTENCY_PAYMENT_CONFLICT(HttpStatus.CONFLICT, "P028", "이미 처리 중인 동일한 결제 요청이 있습니다"),
     IDEMPOTENCY_REFUND_CONFLICT(HttpStatus.CONFLICT, "P028", "이미 처리 중인 동일한 환불 요청이 있습니다"),
+    PAYMENT_LOCK_TIMEOUT(HttpStatus.CONFLICT, "P028", "동시 결제 승인 요청이 처리 중입니다. 잠시 후 다시 시도해주세요."),
+
+    //500-INTERNAL_SERVER_ERROR - 서버 내부의 시스템 장애
+    PAYMENT_JPA_SYSTEM_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "P028", "결제 처리 중 내부 저장소 오류가 발생했습니다"),
 
 
     //502 — BAD_GATEWAY
