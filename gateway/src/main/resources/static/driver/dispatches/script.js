@@ -40,11 +40,16 @@ async function checkActiveTrip() {
     }
 
     const { data: trip } = await res.json();
+    const pathname = location.pathname;
 
     if (trip.status === "READY") {
-      location.href = "/driver/trips/ready.html";
+      if (!pathname.endsWith("ready.html")) {
+        location.href = "/driver/trips/ready.html";
+      }
     } else if (trip.status === "STARTED") {
-      location.href = "/driver/trips/active.html";
+      if (!pathname.endsWith("active.html")) {
+        location.href = "/driver/trips/active.html";
+      }
     }
 
   } catch (e) {
@@ -52,6 +57,7 @@ async function checkActiveTrip() {
     alert("서버 연결 중 문제가 발생했습니다.");
   }
 }
+
 
 /* ================= 대기 콜 목록 ================= */
 async function loadPending() {
