@@ -3,7 +3,6 @@ package com.gooddaytaxi.trip.application.validator;
 import com.gooddaytaxi.trip.application.exception.TripErrorCode;
 import com.gooddaytaxi.trip.application.exception.TripException;
 import com.gooddaytaxi.trip.domain.model.enums.TripStatus;
-import com.gooddaytaxi.trip.domain.model.enums.UserRole;
 import java.util.UUID;
 import org.springframework.stereotype.Component;
 

@@ -1,4 +1,4 @@
-package com.gooddaytaxi.trip.domain.model.enums;
+package com.gooddaytaxi.trip.application.validator;
 
 import com.gooddaytaxi.trip.domain.exception.TripDomainException;
 
