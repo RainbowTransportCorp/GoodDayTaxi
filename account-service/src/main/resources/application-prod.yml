@@ -1,0 +1,66 @@
+server:
+  port: ${service.port}
+
+spring:
+#  profiles:
+#    active: ${SPRING_PROFILES.ACTIVE:docker}
+  config:
+    import:
+      - secrets.yml
+  application:
+    name: account-service
+
+  main:
+    web-application-type: servlet
+
+  datasource:
+    url: jdbc:postgresql://localhost:5433/${postgres.db}
+    driver-class-name: org.postgresql.Driver
+    username: ${postgres.user}
+    password: ${postgres.password}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:${eureka.port}/eureka/
+
+jwt:
+  secret-key: ${jwt.secret-key}
+  access-token-validity-in-seconds: 3600
+  refresh-token-validity-in-seconds: 604800
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: http://localhost:${zipkin.port}/api/v2/spans
+
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+
+  metrics:
+    tags:
+      application: account-service
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  packages-to-scan: com.gooddaytaxi.account.adapter.web,com.gooddaytaxi.account.presentation.controller

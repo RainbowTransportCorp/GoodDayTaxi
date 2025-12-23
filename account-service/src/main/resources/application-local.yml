@@ -6,7 +6,7 @@ spring:
 #    active: ${SPRING_PROFILES.ACTIVE:docker}
   config:
     import:
-      - secrets.yaml
+      - secrets.yml
   application:
     name: account-service
 
