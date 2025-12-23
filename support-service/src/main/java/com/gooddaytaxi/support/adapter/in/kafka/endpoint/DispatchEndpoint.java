@@ -22,6 +22,7 @@ public class DispatchEndpoint {
     private final NotifyDispatchTimeoutUsecase notifyDispatchTimeoutUsecase;
     private final NotifyDispatchCancelUsecase notifyDispatchCancelUsecase;
     private final NotifyDispatchRejectUsecase notifyDispatchRejectUsecase;
+    private final NotifyDispatchForceTimeoutUsecase notifyDispatchForceTimeoutUsecase;
 
     /**
      * 특정 기사에게 배차 요청이 왔을 때 기사에게 손님의 Call 요청 알림 전송 이벤트 리스너
@@ -174,17 +175,21 @@ public class DispatchEndpoint {
         log.debug("[Check] Dispatch Force Timeout EventRequest 데이터: dispatchId={}, reason={}, forceTimeoutAt={}", pl.dispatchId(), pl.reason(), pl.forceTimeoutAt());
 
         // EventRequest DTO > Command 변환
-        NotifyDipsatchTimeoutCommand command = NotifyDipsatchTimeoutCommand.create(
+        NotifyDipsatchForceTimeoutCommand command = NotifyDipsatchForceTimeoutCommand.create(
                 pl.notificationOriginId(),
-                pl.notifierId(),
-                pl.passengerId(),
+                pl.forcedById(),
+                pl.driverId(),
+                pl.forcedByRole(),
+                pl.previousStatus(),
+                pl.forceTimeoutAt(),
+                pl.reason(),
                 pl.message(),
-                pl.timeoutAt(),
+                pl.tripRequestMayHaveBeenSent(),
                 metadata
         );
         log.debug("[Transform] EventRequest >>> Command ➡️ {}", command);
 
-        // 수락된 콜 알림 전송 서비스 호출
-        notifyDispatchTimeoutUsecase.execute(command);
+        // 강제 운행 종료 알림 전송 서비스 호출
+        notifyDispatchForceTimeoutUsecase.execute(command);
     }
 }
