@@ -2,8 +2,8 @@ package com.gooddaytaxi.payment.infrastructure.outbox.consumer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gooddaytaxi.payment.application.command.payment.PaymentCreateCommand;
-import com.gooddaytaxi.payment.application.event.EventEnvelope;
-import com.gooddaytaxi.payment.application.event.TripEndedPayload;
+import com.gooddaytaxi.payment.application.event.payload.EventEnvelope;
+import com.gooddaytaxi.payment.application.event.payload.TripEndedPayload;
 import com.gooddaytaxi.payment.application.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

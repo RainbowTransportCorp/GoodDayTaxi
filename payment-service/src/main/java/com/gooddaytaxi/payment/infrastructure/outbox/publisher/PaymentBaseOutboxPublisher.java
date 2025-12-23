@@ -2,7 +2,7 @@ package com.gooddaytaxi.payment.infrastructure.outbox.publisher;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gooddaytaxi.payment.application.event.EventEnvelope;
+import com.gooddaytaxi.payment.application.event.payload.EventEnvelope;
 import com.gooddaytaxi.payment.application.outbox.OutboxEventModel;
 import com.gooddaytaxi.payment.application.port.out.event.PaymentEventOutboxPort;
 import com.gooddaytaxi.payment.infrastructure.outbox.exception.PaymentOutboxException;

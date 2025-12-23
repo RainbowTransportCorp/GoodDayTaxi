@@ -1,4 +1,4 @@
-package com.gooddaytaxi.payment.application.event;
+package com.gooddaytaxi.payment.application.event.payload;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

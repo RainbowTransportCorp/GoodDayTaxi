@@ -1,7 +1,7 @@
 package com.gooddaytaxi.payment.application.service;
 
 import com.gooddaytaxi.payment.application.command.payment.*;
-import com.gooddaytaxi.payment.application.event.PaymentCompletePayload;
+import com.gooddaytaxi.payment.application.event.payload.PaymentCompletePayload;
 import com.gooddaytaxi.payment.application.event.TossPayConfirmFailedAfterRollbackEvent;
 import com.gooddaytaxi.payment.application.exception.PaymentErrorCode;
 import com.gooddaytaxi.payment.application.exception.PaymentException;
