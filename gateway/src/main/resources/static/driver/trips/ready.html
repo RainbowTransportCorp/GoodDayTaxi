@@ -86,7 +86,7 @@
     </div>
 
     <div class="status">
-      승객 탑승 대기 중
+      승객 탑승을 기다리고 있습니다
     </div>
 
     <button class="btn-start" onclick="startTrip()">
@@ -98,54 +98,101 @@
 <script>
   const token = localStorage.getItem("accessToken");
   const userUuid = localStorage.getItem("userUuid");
+  const role = localStorage.getItem("role");
+
+  // 🔐 최소 권한 체크 (tripId는 보지 않는다)
+  if (!token || !userUuid || role !== "DRIVER") {
+    alert("기사 전용 페이지입니다.");
+    location.href = "/index.html";
+  }
+
+  const headers = {
+    "Authorization": `Bearer ${token}`,
+    "X-User-UUID": userUuid,
+    "X-User-Role": "DRIVER"
+  };
+
+  let currentTripId = null;
 
   async function loadTrip() {
-    const res = await fetch("/api/v1/trips/drivers/active", {
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "X-User-UUID": userUuid,
-        "X-User-Role": "DRIVER"
+    try {
+      const res = await fetch("/api/v1/trips/drivers/active", { headers });
+
+      // 🚕 운행 없음 → 배차 리스트로
+      if (res.status === 404 || res.status === 204) {
+        location.href = "/driver/dispatches/index.html";
+        return;
       }
-    });
 
-    // ✅ active trip 없음 → 정상 처리
-    if (res.status === 404 || res.status === 204) {
-      location.href = "driver/dispatches/index.html";
-      return;
+      // 🔐 인증 문제
+      if (res.status === 401 || res.status === 403) {
+        alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+        location.href = "/index.html";
+        return;
+      }
+
+      if (!res.ok) {
+        throw new Error("DRIVER_TRIP_FETCH_FAIL");
+      }
+
+      const { data: trip } = await res.json();
+
+      if (!trip || !trip.status) {
+        location.href = "/driver/dispatches/index.html";
+        return;
+      }
+
+      currentTripId = trip.tripId;
+
+      document.getElementById("pickup").textContent =
+          trip.pickupAddress ?? "-";
+      document.getElementById("destination").textContent =
+          trip.destinationAddress ?? "-";
+
+      // 🔀 상태 기반 이동
+      switch (trip.status) {
+        case "READY":
+          // 이 페이지 유지
+          break;
+
+        case "STARTED":
+          location.href = `/driver/trips/active.html?tripId=${trip.tripId}`;
+          break;
+
+        case "ENDED":
+        case "COMPLETED":
+          location.href = `/driver/trips/completed.html?tripId=${trip.tripId}`;
+          break;
+
+        default:
+          location.href = "/driver/dispatches/index.html";
+      }
+
+    } catch (e) {
+      console.error("기사 운행 정보 조회 실패", e);
+      location.href = "/driver/dispatches/index.html";
     }
+  }
 
-    // ❌ 진짜 에러만 처리
-    if (!res.ok) {
-      location.href = "/common/error.html";
-      return;
-    }
+  async function startTrip() {
+    if (!currentTripId) return;
 
-    const { data: trip } = await res.json();
+    try {
+      const res = await fetch(`/api/v1/trips/${currentTripId}/start`, {
+        method: "PATCH",
+        headers
+      });
 
-    // 정보 표시
-    document.getElementById("pickup").textContent =
-        trip.pickupAddress ?? "-";
-    document.getElementById("destination").textContent =
-        trip.destinationAddress ?? "-";
+      if (!res.ok) {
+        alert("운행 시작에 실패했습니다.");
+        return;
+      }
 
-    // 🔀 상태별 이동
-    switch (trip.status) {
-      case "READY":
-        //이 페이지 유지
-        break;
+      location.href = `/driver/trips/active.html?tripId=${currentTripId}`;
 
-      case "STARTED":
-        location.href = "/driver/trips/active.html";
-        break;
-
-      case "ENDED":
-        location.href =
-            `/driver/trips/completed.html?tripId=${trip.id}`;
-        break;
-
-      default:
-        // CREATED, CANCELED 등
-        location.href = "/driver/index.html";
+    } catch (e) {
+      console.error("운행 시작 실패", e);
+      alert("운행 시작 중 오류가 발생했습니다.");
     }
   }
 
