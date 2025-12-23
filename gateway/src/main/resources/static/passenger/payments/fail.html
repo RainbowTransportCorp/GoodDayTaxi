@@ -102,6 +102,7 @@
 </div>
 
 <script>
+    sessionStorage.removeItem("payment-confirm-idempotency-key");
     const params = new URLSearchParams(window.location.search);
     const message = params.get("message") || "알 수 없는 오류가 발생했습니다.";
 

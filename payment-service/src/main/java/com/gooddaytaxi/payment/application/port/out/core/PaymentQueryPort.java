@@ -15,6 +15,7 @@ import java.util.UUID;
 
 public interface PaymentQueryPort {
     Optional<Payment> findById(UUID paymentId);
+    Optional<Payment> findByIdWithLock(UUID paymentId);
 
     Optional<PaymentAttempt> findLastAttemptByPaymentId(UUID paymentId);
 
@@ -26,6 +27,7 @@ public interface PaymentQueryPort {
     Optional<Payment> findByIdWithRefund(UUID paymentId);
 
     Payment findLastByTripIdAndStatusForCreate(UUID tripId);
+    Payment findLastByTripIdAndStatusForCreateWithLock(UUID tripId);
 
     Page<Refund> searchRefunds(String status, String reason, Boolean existRequest, UUID passeangerId, UUID driverId, UUID tripId, String method, Long minAmount, Long maxAmount, LocalDateTime localDateTime, LocalDateTime localDateTime1, Pageable pageable);
 
