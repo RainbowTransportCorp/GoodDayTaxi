@@ -1,0 +1,126 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.gooddaytaxi",
+    "module": "common-jpa",
+    "version": "0.0.1-SNAPSHOT",
+    "attributes": {
+      "org.gradle.status": "integration"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.2.1"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "common-jpa-0.0.1-SNAPSHOT.jar",
+          "url": "common-jpa-0.0.1-SNAPSHOT.jar",
+          "size": 2920,
+          "sha512": "fb68b34b3b80791f18c9f72a4635009f6489ad6c60ea02e0fab264720332613152563c8ee7212687456eed62f21910d4d6b5ac6580d825edb9ebd765649fb375",
+          "sha256": "381620d66725a8423f929b1ca4a78e121416552e9bdfaf740ac109acbff02767",
+          "sha1": "18e12372db75bb5e309b9b8070f7f2a7aff5bce1",
+          "md5": "6b2b96db95757997f5be884419750719"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "com.gooddaytaxi",
+          "module": "common-core",
+          "version": {
+            "requires": "0.0.1-SNAPSHOT"
+          }
+        },
+        {
+          "group": "jakarta.persistence",
+          "module": "jakarta.persistence-api",
+          "version": {
+            "requires": "3.1.0"
+          }
+        },
+        {
+          "group": "org.hibernate.orm",
+          "module": "hibernate-core",
+          "version": {
+            "requires": "6.5.2.Final"
+          }
+        },
+        {
+          "group": "org.springframework.data",
+          "module": "spring-data-jpa",
+          "version": {
+            "requires": "3.3.4"
+          }
+        },
+        {
+          "group": "org.springframework.data",
+          "module": "spring-data-commons",
+          "version": {
+            "requires": "3.3.4"
+          }
+        },
+        {
+          "group": "org.springframework",
+          "module": "spring-context",
+          "version": {
+            "requires": "6.1.4"
+          }
+        },
+        {
+          "group": "com.fasterxml.jackson.core",
+          "module": "jackson-annotations",
+          "version": {
+            "requires": "2.17.1"
+          }
+        },
+        {
+          "group": "com.querydsl",
+          "module": "querydsl-jpa",
+          "version": {
+            "requires": "5.0.0"
+          },
+          "thirdPartyCompatibility": {
+            "artifactSelector": {
+              "name": "querydsl-jpa",
+              "type": "jar",
+              "extension": "jar",
+              "classifier": "jakarta"
+            }
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "common-jpa-0.0.1-SNAPSHOT.jar",
+          "url": "common-jpa-0.0.1-SNAPSHOT.jar",
+          "size": 2920,
+          "sha512": "fb68b34b3b80791f18c9f72a4635009f6489ad6c60ea02e0fab264720332613152563c8ee7212687456eed62f21910d4d6b5ac6580d825edb9ebd765649fb375",
+          "sha256": "381620d66725a8423f929b1ca4a78e121416552e9bdfaf740ac109acbff02767",
+          "sha1": "18e12372db75bb5e309b9b8070f7f2a7aff5bce1",
+          "md5": "6b2b96db95757997f5be884419750719"
+        }
+      ]
+    }
+  ]
+}

@@ -10,13 +10,12 @@ COPY gradlew gradlew
 COPY gradle gradle
 COPY build.gradle settings.gradle ./
 COPY src src
+COPY m2 /root/.m2
 
 RUN chmod +x gradlew
 
 # host의 ~/.m2 를 Gradle 컨테이너에 주입
-RUN --mount=type=bind,source=m2,target=/home/gradle/.m2,readonly \
-    --mount=type=cache,target=/home/gradle/.gradle \
-    ./gradlew bootJar -x test --no-daemon
+RUN ./gradlew bootJar -x test --no-daemon
 
 # ============================
 # 2) Run Stage
