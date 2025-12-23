@@ -16,6 +16,7 @@ RUN chown -R gradle:gradle /home/gradle/.m2
 RUN chmod +x gradlew
 
 # host의 ~/.m2 를 Gradle 컨테이너에 주입
+RUN ./gradlew dependencies --no-daemon
 RUN ./gradlew bootJar -x test --no-daemon
 
 # ============================
