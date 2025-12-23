@@ -225,6 +225,27 @@ public class PaymentService {
         );
     }
 
+    //결제 단건 조회 - 승객/기사용, tripId로 조회
+    public PaymentReadResult getPaymentByTripId(UUID tripId, UUID userId, String role) {
+        //승객이나 기사만 가능
+        UserRole userRole = UserRole.of(role);
+        validator.checkRolePassengerAndDriver(userRole);
+
+        //tripId로 결제 찾기
+        Payment payment = paymentQueryPort.findLastByTripIdAndStatusForCreate(tripId);
+        //승객/기사 본인인지 확인
+        validator.checkPassengerAndDriverPermission(userRole, userId, payment.getPassengerId(), payment.getDriverId());
+
+        return new PaymentReadResult(
+                payment.getId(),
+                payment.getTripId(),
+                payment.getAmount().value(),
+                payment.getStatus().name(),
+                payment.getMethod().name(),
+                payment.getApprovedAt()
+        );
+    }
+
     //결제 청구서 단건 조회 - 승객/기사용
     public PaymentReadResult getPayment(UUID paymentId, UUID userId, String role) {
         //승객이나 기사만 가능
@@ -237,6 +258,7 @@ public class PaymentService {
 
         return new PaymentReadResult(
                 payment.getId(),
+                payment.getTripId(),
                 payment.getAmount().value(),
                 payment.getStatus().name(),
                 payment.getMethod().name(),
@@ -296,6 +318,7 @@ public class PaymentService {
         return payments.map(payment ->
             new PaymentReadResult(
                     payment.getId(),
+                    payment.getTripId(),
                     payment.getAmount().value(),
                     payment.getStatus().name(),
                     payment.getMethod().name(),
