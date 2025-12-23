@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>운행 대기 중 | Good day Taxi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      margin: 0;
+      background: #f7f7fb;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+    }
+
+    .container {
+      max-width: 420px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    .title {
+      font-size: 20px;
+      font-weight: 800;
+      margin-bottom: 16px;
+    }
+
+    .row {
+      margin-bottom: 14px;
+      font-size: 14px;
+    }
+
+    .label {
+      color: #777;
+      margin-bottom: 4px;
+    }
+
+    .value {
+      font-weight: 600;
+    }
+
+    .status {
+      margin-top: 24px;
+      padding: 14px;
+      border-radius: 12px;
+      text-align: center;
+      font-weight: 700;
+      background: #8A5DF6;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="card">
+    <div class="title">🚕 운행 대기 중</div>
+
+    <div class="row">
+      <div class="label">출발지</div>
+      <div class="value" id="pickup">-</div>
+    </div>
+
+    <div class="row">
+      <div class="label">도착지</div>
+      <div class="value" id="destination">-</div>
+    </div>
+
+    <div class="status">
+      기사님 배차 완료! 운행 시작을 기다리는 중입니다.
+    </div>
+  </div>
+</div>
+
+<script>
+  const userUuid = localStorage.getItem("userUuid");
+  const token = localStorage.getItem("accessToken");
+
+  if (!userUuid || !token) {
+    alert("잘못된 접근입니다.");
+    location.href = "/index.html";
+  }
+
+  const defaultHeaders = {
+    "Authorization": `Bearer ${token}`,
+    "X-User-UUID": userUuid,
+    "X-User-Role": "PASSENGER"
+  };
+
+  async function fetchTripInfo() {
+    try {
+      const res = await fetch("/api/v1/trips/passengers/active", {
+        headers: defaultHeaders
+      });
+
+      if (!res.ok) {
+        if (res.status === 404 || res.status === 204) {
+          location.href = "/passenger/dashboard/index.html";
+          return;
+        }
+
+        if (res.status === 401 || res.status === 403) {
+          alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+          location.href = "/index.html";
+          return;
+        }
+
+        throw new Error("Trip fetch failed");
+      }
+
+      const { data: trip } = await res.json();
+
+      if (!trip || !trip.status) {
+        location.href = "/passenger/dashboard/index.html";
+        return;
+      }
+
+      document.getElementById("pickup").textContent = trip.pickupAddress ?? "-";
+      document.getElementById("destination").textContent = trip.destinationAddress ?? "-";
+
+      // 상태 확인해서 이동
+      switch (trip.status) {
+        case "READY":
+          // stay on this page
+          break;
+        case "STARTED":
+          location.href = `/passenger/trips/active.html?tripId=${trip.tripId}`;
+          break;
+        case "ENDED":
+        case "COMPLETED":
+          location.href = `/passenger/trips/completed.html?tripId=${trip.tripId}`;
+          break;
+        default:
+          location.href = "/passenger/dashboard/index.html";
+      }
+
+    } catch (e) {
+      console.error("운행 정보 조회 실패", e);
+      location.href = "/passenger/dashboard/index.html";
+    }
+  }
+
+  fetchTripInfo();
+  setInterval(fetchTripInfo, 5000);
+</script>
+
+</body>
+</html>

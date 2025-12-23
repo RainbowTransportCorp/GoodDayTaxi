@@ -6,12 +6,14 @@ import com.gooddaytaxi.trip.application.result.*;
 import com.gooddaytaxi.trip.application.service.TripService;
 
 import com.gooddaytaxi.trip.domain.model.enums.CancelReason;
+import com.gooddaytaxi.trip.domain.model.enums.UserRole;
 import com.gooddaytaxi.trip.presentation.dto.request.CreateTripRequest;
 import com.gooddaytaxi.trip.presentation.dto.request.EndTripRequest;
 import com.gooddaytaxi.trip.presentation.dto.response.*;
 import com.gooddaytaxi.trip.presentation.mapper.command.EndTripRequestMapper;
 import com.gooddaytaxi.trip.presentation.mapper.command.TripCreateRequestMapper;
 import com.gooddaytaxi.trip.presentation.mapper.result.*;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 
 import lombok.RequiredArgsConstructor;
@@ -87,14 +89,10 @@ public class TripController {
     @PutMapping("/{tripId}/start")
     public ResponseEntity<ApiResponse<TripStartResponse>> startTrip(
             @PathVariable("tripId") UUID tripId,
-            @RequestHeader(value = "x-user-uuid",required = false) UUID notifierId
+            @RequestHeader(value = "x-user-uuid") UUID notifierId
     ) {
 
-        UUID finalNotifierId = (notifierId != null)
-                ? notifierId
-                : UUID.fromString("99999999-9999-9999-9999-999999999999");
-
-        StartTripCommand command = new StartTripCommand(tripId, finalNotifierId);
+        StartTripCommand command = new StartTripCommand(tripId, notifierId);
 
         TripStartResult result = tripService.startTrip(command);
         TripStartResponse response = tripStartResponseMapper.toResponse(result);
@@ -109,11 +107,8 @@ public class TripController {
             @RequestHeader(value = "x-user-uuid", required = false) UUID notifierId,
             @Valid @RequestBody EndTripRequest request
     ) {
-        UUID finalNotifierId = (notifierId != null)
-                ? notifierId
-                : UUID.fromString("99999999-9999-9999-9999-999999999999");
 
-        EndTripCommand command = endTripRequestMapper.toCommand(request, finalNotifierId);
+        EndTripCommand command = endTripRequestMapper.toCommand(request, notifierId);
         // ↑ mapper가 notifierId를 못 받는 구조면, 아래처럼 command 생성 방식으로 바꿔도 됨
 
         TripEndResult result = tripService.endTrip(tripId, command);
@@ -126,17 +121,14 @@ public class TripController {
     @PutMapping("/{tripId}/cancel")
     public ResponseEntity<ApiResponse<TripCancelResult>> cancelTrip(
             @PathVariable UUID tripId,
-            @RequestHeader(value = "x-user-uuid", required = false) UUID notifierId,
+            @RequestHeader(value = "x-user-uuid") UUID notifierId,
             @RequestParam(defaultValue = "PASSENGER_REQUEST") String cancelReason
     ) {
-        UUID finalNotifierId = (notifierId != null)
-                ? notifierId
-                : UUID.fromString("99999999-9999-9999-9999-999999999999");;
 
         CancelReason reason = CancelReason.valueOf(cancelReason);
 
         CancelTripCommand command =
-                new CancelTripCommand(tripId, finalNotifierId, reason);
+                new CancelTripCommand(tripId, notifierId, reason);
 
         TripCancelResult result = tripService.cancelTrip(command);
         return ResponseEntity.ok(ApiResponse.success(result));
@@ -190,21 +182,38 @@ public class TripController {
             @RequestParam String currentAddress,
             @RequestParam String region
     ) {
-        UUID finalNotifierId = notifierId != null
-                ? notifierId
-                : UUID.fromString("99999999-9999-9999-9999-999999999999");
 
         TripLocationUpdatedResult result = tripService.publishLocationUpdate(
-                new UpdateTripLocationCommand(tripId, finalNotifierId, currentAddress, region)
+                new UpdateTripLocationCommand(tripId, notifierId, currentAddress, region)
         );
 
         TripLocationUpdatedResponse response = tripLocationUpdatedResponseMapper.toResponse(result);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    //-------------------프론트용 운행중 api
 
+    @GetMapping("/passengers/active")
+    public ResponseEntity<ApiResponse<TripResponse>> getPassengerActiveTrip(
+        @RequestHeader(value = "X-User-UUID") UUID passengerId,
+        @RequestHeader(value = "X-User-Role") String role // role은 스트링으로 받고 enum으로 변환해서 사용합니다.
+    ) {
+        TripItem result = tripService.getActiveTripByPassenger(passengerId, UserRole.valueOf(role));
 
+        TripResponse response = tripDetailResponseMapper.toResponse(result);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
 
+    @GetMapping("/drivers/active")
+    public ResponseEntity<ApiResponse<TripResponse>> getDriverActiveTrip(
+        @RequestHeader(value = "X-User-UUID") UUID driverId,
+        @RequestHeader(value = "X-User-Role") String role
+    ) {
+        TripItem result = tripService.getActiveTripByDriver(driverId, UserRole.valueOf(role));
+
+        TripResponse response = tripDetailResponseMapper.toResponse(result);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
 
 }
 
