@@ -98,6 +98,12 @@
 <script>
   const token = localStorage.getItem("accessToken");
   const uuid = localStorage.getItem("userUuid");
+
+  if (!token || !uuid) {
+    alert("로그인이 필요합니다.");
+    location.href = "/index.html";
+  }
+
   const headers = {
     "Authorization": `Bearer ${token}`,
     "X-User-UUID": uuid,
@@ -111,6 +117,9 @@
     })
     .then(res => {
       if (res.ok) {
+        // ✅ 상태 제거
+        localStorage.removeItem("tripId");
+        localStorage.removeItem("tripStatus");
         location.href = "ended.html";
       } else {
         return res.json().then(json => {
@@ -142,6 +151,10 @@
       const { data: trip } = await res.json();
       if (!trip || !trip.status) return;
 
+      // ✅ trip 상태 로컬 저장 (운행중 인디케이터 표시)
+      localStorage.setItem("tripId", trip.id);
+      localStorage.setItem("tripStatus", trip.status);
+
       // 상태별 분기
       if (trip.status === "READY") {
         location.href = "ready.html";
@@ -152,7 +165,7 @@
         return;
       }
 
-      // 기본 렌더링
+      // 렌더링
       document.getElementById("pickup").textContent = trip.pickupAddress ?? "-";
       document.getElementById("destination").textContent = trip.destinationAddress ?? "-";
 

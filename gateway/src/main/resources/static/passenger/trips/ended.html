@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <title>결제하기 | Good day Taxi</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- ✅ 공통 헤더 추가 -->
+  <link rel="stylesheet" href="/common/header.css">
+  <script src="/common/header.js" defer></script>
+
   <style>
     body {
       margin: 0;
@@ -72,6 +77,9 @@
 
 <body>
 
+<!-- ✅ 공통 헤더 -->
+<header class="header"></header>
+
 <div class="container">
   <div class="card">
     <div class="title">🚕 운행이 완료되었습니다</div>
@@ -134,15 +142,17 @@
 
       const { data } = await res.json();
 
-      document.getElementById("pickup").textContent =
-          data.pickupAddress ?? "-";
-      document.getElementById("destination").textContent =
-          data.destinationAddress ?? "-";
-      document.getElementById("fare").textContent =
-          `₩ ${Number(data.amount).toLocaleString()}`;
+      document.getElementById("pickup").textContent = data.pickupAddress ?? "-";
+      document.getElementById("destination").textContent = data.destinationAddress ?? "-";
+      document.getElementById("fare").textContent = `₩ ${Number(data.amount).toLocaleString()}`;
 
-      // 이미 결제 완료면 success로
-      if (data.status === "PAID") {
+      // ✅ 공통 헤더에서 사용할 미결제 상태 저장
+      if (data.status === "PENDING") {
+        localStorage.setItem("tripId", tripId);
+        localStorage.setItem("tripStatus", "PENDING"); // 헤더 인디케이터 표시
+      } else if (data.status === "PAID") {
+        localStorage.removeItem("tripId");
+        localStorage.removeItem("tripStatus");
         location.href = `/passenger/payments/success.html?tripId=${tripId}`;
       }
 
@@ -155,7 +165,6 @@
 
   window.addEventListener("DOMContentLoaded", loadPaymentInfo);
 </script>
-
 
 </body>
 </html>

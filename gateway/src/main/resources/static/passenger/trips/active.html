@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <title>운행 중 | Good day Taxi</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- ✅ 공통 헤더 CSS/JS -->
+  <link rel="stylesheet" href="/common/header.css">
+  <script src="/common/header.js" defer></script>
+
   <style>
     body {
       margin: 0;
@@ -56,6 +61,9 @@
   </style>
 </head>
 <body>
+<!-- ✅ 공통 헤더 영역 (JS로 삽입됨) -->
+<header class="header"></header>
+
 <div class="container">
   <div class="card">
     <div class="title">🚕 운행 중입니다</div>
@@ -95,6 +103,10 @@
     document.getElementById("pickup").textContent = trip.pickupAddress ?? "-";
     document.getElementById("destination").textContent = trip.destinationAddress ?? "-";
     document.getElementById("statusBox").textContent = "운행 중";
+
+    // ✅ 로컬스토리지 업데이트 (공통 인디케이터에서 사용)
+    localStorage.setItem("tripId", trip.id);
+    localStorage.setItem("tripStatus", trip.status);
   }
 
   async function pollTripStatus() {
@@ -120,16 +132,19 @@
       const { data: trip } = await res.json();
       if (!trip || !trip.status) return;
 
-      // 항상 렌더링
       renderTrip(trip);
 
-      // 상태 변화 감지 → ended.html 이동
       if (trip.status !== previousTripStatus) {
         previousTripStatus = trip.status;
 
         if (trip.status === "COMPLETED" || trip.status === "ENDED") {
           clearInterval(pollingId);
-          location.href = `ended.html`;
+
+          // ✅ 상태 제거
+          localStorage.removeItem("tripId");
+          localStorage.removeItem("tripStatus");
+
+          location.href = "ended.html";
         }
       }
 
