@@ -10,7 +10,8 @@ COPY gradlew gradlew
 COPY gradle gradle
 COPY build.gradle settings.gradle ./
 COPY src src
-COPY m2 /root/.m2
+COPY m2 /home/gradle/.m2
+RUN chown -R gradle:gradle /home/gradle/.m2
 
 RUN chmod +x gradlew
 
