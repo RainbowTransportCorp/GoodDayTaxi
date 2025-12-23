@@ -49,26 +49,5 @@
     </div>
 </main>
 
-<!-- 🔹 운행중 버튼 제어 스크립트 -->
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const tripStatus = localStorage.getItem("tripStatus");
-        const tripId = localStorage.getItem("tripId");
-
-        if (tripId && (tripStatus === "READY" || tripStatus === "STARTED")) {
-            const tripBtn = document.querySelector("#trip-status-btn");
-            if (tripBtn) {
-                tripBtn.classList.remove("hidden");
-                tripBtn.onclick = () => {
-                    const url = tripStatus === "READY"
-                        ? `/driver/trips/ready.html?tripId=${tripId}`
-                        : `/driver/trips/active.html?tripId=${tripId}`;
-                    location.href = url;
-                };
-            }
-        }
-    });
-</script>
-
 </body>
 </html>
