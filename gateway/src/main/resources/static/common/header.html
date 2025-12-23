@@ -1,17 +1,13 @@
-<!-- ✅ header.html 내부 -->
 <header class="header">
-  <div class="brand">
-    <div class="brand-main">Good day Taxi</div>
-    <div class="brand-sub" id="brand-sub"></div>
+  <div class="header-left">
+    <div>
+      <div class="brand-main">Good day Taxi</div>
+      <div class="brand-sub" id="brand-sub"></div>
+    </div>
+    <div class="top-indicators" id="top-indicators"></div>
   </div>
-
-  <!-- ✅ 상태 인디케이터 위치 (운행중 / 미결제) -->
-  <div class="top-indicators" id="top-indicators">
-    <!-- JS가 버튼 삽입 -->
-  </div>
-
   <div class="user-box">
-    <span id="user-name"></span>
+    <span id="user-name">사용자님</span>
     <button class="btn-logout" onclick="logout()">로그아웃</button>
   </div>
 </header>

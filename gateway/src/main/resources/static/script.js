@@ -61,6 +61,7 @@ async function login() {
   localStorage.setItem("refreshToken", data.refreshToken);
   localStorage.setItem("userUuid", data.userUuid);
   localStorage.setItem("role", data.role);
+  localStorage.setItem("email", data.email);
 
   switch (data.role) {
     case "PASSENGER":

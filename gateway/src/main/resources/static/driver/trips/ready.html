@@ -81,6 +81,12 @@
 <script>
   const token = localStorage.getItem("accessToken");
   const userUuid = localStorage.getItem("userUuid");
+
+  if (!token || !userUuid) {
+    alert("로그인이 필요합니다.");
+    location.href = "/index.html";
+  }
+
   const headers = {
     "Authorization": `Bearer ${token}`,
     "X-User-UUID": userUuid,
@@ -88,13 +94,19 @@
   };
 
   function redirectBasedOnStatus(status, tripId) {
+    localStorage.setItem("tripStatus", status);
+    localStorage.setItem("tripId", tripId);
+
     switch (status) {
       case "READY":
+        // stay here
         break;
       case "STARTED":
         location.href = `active.html?tripId=${tripId}`;
         break;
       case "ENDED":
+        localStorage.removeItem("tripStatus");
+        localStorage.removeItem("tripId");
         location.href = `ended.html?tripId=${tripId}`;
         break;
       default:
@@ -127,9 +139,11 @@
       document.getElementById("pickup").textContent = trip.pickupAddress ?? "-";
       document.getElementById("destination").textContent = trip.destinationAddress ?? "-";
 
+      // 상태별 분기 처리
       redirectBasedOnStatus(trip.status, trip.tripId);
     } catch (e) {
       console.error("운행 정보 조회 실패", e);
+      alert("운행 정보를 불러올 수 없습니다.");
       location.href = "/driver/dashboard/index.html";
     }
   }
