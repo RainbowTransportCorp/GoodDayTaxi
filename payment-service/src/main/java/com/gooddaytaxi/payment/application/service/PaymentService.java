@@ -2,6 +2,7 @@ package com.gooddaytaxi.payment.application.service;
 
 import com.gooddaytaxi.payment.application.command.payment.*;
 import com.gooddaytaxi.payment.application.event.PaymentCompletePayload;
+import com.gooddaytaxi.payment.application.event.TossPayConfirmFailedAfterRollbackEvent;
 import com.gooddaytaxi.payment.application.exception.PaymentErrorCode;
 import com.gooddaytaxi.payment.application.exception.PaymentException;
 import com.gooddaytaxi.payment.application.message.SuccessMessage;
@@ -22,6 +23,7 @@ import com.gooddaytaxi.payment.domain.vo.PaymentSortBy;
 import jakarta.persistence.LockTimeoutException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -47,8 +49,8 @@ public class PaymentService {
     private final ExternalPaymentPort externalPaymentPort;
     private final PaymentEventCommandPort eventCommandPort;
     private final RedisPort redisPort;
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final PaymentReader paymentReader;
-    private final PaymentFailureRecorder failureRecorder;
     private final PaymentValidator validator;
 
 
@@ -148,7 +150,16 @@ public class PaymentService {
             //실패시 실패 기록 및 예외 던지기
             if (!result.success()) {
                 // 실패 기록은 별도 트랜잭션으로 먼저 확정
-                failureRecorder.recordConfirmFailure(payment, attempt, result.error(), command);
+                applicationEventPublisher.publishEvent(
+                        new TossPayConfirmFailedAfterRollbackEvent(
+                                payment.getId(),
+                                command.paymentKey(),
+                                idempotencyKey,
+                                attemptNo,
+                                result.error(),
+                                command
+                        )
+                );
 
                 //최종적으로 비즈니스 예외 던지기
                 throw new PaymentException(PaymentErrorCode.TOSSPAY_CONFIRM_FAILED);

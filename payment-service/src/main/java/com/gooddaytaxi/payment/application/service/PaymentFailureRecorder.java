@@ -24,9 +24,11 @@ import java.util.UUID;
 public class PaymentFailureRecorder {
 
     private final PaymentCommandPort paymentCommandPort;
+    private final PaymentReader paymentReader;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void recordConfirmFailure(Payment payment, PaymentAttempt attempt, ExternalPaymentError error, PaymentTossPayCommand command) {
+    public void recordConfirmFailureAfterRollback(UUID paymentId, PaymentAttempt attempt, ExternalPaymentError error, PaymentTossPayCommand command) {
+        Payment payment = paymentReader.getPayment(paymentId);
 
         //실패시 결제 청구서 상태를 '결제 실패'로 변경
         payment.updateStatusToFailed();
@@ -57,6 +59,9 @@ public class PaymentFailureRecorder {
 
         //실패 이유가 네트워크 오류인 경우 Network error로 저장
         if(error.status() == -1) refund.registerFailReason("Network error");
+        else if(error.status() == -2) refund.registerFailReason("connect timeout");
+        else if(error.status() == -3) refund.registerFailReason("read timeout");
+        else if(error.status() == -4) refund.registerFailReason("connection refused");
 
             //실패 이유가 tosspay 비즈니스 오류인 경우 토스페이에서 전달한 사유를 저장
         else {
