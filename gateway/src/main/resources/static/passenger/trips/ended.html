@@ -168,7 +168,7 @@
           `₩ ${Number(data.amount).toLocaleString()}`;
 
       // 상태 분기
-      if (data.status === "PAID") {
+      if (data.status === "PENDING") {
         localStorage.removeItem("tripId");
         localStorage.removeItem("tripStatus");
         location.href = `/passenger/payments/success.html`;

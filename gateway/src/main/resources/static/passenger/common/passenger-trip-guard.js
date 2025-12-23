@@ -19,9 +19,9 @@ async function passengerTripGuard({ onTrip } = {}) {
   async function handleUnpaidFallback() {
     try {
       const params = new URLSearchParams({
-        page: "0",
+        page: "1",
         size: "1",
-        status: "REQUESTED",
+        status: "PENDING",
         searchPeriod: "ALL",
         sortBy: "createdAt",
         sortAscending: "false"
@@ -106,7 +106,7 @@ async function passengerTripGuard({ onTrip } = {}) {
           if (payRes.ok) {
             const { data: payment } = await payRes.json();
 
-            if (payment?.status === "PAID") {
+            if (payment?.status === "COMPLETED") {
               location.href = `/passenger/trips/ended.html${query}`;
             } else {
               location.href = `/passenger/payments/index.html${query}`;

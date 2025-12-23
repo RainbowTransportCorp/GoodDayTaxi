@@ -154,7 +154,7 @@
       const { data } = await res.json();
       const statusEl = document.getElementById("paymentStatus");
 
-      if (data.status === "PAID") {
+      if (data.status === "COMPLETED") {
         statusEl.textContent = "✅ 승객이 결제를 완료했습니다";
         statusEl.classList.add("paid");
       } else {

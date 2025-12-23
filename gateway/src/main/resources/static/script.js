@@ -82,7 +82,7 @@ async function redirectPassengerAfterLogin() {
   const headers = buildHeaders("PASSENGER");
 
   function getSafePaginationParams({ page, size }) {
-    const safePage = !isNaN(Number(page)) && Number(page) >= 0 ? Number(page) : 0;
+    const safePage = !isNaN(Number(page)) && Number(page) >= 1 ? Number(page) : 1;  // ✅ default 1
     const safeSize = !isNaN(Number(size)) && Number(size) > 0 && Number(size) <= 100 ? Number(size) : 10;
     return { page: safePage, size: safeSize };
   }
@@ -115,13 +115,13 @@ async function redirectPassengerAfterLogin() {
       }
     }
 
-    // ✅ 페이징 방어 처리
-    const { page, size } = getSafePaginationParams({ page: "0", size: "1" });
+    // ✅ 페이징 방어 처리 (page=1부터 시작)
+    const { page, size } = getSafePaginationParams({ page: "1", size: "1" });
 
     const searchParams = new URLSearchParams({
       page: page.toString(),
       size: size.toString(),
-      status: "REQUESTED",
+      status: "PENDING",
       searchPeriod: "ALL",
       sortBy: "createdAt",
       sortAscending: "false"
@@ -152,7 +152,6 @@ async function redirectPassengerAfterLogin() {
 
   location.href = "/passenger/dashboard/index.html";
 }
-
 
 /* ================= DRIVER ================= */
 

@@ -114,12 +114,12 @@ async function syncUnpaidPayment() {
     if (!token || !uuid) return;
 
     const searchParams = new URLSearchParams({
-        page: "0",
+        page: "1", // ✅ 수정됨: 백엔드 기준 1부터 시작
         size: "1",
-        status: "REQUESTED",
+        status: "PENDING",
         searchPeriod: "ALL",
         sortBy: "createdAt",
-        sortAscending: "false" // ✅ 문자열로 반드시!
+        sortAscending: "false"
     });
 
     try {
@@ -179,7 +179,7 @@ function renderPassengerIndicators() {
         payBtn.className = "btn-indicator warning";
         payBtn.innerHTML = "💳 미결제";
         payBtn.onclick = () => {
-            location.href = "/passenger/payments/index.html?filter=UNPAID";
+            location.href = "/passenger/payments/index.html?filter=PENDING";
         };
         indicatorBox.appendChild(payBtn);
     }

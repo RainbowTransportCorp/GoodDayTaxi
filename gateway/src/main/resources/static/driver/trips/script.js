@@ -72,7 +72,7 @@ async function loadTrips() {
                         ${t.status}
                     </span>
 
-                    ${t.paymentStatus === "UNPAID" ? `
+                    ${t.paymentStatus === "PENDING" ? `
                         <button class="btn-pay"
                                 onclick="goToPayment('${t.tripId}')">
                             💰 미결제

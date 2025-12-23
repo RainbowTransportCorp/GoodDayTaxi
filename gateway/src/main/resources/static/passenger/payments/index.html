@@ -61,10 +61,9 @@
       font-weight: 700;
     }
 
-    .PAID { color: #2e7d32; }
+    .PENDING { color: #2e7d32; }
     .READY { color: #555; }
     .CANCELLED { color: #c62828; }
-    .REFUND_REQUESTED { color: #ef6c00; }
     .REFUNDED { color: #1565c0; }
 
     .empty {
@@ -124,7 +123,7 @@
         "X-User-Role": role
       },
       body: JSON.stringify({
-        page: 0,
+        page: 1,
         size: 20
       })
     });
