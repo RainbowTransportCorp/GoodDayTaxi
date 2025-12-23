@@ -5,6 +5,8 @@ import com.gooddaytaxi.payment.application.command.refund.RefundCreateCommand;
 import com.gooddaytaxi.payment.application.command.refund.RefundSearchCommand;
 import com.gooddaytaxi.payment.application.event.RefundCompletedEvent;
 import com.gooddaytaxi.payment.application.event.RefundSettlementPayload;
+import com.gooddaytaxi.payment.application.event.RefundSnapshot;
+import com.gooddaytaxi.payment.application.event.TossPayRefundCancelFailedAfterRollbackEvent;
 import com.gooddaytaxi.payment.application.exception.PaymentErrorCode;
 import com.gooddaytaxi.payment.application.exception.PaymentException;
 import com.gooddaytaxi.payment.application.message.SuccessMessage;
@@ -52,7 +54,6 @@ public class RefundService {
     private final ApplicationEventPublisher applicationEventPublisher;
     private final RedisPort redisPort;
     private final PaymentReader paymentReader;
-    private final PaymentFailureRecorder failureRecorder;
     private final PaymentValidator validator;
 
     @Transactional
@@ -103,11 +104,23 @@ public class RefundService {
 
             //실패시 실패 기록 및 예외 던지기
             if(!result.success()) {
-                // 실패 기록은 별도 트랜잭션으로 먼저 확정
-                failureRecorder.recordCancelFailure(payment, refund, result.error());
+                // 실패 기록은 롤백시 이벤트 발생후 별도 트랜잭션으로 먼저 확정
+                RefundSnapshot snapshot = new RefundSnapshot(
+                        refund.getReason().name(),            // 네 Refund 구조에 맞게
+                        refund.getDetailReason(),             // incidentAt|incidentSummary 들어간 필드
+                        refund.getRequestId(),                // nullable OK
+                        idempotencyKey
+                );
+
+                applicationEventPublisher.publishEvent(
+                        new TossPayRefundCancelFailedAfterRollbackEvent(
+                                payment.getId(),
+                                snapshot,
+                                result.error()
+                        )
+                );
 
                 throw new PaymentException(PaymentErrorCode.TOSSPAY_CANCEL_FAILED);
-
             }
 
             //만약 환불 금액과 결제 금액이 다르면 에러 로그 남기기

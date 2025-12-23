@@ -1,11 +1,13 @@
 package com.gooddaytaxi.payment.application.service;
 
 import com.gooddaytaxi.payment.application.command.payment.PaymentTossPayCommand;
+import com.gooddaytaxi.payment.application.event.RefundSnapshot;
 import com.gooddaytaxi.payment.application.port.out.core.PaymentCommandPort;
 import com.gooddaytaxi.payment.application.result.payment.ExternalPaymentError;
 import com.gooddaytaxi.payment.domain.entity.Payment;
 import com.gooddaytaxi.payment.domain.entity.PaymentAttempt;
 import com.gooddaytaxi.payment.domain.entity.Refund;
+import com.gooddaytaxi.payment.domain.enums.RefundReason;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -53,9 +55,27 @@ public class PaymentFailureRecorder {
 
 //  결제 취소 실패 기록
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void recordCancelFailure(Payment payment, Refund refund, ExternalPaymentError error) {
+    public void recordCancelFailureAfterRollback(UUID paymentId, RefundSnapshot snapshot, ExternalPaymentError error) {
         log.warn("TossPay cancel Failed for paymentId={}: status={}, message={}",
-                payment.getId(), error.status(), error.rawBody());
+                paymentId, error.status(), error.rawBody());
+
+        Payment payment = paymentReader.getPayment(paymentId);
+
+        //환불 객체 가져오거나 생성
+        RefundReason reason = RefundReason.of(snapshot.reason()); // of가 name 지원 안 하면 name→enum 변환
+        Refund refund;
+
+        if (payment.getRefund() != null) {
+            // 재시도인 경우 reset을 여기서 수행
+            refund = payment.getRefund().resetRefnud(snapshot.idempotencyKey());
+        } else {
+            refund = new Refund(
+                    reason,
+                    snapshot.detailReason(),
+                    snapshot.requestId(),
+                    snapshot.idempotencyKey()
+            );
+        }
 
         //실패 이유가 네트워크 오류인 경우 Network error로 저장
         if(error.status() == -1) refund.registerFailReason("Network error");
