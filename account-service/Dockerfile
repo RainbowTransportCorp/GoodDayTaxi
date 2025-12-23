@@ -14,7 +14,7 @@ COPY src src
 RUN chmod +x gradlew
 
 # host의 ~/.m2 를 Gradle 컨테이너에 주입
-RUN --mount=type=bind,source=/home/ubuntu/.m2,target=/home/gradle/.m2,readonly \
+RUN --mount=type=bind,source=m2,target=/home/gradle/.m2,readonly \
     --mount=type=cache,target=/home/gradle/.gradle \
     ./gradlew bootJar -x test --no-daemon
 
