@@ -105,58 +105,75 @@
   </table>
 </main>
 
+
 <script>
   const API_BASE = "/api/v1/payments/search";
   const token = localStorage.getItem("accessToken");
   const userUuid = localStorage.getItem("userUuid");
   const role = "PASSENGER";
 
-  async function loadPayments() {
-    const body = document.getElementById("paymentBody");
+  const urlParams = new URLSearchParams(window.location.search);
+  const tripId = urlParams.get("tripId");
+  const body = document.getElementById("paymentBody");
 
-    const res = await fetch(API_BASE, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-        "X-User-UUID": userUuid,
-        "X-User-Role": role
-      },
-      body: JSON.stringify({
-        page: 1,
-        size: 20
-      })
-    });
+  async function loadAndFilterPayments() {
+    try {
+      // 전체 결제 리스트 가져오기
+      const res = await fetch(API_BASE, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+          "X-User-UUID": userUuid,
+          "X-User-Role": role
+        },
+        body: JSON.stringify({ page: 1, size: 50 })
+      });
 
-    const json = await res.json();
+      if (!res.ok) throw new Error(`조회 실패: ${res.status}`);
 
-    if (!json.success || json.data.content.length === 0) {
-      body.innerHTML = `
-        <tr>
-          <td colspan="6" class="empty">결제 내역이 없습니다.</td>
-        </tr>
-      `;
-      return;
+      const json = await res.json();
+      if (!json.success || !json.data || json.data.content.length === 0) {
+        body.innerHTML = `<tr><td colspan="6" class="empty">결제 내역이 없습니다.</td></tr>`;
+        return;
+      }
+
+      let payments = json.data.content;
+
+      // tripId가 있으면 필터링
+      if (tripId) {
+        payments = payments.filter(p => p.tripId === tripId);
+      }
+
+      if (payments.length === 0) {
+        body.innerHTML = `<tr><td colspan="6" class="empty">해당 운행의 결제 정보가 없습니다.</td></tr>`;
+        return;
+      }
+
+      // 렌더링
+      body.innerHTML = "";
+      payments.forEach(p => {
+        body.insertAdjacentHTML("beforeend", `
+          <tr>
+            <td>${p.id}</td>
+            <td>${p.tripId}</td>
+            <td class="amount">₩ ${p.amount.toLocaleString()}</td>
+            <td>${p.method}</td>
+            <td class="status ${p.status}">${p.status}</td>
+            <td>${p.createdAt}</td>
+          </tr>
+        `);
+      });
+    } catch (e) {
+      console.error(e);
+      body.innerHTML = `<tr><td colspan="6" class="empty">결제 정보를 불러올 수 없습니다.</td></tr>`;
     }
-
-    body.innerHTML = "";
-
-    json.data.content.forEach(p => {
-      body.insertAdjacentHTML("beforeend", `
-        <tr>
-          <td>${p.id}</td>
-          <td>${p.tripId}</td>
-          <td class="amount">₩ ${p.amount.toLocaleString()}</td>
-          <td>${p.method}</td>
-          <td class="status ${p.status}">${p.status}</td>
-          <td>${p.createdAt}</td>
-        </tr>
-      `);
-    });
   }
 
-  loadPayments();
+  loadAndFilterPayments();
 </script>
+
+
 
 </body>
 </html>
