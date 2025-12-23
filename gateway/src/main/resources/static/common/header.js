@@ -73,7 +73,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 /* ====== 상태 인디케이터 (운행중, 미결제) ====== */
 
-function renderPassengerIndicators() {
+async function renderPassengerIndicators() {
     const indicatorBox = document.getElementById("top-indicators");
     if (!indicatorBox) return;
 
@@ -91,16 +91,29 @@ function renderPassengerIndicators() {
         indicatorBox.appendChild(tripBtn);
     }
 
-    // 미결제 건 확인
-    fetch("/api/v1/payments/unpaid", {
-        headers: {
-            "Authorization": `Bearer ${getToken()}`,
-            "X-User-UUID": localStorage.getItem("userUuid"),
-            "X-User-Role": "PASSENGER"
-        }
-    }).then(res => res.json())
-    .then(json => {
-        if (json?.success && json.data?.length > 0) {
+    // ✅ 미결제 건 확인 (search API 사용)
+    const searchParams = new URLSearchParams({
+        page: 0,
+        size: 1,
+        status: "REQUESTED",
+        searchPeriod: "ALL",
+        sortBy: "createdAt",
+        sortAscending: false
+    });
+
+    try {
+        const res = await fetch(`/api/v1/payments/search?${searchParams.toString()}`, {
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+                "X-User-UUID": localStorage.getItem("userUuid"),
+                "X-User-Role": "PASSENGER"
+            }
+        });
+
+        const json = await res.json();
+        const list = json?.data?.content ?? [];
+
+        if (list.length > 0) {
             const payBtn = document.createElement("button");
             payBtn.className = "btn-indicator warning";
             payBtn.innerHTML = "💳 미결제";
@@ -109,9 +122,9 @@ function renderPassengerIndicators() {
             };
             indicatorBox.appendChild(payBtn);
         }
-    }).catch(err => {
+    } catch (err) {
         console.warn("미결제 확인 실패", err);
-    });
+    }
 }
 
 function renderDriverIndicators() {
