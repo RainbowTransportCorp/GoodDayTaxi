@@ -81,73 +81,36 @@ async function login() {
 async function redirectPassengerAfterLogin() {
   const headers = buildHeaders("PASSENGER");
 
-  function getSafePaginationParams({ page, size }) {
-    const safePage = !isNaN(Number(page)) && Number(page) >= 1 ? Number(page) : 1;  // ✅ default 1
-    const safeSize = !isNaN(Number(size)) && Number(size) > 0 && Number(size) <= 100 ? Number(size) : 10;
-    return { page: safePage, size: safeSize };
-  }
-
   try {
-    const tripRes = await fetch("/api/v1/trips/passengers/active", { headers });
+    const res = await fetch("/api/v1/trips/passengers/active", { headers });
 
-    if (tripRes.status === 401 || tripRes.status === 403) {
+    if (res.status === 401 || res.status === 403) {
       handleAuthExpired();
       return;
     }
 
-    if (tripRes.ok) {
-      const tripJson = await safeReadJson(tripRes);
-      const trip = tripJson?.data ?? null;
+    if (res.ok) {
+      const json = await safeReadJson(res);
+      const trip = json?.data ?? null;
 
-      if (trip?.tripId) {
-        localStorage.setItem("tripId", trip.tripId);
+      if (trip?.id) {
+        localStorage.setItem("tripId", trip.id);
         localStorage.setItem("tripStatus", trip.status);
 
         if (trip.status === "READY") {
-          location.href = `/passenger/trips/ready.html?tripId=${trip.tripId}`;
+          location.href = `/passenger/trips/ready.html?tripId=${trip.id}`;
           return;
         }
 
         if (trip.status === "STARTED") {
-          location.href = `/passenger/trips/active.html?tripId=${trip.tripId}`;
+          location.href = `/passenger/trips/active.html?tripId=${trip.id}`;
           return;
         }
       }
     }
 
-    // ✅ 페이징 방어 처리 (page=1부터 시작)
-    const { page, size } = getSafePaginationParams({ page: "1", size: "1" });
-
-    const searchParams = new URLSearchParams({
-      page: page.toString(),
-      size: size.toString(),
-      status: "PENDING",
-      searchPeriod: "ALL",
-      sortBy: "createdAt",
-      sortAscending: "false"
-    });
-
-    const paymentRes = await fetch(
-        `/api/v1/payments/search?${searchParams.toString()}`,
-        { headers }
-    );
-
-    if (paymentRes.ok) {
-      const payJson = await safeReadJson(paymentRes);
-      const list = payJson?.data?.content ?? [];
-
-      if (list.length > 0) {
-        localStorage.setItem("unpaidTrip", JSON.stringify(list[0]));
-      } else {
-        localStorage.removeItem("unpaidTrip");
-      }
-    } else {
-      localStorage.removeItem("unpaidTrip");
-    }
-
   } catch (e) {
     console.error("🚨 승객 로그인 후 상태 복구 실패:", e);
-    localStorage.removeItem("unpaidTrip");
   }
 
   location.href = "/passenger/dashboard/index.html";
@@ -170,17 +133,17 @@ async function redirectDriverAfterLogin() {
       const json = await safeReadJson(res);
       const trip = json?.data ?? null;
 
-      if (trip?.tripId) {
-        localStorage.setItem("tripId", trip.tripId);
+      if (trip?.id) {
+        localStorage.setItem("tripId", trip.id);
         localStorage.setItem("tripStatus", trip.status);
 
         if (trip.status === "READY") {
-          location.href = "/driver/trips/ready.html";
+          location.href = `/driver/trips/ready.html?tripId=${trip.id}`;
           return;
         }
 
         if (trip.status === "STARTED") {
-          location.href = "/driver/trips/active.html";
+          location.href = `/driver/trips/active.html?tripId=${trip.id}`;
           return;
         }
       }
@@ -192,3 +155,26 @@ async function redirectDriverAfterLogin() {
 
   location.href = "/driver/dashboard/index.html";
 }
+
+/* ================= ADMIN REGISTER TRIGGER ================= */
+
+function goAdminRegister() {
+  const ADMIN_TRIGGER_KEY = "GD-TAXI-ADMIN-2025"; // 🔐 임시 키 (배포 후 변경 가능)
+
+  const input = prompt("관리자 등록 키를 입력하세요.");
+
+  if (!input) {
+    alert("취소되었습니다.");
+    return;
+  }
+
+  if (input !== ADMIN_TRIGGER_KEY) {
+    alert("인증에 실패했습니다.");
+    return;
+  }
+
+  // ✅ 통과 시 세션에 잠금 해제 기록
+  sessionStorage.setItem("admin-register-unlocked", "true");
+  location.href = "/admin/register.html";
+}
+
