@@ -4,7 +4,7 @@ import com.gooddaytaxi.payment.application.command.refund.ExternalPaymentCancelC
 import com.gooddaytaxi.payment.application.command.refund.RefundCreateCommand;
 import com.gooddaytaxi.payment.application.command.refund.RefundSearchCommand;
 import com.gooddaytaxi.payment.application.event.RefundCompletedEvent;
-import com.gooddaytaxi.payment.application.event.RefundSettlementPayload;
+import com.gooddaytaxi.payment.application.event.payload.RefundSettlementPayload;
 import com.gooddaytaxi.payment.application.event.RefundSnapshot;
 import com.gooddaytaxi.payment.application.event.TossPayRefundCancelFailedAfterRollbackEvent;
 import com.gooddaytaxi.payment.application.exception.PaymentErrorCode;

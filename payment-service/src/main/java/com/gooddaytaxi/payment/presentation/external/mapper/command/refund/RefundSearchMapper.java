@@ -1,49 +1,49 @@
 package com.gooddaytaxi.payment.presentation.external.mapper.command.refund;
 
 import com.gooddaytaxi.payment.application.command.refund.RefundSearchCommand;
-import com.gooddaytaxi.payment.presentation.external.dto.request.refund.RefundAdminSearchRequestDto;
-import com.gooddaytaxi.payment.presentation.external.dto.request.refund.RefundSearchRequestDto;
 import com.gooddaytaxi.payment.presentation.external.mapper.command.common.PeriodMapper;
 
+import java.util.UUID;
+
 public class RefundSearchMapper {
-    public static RefundSearchCommand toCommand(RefundSearchRequestDto dto) {
+    public static RefundSearchCommand toCommand(Integer page, Integer size, String status, String reason, Boolean existRequest, UUID tripId, String method, Long minAmount, Long maxAmount, String searchPeriod, String startDay, String endDay, String sortBy, Boolean sortAscending) {
         return new RefundSearchCommand(
-                dto.page() ==  null ? 1 : dto.page(),
-                dto.size()==  null ? 10 : dto.size(),
-                dto.status(),
-                dto.reason(),
-                dto.existRequest(),
+                page ==  null ? 1 : page,
+                size==  null ? 10 : size,
+                status,
+                reason,
+                existRequest,
                 null,
                 null,
-                dto.tripId(),
-                dto.method(),
-                dto.minAmount(),
-                dto.maxAmount(),
-                dto.searchPeriod(),
-                PeriodMapper.map(dto.searchPeriod(), dto.startDay(), dto.endDay(), true),
-                PeriodMapper.map(dto.searchPeriod(), dto.startDay(), dto.endDay(), false),
-                dto.sortBy()== null ? "canceledAt" : dto.sortBy(),   // 기본값 넣기
-                dto.sortAscending() == null || dto.sortAscending());
+                tripId,
+                method,
+                minAmount,
+                maxAmount,
+                searchPeriod,
+                PeriodMapper.map(searchPeriod, startDay, endDay, true),
+                PeriodMapper.map(searchPeriod, startDay, endDay, false),
+                sortBy== null ? "canceledAt" : sortBy,   // 기본값 넣기
+                sortAscending == null || sortAscending);
 
     }
-    public static RefundSearchCommand toAdminCommand(RefundAdminSearchRequestDto dto) {
+    public static RefundSearchCommand toAdminCommand(Integer page, Integer size, String status, String reason, Boolean existRequest, UUID passengerId, UUID driverId, UUID tripId, String method, Long minAmount, Long maxAmount, String searchPeriod, String startDay, String endDay, String sortBy, Boolean sortAscending) {
         return new RefundSearchCommand(
-                dto.page() ==  null ? 1 : dto.page(),
-                dto.size()==  null ? 10 : dto.size(),
-                dto.status(),
-                dto.reason(),
-                dto.existRequest(),
-                dto.passengerId(),
-                dto.driverId(),
-                dto.tripId(),
-                dto.method(),
-                dto.minAmount(),
-                dto.maxAmount(),
-                dto.searchPeriod(),
-                PeriodMapper.map(dto.searchPeriod(), dto.startDay(), dto.endDay(), true),
-                PeriodMapper.map(dto.searchPeriod(), dto.startDay(), dto.endDay(), false),
-                dto.sortBy()== null ? "canceledAt" : dto.sortBy(),   // 기본값 넣기
-                dto.sortAscending() == null || dto.sortAscending());
+                page ==  null ? 1 : page,
+                size==  null ? 10 : size,
+                status,
+                reason,
+                existRequest,
+                passengerId,
+                driverId,
+                tripId,
+                method,
+                minAmount,
+                maxAmount,
+                searchPeriod,
+                PeriodMapper.map(searchPeriod, startDay, endDay, true),
+                PeriodMapper.map(searchPeriod, startDay, endDay, false),
+                sortBy== null ? "canceledAt" : sortBy,   // 기본값 넣기
+                sortAscending == null || sortAscending);
 
     }
 }

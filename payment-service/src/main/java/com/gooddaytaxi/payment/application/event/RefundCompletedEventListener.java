@@ -1,5 +1,6 @@
 package com.gooddaytaxi.payment.application.event;
 
+import com.gooddaytaxi.payment.application.event.payload.RefundCompletedPayload;
 import com.gooddaytaxi.payment.application.exception.PaymentErrorCode;
 import com.gooddaytaxi.payment.application.exception.PaymentException;
 import com.gooddaytaxi.payment.application.port.out.core.PaymentQueryPort;
