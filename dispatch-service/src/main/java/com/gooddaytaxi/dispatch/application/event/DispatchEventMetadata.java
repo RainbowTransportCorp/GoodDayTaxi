@@ -37,6 +37,13 @@ public enum DispatchEventMetadata {
             1
     ),
 
+    DISPATCH_FORCE_TIMEOUT(
+        "DISPATCH_FORCE_TIMEOUT",
+        "dispatch.force-timeout",
+        "Dispatch",
+        1
+    ),
+
     TRIP_CREATE_REQUEST(
             "TRIP_CREATE_REQUEST",
             "trip.create.request",
