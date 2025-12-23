@@ -2,7 +2,6 @@ const BASE_URL = "/api/v1/auth/login";
 
 /* ================= 공통 유틸 ================= */
 
-// 204/빈 body에서도 안 터지게 JSON 파싱
 async function safeReadJson(res) {
   if (res.status === 204) return null;
   const text = await res.text();
@@ -14,7 +13,6 @@ async function safeReadJson(res) {
   }
 }
 
-// auth 헤더 세팅
 function buildHeaders(role) {
   const token = localStorage.getItem("accessToken");
   const uuid = localStorage.getItem("userUuid");
@@ -25,7 +23,6 @@ function buildHeaders(role) {
   };
 }
 
-// 인증 만료 처리
 function handleAuthExpired() {
   alert("로그인이 만료되었습니다. 다시 로그인해주세요.");
   location.href = "/index.html";
@@ -85,41 +82,30 @@ async function redirectPassengerAfterLogin() {
   const headers = buildHeaders("PASSENGER");
 
   try {
-    const tripRes = await fetch("/api/v1/trips/passengers/active", { headers });
+    const res = await fetch("/api/v1/trips/passengers/active", { headers });
 
-    if (tripRes.status === 401 || tripRes.status === 403) {
+    if (res.status === 401 || res.status === 403) {
       handleAuthExpired();
       return;
     }
 
-    if (tripRes.ok) {
-      const tripJson = await safeReadJson(tripRes);
-      const trip = tripJson?.data ?? null;
+    if (res.ok) {
+      const json = await safeReadJson(res);
+      const trip = json?.data ?? null;
 
-      if (trip?.tripId) {
-        localStorage.setItem("activeTrip", JSON.stringify(trip));
+      if (trip?.id) {
+        localStorage.setItem("tripId", trip.id);
+        localStorage.setItem("tripStatus", trip.status);
 
         if (trip.status === "READY") {
-          location.href = `/passenger/trips/ready.html?tripId=${trip.tripId}`;
+          location.href = `/passenger/trips/ready.html?tripId=${trip.id}`;
           return;
         }
 
         if (trip.status === "STARTED") {
-          location.href = `/passenger/trips/active.html?tripId=${trip.tripId}`;
+          location.href = `/passenger/trips/active.html?tripId=${trip.id}`;
           return;
         }
-      }
-    }
-
-    // ✅ 결제 API 조회 (예외 없이 localStorage만)
-    const paymentRes = await fetch("/api/v1/payments/latest", { headers });
-
-    if (paymentRes.ok) {
-      const payJson = await safeReadJson(paymentRes);
-      const payment = payJson?.data ?? null;
-
-      if (payment?.tripId && payment.status !== "PAID") {
-        localStorage.setItem("unpaidTrip", JSON.stringify(payment));
       }
     }
 
@@ -127,7 +113,6 @@ async function redirectPassengerAfterLogin() {
     console.error("🚨 승객 로그인 후 상태 복구 실패:", e);
   }
 
-  // ✅ 무조건 대시보드로 이동
   location.href = "/passenger/dashboard/index.html";
 }
 
@@ -148,16 +133,17 @@ async function redirectDriverAfterLogin() {
       const json = await safeReadJson(res);
       const trip = json?.data ?? null;
 
-      if (trip?.tripId) {
-        localStorage.setItem("activeTrip", JSON.stringify(trip));
+      if (trip?.id) {
+        localStorage.setItem("tripId", trip.id);
+        localStorage.setItem("tripStatus", trip.status);
 
         if (trip.status === "READY") {
-          location.href = "/driver/trips/ready.html";
+          location.href = `/driver/trips/ready.html?tripId=${trip.id}`;
           return;
         }
 
         if (trip.status === "STARTED") {
-          location.href = "/driver/trips/active.html";
+          location.href = `/driver/trips/active.html?tripId=${trip.id}`;
           return;
         }
       }
@@ -166,5 +152,29 @@ async function redirectDriverAfterLogin() {
   } catch (e) {
     console.error("🚨 기사 로그인 후 상태 복구 실패:", e);
   }
+
   location.href = "/driver/dashboard/index.html";
 }
+
+/* ================= ADMIN REGISTER TRIGGER ================= */
+
+function goAdminRegister() {
+  const ADMIN_TRIGGER_KEY = "GD-TAXI-ADMIN-2025"; // 🔐 임시 키 (배포 후 변경 가능)
+
+  const input = prompt("관리자 등록 키를 입력하세요.");
+
+  if (!input) {
+    alert("취소되었습니다.");
+    return;
+  }
+
+  if (input !== ADMIN_TRIGGER_KEY) {
+    alert("인증에 실패했습니다.");
+    return;
+  }
+
+  // ✅ 통과 시 세션에 잠금 해제 기록
+  sessionStorage.setItem("admin-register-unlocked", "true");
+  location.href = "/admin/register.html";
+}
+

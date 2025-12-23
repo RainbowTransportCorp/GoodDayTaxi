@@ -146,6 +146,8 @@
           break;
         case "ENDED":
           location.href = `/passenger/trips/ended.html`;
+          localStorage.removeItem("tripId");
+          localStorage.removeItem("tripStatus");
           break;
         default:
           location.href = "/passenger/dashboard/index.html";

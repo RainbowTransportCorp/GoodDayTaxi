@@ -2,88 +2,164 @@
 <html lang="ko">
 <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>결제하기 | Good Day Taxi</title>
+
+    <!-- ✅ TossPayments SDK -->
     <script src="https://js.tosspayments.com/v2/standard"></script>
-    <title>TosspayConfirm checkout</title>
+
+    <!-- ✅ 공통 헤더 스타일 & JS -->
+    <link rel="stylesheet" href="/common/header.css" />
+    <script src="/common/header.js" defer></script>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #f7f7fb;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+        }
+
+        main {
+            max-width: 480px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 28px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+
+        .coupon {
+            margin-bottom: 16px;
+        }
+
+        .btn-pay {
+            width: 100%;
+            margin-top: 20px;
+            padding: 14px;
+            border-radius: 999px;
+            border: none;
+            background: #8A5DF6;
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-pay:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
 </head>
 <body>
-<!-- 할인 쿠폰 -->
-<div>
-    <input type="checkbox" id="coupon-box" />
-    <label for="coupon-box"> 5,000원 쿠폰 적용 </label>
-</div>
-<!-- 결제 UI -->
-<div id="payment-method"></div>
-<!-- 이용약관 UI -->
-<div id="agreement"></div>
-<!-- 결제하기 버튼 -->
-<button class="button" id="payment-button" style="margin-top: 30px">결제하기</button>
+<!-- ✅ 공통 헤더 삽입 -->
+<header></header>
+
+<main>
+    <div class="card">
+        <!-- 할인 쿠폰 -->
+        <div class="coupon">
+            <input type="checkbox" id="coupon-box" />
+            <label for="coupon-box">5,000원 쿠폰 적용</label>
+        </div>
+
+        <!-- 결제 UI -->
+        <div id="payment-method"></div>
+
+        <!-- 이용약관 UI -->
+        <div id="agreement"></div>
+
+        <!-- 결제 버튼 -->
+        <button class="btn-pay" id="payment-button">결제하기</button>
+    </div>
+</main>
 
 <script>
-    main();
+    // ✅ 인증 가드
+    function guardPassenger() {
+        const token = localStorage.getItem("accessToken");
+        const role = localStorage.getItem("role");
+        if (!token || role !== "PASSENGER") {
+            alert("승객 전용 페이지입니다.");
+            location.href = "/index.html";
+            return false;
+        }
+        return true;
+    }
 
+    // ✅ 공통 헤더 로딩
+    async function loadHeader() {
+        const header = document.querySelector("header");
+        try {
+            const res = await fetch("/common/header.html");
+            const html = await res.text();
+            header.innerHTML = html;
+        } catch (e) {
+            console.error("공통 헤더 불러오기 실패", e);
+        }
+    }
+
+    // ✅ Toss 결제 로직
     async function main() {
+        if (!guardPassenger()) return;
+        await loadHeader();
+
         const button = document.getElementById("payment-button");
         const coupon = document.getElementById("coupon-box");
 
-        // 🔹 URL 쿼리 파라미터 읽기
         const params = new URLSearchParams(window.location.search);
-        const orderId = params.get("orderId");        // 서버에서 넘긴 값
-        const customerKey = params.get("customerKey");// 서버에서 넘긴 값
-        const amount = Number(params.get("amount"));  // 서버에서 넘긴 값
+        const orderId = params.get("orderId");
+        const customerKey = params.get("customerKey");
+        const baseAmount = Number(params.get("amount") || 0);
 
-        // ------  결제위젯 초기화 ------
+        if (!orderId || !customerKey || !baseAmount) {
+            alert("잘못된 접근입니다.");
+            location.href = "/passenger/dashboard/index.html";
+            return;
+        }
+
         const clientKey = "test_gck_docs_Ovk5rk1EwkEbP0W43n07xlzm";
         const tossPayments = TossPayments(clientKey);
-        // 회원 결제
-        const widgets = tossPayments.widgets({
-            customerKey,
-        });
-        // 비회원 결제
-        // const widgets = tossPayments.widgets({ customerKey: TossPayments.ANONYMOUS });
+        const widgets = tossPayments.widgets({ customerKey });
 
-        // ------ 주문의 결제 금액 설정 ------
-        await widgets.setAmount({
-            currency: "KRW",
-            value: amount,
-        });
+        let currentAmount = baseAmount;
+
+        await widgets.setAmount({ currency: "KRW", value: currentAmount });
 
         await Promise.all([
-            // ------  결제 UI 렌더링 ------
             widgets.renderPaymentMethods({
                 selector: "#payment-method",
-                variantKey: "DEFAULT",
+                variantKey: "DEFAULT"
             }),
-            // ------  이용약관 UI 렌더링 ------
-            widgets.renderAgreement({ selector: "#agreement", variantKey: "AGREEMENT" }),
+            widgets.renderAgreement({
+                selector: "#agreement",
+                variantKey: "AGREEMENT"
+            })
         ]);
 
-        // ------  주문서의 결제 금액이 변경되었을 경우 결제 금액 업데이트 ------
-        coupon.addEventListener("change", async function () {
-            if (coupon.checked) {
-                await widgets.setAmount({
-                    currency: "KRW",
-                    value: amount - 1000,
-                });
-
-                return;
-            }
-
-            await widgets.setAmount({
-                currency: "KRW",
-                value: amount,
-            });
+        coupon.addEventListener("change", async () => {
+            currentAmount = coupon.checked ? baseAmount - 1000 : baseAmount;
+            await widgets.setAmount({ currency: "KRW", value: currentAmount });
         });
 
-        // ------ '결제하기' 버튼 누르면 결제창 띄우기 ------
-        button.addEventListener("click", async function () {
+        button.addEventListener("click", async () => {
+            localStorage.removeItem("unpaidTrip"); // ✅ 결제 전 unpaidTrip 제거
+
             await widgets.requestPayment({
                 orderId: orderId,
                 orderName: "운수좋은 날 운행",
-                successUrl: window.location.origin + "/passenger/payments/processing.html?customerKey=" + customerKey,
-                failUrl: window.location.origin + "/passenger/payments/fail.html"
+                successUrl: `${window.location.origin}/passenger/payments/processing.html?customerKey=${customerKey}`,
+                failUrl: `${window.location.origin}/passenger/payments/fail.html`
             });
         });
     }
+
+    main();
 </script>
 </body>
 </html>

@@ -2,8 +2,8 @@
 // API
 // =====================
 const API = {
-    TRIPS_BY_DRIVER: (driverId) =>
-        `/api/v1/trips/drivers/${driverId}`,
+    TRIPS_BY_DRIVER: () =>
+        `/api/v1/trips/drivers`,
 };
 
 // =====================
@@ -72,7 +72,7 @@ async function loadTrips() {
                         ${t.status}
                     </span>
 
-                    ${t.paymentStatus === "UNPAID" ? `
+                    ${t.paymentStatus === "PENDING" ? `
                         <button class="btn-pay"
                                 onclick="goToPayment('${t.tripId}')">
                             💰 미결제
