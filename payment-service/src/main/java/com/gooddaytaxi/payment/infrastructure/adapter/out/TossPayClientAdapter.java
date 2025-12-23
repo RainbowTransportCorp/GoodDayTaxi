@@ -83,6 +83,23 @@ public class TossPayClientAdapter implements ExternalPaymentPort {
 
     //FeignException을 ExternalPaymentError로 변환
     private ExternalPaymentError toExternalPaymentError(FeignException e) {
+        // 1) 네트워크/타임아웃 계열 (대개 여기에 걸림)
+        if (e instanceof feign.RetryableException) {
+            log.warn("[TOSS_RETRYABLE] msg={}", e.getMessage(), e);
+            String msg = String.valueOf(e.getMessage()).toLowerCase();
+            // connection refused (포트 안 열림, 즉시 거절)
+            if (msg.contains("refused")) {
+                return new ExternalPaymentError(-4,"Connection refused",e.getMessage());
+            }
+            //timeout 구분
+            if (msg.contains("connect timed out")) {
+                return new ExternalPaymentError(-2, "Connect timeout", e.getMessage());
+            }
+            if (msg.contains("read timed out") || msg.contains("read timeout")) {
+                return new ExternalPaymentError(-3, "Read timeout", e.getMessage());
+            }
+            return new ExternalPaymentError(-1, "Network error", e.getMessage());
+        }
         int status = e.status();
         String message = e.contentUTF8();
         try {

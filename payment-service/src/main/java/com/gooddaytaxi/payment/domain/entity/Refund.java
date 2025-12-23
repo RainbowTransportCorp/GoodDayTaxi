@@ -81,4 +81,10 @@ public class Refund extends BaseEntity {
         this.status = RefundStatus.FAILED;
         this.pgFailReason = failReason;
     }
+
+    public Refund resetRefnud(String idempotencyKey) {
+        this.idempotencyKey = idempotencyKey;
+        this.pgFailReason = null;
+        return this;
+    }
 }

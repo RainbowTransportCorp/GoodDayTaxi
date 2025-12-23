@@ -78,3 +78,7 @@ toss:
 payment:
   event:
     payload-version: 1
+
+logging:
+  level:
+    feign: DEBUG

@@ -35,6 +35,9 @@ public class PaymentFailureRecorder {
 
         //실패 이유가 네트워크 오류인 경우 Network error로 저장
         if(error.status() == -1) attempt.registerFailReason("Network error");
+        else if(error.status() == -2) attempt.registerFailReason("connect timeout");
+        else if(error.status() == -3) attempt.registerFailReason("read timeout");
+        else if(error.status() == -4) attempt.registerFailReason("connection refused");
 
             //실패 이유가 tosspay 오류인 경우 내서버에서 이유를 찾아서 저장
         else {

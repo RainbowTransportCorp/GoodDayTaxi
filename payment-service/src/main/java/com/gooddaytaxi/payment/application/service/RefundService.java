@@ -79,13 +79,19 @@ public class RefundService {
         //환불 사유 매핑
         RefundReason reason = RefundReason.of(command.reason());
 
+        //만약 환불 실패 후 다시 시도라면 기존의 환불 객체 가져오기
+        Refund refund;
+        if(payment.getRefund() != null) {
+            refund  = payment.getRefund().resetRefnud(idempotencyKey);
+        }else {
+            refund = new Refund(
+                    reason,
+                    command.incidentAt()+"|"+command.incidentSummary(),
+                    command.requestId(),
+                    idempotencyKey
+            );
+        }
 
-        Refund refund = new Refund(
-                reason,
-                command.incidentAt()+"|"+command.incidentSummary(),
-                command.requestId(),
-                idempotencyKey
-        );
         //토스에 환불 요청
         ExternalPaymentCancelResult result = externalPaymentPort.cancelTosspayPayment(paymentKey, idempotencyKey, new ExternalPaymentCancelCommand(reason.getDescription()));
 
