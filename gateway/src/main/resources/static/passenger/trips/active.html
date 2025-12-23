@@ -137,7 +137,7 @@
       if (trip.status !== previousTripStatus) {
         previousTripStatus = trip.status;
 
-        if (trip.status === "COMPLETED" || trip.status === "ENDED") {
+        if (trip.status === "ENDED") {
           clearInterval(pollingId);
 
           // ✅ 상태 제거
