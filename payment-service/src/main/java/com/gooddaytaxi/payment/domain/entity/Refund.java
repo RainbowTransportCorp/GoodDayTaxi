@@ -39,9 +39,12 @@ public class Refund extends BaseEntity {
 
     private LocalDateTime canceledAt; //토스페이에서 환불 승인 시간
 
+    @Column(length=100)
     private String transactionKey; //토스페이 환불 거래 고유 키
+    @Column(length=200)
     private String idempotencyKey;  //토스페이 환불 멱등성 키
 
+    @Column(length = 200)
     private String pgFailReason; //토스페이 환불 실패 사유
 
     @OneToOne(fetch = FetchType.LAZY)
