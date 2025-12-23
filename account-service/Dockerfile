@@ -12,7 +12,11 @@ COPY build.gradle settings.gradle ./
 COPY src src
 
 RUN chmod +x gradlew
-RUN ./gradlew bootJar -x test --no-daemon
+
+# host의 ~/.m2 를 Gradle 컨테이너에 주입
+RUN --mount=type=bind,source=/home/ubuntu/.m2,target=/home/gradle/.m2,readonly \
+    --mount=type=cache,target=/home/gradle/.gradle \
+    ./gradlew bootJar -x test --no-daemon
 
 # ============================
 # 2) Run Stage
@@ -20,7 +24,7 @@ RUN ./gradlew bootJar -x test --no-daemon
 FROM eclipse-temurin:17-jre AS runtime
 WORKDIR /app
 
-COPY --from=builder /workspace/account-service/build/libs/*.jar app.jar
+COPY --from=builder /workspace/build/libs/*.jar app.jar
 
 # 스프링 기본 8080
 EXPOSE 8080
