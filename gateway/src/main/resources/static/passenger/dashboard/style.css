@@ -59,3 +59,40 @@ body {
     font-size: 13px;
     color: #666;
 }
+
+
+.top-indicators {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  display: flex;
+  gap: 10px;
+  z-index: 1000;
+}
+
+.card-indicator {
+  background: rgba(0, 163, 139, 0.08);
+  color: #009688;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  border: none;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+}
+
+.card-indicator:hover {
+  background: rgba(0, 163, 139, 0.15);
+}
+
+.card-indicator.card-warning {
+  background: rgba(233, 30, 99, 0.08);
+  color: #e91e63;
+}
+
+.card-indicator.card-warning:hover {
+  background: rgba(233, 30, 99, 0.15);
+}

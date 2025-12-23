@@ -74,9 +74,6 @@
   </div>
 </div>
 
-<!-- 1️⃣ 접근 제어용 guard -->
-<script src="/passenger/common/passenger-trip-guard.js"></script>
-
 <script>
   const userUuid = localStorage.getItem("userUuid");
   const token = localStorage.getItem("accessToken");
@@ -121,23 +118,19 @@
       }
 
       const { data: trip } = await res.json();
-      if (!trip || !trip.status) {
-        console.warn("응답에 trip 없음 또는 상태 없음", trip);
-        return;
-      }
+      if (!trip || !trip.status) return;
 
-      // 🚨 상태 변화 체크
+      // 항상 렌더링
+      renderTrip(trip);
+
+      // 상태 변화 감지 → ended.html 이동
       if (trip.status !== previousTripStatus) {
         previousTripStatus = trip.status;
 
         if (trip.status === "COMPLETED" || trip.status === "ENDED") {
           clearInterval(pollingId);
-          location.href = `/passenger/trips/completed.html?tripId=${trip.tripId}`;
-          return;
+          location.href = `ended.html`;
         }
-
-        // READY나 STARTED는 stay (이 페이지 유지)
-        renderTrip(trip);
       }
 
     } catch (e) {
@@ -146,11 +139,9 @@
   }
 
   window.addEventListener("DOMContentLoaded", () => {
-    passengerTripGuard(); // 진입 시 한 번 가드
-    pollTripStatus();     // 초기 상태 확인
-    pollingId = setInterval(pollTripStatus, 3000); // 이후 주기적 polling
+    pollTripStatus();
+    pollingId = setInterval(pollTripStatus, 3000);
   });
 </script>
-
 </body>
 </html>

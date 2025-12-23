@@ -60,8 +60,8 @@ async function driverTripGuard() {
 
       case "ENDED":
         // 재로그인 / 새로고침 시에도 항상 접근 허용
-        if (!location.pathname.includes("/driver/trips/completed.html")) {
-          location.href = `/driver/trips/completed.html?tripId=${trip.tripId}`;
+        if (!location.pathname.includes("/driver/trips/ended.html")) {
+          location.href = `../trips/ended.html`;
         }
         break;
 

@@ -1,5 +1,7 @@
 :root {
     --primary: #8A5DF6;
+    --mint: #1de9b6;
+    --mint-dark: #00796b;
     --bg: #f7f7fb;
     --radius: 16px;
 }
@@ -35,17 +37,53 @@ body {
     box-shadow: 0 8px 24px rgba(0,0,0,0.06);
 }
 
+/* 상단 상태 + 버튼 */
+.trip-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
 .trip-status {
-    display: inline-block;
     font-size: 12px;
     font-weight: 700;
     padding: 6px 12px;
     border-radius: 999px;
-    margin-bottom: 10px;
 }
 
-.trip-status.COMPLETED { background: #e8f5e9; color: #2e7d32; }
-.trip-status.CANCELLED { background: #fdecea; color: #c62828; }
+.trip-status.COMPLETED {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.trip-status.CANCELLED {
+    background: #fdecea;
+    color: #c62828;
+}
+
+/* 결제 버튼 */
+.btn-pay {
+    background: var(--mint);
+    color: #004d40;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.btn-pay:hover {
+    background: #64ffda;
+}
+
+/* 결제 완료 라벨 */
+.paid-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #777;
+}
 
 .trip-info {
     font-size: 14px;

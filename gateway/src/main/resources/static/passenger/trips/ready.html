@@ -132,8 +132,7 @@
           location.href = `/passenger/trips/active.html?tripId=${trip.tripId}`;
           break;
         case "ENDED":
-        case "COMPLETED":
-          location.href = `/passenger/trips/completed.html?tripId=${trip.tripId}`;
+          location.href = `/passenger/trips/ended.html`;
           break;
         default:
           location.href = "/passenger/dashboard/index.html";

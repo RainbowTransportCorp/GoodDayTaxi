@@ -12,6 +12,16 @@
 </head>
 
 <body>
+<!-- 🔔 상태 인디케이터 -->
+<div class="top-indicators">
+  <div id="trip-active-card" class="card-indicator hidden" onclick="goToActiveTrip()">
+    <div class="card-title">🚕 운행 중</div>
+  </div>
+  <div id="unpaid-card" class="card-indicator card-warning hidden" onclick="goToUnpaidPage()">
+    <div class="card-title">💳 미결제</div>
+  </div>
+</div>
+
 <header class="header">
     <div class="brand">
         <div class="brand-main">Good day Taxi</div>
