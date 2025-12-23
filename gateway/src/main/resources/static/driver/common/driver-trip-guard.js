@@ -17,14 +17,6 @@ async function driverTripGuard() {
       }
     });
 
-    // ✅ 운행 없음 → 콜 대기 화면
-    if (res.status === 404 || res.status === 204) {
-      if (!location.pathname.includes("/driver/dispatches/index.html")) {
-        location.href = "/driver/dispatches/index.html";
-      }
-      return;
-    }
-
     // ❌ 인증 문제
     if (res.status === 401 || res.status === 403) {
       alert("세션이 만료되었습니다. 다시 로그인해주세요.");
@@ -32,44 +24,44 @@ async function driverTripGuard() {
       return;
     }
 
-    // ❌ 진짜 서버 에러
+    // ✅ 운행 없음
+    if (res.status === 404) {
+      if (!location.pathname.endsWith("/driver/dispatches/index.html")) {
+        location.href = "/driver/dispatches/index.html";
+      }
+      return;
+    }
+
     if (!res.ok) {
-      location.href = "/common/error.html";
+      location.href = "/driver/dispatches/index.html"; // 또는 /common/error.html
       return;
     }
 
     const { data: trip } = await res.json();
 
-    if (!trip || !trip.status) {
+    if (!trip?.status || trip.status === "CANCELED" || trip.status === "ENDED") {
       location.href = "/driver/dispatches/index.html";
       return;
     }
 
+    const currentPath = location.pathname;
+    const queryTripId = `?tripId=${trip.tripId}`;
+
     switch (trip.status) {
       case "READY":
-        if (!location.pathname.includes("/driver/trips/ready.html")) {
-          location.href = "/driver/trips/ready.html";
+        if (!currentPath.endsWith("/driver/trips/ready.html")) {
+          location.href = `/driver/trips/ready.html${queryTripId}`;
         }
         break;
 
       case "STARTED":
-        if (!location.pathname.includes("/driver/trips/active.html")) {
-          location.href = "/driver/trips/active.html";
+        if (!currentPath.endsWith("/driver/trips/active.html")) {
+          location.href = `/driver/trips/active.html${queryTripId}`;
         }
         break;
 
-      case "ENDED":
-        // 재로그인 / 새로고침 시에도 항상 접근 허용
-        if (!location.pathname.includes("/driver/trips/ended.html")) {
-          location.href = `../trips/ended.html`;
-        }
-        break;
-
-      case "CANCELED":
       default:
-        if (!location.pathname.includes("/driver/dispatches/index.html")) {
-          location.href = "/driver/dispatches/index.html";
-        }
+        location.href = "/driver/dispatches/index.html";
     }
 
   } catch (e) {

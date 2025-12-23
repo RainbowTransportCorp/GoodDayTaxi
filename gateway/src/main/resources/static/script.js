@@ -2,7 +2,6 @@ const BASE_URL = "/api/v1/auth/login";
 
 /* ================= 공통 유틸 ================= */
 
-// 204/빈 body에서도 안 터지게 JSON 파싱
 async function safeReadJson(res) {
   if (res.status === 204) return null;
   const text = await res.text();
@@ -14,7 +13,6 @@ async function safeReadJson(res) {
   }
 }
 
-// auth 헤더 세팅
 function buildHeaders(role) {
   const token = localStorage.getItem("accessToken");
   const uuid = localStorage.getItem("userUuid");
@@ -25,7 +23,6 @@ function buildHeaders(role) {
   };
 }
 
-// 인증 만료 처리
 function handleAuthExpired() {
   alert("로그인이 만료되었습니다. 다시 로그인해주세요.");
   location.href = "/index.html";
@@ -84,6 +81,12 @@ async function login() {
 async function redirectPassengerAfterLogin() {
   const headers = buildHeaders("PASSENGER");
 
+  function getSafePaginationParams({ page, size }) {
+    const safePage = !isNaN(Number(page)) && Number(page) >= 0 ? Number(page) : 0;
+    const safeSize = !isNaN(Number(size)) && Number(size) > 0 && Number(size) <= 100 ? Number(size) : 10;
+    return { page: safePage, size: safeSize };
+  }
+
   try {
     const tripRes = await fetch("/api/v1/trips/passengers/active", { headers });
 
@@ -97,7 +100,8 @@ async function redirectPassengerAfterLogin() {
       const trip = tripJson?.data ?? null;
 
       if (trip?.tripId) {
-        localStorage.setItem("activeTrip", JSON.stringify(trip));
+        localStorage.setItem("tripId", trip.tripId);
+        localStorage.setItem("tripStatus", trip.status);
 
         if (trip.status === "READY") {
           location.href = `/passenger/trips/ready.html?tripId=${trip.tripId}`;
@@ -111,37 +115,44 @@ async function redirectPassengerAfterLogin() {
       }
     }
 
-    // ✅ 결제 API 조회 (search 기반으로 변경)
+    // ✅ 페이징 방어 처리
+    const { page, size } = getSafePaginationParams({ page: "0", size: "1" });
+
     const searchParams = new URLSearchParams({
-      page: 0,
-      size: 1,
+      page: page.toString(),
+      size: size.toString(),
       status: "REQUESTED",
-      searchPeriod: "ALL", // 필수
+      searchPeriod: "ALL",
       sortBy: "createdAt",
-      sortAscending: false
+      sortAscending: "false"
     });
 
-    const paymentRes = await fetch(`/api/v1/payments/search?${searchParams.toString()}`, { headers });
+    const paymentRes = await fetch(
+        `/api/v1/payments/search?${searchParams.toString()}`,
+        { headers }
+    );
 
     if (paymentRes.ok) {
       const payJson = await safeReadJson(paymentRes);
-      const paymentList = payJson?.data?.content ?? [];
+      const list = payJson?.data?.content ?? [];
 
-      if (paymentList.length > 0) {
-        const latest = paymentList[0];
-        if (latest.tripId && latest.status !== "PAID") {
-          localStorage.setItem("unpaidTrip", JSON.stringify(latest));
-        }
+      if (list.length > 0) {
+        localStorage.setItem("unpaidTrip", JSON.stringify(list[0]));
+      } else {
+        localStorage.removeItem("unpaidTrip");
       }
+    } else {
+      localStorage.removeItem("unpaidTrip");
     }
 
   } catch (e) {
     console.error("🚨 승객 로그인 후 상태 복구 실패:", e);
+    localStorage.removeItem("unpaidTrip");
   }
 
-  // ✅ 무조건 대시보드로 이동
   location.href = "/passenger/dashboard/index.html";
 }
+
 
 /* ================= DRIVER ================= */
 
@@ -161,7 +172,8 @@ async function redirectDriverAfterLogin() {
       const trip = json?.data ?? null;
 
       if (trip?.tripId) {
-        localStorage.setItem("activeTrip", JSON.stringify(trip));
+        localStorage.setItem("tripId", trip.tripId);
+        localStorage.setItem("tripStatus", trip.status);
 
         if (trip.status === "READY") {
           location.href = "/driver/trips/ready.html";
