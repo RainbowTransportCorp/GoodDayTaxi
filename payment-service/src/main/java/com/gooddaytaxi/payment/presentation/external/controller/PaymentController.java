@@ -6,13 +6,10 @@ import com.gooddaytaxi.payment.application.result.payment.*;
 import com.gooddaytaxi.payment.application.service.PaymentService;
 import com.gooddaytaxi.payment.presentation.external.dto.request.payment.*;
 import com.gooddaytaxi.payment.presentation.external.dto.response.payment.*;
-import com.gooddaytaxi.payment.presentation.external.mapper.response.payment.PaymentUpdateResponseMapper;
 import com.gooddaytaxi.payment.presentation.external.mapper.command.payment.*;
-import com.gooddaytaxi.payment.presentation.external.mapper.response.payment.PaymentCancelResponseMapper;
-import com.gooddaytaxi.payment.presentation.external.mapper.response.payment.PaymentReadResponseMapper;
-import com.gooddaytaxi.payment.presentation.external.mapper.response.payment.PaymentCreateResponseMapper;
-import com.gooddaytaxi.payment.presentation.external.mapper.response.payment.PaymentApproveResponseMapper;
+import com.gooddaytaxi.payment.presentation.external.mapper.response.payment.*;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -107,10 +104,18 @@ public class PaymentController {
 
     //결제 검색 기능
     @GetMapping("/search")
-    public ResponseEntity<ApiResponse<Page<PaymentReadResponseDto>>> searchPayment(@RequestBody @Valid PaymentSearchRequestDto requestDto,
+    public ResponseEntity<ApiResponse<Page<PaymentReadResponseDto>>> searchPayment(@RequestParam(required = false) Integer page,
+                                                                                   @RequestParam(required = false) Integer size,
+                                                                                   @RequestParam(required = false) String method,
+                                                                                   @RequestParam(required = false) String status,
+                                                                                   @RequestParam @NotBlank String searchPeriod,
+                                                                                   @RequestParam(required = false) String startDay,
+                                                                                   @RequestParam(required = false) String endDay,
+                                                                                   @RequestParam(required = false) String sortBy,
+                                                                                   @RequestParam(name = "sortAscending", required = false) Boolean sortAscending,
                                                                                         @RequestHeader(value = "X-User-UUID") UUID userId,
                                                                                         @RequestHeader(value = "X-User-Role") String role) {
-        PaymentSearchCommand command = PaymentSearchMapper.toCommand(requestDto);
+        PaymentSearchCommand command = PaymentSearchMapper.toCommand(page, size, method, status, searchPeriod, startDay, endDay, sortBy, sortAscending);
         Page<PaymentReadResult> result = paymentService.searchPayment(command, userId, role);
         Page<PaymentReadResponseDto> responseDto = PaymentReadResponseMapper.toPageResponse(result);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));

@@ -1,44 +1,43 @@
 package com.gooddaytaxi.payment.presentation.external.mapper.command.payment;
 
 import com.gooddaytaxi.payment.application.command.payment.PaymentSearchCommand;
-import com.gooddaytaxi.payment.presentation.external.dto.request.payment.PaymentAdminSearchRequestDto;
-import com.gooddaytaxi.payment.presentation.external.dto.request.payment.PaymentSearchRequestDto;
 import com.gooddaytaxi.payment.presentation.external.mapper.command.common.PeriodMapper;
-import jakarta.validation.Valid;
+
+import java.util.UUID;
 
 
 public class PaymentSearchMapper {
-    public static PaymentSearchCommand toCommand(PaymentSearchRequestDto dto) {
+    public static PaymentSearchCommand toCommand(Integer page, Integer size, String method, String status, String searchPeriod, String startDay, String endDay, String sortBy, Boolean sortAscending) {
         return new PaymentSearchCommand(
-                dto.page()==null || dto.page()<1 ? 1 : dto.page(),
-                dto.size()==null || dto.size()<1 ? 10 : dto.size(),
-                dto.method(),
-                dto.status(),
+                page==null || page<0 ? 1 : page,
+                size==null || size<0 ? 10 : size,
+                method,
+                status,
                 null,
                 null,
                 null,
-                dto.searchPeriod(),
-                PeriodMapper.map(dto.searchPeriod(), dto.startDay(), dto.endDay(), true),
-                PeriodMapper.map(dto.searchPeriod(), dto.startDay(), dto.endDay(), false),
-                dto.sortBy()== null ? "createdAt" : dto.sortBy(),   // 기본값 넣기
-                 dto.sortAscending() == null || dto.sortAscending()
+                searchPeriod,
+                PeriodMapper.map(searchPeriod, startDay, endDay, true),
+                PeriodMapper.map(searchPeriod, startDay, endDay, false),
+                sortBy== null ? "createdAt" : sortBy,   // 기본값 넣기
+                sortAscending == null || sortAscending
         );
     }
 
-    public static PaymentSearchCommand toAdminCommand(@Valid PaymentAdminSearchRequestDto dto) {
+    public static PaymentSearchCommand toAdminCommand(Integer page, Integer size, String method, String status, UUID passengerId, UUID driverId, UUID tripId, String searchPeriod, String startDay, String endDay, String sortBy, Boolean sortAscending) {
         return new PaymentSearchCommand(
-                dto.page()==null || dto.page()<0 ? 1 : dto.page(),
-                dto.size()==null || dto.size()<0 ? 10 : dto.size(),
-                dto.method(),
-                dto.status(),
-                dto.passengerId(),
-                dto.driverId(),
-                dto.tripId(),
-                dto.searchPeriod(),
-                PeriodMapper.map(dto.searchPeriod(), dto.startDay(), dto.endDay(), true),
-                PeriodMapper.map(dto.searchPeriod(), dto.startDay(), dto.endDay(), false),
-                dto.sortBy()== null ? "createdAt" : dto.sortBy(),   // 기본값 넣기
-                dto.sortAscending() == null || dto.sortAscending()
+                page==null || page<0 ? 1 : page,
+                size==null || size<0 ? 10 : size,
+                method,
+                status,
+                passengerId,
+                driverId,
+                tripId,
+                searchPeriod,
+                PeriodMapper.map(searchPeriod, startDay, endDay, true),
+                PeriodMapper.map(searchPeriod, startDay, endDay, false),
+                sortBy== null ? "createdAt" : sortBy,   // 기본값 넣기
+                sortAscending == null || sortAscending
         );
     }
 }

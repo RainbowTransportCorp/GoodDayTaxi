@@ -15,10 +15,7 @@ import com.gooddaytaxi.payment.application.result.refundRequest.RefundRequestRea
 import com.gooddaytaxi.payment.application.service.PaymentService;
 import com.gooddaytaxi.payment.application.service.RefundRequestService;
 import com.gooddaytaxi.payment.application.service.RefundService;
-import com.gooddaytaxi.payment.presentation.external.dto.request.payment.PaymentAdminSearchRequestDto;
 import com.gooddaytaxi.payment.presentation.external.dto.request.refund.RefundCreateRequestDto;
-import com.gooddaytaxi.payment.presentation.external.dto.request.refund.RefundAdminSearchRequestDto;
-import com.gooddaytaxi.payment.presentation.external.dto.request.requestRefund.RefundRequestAdminSearchRequestDto;
 import com.gooddaytaxi.payment.presentation.external.dto.request.requestRefund.RefundRequestResponseRequestDto;
 import com.gooddaytaxi.payment.presentation.external.dto.response.payment.PaymentAdminReadResponseDto;
 import com.gooddaytaxi.payment.presentation.external.dto.response.refund.RefundAdminReadResponseDto;
@@ -37,6 +34,7 @@ import com.gooddaytaxi.payment.presentation.external.mapper.response.refund.Refu
 import com.gooddaytaxi.payment.presentation.external.mapper.response.requestFefund.RefundRequestCreateResponseMapper;
 import com.gooddaytaxi.payment.presentation.external.mapper.response.requestFefund.RefundRequestReadResponseMapper;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -69,9 +67,20 @@ public class PaymentAdminController {
 
     //결제 검색 기능
     @GetMapping("/payments/search")
-    public ResponseEntity<ApiResponse<Page<PaymentAdminReadResponseDto>>> searchPayment(@RequestBody @Valid PaymentAdminSearchRequestDto requestDto,
+    public ResponseEntity<ApiResponse<Page<PaymentAdminReadResponseDto>>> searchPayment(@RequestParam(required = false) Integer page,
+                                                                                        @RequestParam(required = false) Integer size,
+                                                                                        @RequestParam(required = false) String method,
+                                                                                        @RequestParam(required = false) String status,
+                                                                                        @RequestParam(required = false) UUID passengerId,
+                                                                                        @RequestParam(required = false) UUID driverId,
+                                                                                        @RequestParam(required = false) UUID tripId,
+                                                                                        @RequestParam @NotBlank String searchPeriod,
+                                                                                        @RequestParam(required = false) String startDay,
+                                                                                        @RequestParam(required = false) String endDay,
+                                                                                        @RequestParam(required = false) String sortBy,
+                                                                                        @RequestParam(name = "sortAscending", required = false) Boolean sortAscending,
                                                                                         @RequestHeader(value = "X-User-Role") String role) {
-        PaymentSearchCommand command = PaymentSearchMapper.toAdminCommand(requestDto);
+        PaymentSearchCommand command = PaymentSearchMapper.toAdminCommand(page,size,method,status,passengerId,driverId,tripId,searchPeriod,startDay,endDay,sortBy,sortAscending);
         Page<PaymentAdminReadResult> result = paymentService.searchAdminPayment(command, role);
         Page<PaymentAdminReadResponseDto> responseDto = PaymentReadResponseMapper.toPageAdminResponse(result);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
@@ -89,9 +98,21 @@ public class PaymentAdminController {
 
     //환불 요청 검색
     @GetMapping("/refund/requests/search")
-    public ResponseEntity<ApiResponse<Page<RefundRequestReadResponseDto>>> searchRefundRequests(@RequestBody @Valid RefundRequestAdminSearchRequestDto requestDto,
+    public ResponseEntity<ApiResponse<Page<RefundRequestReadResponseDto>>> searchRefundRequests(@RequestParam(required = false) Integer page,
+                                                                                                @RequestParam(required = false) Integer size,
+                                                                                                @RequestParam(required = false) UUID paymentId,
+                                                                                                @RequestParam(required = false) String status,
+                                                                                                @RequestParam(required = false) String reasonKeyword,
+                                                                                                @RequestParam(required = false) String method,
+                                                                                                @RequestParam(required = false) UUID passengerId,
+                                                                                                @RequestParam(required = false) UUID driverId,
+                                                                                                @RequestParam @NotBlank String searchPeriod,
+                                                                                                @RequestParam(required = false) String startDay,
+                                                                                                @RequestParam(required = false) String endDay,
+                                                                                                @RequestParam(required = false) String sortBy,
+                                                                                                @RequestParam(name = "sortAscending", required = false) Boolean sortAscending,
                                                                                                 @RequestHeader(value = "X-User-Role") String role) {
-        RefundReqeustSearchCommand command = RefundRequestSearchMapper.toAdminCommand(requestDto);
+        RefundReqeustSearchCommand command = RefundRequestSearchMapper.toAdminCommand(page, size, paymentId, status, reasonKeyword, method, passengerId, driverId, searchPeriod, startDay, endDay, sortBy, sortAscending);
         Page<RefundRequestReadResult> results = requestService.searchAdminRefundRequests(command, role);
         Page<RefundRequestReadResponseDto> responseDtos = RefundRequestReadResponseMapper.toPageResponse(results);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDtos));
@@ -154,9 +175,24 @@ public class PaymentAdminController {
 
     //환불 검색
     @GetMapping("/refunds/search")
-    public ResponseEntity<ApiResponse<Page<RefundAdminReadResponseDto>>> searchRefund(@RequestBody @Valid RefundAdminSearchRequestDto requestDto,
+    public ResponseEntity<ApiResponse<Page<RefundAdminReadResponseDto>>> searchRefund(@RequestParam(required = false) Integer page,
+                                                                                      @RequestParam(required = false) Integer size,
+                                                                                      @RequestParam(required = false) String status,
+                                                                                      @RequestParam(required = false) String reason,
+                                                                                      @RequestParam(name = "existRequest", required = false) Boolean existRequest,
+                                                                                      @RequestParam(required = false) UUID passengerId,
+                                                                                      @RequestParam(required = false) UUID driverId,
+                                                                                      @RequestParam(required = false) UUID tripId,
+                                                                                      @RequestParam(required = false) String method,
+                                                                                      @RequestParam(required = false) Long minAmount,
+                                                                                      @RequestParam(required = false) Long maxAmount,
+                                                                                      @RequestParam @NotBlank String searchPeriod,
+                                                                                      @RequestParam(required = false) String startDay,
+                                                                                      @RequestParam(required = false) String endDay,
+                                                                                      @RequestParam(required = false) String sortBy,
+                                                                                      @RequestParam(name = "sortAscending", required = false) Boolean sortAscending,
                                                                                       @RequestHeader(value = "X-User-Role") String role) {
-        RefundSearchCommand command = RefundSearchMapper.toAdminCommand(requestDto);
+        RefundSearchCommand command = RefundSearchMapper.toAdminCommand(page, size, status, reason, existRequest, passengerId, driverId, tripId, method, minAmount, maxAmount, searchPeriod, startDay, endDay, sortBy, sortAscending);
         Page<RefundAdminReadResult> result = refundService.searchAdminRefund(command, role);
         Page<RefundAdminReadResponseDto> responseDto = RefundReadResponseMapper.toPageAdminResponse(result);
         return ResponseEntity.status(200).body(ApiResponse.success(responseDto));
