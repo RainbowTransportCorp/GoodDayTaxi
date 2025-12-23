@@ -12,9 +12,7 @@ COPY build.gradle settings.gradle ./
 COPY src src
 
 RUN chmod +x gradlew
-RUN --mount=type=bind,source=/home/ubuntu/.m2,target=/home/gradle/.m2,readonly \
-    --mount=type=cache,target=/home/gradle/.gradle \
-    ./gradlew clean bootJar -x test
+RUN ./gradlew clean bootJar -x test
 
 # ============================
 # 2) Run Stage
