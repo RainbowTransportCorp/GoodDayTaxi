@@ -97,6 +97,17 @@ public class PaymentController {
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
     }
 
+    //결제 단건 조회 - 승객/기사용, tripId로 조회
+    @GetMapping("/trip/{tripId}/payment")
+    public ResponseEntity<ApiResponse<PaymentReadResponseDto>> getPaymentByTripId(
+            @PathVariable UUID tripId,
+            @RequestHeader(value = "X-User-UUID") UUID userId,
+            @RequestHeader(value = "X-User-Role") String role) {
+        PaymentReadResult result = paymentService.getPaymentByTripId(tripId, userId, role);
+        PaymentReadResponseDto responseDto = PaymentReadResponseMapper.toResponse(result);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
+    }
+
     //결제 단건 조회 - 승객/기사용
     @GetMapping("/{paymentId}")
     public ResponseEntity<ApiResponse<PaymentReadResponseDto>> getPayment(

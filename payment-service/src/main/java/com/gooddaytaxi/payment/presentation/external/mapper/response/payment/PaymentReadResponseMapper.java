@@ -14,6 +14,7 @@ public class PaymentReadResponseMapper {
     public static PaymentReadResponseDto toResponse(PaymentReadResult result) {
         return new PaymentReadResponseDto(
                 result.paymentId(),
+                result.tripId(),
                 result.amount(),
                 result.status(),
                 result.method(),
