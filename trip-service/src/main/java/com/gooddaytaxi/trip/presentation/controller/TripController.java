@@ -203,26 +203,31 @@ public class TripController {
 
     @GetMapping("/passengers/active")
     public ResponseEntity<ApiResponse<TripResponse>> getPassengerActiveTrip(
-        @RequestHeader(value = "X-User-UUID") UUID passengerId,
-        @RequestHeader(value = "X-User-Role") String role // role은 스트링으로 받고 enum으로 변환해서 사용합니다.
+        @RequestHeader("X-User-UUID") UUID passengerId,
+        @RequestHeader("X-User-Role") String role
     ) {
-        TripItem result = tripService.getActiveTripByPassenger(passengerId, UserRole.valueOf(role));
-
-        TripResponse response = tripDetailResponseMapper.toResponse(result);
-        return ResponseEntity.ok(ApiResponse.success(response));
+        return tripService
+            .getActiveTripByPassenger(passengerId, UserRole.valueOf(role))
+            .map(trip -> {
+                TripResponse response = tripDetailResponseMapper.toResponse(trip);
+                return ResponseEntity.ok(ApiResponse.success(response));
+            })
+            .orElseGet(() -> ResponseEntity.noContent().build()); // ✅ 204
     }
 
     @GetMapping("/drivers/active")
     public ResponseEntity<ApiResponse<TripResponse>> getDriverActiveTrip(
-        @RequestHeader(value = "X-User-UUID") UUID driverId,
-        @RequestHeader(value = "X-User-Role") String role
+        @RequestHeader("X-User-UUID") UUID driverId,
+        @RequestHeader("X-User-Role") String role
     ) {
-        TripItem result = tripService.getActiveTripByDriver(driverId, UserRole.valueOf(role));
-
-        TripResponse response = tripDetailResponseMapper.toResponse(result);
-        return ResponseEntity.ok(ApiResponse.success(response));
+        return tripService
+            .getActiveTripByDriver(driverId, UserRole.valueOf(role))
+            .map(trip -> {
+                TripResponse response = tripDetailResponseMapper.toResponse(trip);
+                return ResponseEntity.ok(ApiResponse.success(response));
+            })
+            .orElseGet(() -> ResponseEntity.noContent().build()); // ✅ 204
     }
-
 }
 
 

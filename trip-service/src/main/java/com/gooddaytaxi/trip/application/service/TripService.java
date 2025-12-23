@@ -11,7 +11,6 @@ import com.gooddaytaxi.trip.domain.model.Trip;
 import com.gooddaytaxi.trip.domain.model.enums.TripStatus;
 import com.gooddaytaxi.trip.application.validator.UserRole;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -20,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -318,36 +318,25 @@ public class TripService {
     }
 
 
-    @Transactional
-    public TripItem getActiveTripByPassenger(UUID passengerId, UserRole role) {
+    @Transactional(readOnly = true)
+    public Optional<TripItem> getActiveTripByPassenger(UUID passengerId, UserRole role) {
 
         tripValidator.checkRolePassenger(role);
 
-        Trip trip = loadActiveTripByPassengerPort
+        return loadActiveTripByPassengerPort
             .loadActiveTripByPassengerId(passengerId)
-            .orElseThrow(() ->
-                new EntityNotFoundException(
-                    "Active trip not found for passengerId=" + passengerId
-                )
-            );
-
-        return TripItem.from(trip);
+            .map(TripItem::from);
     }
 
-    @Transactional
-    public TripItem getActiveTripByDriver(UUID driverId, UserRole role) {
+    @Transactional(readOnly = true)
+    public Optional<TripItem> getActiveTripByDriver(UUID driverId, UserRole role) {
 
         tripValidator.checkRoleDriver(role);
 
-        Trip trip = loadActiveTripByDriverPort
+        return loadActiveTripByDriverPort
             .loadActiveTripByDriverId(driverId)
-            .orElseThrow(() ->
-                new EntityNotFoundException(
-                    "Active trip not found for driverId=" + driverId
-                )
-            );
-
-        return TripItem.from(trip);
+            .map(TripItem::from);
     }
+
 
 }
