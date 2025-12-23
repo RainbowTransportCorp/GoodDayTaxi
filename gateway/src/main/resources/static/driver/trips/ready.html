@@ -93,30 +93,15 @@
     "X-User-Role": "DRIVER"
   };
 
-  function redirectBasedOnStatus(status, tripId) {
-    localStorage.setItem("tripStatus", status);
-    localStorage.setItem("tripId", tripId);
-
-    switch (status) {
-      case "READY":
-        // stay here
-        break;
-      case "STARTED":
-        location.href = `active.html?tripId=${tripId}`;
-        break;
-      case "ENDED":
-        localStorage.removeItem("tripStatus");
-        localStorage.removeItem("tripId");
-        location.href = `ended.html?tripId=${tripId}`;
-        break;
-      default:
-        location.href = "/driver/dashboard/index.html";
-    }
-  }
-
-  async function fetchTrip() {
+  async function fetchTripInfo() {
     try {
       const res = await fetch("/api/v1/trips/drivers/active", { headers });
+
+      // ✅ ACTIVE 아님 = 운행 종료 or 없음 → 콜 대기
+      if (res.status === 204 || res.status === 404) {
+        location.href = "/driver/dashboard/index.html";
+        return;
+      }
 
       if (res.status === 401 || res.status === 403) {
         alert("세션이 만료되었습니다. 다시 로그인해주세요.");
@@ -124,9 +109,8 @@
         return;
       }
 
-      if (res.status === 404 || res.status === 204) {
-        location.href = "/driver/dashboard/index.html";
-        return;
+      if (!res.ok) {
+        throw new Error("Trip fetch failed");
       }
 
       const { data: trip } = await res.json();
@@ -135,23 +119,40 @@
         return;
       }
 
-      // 렌더링
-      document.getElementById("pickup").textContent = trip.pickupAddress ?? "-";
-      document.getElementById("destination").textContent = trip.destinationAddress ?? "-";
+      // ✅ 화면 렌더링
+      document.getElementById("pickup").textContent =
+          trip.pickupAddress ?? "-";
+      document.getElementById("destination").textContent =
+          trip.destinationAddress ?? "-";
 
-      // 상태별 분기 처리
-      redirectBasedOnStatus(trip.status, trip.tripId);
+      // ✅ 상태 저장 (선택)
+      localStorage.setItem("tripId", trip.id);
+      localStorage.setItem("tripStatus", trip.status);
+
+      // ✅ 상태별 자동 전환
+      switch (trip.status) {
+        case "READY":
+          // stay
+          break;
+
+        case "STARTED":
+          location.href = `/driver/trips/active.html?tripId=${trip.id}`;
+          break;
+
+        default:
+          // ENDED는 active API에서 안 내려오는 게 정상
+          location.href = "/driver/dashboard/index.html";
+      }
+
     } catch (e) {
       console.error("운행 정보 조회 실패", e);
-      alert("운행 정보를 불러올 수 없습니다.");
       location.href = "/driver/dashboard/index.html";
     }
   }
 
-  window.addEventListener("DOMContentLoaded", () => {
-    fetchTrip();
-    setInterval(fetchTrip, 5000);
-  });
+  fetchTripInfo();
+  setInterval(fetchTripInfo, 5000);
 </script>
+
 </body>
 </html>

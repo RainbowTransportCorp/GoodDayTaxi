@@ -8,8 +8,8 @@ import java.util.UUID;
 public class RefundRequestSearchMapper {
     public static RefundReqeustSearchCommand toCommand(Integer page, Integer size, String status, String reasonKeyword, String searchPeriod, String startDay, String endDay, String sortBy, Boolean sortAscending) {
         return new RefundReqeustSearchCommand(
-                page ==  null ? 1 : page,
-                size==  null ? 10 : size,
+                page==null || page<=0 ? 1 : page,
+                size==null || size<=0 ? 10 : size,
                 null,
                 status,
                 reasonKeyword,
@@ -25,8 +25,8 @@ public class RefundRequestSearchMapper {
 
     public static RefundReqeustSearchCommand toAdminCommand(Integer page, Integer size, UUID paymentId, String status, String reasonKeyword, String method, UUID passengerId, UUID driverId, String searchPeriod, String startDay, String endDay, String sortBy, Boolean sortAscending) {
         return new RefundReqeustSearchCommand(
-                page ==  null ? 1 : page,
-                size==  null ? 10 : size,
+                page==null || page<=0 ? 1 : page,
+                size==null || size<=0 ? 10 : size,
                 paymentId,
                 status,
                 reasonKeyword,

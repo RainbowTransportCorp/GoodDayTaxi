@@ -106,29 +106,36 @@
     "X-User-Role": "DRIVER"
   };
 
+  let pollingId = null;
+
+  /* ================= 운행 정보 로딩 ================= */
   async function loadTripInfo() {
     try {
       const res = await fetch(`/api/v1/trips/${tripId}`, { headers });
-      if (!res.ok) throw new Error("TRIP_FETCH_FAIL");
+
+      if (!res.ok) {
+        location.href = "/driver/dashboard/index.html";
+        return;
+      }
 
       const { data: trip } = await res.json();
 
-      // 상태 검증
+      // 상태 검증 (기사 ended의 책임 범위)
       switch (trip.status) {
-        case "READY":
-          location.href = "/driver/trips/ready.html";
-          return;
+        case "ENDED":
+          break; // 정상
         case "STARTED":
           location.href = "/driver/trips/active.html";
           return;
-        case "ENDED":
-          break;
+        case "READY":
+          location.href = "/driver/trips/ready.html";
+          return;
         default:
           location.href = "/driver/dashboard/index.html";
           return;
       }
 
-      // ENDED 상태 → 헤더 인디케이터 제거
+      // 헤더 인디케이터 제거
       localStorage.removeItem("tripId");
       localStorage.removeItem("tripStatus");
 
@@ -137,16 +144,16 @@
       document.getElementById("destination").textContent =
           trip.destinationAddress ?? "-";
 
-      checkPaymentStatus();
+      startPaymentPolling();
 
     } catch (e) {
       console.error("운행 정보 조회 실패", e);
-      alert("운행 정보를 불러올 수 없습니다.");
       location.href = "/driver/dashboard/index.html";
     }
   }
 
-  async function checkPaymentStatus() {
+  /* ================= 결제 상태 폴링 ================= */
+  async function pollPaymentStatus() {
     try {
       const res = await fetch(`/api/v1/payments?tripId=${tripId}`, { headers });
       if (!res.ok) return;
@@ -154,19 +161,40 @@
       const { data } = await res.json();
       const statusEl = document.getElementById("paymentStatus");
 
-      if (data.status === "PAID") {
+      if (data.status === "COMPLETED") {
         statusEl.textContent = "✅ 승객이 결제를 완료했습니다";
         statusEl.classList.add("paid");
+
+        stopPolling();
+        // 잠깐 보여주고 자동 복귀
+        setTimeout(() => {
+          location.href = "/driver/dashboard/index.html";
+        }, 1500);
       } else {
         statusEl.textContent = "💳 승객의 결제를 기다리고 있습니다";
+        statusEl.classList.remove("paid");
       }
 
     } catch (e) {
-      console.error("결제 상태 확인 실패", e);
+      console.error("결제 상태 조회 실패", e);
+    }
+  }
+
+  function startPaymentPolling() {
+    stopPolling();
+    pollPaymentStatus();
+    pollingId = setInterval(pollPaymentStatus, 4000);
+  }
+
+  function stopPolling() {
+    if (pollingId) {
+      clearInterval(pollingId);
+      pollingId = null;
     }
   }
 
   document.addEventListener("DOMContentLoaded", loadTripInfo);
 </script>
+
 </body>
 </html>
