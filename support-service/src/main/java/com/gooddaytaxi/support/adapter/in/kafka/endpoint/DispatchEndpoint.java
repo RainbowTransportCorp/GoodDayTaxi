@@ -159,4 +159,32 @@ public class DispatchEndpoint {
         // 배차 취소 알림 전송 서비스 호출
         notifyDispatchRejectUsecase.execute(command);
     }
+
+
+    /**
+     * MASTER_ADMIN 관리자가 운행 시작 직전 배차에 대해 강제 타임아웃으로 운행 시작을 금지하도록 기사에 알림을 전송하는 이벤트 리스너
+     */
+    @KafkaListener(topics = "dispatch.force-timeout", groupId = "support-service", concurrency = "1")
+    public void onDispatchForceTimeOut(EventRequest req) {
+
+        // Metadata
+        Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occurredAt());
+        // Payload
+        DispatchForceTimeoutEventPayload pl = req.convertPayload(DispatchForceTimeoutEventPayload.class);
+        log.debug("[Check] Dispatch Force Timeout EventRequest 데이터: dispatchId={}, reason={}, forceTimeoutAt={}", pl.dispatchId(), pl.reason(), pl.forceTimeoutAt());
+
+        // EventRequest DTO > Command 변환
+        NotifyDipsatchTimeoutCommand command = NotifyDipsatchTimeoutCommand.create(
+                pl.notificationOriginId(),
+                pl.notifierId(),
+                pl.passengerId(),
+                pl.message(),
+                pl.timeoutAt(),
+                metadata
+        );
+        log.debug("[Transform] EventRequest >>> Command ➡️ {}", command);
+
+        // 수락된 콜 알림 전송 서비스 호출
+        notifyDispatchTimeoutUsecase.execute(command);
+    }
 }
