@@ -2,8 +2,8 @@
 // API
 // =====================
 const API = {
-    TRIPS_BY_DRIVER: (driverId) =>
-        `/api/v1/trips/drivers/${driverId}`,
+    TRIPS_BY_DRIVER: () =>
+        `/api/v1/trips/drivers`,
 };
 
 // =====================

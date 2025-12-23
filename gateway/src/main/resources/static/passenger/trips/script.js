@@ -2,8 +2,8 @@
 // API URLS
 // =====================
 const API = {
-    TRIPS_BY_PASSENGER: (passengerId) =>
-        `/api/v1/trips/passengers/${passengerId}`,
+    TRIPS_BY_PASSENGER: () =>
+        `/api/v1/trips/passengers`,
 };
 
 // =====================
