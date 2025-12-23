@@ -9,7 +9,7 @@ WORKDIR /workspace
 COPY gradlew gradlew
 COPY gradle gradle
 COPY build.gradle settings.gradle ./
-COPY account-service account-service
+COPY src src
 
 RUN chmod +x gradlew
 RUN ./gradlew :account-service:bootJar -x test --no-daemon
