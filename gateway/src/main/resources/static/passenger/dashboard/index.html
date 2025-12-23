@@ -5,33 +5,17 @@
     <title>Passenger Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
+    <!-- 공통 헤더 스타일 및 로직 -->
     <link rel="stylesheet" href="/common/header.css">
     <script src="/common/header.js" defer></script>
 
+    <!-- 페이지 전용 스타일 -->
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-<!-- 🔔 상태 인디케이터 -->
-<div class="top-indicators">
-  <div id="trip-active-card" class="card-indicator hidden" onclick="goToActiveTrip()">
-    <div class="card-title">🚕 운행 중</div>
-  </div>
-  <div id="unpaid-card" class="card-indicator card-warning hidden" onclick="goToUnpaidPage()">
-    <div class="card-title">💳 미결제</div>
-  </div>
-</div>
-
-<header class="header">
-    <div class="brand">
-        <div class="brand-main">Good day Taxi</div>
-        <div class="brand-sub" id="brand-sub"></div>
-    </div>
-    <div class="user-box">
-        <span id="user-name"></span>
-        <button class="btn-logout" onclick="logout()">로그아웃</button>
-    </div>
-</header>
+<!-- ✅ 헤더는 비워두고 JS에서 삽입 -->
+<header class="header"></header>
 
 <main class="dashboard">
     <h1 class="dashboard-title">🚕 승객 대시보드</h1>
