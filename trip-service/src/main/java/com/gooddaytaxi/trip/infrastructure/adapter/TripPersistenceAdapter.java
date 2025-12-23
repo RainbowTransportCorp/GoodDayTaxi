@@ -2,10 +2,14 @@ package com.gooddaytaxi.trip.infrastructure.adapter;
 
 import com.gooddaytaxi.trip.application.port.out.CreateTripPort;
 import com.gooddaytaxi.trip.application.port.out.ExistsTripByDispatchIdPort;
+import com.gooddaytaxi.trip.application.port.out.LoadActiveTripByDriverPort;
+import com.gooddaytaxi.trip.application.port.out.LoadActiveTripByPassengerPort;
 import com.gooddaytaxi.trip.application.port.out.LoadTripsByPassengerPort;
 import com.gooddaytaxi.trip.application.port.out.UpdateTripPort;
 import com.gooddaytaxi.trip.domain.model.Trip;
 import com.gooddaytaxi.trip.infrastructure.persistence.TripJpaRepository;
+import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -16,7 +20,13 @@ import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
-public class TripPersistenceAdapter implements CreateTripPort, UpdateTripPort, LoadTripsByPassengerPort, ExistsTripByDispatchIdPort {
+public class TripPersistenceAdapter implements
+    CreateTripPort,
+    UpdateTripPort,
+    LoadTripsByPassengerPort,
+    ExistsTripByDispatchIdPort,
+    LoadActiveTripByDriverPort,
+    LoadActiveTripByPassengerPort {
 
     private final TripJpaRepository tripJpaRepository;
 
@@ -50,6 +60,11 @@ public class TripPersistenceAdapter implements CreateTripPort, UpdateTripPort, L
         );
     }
 
+    @Override
+    public List<Trip> findAllByPassengerId(UUID passengerId) {
+        return tripJpaRepository.findAllByPassengerId(passengerId);
+    }
+
 
     @Override
     public boolean existsByDispatchId(UUID dispatchId) {
@@ -57,5 +72,13 @@ public class TripPersistenceAdapter implements CreateTripPort, UpdateTripPort, L
     }
 
 
+    @Override
+    public Optional<Trip> loadActiveTripByDriverId(UUID driverId) {
+        return tripJpaRepository.findActiveByDriverId(driverId);
+    }
 
+    @Override
+    public Optional<Trip> loadActiveTripByPassengerId(UUID passengerId) {
+        return tripJpaRepository.findActiveByPassengerId(passengerId);
+    }
 }

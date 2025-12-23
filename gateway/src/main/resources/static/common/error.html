@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>오류 발생 | Good day Taxi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      margin: 0;
+      background: #f7f7fb;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 36px 28px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      text-align: center;
+    }
+
+    .icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    .title {
+      font-size: 20px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .desc {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 14px;
+      border-radius: 999px;
+      border: none;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: #8A5DF6;
+      color: white;
+    }
+
+    .btn-secondary {
+      background: #eee;
+      color: #333;
+    }
+  </style>
+</head>
+
+<body>
+<div class="card">
+  <div class="icon">⚠️</div>
+  <div class="title">문제가 발생했어요</div>
+
+  <div class="desc" id="message">
+    요청을 처리하는 중 오류가 발생했습니다.<br>
+    잠시 후 다시 시도해주세요.
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-secondary" onclick="goBack()">
+      이전으로
+    </button>
+    <button class="btn btn-primary" onclick="goHome()">
+      홈으로
+    </button>
+  </div>
+</div>
+
+<script>
+  const params = new URLSearchParams(location.search);
+  const customMessage = params.get("message");
+
+  if (customMessage) {
+    document.getElementById("message").innerText = decodeURIComponent(customMessage);
+  }
+
+  function goBack() {
+    history.back();
+  }
+
+  function goHome() {
+    const role = localStorage.getItem("role");
+
+    if (role === "PASSENGER") {
+      location.href = "/passenger/dashboard/index.html";
+    } else if (role === "DRIVER") {
+      location.href = "/driver/dashboard/index.html";
+    } else {
+      location.href = "/index.html";
+    }
+  }
+</script>
+</body>
+</html>

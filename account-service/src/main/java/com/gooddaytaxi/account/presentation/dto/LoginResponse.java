@@ -10,13 +10,14 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class LoginResponse {
-    
+
     private final String accessToken;
     private final String refreshToken;
     private final String userUuid;
     private final String role;
-    
-    public static LoginResponse of(String accessToken, String refreshToken, String userUuid, String role) {
-        return new LoginResponse(accessToken, refreshToken, userUuid, role);
+    private final String email;
+
+    public static LoginResponse of(String accessToken, String refreshToken, String userUuid, String role, String email) {
+        return new LoginResponse(accessToken, refreshToken, userUuid, role, email);
     }
 }

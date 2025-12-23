@@ -28,6 +28,11 @@ public class PaymentQueryAdapter implements PaymentQueryPort {
     }
 
     @Override
+    public Optional<Payment> findByIdWithLock(UUID paymentId) {
+        return paymentRepository.findByIdWithLock(paymentId);
+    }
+
+    @Override
     public Optional<PaymentAttempt> findLastAttemptByPaymentId(UUID paymentId) {
         return paymentRepository.findFirstByPaymentIdOrderByAttemptNoDesc(paymentId);
     }
@@ -56,6 +61,11 @@ public class PaymentQueryAdapter implements PaymentQueryPort {
     @Override
     public Payment findLastByTripIdAndStatusForCreate(UUID tripId) {
         return paymentRepository.findLastByTripIdAndStatusForCreate(tripId);
+    }
+
+    @Override
+    public Payment findLastByTripIdAndStatusForCreateWithLock(UUID tripId) {
+        return paymentRepository.findLastByTripIdAndStatusForCreateWithLock(tripId);
     }
 
     @Override

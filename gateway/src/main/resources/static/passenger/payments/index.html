@@ -145,7 +145,7 @@
     json.data.content.forEach(p => {
       body.insertAdjacentHTML("beforeend", `
         <tr>
-          <td>${p.paymentId}</td>
+          <td>${p.id}</td>
           <td>${p.tripId}</td>
           <td class="amount">₩ ${p.amount.toLocaleString()}</td>
           <td>${p.method}</td>

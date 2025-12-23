@@ -1,115 +1,156 @@
-const BASE_URL = "/api/v1/dispatches/driver";
+/* ================= 공통 ================= */
+const TOKEN = localStorage.getItem("accessToken");
+const UUID = localStorage.getItem("userUuid");
+const ROLE = localStorage.getItem("role");
 
-// 사용자 정보 가져오기
-function loadDriverInfo() {
-    const role = localStorage.getItem("role");
-    const uuid = localStorage.getItem("userUuid");
+const DISPATCH_BASE = "/api/v1/dispatches/driver";
 
-    if (role !== "DRIVER") {
-        alert("이 페이지에 접근할 수 있는 권한이 없습니다.");
-        window.location.href = "/index.html";
-        return;
-    }
-
-    const idBox = document.getElementById("driver-id");
-    idBox.textContent = `ID: ${uuid.substring(0, 8)}...`;
+/* ================= 권한 체크 ================= */
+if (ROLE !== "DRIVER") {
+  alert("기사 전용 페이지입니다.");
+  location.href = "/index.html";
 }
 
-
-// pending 목록 불러오기
-async function loadPending() {
-    const listEl = document.getElementById("dispatch-list");
-    const token = localStorage.getItem("accessToken");
-    const uuid = localStorage.getItem("userUuid");
-    const role = localStorage.getItem("role");
-
-    listEl.innerHTML = "<div class='empty'>대기 콜을 불러오는 중...</div>";
-
-    const res = await fetch(`${BASE_URL}/pending`, {
-        headers: {
-            "Authorization": `Bearer ${token}`,
-            "X-User-UUID": uuid,
-            "X-User-Role": role
-        }
+/* ================= ⭐ 핵심: 현재 운행 상태 확인 ================= */
+async function checkActiveTrip() {
+  try {
+    const res = await fetch("/api/v1/trips/drivers/active", {
+      headers: {
+        "Authorization": `Bearer ${TOKEN}`,
+        "X-User-UUID": UUID,
+        "X-User-Role": "DRIVER"
+      }
     });
+
+    if (res.status === 401 || res.status === 403) {
+      alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+      location.href = "/index.html";
+      return;
+    }
+
+    if (res.status === 404 || res.status === 204) {
+      await loadPending(); // 운행 없음
+      return;
+    }
+
+    if (!res.ok) {
+      console.error("운행 상태 조회 실패:", res.status);
+      alert("운행 상태 확인 중 문제가 발생했습니다.");
+      return;
+    }
+
+    const { data: trip } = await res.json();
+
+    if (trip.status === "READY") {
+      location.href = "/driver/trips/ready.html";
+    } else if (trip.status === "STARTED") {
+      location.href = "/driver/trips/active.html";
+    }
+
+  } catch (e) {
+    console.error("네트워크 예외:", e);
+    alert("서버 연결 중 문제가 발생했습니다.");
+  }
+}
+
+/* ================= 대기 콜 목록 ================= */
+async function loadPending() {
+  const list = document.getElementById("dispatch-list");
+  list.innerHTML = "<div class='empty'>대기 콜 불러오는 중...</div>";
+
+  try {
+    const res = await fetch(`${DISPATCH_BASE}/pending`, {
+      headers: {
+        "Authorization": `Bearer ${TOKEN}`,
+        "X-User-UUID": UUID,
+        "X-User-Role": ROLE
+      }
+    });
+
+    const json = await res.json();
+
+    if (!json.success || json.data.length === 0) {
+      list.innerHTML = "<div class='empty'>현재 대기 콜이 없습니다.</div>";
+      return;
+    }
+
+    list.innerHTML = json.data.map(d => `
+      <div class="dispatch-card">
+        <div class="dispatch-badge">
+          <span class="dispatch-badge-dot"></span>
+          NEW DISPATCH
+        </div>
+        <div class="dispatch-title">새로운 콜 요청</div>
+        <div class="info"><b>출발:</b> ${d.pickupAddress}</div>
+        <div class="info"><b>도착:</b> ${d.destinationAddress}</div>
+        <div class="info-meta">ID: ${d.dispatchId}</div>
+        <div class="actions">
+          <button class="btn btn-accept" onclick="acceptCall('${d.dispatchId}')">수락하기</button>
+          <button class="btn btn-reject" onclick="rejectCall('${d.dispatchId}')">거절하기</button>
+        </div>
+      </div>
+    `).join("");
+
+  } catch (e) {
+    console.error("콜 목록 로딩 실패:", e);
+    list.innerHTML = "<div class='empty'>콜 목록을 불러올 수 없습니다.</div>";
+  }
+}
+
+/* ================= 콜 수락 ================= */
+async function acceptCall(id) {
+  try {
+    const res = await fetch(`${DISPATCH_BASE}/${id}/accept`, {
+      method: "PATCH",
+      headers: {
+        "Authorization": `Bearer ${TOKEN}`,
+        "X-User-UUID": UUID,
+        "X-User-Role": ROLE
+      }
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error("콜 수락 실패:", res.status, errText);
+      alert("콜 수락에 실패했습니다. 이미 수락된 콜일 수 있어요.");
+      return;
+    }
 
     const json = await res.json();
 
     if (!json.success) {
-        listEl.innerHTML = `<div class='empty'>오류: ${json.message}</div>`;
-        return;
+      alert(json.message || "콜 수락에 실패했습니다.");
+      return;
     }
 
-    const data = json.data;
-    if (data.length === 0) {
-        listEl.innerHTML = `<div class='empty'>현재 대기 콜이 없습니다.</div>`;
-        return;
-    }
-
-    listEl.innerHTML = data.map(d => `
-        <div class="dispatch-card">
-            <div class="dispatch-badge">
-                <span class="dispatch-badge-dot"></span>
-                NEW DISPATCH
-            </div>
-
-            <div class="dispatch-title">새로운 콜 요청</div>
-
-            <div class="info"><b>출발:</b> ${d.pickupAddress}</div>
-            <div class="info"><b>도착:</b> ${d.dropoffAddress}</div>
-            <div class="info"><b>예상 요금:</b> ${d.estimatedFare}원</div>
-            <div class="info"><b>거리:</b> ${d.estimatedDistanceKm}km</div>
-
-            <div class="info-meta">ID: ${d.dispatchId}</div>
-
-            <div class="actions">
-                <button class="btn btn-accept" onclick="acceptCall('${d.dispatchId}')">
-                    수락하기
-                </button>
-                <button class="btn btn-reject" onclick="rejectCall('${d.dispatchId}')">
-                    거절하기
-                </button>
-            </div>
-        </div>
-    `).join("");
+    location.href = "/driver/trips/ready.html";
+  } catch (e) {
+    console.error("콜 수락 중 오류:", e);
+    alert("콜 수락 요청 중 문제가 발생했습니다.");
+  }
 }
 
-async function acceptCall(id) {
-    const token = localStorage.getItem("accessToken");
-    const uuid = localStorage.getItem("userUuid");
-    const role = localStorage.getItem("role");
-
-    const res = await fetch(`${BASE_URL}/${id}/accept`, {
-        method: "PATCH",
-        headers: {
-            "Authorization": `Bearer ${token}`,
-            "X-User-UUID": uuid,
-            "X-User-Role": role
-        }
-    });
-
-    const json = await res.json();
-    alert(json.message || "콜 수락 완료!");
-    loadPending();
-}
-
+/* ================= 콜 거절 ================= */
 async function rejectCall(id) {
-    const token = localStorage.getItem("accessToken");
-    const uuid = localStorage.getItem("userUuid");
-
-    const res = await fetch(`${BASE_URL}/${id}/reject`, {
-        method: "PATCH",
-        headers: {
-            "Authorization": `Bearer ${token}`,
-            "X-User-UUID": uuid
-        }
+  try {
+    const res = await fetch(`${DISPATCH_BASE}/${id}/reject`, {
+      method: "PATCH",
+      headers: {
+        "Authorization": `Bearer ${TOKEN}`,
+        "X-User-UUID": UUID,
+        "X-User-Role": ROLE
+      }
     });
 
-    const json = await res.json();
-    alert(json.message || "콜 거절 완료!");
-    loadPending();
-}
+    if (!res.ok) {
+      console.error("콜 거절 실패:", res.status);
+      alert("콜 거절에 실패했습니다.");
+      return;
+    }
 
-// 초기 실행
-loadDriverInfo();
-loadPending();
+    await loadPending();
+  } catch (e) {
+    console.error("콜 거절 중 오류:", e);
+    alert("콜 거절 요청 중 문제가 발생했습니다.");
+  }
+}

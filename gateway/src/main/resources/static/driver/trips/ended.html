@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>운행 완료 | Good day Taxi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- 공통 헤더 -->
+  <link rel="stylesheet" href="/common/header.css">
+  <script src="/common/header.js" defer></script>
+
+  <style>
+    body {
+      margin: 0;
+      background: #f7f7fb;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    .container {
+      max-width: 420px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+
+    .title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .row {
+      margin-bottom: 14px;
+      font-size: 14px;
+    }
+
+    .label {
+      color: #777;
+      margin-bottom: 4px;
+    }
+
+    .value {
+      font-weight: 600;
+    }
+
+    .status {
+      margin-top: 24px;
+      padding: 14px;
+      border-radius: 12px;
+      text-align: center;
+      font-weight: 700;
+      background: #8A5DF6;
+      color: white;
+    }
+
+    .status.paid {
+      background: #4CAF50;
+    }
+  </style>
+</head>
+
+<body>
+<!-- 공통 헤더 -->
+<header class="header"></header>
+
+<div class="container">
+  <div class="card">
+    <div class="title">🚕 운행이 완료되었습니다</div>
+
+    <div class="row">
+      <div class="label">출발지</div>
+      <div class="value" id="pickup">-</div>
+    </div>
+
+    <div class="row">
+      <div class="label">도착지</div>
+      <div class="value" id="destination">-</div>
+    </div>
+
+    <div class="status" id="paymentStatus">
+      💳 승객의 결제를 기다리고 있습니다
+    </div>
+  </div>
+</div>
+
+<script>
+  const tripId = new URLSearchParams(location.search).get("tripId");
+  const token = localStorage.getItem("accessToken");
+  const uuid = localStorage.getItem("userUuid");
+  const role = localStorage.getItem("role");
+
+  if (!token || !uuid || role !== "DRIVER" || !tripId) {
+    alert("잘못된 접근입니다.");
+    location.href = "/index.html";
+  }
+
+  const headers = {
+    "Authorization": `Bearer ${token}`,
+    "X-User-UUID": uuid,
+    "X-User-Role": "DRIVER"
+  };
+
+  async function loadTripInfo() {
+    try {
+      const res = await fetch(`/api/v1/trips/${tripId}`, { headers });
+      if (!res.ok) throw new Error("TRIP_FETCH_FAIL");
+
+      const { data: trip } = await res.json();
+
+      // 상태 검증
+      switch (trip.status) {
+        case "READY":
+          location.href = "/driver/trips/ready.html";
+          return;
+        case "STARTED":
+          location.href = "/driver/trips/active.html";
+          return;
+        case "ENDED":
+          break;
+        default:
+          location.href = "/driver/dashboard/index.html";
+          return;
+      }
+
+      // ENDED 상태 → 헤더 인디케이터 제거
+      localStorage.removeItem("tripId");
+      localStorage.removeItem("tripStatus");
+
+      document.getElementById("pickup").textContent =
+          trip.pickupAddress ?? "-";
+      document.getElementById("destination").textContent =
+          trip.destinationAddress ?? "-";
+
+      checkPaymentStatus();
+
+    } catch (e) {
+      console.error("운행 정보 조회 실패", e);
+      alert("운행 정보를 불러올 수 없습니다.");
+      location.href = "/driver/dashboard/index.html";
+    }
+  }
+
+  async function checkPaymentStatus() {
+    try {
+      const res = await fetch(`/api/v1/payments?tripId=${tripId}`, { headers });
+      if (!res.ok) return;
+
+      const { data } = await res.json();
+      const statusEl = document.getElementById("paymentStatus");
+
+      if (data.status === "PAID") {
+        statusEl.textContent = "✅ 승객이 결제를 완료했습니다";
+        statusEl.classList.add("paid");
+      } else {
+        statusEl.textContent = "💳 승객의 결제를 기다리고 있습니다";
+      }
+
+    } catch (e) {
+      console.error("결제 상태 확인 실패", e);
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", loadTripInfo);
+</script>
+</body>
+</html>

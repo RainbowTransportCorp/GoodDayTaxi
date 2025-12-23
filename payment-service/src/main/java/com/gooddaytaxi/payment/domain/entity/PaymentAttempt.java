@@ -20,7 +20,7 @@ public class PaymentAttempt extends BaseEntity {
     private UUID id;
 
     @Column(nullable = false)
-    private UUID IdempotencyKey;  //toss 결제에서 중복 방지를 위한 멱등성 키
+    private String IdempotencyKey;  //toss 결제에서 중복 방지를 위한 멱등성 키
 
     @Column(nullable = false)
     private String paymentKey;  //toss 결제에서 결제 고유 키
@@ -50,7 +50,7 @@ public class PaymentAttempt extends BaseEntity {
     private Payment payment;
 
 
-    public PaymentAttempt(String paymentKey, UUID idempotencyKey, int attemptNo) {
+    public PaymentAttempt(String paymentKey, String idempotencyKey, int attemptNo) {
         this.paymentKey = paymentKey;
         this.IdempotencyKey = idempotencyKey;
         this.attemptNo = attemptNo;

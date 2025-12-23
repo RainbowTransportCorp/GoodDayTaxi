@@ -1,9 +1,9 @@
 package com.gooddaytaxi.dispatch.application.service.admin;
 
-import com.gooddaytaxi.dispatch.application.event.payload.DispatchTimeoutPayload;
+import com.gooddaytaxi.dispatch.application.event.payload.DispatchForceTimeoutPayload;
 import com.gooddaytaxi.dispatch.application.exception.auth.UserRole;
 import com.gooddaytaxi.dispatch.application.port.out.command.DispatchCommandPort;
-import com.gooddaytaxi.dispatch.application.port.out.command.DispatchTimeoutCommandPort;
+import com.gooddaytaxi.dispatch.application.port.out.command.DispatchForceTimeoutCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
 import com.gooddaytaxi.dispatch.application.service.dispatch.DispatchHistoryService;
 import com.gooddaytaxi.dispatch.application.usecase.timeout.AdminForceTimeoutCommand;
@@ -30,7 +30,8 @@ public class AdminDispatchService {
     private final DispatchQueryPort queryPort;
     private final DispatchCommandPort commandPort;
     private final DispatchHistoryService historyService;
-    private final DispatchTimeoutCommandPort timeoutCommandPort;
+
+    private final DispatchForceTimeoutCommandPort forceTimeoutCommandPort;
 
     private final AdminPermissionValidator adminPermissionValidator;
 
@@ -38,9 +39,9 @@ public class AdminDispatchService {
      * 관리자 강제 TIMEOUT 처리
      */
     public AdminForceTimeoutResult forceTimeout(
-            UserRole role,
-            UUID dispatchId,
-            AdminForceTimeoutCommand command
+        UserRole role,
+        UUID dispatchId,
+        AdminForceTimeoutCommand command
     ) {
 
         adminPermissionValidator.validateMasterWrite(role);
@@ -50,38 +51,48 @@ public class AdminDispatchService {
         DispatchStatus before = dispatch.getDispatchStatus();
 
         // 도메인 상태 전이
-        dispatch.forceTimeout(); // REQUESTED / ASSIGNING / ASSIGNED / ACCEPTED / TRIP_REQUESTED 모두 허용
+        dispatch.forceTimeout(); // REQUESTED / ASSIGNING / ASSIGNED / ACCEPTED / TRIP_REQUEST 모두 허용
 
         commandPort.save(dispatch);
 
         // 히스토리
         historyService.saveStatusChange(
-                dispatchId,
-                HistoryEventType.TIMEOUT,
-                before,
-                dispatch.getDispatchStatus(),
-                ChangedBy.MASTER_ADMIN,
-                command.getReason()
+            dispatchId,
+            HistoryEventType.TIMEOUT,
+            before,
+            dispatch.getDispatchStatus(),
+            ChangedBy.MASTER_ADMIN,
+            command.getReason()
         );
 
-        // TIMEOUT 이벤트 발행 (ADMIN 강제)
-        timeoutCommandPort.publish(
-                DispatchTimeoutPayload.adminForce(
-                        dispatch.getDispatchId(),
-                        dispatch.getPassengerId(),
-                        command.getAdminId(),      // notifierId = ADMIN
-                        command.getReason(),
-                        LocalDateTime.now()
+        // ✅ 한 번만 찍어서 이벤트/응답 결과에 동일하게 사용
+        LocalDateTime forceTimeoutAt = LocalDateTime.now();
+
+        // ✅ 기사 알림 목적이라 driverId 없으면 발행 스킵
+        UUID driverId = dispatch.getDriverId(); // (필드명이 다르면 여기에 맞춰 변경)
+        if (driverId != null) {
+            forceTimeoutCommandPort.publish(
+                DispatchForceTimeoutPayload.adminForce(
+                    dispatch.getDispatchId(),
+                    driverId,
+                    before,                   // previousStatus
+                    command.getAdminId(),     // notifierId = MASTER_ADMIN
+                    command.getReason(),
+                    forceTimeoutAt
                 )
-        );
+            );
+        } else {
+            log.info("[Admin][ForceTimeout][SkipEvent] dispatchId={} before={} reason={} (driverId is null)",
+                dispatchId, before, command.getReason());
+        }
 
         log.info("[Admin][ForceTimeout] dispatchId={} before={} after={}",
-                dispatchId, before, dispatch.getDispatchStatus());
+            dispatchId, before, dispatch.getDispatchStatus());
 
         return AdminForceTimeoutResult.builder()
-                .dispatchId(dispatch.getDispatchId())
-                .status(dispatch.getDispatchStatus())
-                .timeoutAt(LocalDateTime.now())
-                .build();
+            .dispatchId(dispatch.getDispatchId())
+            .status(dispatch.getDispatchStatus())
+            .timeoutAt(forceTimeoutAt)
+            .build();
     }
 }

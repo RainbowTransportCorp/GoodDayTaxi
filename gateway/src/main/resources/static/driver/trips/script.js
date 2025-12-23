@@ -1,5 +1,5 @@
 // =====================
-// API URLS
+// API
 // =====================
 const API = {
     TRIPS_BY_DRIVER: (driverId) =>
@@ -40,7 +40,7 @@ const size = 5;
 let totalPages = 0;
 
 // =====================
-// LOAD
+// LOAD TRIPS
 // =====================
 async function loadTrips() {
     const listEl = document.getElementById("trip-list");
@@ -49,33 +49,37 @@ async function loadTrips() {
     try {
         const res = await fetch(
             `${API.TRIPS_BY_DRIVER(driverId)}?page=${page}&size=${size}`,
-            {
-                headers: defaultHeaders,
-            }
+            { headers: defaultHeaders }
         );
 
-        if (!res.ok) {
-            throw new Error(`HTTP ${res.status}`);
-        }
+        if (!res.ok) throw new Error(res.status);
 
         const json = await res.json();
-        if (!json.success) {
-            throw new Error("조회 실패");
-        }
+        if (!json.success) throw new Error("조회 실패");
 
-        const data = json.data;
-        const trips = data.trips;
-        totalPages = data.totalPages;
+        const { trips, totalPages: tp } = json.data;
+        totalPages = tp;
 
-        if (trips.length === 0) {
+        if (!trips || trips.length === 0) {
             listEl.textContent = "운행 기록이 없습니다.";
             return;
         }
 
         listEl.innerHTML = trips.map(t => `
             <div class="trip-card">
-                <div class="trip-status ${t.status}">
-                    ${t.status}
+                <div class="trip-header">
+                    <span class="trip-status ${t.status}">
+                        ${t.status}
+                    </span>
+
+                    ${t.paymentStatus === "UNPAID" ? `
+                        <button class="btn-pay"
+                                onclick="goToPayment('${t.tripId}')">
+                            💰 미결제
+                        </button>
+                    ` : `
+                        <span class="paid-label">결제완료</span>
+                    `}
                 </div>
 
                 <div class="trip-info"><b>출발</b> ${t.pickupAddress}</div>
@@ -96,6 +100,14 @@ async function loadTrips() {
         console.error(e);
         listEl.textContent = "운행 기록 조회에 실패했습니다.";
     }
+}
+
+// =====================
+// PAYMENT MOVE
+// =====================
+function goToPayment(tripId) {
+    if (!tripId) return;
+    location.href = `/driver/payments/index.html?tripId=${tripId}`;
 }
 
 // =====================

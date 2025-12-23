@@ -15,4 +15,5 @@ public class LoginResult {
     private final String refreshToken;
     private final String userUuid;
     private final String role;
+    private final String email;
 }

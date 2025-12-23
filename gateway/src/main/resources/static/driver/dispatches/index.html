@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8" />
     <title>Good day Taxi – Driver</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <link rel="stylesheet" href="/common/header.css">
     <script src="/common/header.js" defer></script>
 
+    <!-- ✅ 기존 스타일 그대로 -->
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -15,7 +18,7 @@
 <header class="header">
     <div class="brand">
         <div class="brand-main">Good day Taxi</div>
-        <div class="brand-sub" id="brand-sub">무지개 운수</div>
+        <div class="brand-sub">기사 대시보드</div>
     </div>
 
     <div class="user-box">
@@ -23,7 +26,6 @@
         <button class="btn-logout" onclick="logout()">로그아웃</button>
     </div>
 </header>
-
 
 <main>
 
@@ -35,6 +37,15 @@
 
 </main>
 
+<!-- ⭐ 1. 공통 가드 -->
+<script src="/driver/common/driver-trip-guard.js"></script>
+
+<!-- ⭐ 2. 실행 -->
+<script>
+    guardDriverTrip();
+</script>
+
+<!-- 기존 스크립트 -->
 <script src="script.js"></script>
 </body>
 </html>
