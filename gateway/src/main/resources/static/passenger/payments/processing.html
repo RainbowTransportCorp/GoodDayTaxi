@@ -11,6 +11,27 @@
 <p id="amount"></p>
 
 <script>
+    function generateIdempotencyKey({ orderId, amount, passengerId }) {
+        return [
+            orderId,
+            amount,
+            passengerId
+        ].join(":");
+    }
+
+    function getOrCreateIdempotencyKey({ orderId, amount, passengerId }) {
+        const STORAGE_KEY = "payment-confirm-idempotency-key";
+
+        let storedKey = sessionStorage.getItem(STORAGE_KEY);
+        if (storedKey) {
+            return storedKey;
+        }
+
+        const newKey = generateIdempotencyKey({ orderId, amount, passengerId });
+        sessionStorage.setItem(STORAGE_KEY, newKey);
+        return newKey;
+    }
+
     // 쿼리 파라미터 값이 결제 요청할 때 보낸 데이터와 동일한지 반드시 확인하세요.
     // 클라이언트에서 결제 금액을 조작하는 행위를 방지할 수 있습니다.
     const urlParams = new URLSearchParams(window.location.search);
@@ -18,6 +39,8 @@
     const paymentKey = urlParams.get("paymentKey");
     const orderId = urlParams.get("orderId");
     const amount = urlParams.get("amount");
+    const passengerId = customerKey.replace(/^customer-/, "");
+    const idempotencyKey = getOrCreateIdempotencyKey({orderId, amount, passengerId});
 
     async function confirm() {
         const requestData = {
@@ -30,8 +53,9 @@
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "X-User-UUID": "c15f2e3a-a72f-47c8-861e-eb2451c1f7fd",
+                "X-User-UUID": passengerId,
                 "X-User-Role": "PASSENGER",
+                "Idempotency-Key" : idempotencyKey
             },
             body: JSON.stringify(requestData),
         });

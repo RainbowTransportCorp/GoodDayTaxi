@@ -112,9 +112,10 @@ public class PaymentAdminController {
     public ResponseEntity<ApiResponse<RefundCreateResponseDto>> ConfirmTosspayRefund(@PathVariable UUID paymentId,
                                                                                      @RequestBody @Valid RefundCreateRequestDto requestDto,
                                                                                      @RequestHeader(value = "X-User-UUID") UUID userId,
-                                                                                     @RequestHeader(value = "X-User-Role") String role) {
+                                                                                     @RequestHeader(value = "X-User-Role") String role,
+                                                                                     @RequestHeader(value = "Idempotency-Key") String idempotencyKey) {
         RefundCreateCommand command = RefundCreateMapper.toTosspayCommand(requestDto);
-        RefundCreateResult result = refundService.confirmTosspayRefund(paymentId, command, userId, role);
+        RefundCreateResult result = refundService.confirmTosspayRefund(paymentId, command, userId, role, idempotencyKey);
         RefundCreateResponseDto responseDto = RefundCreateResponseMapper.toResponse(result);
         return ResponseEntity.status(201).body(ApiResponse.success(responseDto));
     }

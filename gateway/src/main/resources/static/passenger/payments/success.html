@@ -74,6 +74,8 @@
 </div>
 
 <script>
+    sessionStorage.removeItem("payment-confirm-idempotency-key");
+    
     function goHome() {
         window.location.href = "/passenger/index.html";
     }
