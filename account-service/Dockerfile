@@ -9,10 +9,10 @@ WORKDIR /workspace
 COPY gradlew gradlew
 COPY gradle gradle
 COPY build.gradle settings.gradle ./
-COPY src src
+COPY account-service account-service
 
 RUN chmod +x gradlew
-RUN ./gradlew clean bootJar -x test
+RUN ./gradlew :account-service:bootJar -x test --no-daemon
 
 # ============================
 # 2) Run Stage
@@ -20,7 +20,7 @@ RUN ./gradlew clean bootJar -x test
 FROM eclipse-temurin:17-jre AS runtime
 WORKDIR /app
 
-COPY --from=builder /workspace/build/libs/*.jar app.jar
+COPY --from=builder /workspace/account-service/build/libs/*.jar app.jar
 
 # 스프링 기본 8080
 EXPOSE 8080
