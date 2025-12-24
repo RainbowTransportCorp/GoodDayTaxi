@@ -2,13 +2,16 @@ package com.gooddaytaxi.trip.application.service;
 
 
 import com.gooddaytaxi.trip.application.command.*;
+import com.gooddaytaxi.trip.application.exception.TripErrorCode;
+import com.gooddaytaxi.trip.application.exception.TripException;
 import com.gooddaytaxi.trip.application.port.out.*;
 import com.gooddaytaxi.trip.application.result.*;
+import com.gooddaytaxi.trip.application.validator.TripValidator;
 import com.gooddaytaxi.trip.domain.model.Trip;
 import com.gooddaytaxi.trip.domain.model.enums.TripStatus;
-import com.gooddaytaxi.trip.domain.model.enums.UserRole;
+import com.gooddaytaxi.trip.application.validator.UserRole;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -16,15 +19,14 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class TripService {
 
-
     private final CreateTripPort createTripPort;
     private final LoadTripsPort loadTripsPort;
-    private final LoadTripByIdPort loadTripByIdPort;
     private final UpdateTripPort updateTripPort;
     private final LoadTripsByPassengerPort loadTripsByPassengerPort;
     private final LoadTripsByDriverPort loadTripsByDriverPort;
@@ -33,9 +35,14 @@ public class TripService {
     private final LoadActiveTripByDriverPort loadActiveTripByDriverPort;
     private final LoadActiveTripByPassengerPort loadActiveTripByPassengerPort;
 
+    private final TripValidator tripValidator;
+
 
     @Transactional
     public TripCreateResult createTrip(TripCreateCommand command) {
+
+        //마스터 권한만 가능
+        tripValidator.checkRoleMasterAdmin(command.role());
 
         // 도메인 정적 팩토리로 Trip 생성
         Trip trip = Trip.createTrip(
@@ -56,19 +63,40 @@ public class TripService {
         );
     }
 
-    public TripListResult loadTrips() {
-        List<Trip> trips = loadTripsPort.findAll();
+    public TripListResult loadTrips(UUID userId, UserRole role) {
+
+        tripValidator.checkRolePassengerOrDriver(role);
+
+        List<Trip> trips;
+
+        if (role == UserRole.PASSENGER) {
+            trips = loadTripsByPassengerPort.findAllByPassengerId(userId);
+        } else { // DRIVER
+            trips = loadTripsByDriverPort.findAllByDriverId(userId);
+        }
 
         List<TripItem> items = trips.stream()
-                .map(TripItem::from)
-                .toList();
+            .map(TripItem::from)
+            .toList();
 
         return new TripListResult(items);
     }
 
-    public TripItem getTripDetail(UUID tripId) {
-        Trip trip = loadTripByIdPort.loadTripById(tripId)
-                .orElseThrow(() -> new IllegalArgumentException("Trip not found"));
+    public TripItem getTripDetail(UUID tripId, UUID userId, UserRole role) {
+
+        tripValidator.checkRolePassengerOrDriver(role);
+
+        Optional<Trip> found;
+
+        if (role == UserRole.PASSENGER) {
+            found = loadTripsPort.loadByTripIdAndPassengerId(tripId, userId);
+        } else { // DRIVER
+            found = loadTripsPort.loadByTripIdAndDriverId(tripId, userId);
+        }
+
+        Trip trip = found.orElseThrow(() ->
+            new TripException(TripErrorCode.TRIP_PERMISSION_DENIED)
+        );
 
         return TripItem.from(trip);
     }
@@ -77,10 +105,14 @@ public class TripService {
     @Transactional
     public TripStartResult startTrip(StartTripCommand command) {
         UUID tripId = command.tripId();
-        UUID notifierId = command.notifierId(); // 컨트롤러에서 헤더로 받은 값
+        UUID driverId = command.driverId();
 
-        Trip trip = loadTripByIdPort.loadTripById(tripId)
-                .orElseThrow(() -> new EntityNotFoundException("Trip not found. tripId=" + tripId));
+        //기사만 가능
+        tripValidator.checkRoleDriver(command.role());
+
+        Trip trip = loadTripsPort
+            .loadByTripIdAndDriverId(tripId, command.driverId())
+            .orElseThrow(() -> new TripException(TripErrorCode.TRIP_PERMISSION_DENIED));
 
         // 1) 상태 전이 + startTime 세팅 (Trip 도메인 메서드 내부에서 처리)
         boolean transitioned = trip.start(); // ✅ 상태 전이 여부
@@ -88,7 +120,7 @@ public class TripService {
         if (transitioned) {
             appendTripEventPort.appendTripStarted(
                     trip.getTripId(),
-                    command.notifierId(),
+                    driverId,
                     trip.getDispatchId(),
                     trip.getDriverId(),
                     trip.getPassengerId(),
@@ -108,8 +140,13 @@ public class TripService {
     }
     @Transactional
     public TripEndResult endTrip(UUID tripId, EndTripCommand command) {
-        Trip trip = loadTripByIdPort.loadTripById(tripId)
-                .orElseThrow(() -> new EntityNotFoundException("Trip not found. tripId=" + tripId));
+
+        //기사만 가능
+        tripValidator.checkRoleDriver(command.role());
+
+        Trip trip = loadTripsPort
+            .loadByTripIdAndDriverId(tripId, command.driverId())
+            .orElseThrow(() -> new TripException(TripErrorCode.TRIP_PERMISSION_DENIED));
 
         // 1) 상태 전이 (STARTED -> ENDED)
         boolean transitioned = trip.end(command.totalDistance(), command.totalDuration());
@@ -121,7 +158,7 @@ public class TripService {
         if (transitioned) {
             appendTripEventPort.appendTripEnded(
                     updated.getTripId(),
-                    command.notifierId(),
+                    command.driverId(),
                     updated.getDispatchId(),
                     updated.getDriverId(),
                     updated.getPassengerId(),
@@ -147,8 +184,12 @@ public class TripService {
     public TripCancelResult cancelTrip(CancelTripCommand command) {
         UUID tripId = command.tripId();
 
-        Trip trip = loadTripByIdPort.loadTripById(tripId)
-                .orElseThrow(() -> new EntityNotFoundException("Trip not found. tripId=" + tripId));
+        //기사만 가능
+        tripValidator.checkRoleDriver(command.role());
+
+        Trip trip = loadTripsPort
+            .loadByTripIdAndDriverId(tripId, command.driverId())
+            .orElseThrow(() -> new TripException(TripErrorCode.TRIP_PERMISSION_DENIED));
 
         // 1) 상태 전이 (CREATED/READY만 가능)
         boolean transitioned = trip.cancel();
@@ -160,7 +201,7 @@ public class TripService {
         if (transitioned) {
             appendTripEventPort.appendTripCanceled(
                     updated.getTripId(),
-                    command.notifierId(),
+                    command.driverId(),
                     updated.getDispatchId(),
                     updated.getDriverId(),
                     updated.getPassengerId(),
@@ -181,7 +222,10 @@ public class TripService {
 
 
     @Transactional
-    public PassengerTripHistoryResult getPassengerTripHistory(UUID passengerId, int page, int size) {
+    public PassengerTripHistoryResult getPassengerTripHistory(UUID passengerId, UserRole role, int page, int size) {
+
+        //승객만 가능
+        tripValidator.checkRolePassenger(role);
 
         LoadTripsByPassengerPort.PassengerTripsPage tripsPage =
                 loadTripsByPassengerPort.loadTripsByPassengerId(passengerId, page, size);
@@ -199,7 +243,10 @@ public class TripService {
         );
     }
 
-    public DriverTripHistoryResult getDriverTripHistory(UUID driverId, int page, int size) {
+    public DriverTripHistoryResult getDriverTripHistory(UUID driverId, UserRole role, int page, int size) {
+
+        //기사만 가능
+        tripValidator.checkRoleDriver(role);
 
         Page<Trip> tripPage = loadTripsByDriverPort.loadTripsByDriverId(driverId, page, size);
 
@@ -219,8 +266,12 @@ public class TripService {
     @Transactional
     public TripLocationUpdatedResult publishLocationUpdate(UpdateTripLocationCommand command) {
 
-        Trip trip = loadTripByIdPort.loadTripById(command.tripId())
-                .orElseThrow(() -> new EntityNotFoundException("Trip not found. tripId=" + command.tripId()));
+        //기사만 가능
+        tripValidator.checkRoleDriver(command.role());
+
+        Trip trip = loadTripsPort
+            .loadByTripIdAndDriverId(command.tripId(), command.driverId())
+            .orElseThrow(() -> new TripException(TripErrorCode.TRIP_PERMISSION_DENIED));
 
         // STARTED에서만 발행
         if (trip.getStatus() != TripStatus.STARTED) {
@@ -247,7 +298,7 @@ public class TripService {
         // 변경 있으면 outbox 적재
         appendTripEventPort.appendTripLocationUpdated(
                 trip.getTripId(),
-                command.notifierId(),
+                command.driverId(),
                 trip.getDispatchId(),
                 trip.getDriverId(),
                 command.currentAddress(),
@@ -267,32 +318,25 @@ public class TripService {
     }
 
 
-    @Transactional
-    public TripItem getActiveTripByPassenger(UUID passengerId, UserRole role) {
+    @Transactional(readOnly = true)
+    public Optional<TripItem> getActiveTripByPassenger(UUID passengerId, UserRole role) {
 
-        Trip trip = loadActiveTripByPassengerPort
+        tripValidator.checkRolePassenger(role);
+
+        return loadActiveTripByPassengerPort
             .loadActiveTripByPassengerId(passengerId)
-            .orElseThrow(() ->
-                new EntityNotFoundException(
-                    "Active trip not found for passengerId=" + passengerId
-                )
-            );
-
-        return TripItem.from(trip);
+            .map(TripItem::from);
     }
 
-    @Transactional
-    public TripItem getActiveTripByDriver(UUID driverId, UserRole role) {
+    @Transactional(readOnly = true)
+    public Optional<TripItem> getActiveTripByDriver(UUID driverId, UserRole role) {
 
-        Trip trip = loadActiveTripByDriverPort
+        tripValidator.checkRoleDriver(role);
+
+        return loadActiveTripByDriverPort
             .loadActiveTripByDriverId(driverId)
-            .orElseThrow(() ->
-                new EntityNotFoundException(
-                    "Active trip not found for driverId=" + driverId
-                )
-            );
-
-        return TripItem.from(trip);
+            .map(TripItem::from);
     }
+
 
 }

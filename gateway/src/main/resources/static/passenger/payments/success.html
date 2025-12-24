@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>결제 완료 | Good day Taxi</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- ✅ 공통 헤더 스타일/스크립트 -->
+    <link rel="stylesheet" href="/common/header.css" />
+    <script src="/common/header.js" defer></script>
 
     <style>
         :root {
@@ -17,10 +21,14 @@
             margin: 0;
             background: var(--bg);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        main {
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            height: calc(100vh - 80px);
+            padding: 20px;
         }
 
         .card {
@@ -30,7 +38,7 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.08);
             text-align: center;
             max-width: 360px;
-            width: 90%;
+            width: 100%;
         }
 
         .icon {
@@ -65,18 +73,57 @@
 </head>
 <body>
 
-<div class="card">
-    <div class="icon">🎉</div>
-    <h1>결제가 완료되었습니다</h1>
-    <p>안전하게 결제가 처리되었어요.<br>이용해주셔서 감사합니다.</p>
+<!-- ✅ 공통 헤더 -->
+<header></header>
 
-    <button class="btn" onclick="goHome()">홈으로 돌아가기</button>
-</div>
+<main>
+    <div class="card">
+        <div class="icon">🎉</div>
+        <h1>결제가 완료되었습니다</h1>
+        <p>안전하게 결제가 처리되었어요.<br>이용해주셔서 감사합니다.</p>
+
+        <button class="btn" onclick="goHome()">홈으로 돌아가기</button>
+    </div>
+</main>
 
 <script>
+    function guardPassenger() {
+        const token = localStorage.getItem("accessToken");
+        const role = localStorage.getItem("role");
+        if (!token || role !== "PASSENGER") {
+            alert("승객 전용 페이지입니다.");
+            location.href = "/index.html";
+            return false;
+        }
+        return true;
+    }
+
+    async function loadHeader() {
+        const header = document.querySelector("header");
+        try {
+            const res = await fetch("/common/header.html");
+            header.innerHTML = await res.text();
+        } catch (e) {
+            console.error("공통 헤더 로딩 실패", e);
+        }
+    }
+
+    async function init() {
+        if (!guardPassenger()) return;
+        await loadHeader();
+
+        // ✅ 결제 후 관련 정보 정리
+        sessionStorage.removeItem("payment-confirm-idempotency-key");
+        localStorage.removeItem("unpaidTrip");
+        localStorage.removeItem("tripId");
+        localStorage.removeItem("tripStatus");
+    }
+
     function goHome() {
         window.location.href = "/passenger/index.html";
     }
+
+    init();
 </script>
 
 </body>

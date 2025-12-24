@@ -40,6 +40,7 @@ public class Refund extends BaseEntity {
     private LocalDateTime canceledAt; //토스페이에서 환불 승인 시간
 
     private String transactionKey; //토스페이 환불 거래 고유 키
+    private String idempotencyKey;  //토스페이 환불 멱등성 키
 
     private String pgFailReason; //토스페이 환불 실패 사유
 
@@ -51,6 +52,12 @@ public class Refund extends BaseEntity {
         this.reason = reason;
         this.detailReason = detailReason;
         if(requestId!=null) this.requestId = requestId;
+    }
+    public Refund(RefundReason reason, String detailReason, UUID requestId, String idempotencyKey) {
+        this.reason = reason;
+        this.detailReason = detailReason;
+        if(requestId!=null) this.requestId = requestId;
+        this.idempotencyKey = idempotencyKey;
     }
 
     public void registerPayment(Payment payment) {
@@ -73,5 +80,11 @@ public class Refund extends BaseEntity {
     public void registerFailReason(String failReason) {
         this.status = RefundStatus.FAILED;
         this.pgFailReason = failReason;
+    }
+
+    public Refund resetRefnud(String idempotencyKey) {
+        this.idempotencyKey = idempotencyKey;
+        this.pgFailReason = null;
+        return this;
     }
 }

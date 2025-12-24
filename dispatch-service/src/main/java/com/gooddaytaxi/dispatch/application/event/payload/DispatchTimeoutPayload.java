@@ -29,24 +29,4 @@ public record DispatchTimeoutPayload(
                 timeoutAt
         );
     }
-
-    // 관리자 강제 타임아웃
-    public static DispatchTimeoutPayload adminForce(
-            UUID dispatchId,
-            UUID adminId,
-            UUID passengerId,
-            String reason,
-            LocalDateTime timeoutAt
-    ) {
-        return new DispatchTimeoutPayload(
-                dispatchId,
-                adminId,
-                dispatchId,
-                passengerId,
-                reason != null
-                        ? "관리자에 의해 배차가 종료되었습니다. 사유: " + reason
-                        : "관리자에 의해 배차가 종료되었습니다.",
-                timeoutAt
-        );
-    }
 }

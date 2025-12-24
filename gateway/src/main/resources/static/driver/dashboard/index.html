@@ -12,9 +12,14 @@
 
 <body>
 <header class="header">
+    <div id="header-indicators" class="header-indicators">
+        <button id="btn-trip-indicator" class="btn-indicator hidden" onclick="goToActiveTrip()">🚕 운행 중</button>
+        <button id="btn-unpaid-indicator" class="btn-indicator btn-danger hidden" onclick="goToUnpaidPage()">💳 미결제</button>
+    </div>
     <div class="brand">
         <div class="brand-main">Good day Taxi</div>
         <div class="brand-sub" id="brand-sub"></div>
+
     </div>
     <div class="user-box">
         <span id="user-name"></span>
@@ -22,10 +27,11 @@
     </div>
 </header>
 
-<main class="dashboard">
-    <h1 class="dashboard-title">🚖 기사 대시보드</h1>
+<main class="dashboard" id="driver-dashboard">
+    <h1 class="dashboard-title">🚖 기사님 오늘도 힘내세요</h1>
 
     <div class="card-grid">
+        <!-- 기존 카드들 -->
         <div class="card" onclick="location.href='/driver/dispatches/index.html'">
             <div class="card-title">대기 콜</div>
             <div class="card-desc">수락 가능한 배차 목록 확인</div>
@@ -42,5 +48,6 @@
         </div>
     </div>
 </main>
+
 </body>
 </html>

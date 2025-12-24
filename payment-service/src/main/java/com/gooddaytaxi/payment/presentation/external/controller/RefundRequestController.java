@@ -8,7 +8,6 @@ import com.gooddaytaxi.payment.application.result.refundRequest.RefundRequestCre
 import com.gooddaytaxi.payment.application.result.refundRequest.RefundRequestReadResult;
 import com.gooddaytaxi.payment.application.service.RefundRequestService;
 import com.gooddaytaxi.payment.presentation.external.dto.request.requestRefund.RefundRequestCreateRequestDto;
-import com.gooddaytaxi.payment.presentation.external.dto.request.requestRefund.RefundRequestSearchRequestDto;
 import com.gooddaytaxi.payment.presentation.external.dto.response.reqeustRufund.RefundReqeustCancelResponseDto;
 import com.gooddaytaxi.payment.presentation.external.dto.response.reqeustRufund.RefundReqeustCreateResponseDto;
 import com.gooddaytaxi.payment.presentation.external.dto.response.reqeustRufund.RefundRequestReadResponseDto;
@@ -18,6 +17,7 @@ import com.gooddaytaxi.payment.presentation.external.mapper.response.requestFefu
 import com.gooddaytaxi.payment.presentation.external.mapper.response.requestFefund.RefundRequestCreateResponseMapper;
 import com.gooddaytaxi.payment.presentation.external.mapper.response.requestFefund.RefundRequestReadResponseMapper;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -54,10 +54,18 @@ public class RefundRequestController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<ApiResponse<Page<RefundRequestReadResponseDto>>> searchRefundRequests(@RequestBody @Valid RefundRequestSearchRequestDto requestDto,
+    public ResponseEntity<ApiResponse<Page<RefundRequestReadResponseDto>>> searchRefundRequests(@RequestParam(required = false) Integer page,
+                                                                                                @RequestParam(required = false) Integer size,
+                                                                                                @RequestParam(required = false) String status,
+                                                                                                @RequestParam(required = false) String reasonKeyword,
+                                                                                                @RequestParam @NotBlank String searchPeriod,
+                                                                                                @RequestParam(required = false) String startDay,
+                                                                                                @RequestParam(required = false) String endDay,
+                                                                                                @RequestParam(required = false) String sortBy,
+                                                                                                @RequestParam(name = "sortAscending", required = false) Boolean sortAscending,
                                                                                                 @RequestHeader(value = "X-User-UUID") UUID userId,
                                                                                                 @RequestHeader(value = "X-User-Role") String role) {
-        RefundReqeustSearchCommand command = RefundRequestSearchMapper.toCommand(requestDto);
+        RefundReqeustSearchCommand command = RefundRequestSearchMapper.toCommand(page, size, status, reasonKeyword, searchPeriod, startDay, endDay, sortBy, sortAscending);
         Page<RefundRequestReadResult> results = requestService.searchRefundRequests(command, userId, role);
         Page<RefundRequestReadResponseDto> responseDtos = RefundRequestReadResponseMapper.toPageResponse(results);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDtos));

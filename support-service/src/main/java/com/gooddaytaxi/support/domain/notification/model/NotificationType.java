@@ -12,6 +12,7 @@ public enum NotificationType {
     DISPATCH_TIMEOUT, // 배차 시도 시간 초과 알림
     DISPATCH_CANCELED, // 배차 취소 알림
     DISPATCH_REJECTED, // 배차 거절 알림
+    DISPATCH_FORCE_TIMEOUT, // 강제 운행 종료 알림
 
     TRIP_STARTED,      // 운행 시작 알림
     TRIP_ENDED,        // 운행 종료 알림

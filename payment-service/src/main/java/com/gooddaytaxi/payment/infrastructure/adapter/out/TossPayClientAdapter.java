@@ -16,7 +16,6 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.UUID;
 
 @Slf4j
 @Component
@@ -53,10 +52,10 @@ public class TossPayClientAdapter implements ExternalPaymentPort {
     }
 
     @Override
-    public ExternalPaymentCancelResult cancelTosspayPayment(String paymentKey, UUID idempotencyKey, ExternalPaymentCancelCommand command) {
+    public ExternalPaymentCancelResult cancelTosspayPayment(String paymentKey, String idempotencyKey, ExternalPaymentCancelCommand command) {
         TossPayCancelRequestDto requestDto = new TossPayCancelRequestDto(command.cancelReason());
         try {
-            TossPayCancelResponseDto response = tosspayClient.cancelPayment(paymentKey, idempotencyKey.toString(), requestDto);
+            TossPayCancelResponseDto response = tosspayClient.cancelPayment(paymentKey, idempotencyKey, requestDto);
             TossCancelDetail cancel = response.cancels().get(0);
             log.info("TossPay cancel cancelAt: {}, cancelAmount: {}, cancelReason: {}, transactionKey: {}",
                     cancel.canceledAt(), cancel.cancelAmount(), cancel.cancelReason(), cancel.transactionKey());
@@ -84,6 +83,23 @@ public class TossPayClientAdapter implements ExternalPaymentPort {
 
     //FeignException을 ExternalPaymentError로 변환
     private ExternalPaymentError toExternalPaymentError(FeignException e) {
+        // 1) 네트워크/타임아웃 계열 (대개 여기에 걸림)
+        if (e instanceof feign.RetryableException) {
+            log.warn("[TOSS_RETRYABLE] msg={}", e.getMessage(), e);
+            String msg = String.valueOf(e.getMessage()).toLowerCase();
+            // connection refused (포트 안 열림, 즉시 거절)
+            if (msg.contains("refused")) {
+                return new ExternalPaymentError(-4,"Connection refused",e.getMessage());
+            }
+            //timeout 구분
+            if (msg.contains("connect timed out")) {
+                return new ExternalPaymentError(-2, "Connect timeout", e.getMessage());
+            }
+            if (msg.contains("read timed out") || msg.contains("read timeout")) {
+                return new ExternalPaymentError(-3, "Read timeout", e.getMessage());
+            }
+            return new ExternalPaymentError(-1, "Network error", e.getMessage());
+        }
         int status = e.status();
         String message = e.contentUTF8();
         try {

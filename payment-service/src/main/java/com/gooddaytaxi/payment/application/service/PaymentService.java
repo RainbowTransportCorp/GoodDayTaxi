@@ -1,7 +1,8 @@
 package com.gooddaytaxi.payment.application.service;
 
 import com.gooddaytaxi.payment.application.command.payment.*;
-import com.gooddaytaxi.payment.application.event.PaymentCompletePayload;
+import com.gooddaytaxi.payment.application.event.payload.PaymentCompletePayload;
+import com.gooddaytaxi.payment.application.event.TossPayConfirmFailedAfterRollbackEvent;
 import com.gooddaytaxi.payment.application.exception.PaymentErrorCode;
 import com.gooddaytaxi.payment.application.exception.PaymentException;
 import com.gooddaytaxi.payment.application.message.SuccessMessage;
@@ -9,6 +10,7 @@ import com.gooddaytaxi.payment.application.port.out.core.ExternalPaymentPort;
 import com.gooddaytaxi.payment.application.port.out.core.PaymentCommandPort;
 import com.gooddaytaxi.payment.application.port.out.core.PaymentQueryPort;
 import com.gooddaytaxi.payment.application.port.out.event.PaymentEventCommandPort;
+import com.gooddaytaxi.payment.application.port.out.redis.RedisPort;
 import com.gooddaytaxi.payment.application.result.payment.*;
 import com.gooddaytaxi.payment.application.validator.PaymentValidator;
 import com.gooddaytaxi.payment.domain.entity.Payment;
@@ -18,13 +20,18 @@ import com.gooddaytaxi.payment.domain.enums.PaymentStatus;
 import com.gooddaytaxi.payment.domain.enums.UserRole;
 import com.gooddaytaxi.payment.domain.vo.Fare;
 import com.gooddaytaxi.payment.domain.vo.PaymentSortBy;
+import jakarta.persistence.LockTimeoutException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -41,8 +48,9 @@ public class PaymentService {
     private final PaymentQueryPort paymentQueryPort;
     private final ExternalPaymentPort externalPaymentPort;
     private final PaymentEventCommandPort eventCommandPort;
+    private final RedisPort redisPort;
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final PaymentReader paymentReader;
-    private final PaymentFailureRecorder failureRecorder;
     private final PaymentValidator validator;
 
 
@@ -97,7 +105,7 @@ public class PaymentService {
 
         //해당 결제 청구서의 상태를 '결제 진행 중'으로 변경
         payment.updateStatusToProcessing();
-        log.debug("Tosspay Payment status updated to IN_PROCESS for tripId={}", tripId);
+        log.info("Tosspay Payment status updated to IN_PROCESS for tripId={}", tripId);
 
         //해당 결제 청구서의 금액 반환
         return payment.getAmount().value();
@@ -105,60 +113,84 @@ public class PaymentService {
 
     //토스페이 결제 승인
     @Transactional
-    public PaymentApproveResult approveTossPayment(PaymentTossPayCommand command, UUID userId, String role) {
+    public PaymentApproveResult approveTossPayment(PaymentTossPayCommand command, UUID userId, String role, String idempotencyKey) {
         log.info("TossPay External Confirm Payment requested: paymentKey={}, orderId={}, amount={}",
                 command.paymentKey(), command.orderId(), command.amount());
+        try {
 
-        //유저의 역할이 승객인지 확인
-        validator.checkRolePassenger(UserRole.of(role));
+            //유저의 역할이 승객인지 확인
+            validator.checkRolePassenger(UserRole.of(role));
 
-        //해당 결제 청구서 조회
-        Payment payment = paymentQueryPort.findLastByTripIdAndStatusForCreate(UUID.fromString(command.orderId().substring(6)));
+            //해당 결제 청구서 조회
+            Payment payment = paymentQueryPort.findLastByTripIdAndStatusForCreateWithLock(UUID.fromString(command.orderId().substring(6)));
 
-        //결제 수단이 토스페이인지 확인
-        validator.checkMethodTossPay(payment.getMethod());
+            //결제 수단이 토스페이인지 확인
+            validator.checkMethodTossPay(payment.getMethod());
 
-        //결제 청구서 상태가 '결제 진행 중'인지 확인
-        if(!(payment.getStatus() == PaymentStatus.IN_PROCESS)) throw new PaymentException(PaymentErrorCode.PAYMENT_STATUS_INVALID);
+            //결제 청구서 상태가 '결제 진행 중'인지 확인
+            if (!(payment.getStatus() == PaymentStatus.IN_PROCESS))
+                throw new PaymentException(PaymentErrorCode.PAYMENT_STATUS_INVALID);
+
+            //멱등성 키 확인
+            //멱등 선점: 같은 idempotencyKey 요청은 60초 동안 재시도 차단
+            String redisKey = "payment:idemp:" + idempotencyKey;
+            if (!redisPort.setIfAbsent(redisKey, "IN_PROGRESS", Duration.ofSeconds(60))) {
+                throw new PaymentException(PaymentErrorCode.IDEMPOTENCY_PAYMENT_CONFLICT);
+            }
+
+            //시도 횟수 계산
+            int attemptNo = payment.getAttempts().size() + 1;
+            PaymentAttempt attempt = new PaymentAttempt(command.paymentKey(), idempotencyKey, attemptNo);
 
 
-        //멱등성 키 생성
-        UUID idempotencyKey = UUID.randomUUID();
+            //tosspay 결제 승인 요청
+            ExternalPaymentConfirmResult result = externalPaymentPort.confirm(idempotencyKey,
+                    new ExternalPaymentConfirmCommand(command.paymentKey(), command.orderId(), command.amount()));
 
-        //시도 횟수 계산
-        int attemptNo = payment.getAttempts().size()+1;
-        PaymentAttempt attempt = new PaymentAttempt(command.paymentKey(), idempotencyKey, attemptNo);
+            //실패시 실패 기록 및 예외 던지기
+            if (!result.success()) {
+                // 실패 기록은 별도 트랜잭션으로 먼저 확정
+                applicationEventPublisher.publishEvent(
+                        new TossPayConfirmFailedAfterRollbackEvent(
+                                payment.getId(),
+                                command.paymentKey(),
+                                idempotencyKey,
+                                attemptNo,
+                                result.error(),
+                                command
+                        )
+                );
 
+                //최종적으로 비즈니스 예외 던지기
+                throw new PaymentException(PaymentErrorCode.TOSSPAY_CONFIRM_FAILED);
+            }
 
-        //tosspay 결제 승인 요청
-        ExternalPaymentConfirmResult result = externalPaymentPort.confirm(idempotencyKey.toString(),
-                new ExternalPaymentConfirmCommand(command.paymentKey(), command.orderId(), command.amount()));
+            //성공시 결제 청구서 상태를 '결제 완료'로 변경
+            attempt.registerApproveTosspay(result.requestedAt(), result.approvedAt(), result.method(), result.provider());
 
-        //실패시 실패 기록 및 예외 던지기
-        if (!result.success()) {
-            // 실패 기록은 별도 트랜잭션으로 먼저 확정
-            failureRecorder.recordConfirmFailure(payment, attempt,result.error() , command);
+            //데이터 저장
+            payment.addAttempt(attempt);
+            payment.updateStatusToComplete();  //처리중에서 완료로 변경
+            redisPort.set(redisKey, "COMPLETED", Duration.ofMinutes(3));   //성공 시 COMPLETED로 마킹 후 3분 동안 재호출 방지
 
-            //최종적으로 비즈니스 예외 던지기
-            throw new PaymentException(PaymentErrorCode.TOSSPAY_CONFIRM_FAILED);
+            log.info("TossPay Payment approved successfully for orderId={}, requestedAt={}, approveAt={}", command.orderId(), result.requestedAt(), result.approvedAt());
+
+            //이벤트 발행
+            eventCommandPort.publishPaymentCompleted(PaymentCompletePayload.from(payment, userId));
+
+            return new PaymentApproveResult(
+                    payment.getId(),
+                    SuccessMessage.PAYMENT_APPROVE_SUCCESS
+            );
+        } catch (PessimisticLockingFailureException | LockTimeoutException e) {
+            throw new PaymentException(PaymentErrorCode.PAYMENT_LOCK_TIMEOUT);
+        } catch (JpaSystemException e) {
+            // 어떤 환경에서는 LockTimeout이 JpaSystemException으로 감싸져 올라올 수 있음
+            if (e.getMostSpecificCause() instanceof jakarta.persistence.LockTimeoutException) {
+                throw new PaymentException(PaymentErrorCode.PAYMENT_LOCK_TIMEOUT);
+            }
+            throw e;
         }
-
-        //성공시 결제 청구서 상태를 '결제 완료'로 변경
-        attempt.registerApproveTosspay(result.requestedAt(), result.approvedAt(), result.method(), result.provider());
-
-        //데이터 저장
-        payment.addAttempt(attempt);
-        payment.updateStatusToComplete();  //처리중에서 완료로 변경
-
-        log.info("TossPay Payment approved successfully for orderId={}, requestedAt={}, approveAt={}", command.orderId(), result.requestedAt(), result.approvedAt());
-
-        //이벤트 발행
-        eventCommandPort.publishPaymentCompleted(PaymentCompletePayload.from(payment,userId));
-
-        return new PaymentApproveResult(
-                payment.getId(),
-                SuccessMessage.PAYMENT_APPROVE_SUCCESS
-        );
     }
 
     //기사가 탑승자에게 현금, 카드로 직접 결제 후 완료 처리
@@ -193,6 +225,27 @@ public class PaymentService {
         );
     }
 
+    //결제 단건 조회 - 승객/기사용, tripId로 조회
+    public PaymentReadResult getPaymentByTripId(UUID tripId, UUID userId, String role) {
+        //승객이나 기사만 가능
+        UserRole userRole = UserRole.of(role);
+        validator.checkRolePassengerAndDriver(userRole);
+
+        //tripId로 결제 찾기
+        Payment payment = paymentQueryPort.findLastByTripIdAndStatusForCreate(tripId);
+        //승객/기사 본인인지 확인
+        validator.checkPassengerAndDriverPermission(userRole, userId, payment.getPassengerId(), payment.getDriverId());
+
+        return new PaymentReadResult(
+                payment.getId(),
+                payment.getTripId(),
+                payment.getAmount().value(),
+                payment.getStatus().name(),
+                payment.getMethod().name(),
+                payment.getApprovedAt()
+        );
+    }
+
     //결제 청구서 단건 조회 - 승객/기사용
     public PaymentReadResult getPayment(UUID paymentId, UUID userId, String role) {
         //승객이나 기사만 가능
@@ -205,6 +258,7 @@ public class PaymentService {
 
         return new PaymentReadResult(
                 payment.getId(),
+                payment.getTripId(),
                 payment.getAmount().value(),
                 payment.getStatus().name(),
                 payment.getMethod().name(),
@@ -219,7 +273,7 @@ public class PaymentService {
         validator.checkRoleAdminAndMaster(UserRole.of(role));
         //결제 수단이 토스페이인경우 마지막 결제 내용도 포함
         AttemptReadResult attemptResult = null;
-        if(payment.getMethod() == PaymentMethod.TOSS_PAY &&!(payment.getStatus() == PaymentStatus.PENDING||payment.getStatus() == PaymentStatus.IN_PROCESS)) {
+        if(needAttempt(payment.getMethod(), payment.getStatus())) {
             attemptResult = paymentQueryPort.findLastAttemptByPaymentId(paymentId).map(
                     this::toAttemptReadResult).orElse(null);
         }
@@ -264,6 +318,7 @@ public class PaymentService {
         return payments.map(payment ->
             new PaymentReadResult(
                     payment.getId(),
+                    payment.getTripId(),
                     payment.getAmount().value(),
                     payment.getStatus().name(),
                     payment.getMethod().name(),

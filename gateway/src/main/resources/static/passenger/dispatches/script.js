@@ -1,4 +1,5 @@
-const BASE_URL = "/api/v1/dispatches";
+/* ================= 상수 ================= */
+const DISPATCH_URL = "/api/v1/dispatches";
 const TRIP_ACTIVE_URL = "/api/v1/trips/passengers/active";
 
 const token = localStorage.getItem("accessToken");
@@ -10,12 +11,40 @@ let pollingTimer = null;
 
 /* ================= 화면 전환 ================= */
 function show(sectionId) {
-    document.querySelectorAll("section")
-    .forEach(s => s.classList.add("hidden"));
-    document.getElementById(sectionId).classList.remove("hidden");
+    document.querySelectorAll("section").forEach(s => s.classList.add("hidden"));
+    document.getElementById(sectionId)?.classList.remove("hidden");
 }
 
-/* ================= 초기 진입 시 상태 판단 ================= */
+/* ================= 공통 fetch ================= */
+async function fetchTripActive() {
+    const res = await fetch(TRIP_ACTIVE_URL, {
+        headers: {
+            "Authorization": `Bearer ${token}`,
+            "X-User-UUID": userUuid,
+            "X-User-Role": "PASSENGER"
+        }
+    });
+
+    if (res.status === 401 || res.status === 403) {
+        alert("로그인이 만료되었습니다. 다시 로그인해주세요.");
+        location.href = "/index.html";
+        return null;
+    }
+
+    if (res.status === 204 || res.status === 404) return null;
+
+    if (!res.ok) {
+        console.error("ACTIVE TRIP ERROR", res.status, await res.text());
+        alert("운행 상태를 확인할 수 없습니다.");
+        location.href = "/passenger/dashboard/index.html";
+        return null;
+    }
+
+    const json = await res.json();
+    return json?.data ?? null;
+}
+
+/* ================= 초기 진입 ================= */
 async function initPassengerPage() {
     if (role !== "PASSENGER") {
         alert("승객 전용 페이지입니다.");
@@ -23,44 +52,31 @@ async function initPassengerPage() {
         return;
     }
 
-    // 1️⃣ 이미 운행이 있는지 먼저 확인 (새로고침 대응)
     try {
-        const res = await fetch(TRIP_ACTIVE_URL, {
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "X-User-UUID": userUuid,
-                "X-User-Role": "PASSENGER"
-            }
-        });
+        const trip = await fetchTripActive();
 
-        if (res.ok) {
-            const json = await res.json();
-            const trip = json.data;
+        if (!trip) {
+            show("create-section");
+            return;
+        }
 
-            // 운행 대기
-            if (trip.status === "READY") {
+        switch (trip.status) {
+            case "READY":
                 location.href = "/passenger/trips/ready.html";
                 return;
-            }
-
-            // 운행 중
-            if (trip.status === "STARTED") {
+            case "STARTED":
                 location.href = "/passenger/trips/active.html";
                 return;
-            }
-
-            // 운행 종료
-            if (trip.status === "ENDED") {
-                location.href =
-                    `/passenger/trips/completed.html?tripId=${trip.id}`;
+            case "ENDED":
+                location.href = "/passenger/trips/ended.html";
                 return;
-            }
+            default:
+                show("create-section");
         }
     } catch (e) {
-        // active trip 없음 → 그냥 콜 생성 화면
+        console.error("initPassengerPage error", e);
+        show("create-section");
     }
-
-    show("create-section");
 }
 
 /* ================= 콜 생성 ================= */
@@ -73,7 +89,7 @@ async function createDispatch() {
         return;
     }
 
-    const res = await fetch(BASE_URL, {
+    const res = await fetch(DISPATCH_URL, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -92,51 +108,27 @@ async function createDispatch() {
     }
 
     currentDispatchId = json.data.dispatchId;
-    document.getElementById("waiting-text").textContent =
-        "기사님을 찾고 있습니다…";
+    document.getElementById("waiting-text").textContent = "기사님을 찾고 있습니다…";
 
     show("waiting-section");
-    startDispatchPolling();
+    startTripPolling();
 }
 
-/* ================= 배차 상태 폴링 ================= */
-function startDispatchPolling() {
+/* ================= 운행 폴링 ================= */
+function startTripPolling() {
+    clearInterval(pollingTimer);
+
     pollingTimer = setInterval(async () => {
         try {
-            const res = await fetch(`${BASE_URL}/${currentDispatchId}`, {
-                headers: { "Authorization": `Bearer ${token}` }
-            });
+            const trip = await fetchTripActive();
+            if (!trip) return;
 
-            if (!res.ok) return;
-
-            const json = await res.json();
-            if (!json.success) return;
-
-            const status = json.data.status;
-
-            // 🚕 배차 대기
-            if (["REQUESTED", "ASSIGNING", "ASSIGNED"].includes(status)) {
-                show("waiting-section");
-                return;
-            }
-
-            // 🚕 기사 수락 → Trip 생성 대기 / 완료
-            if (["ACCEPTED", "TRIP_REQUEST", "TRIP_READY"].includes(status)) {
+            if (trip.status === "READY") {
                 clearInterval(pollingTimer);
                 location.href = "/passenger/trips/ready.html";
-                return;
             }
-
-            // ❌ 종료
-            if (["TIMEOUT", "CANCELED"].includes(status)) {
-                clearInterval(pollingTimer);
-                alert("배차가 종료되었습니다.");
-                backToHome();
-            }
-
         } catch (e) {
-            clearInterval(pollingTimer);
-            location.href = "/common/error.html";
+            console.error("polling error", e);
         }
     }, 3000);
 }
@@ -146,9 +138,11 @@ async function cancelCurrentDispatch() {
     if (!currentDispatchId) return;
     if (!confirm("콜을 취소하시겠습니까?")) return;
 
-    await fetch(`${BASE_URL}/${currentDispatchId}/cancel`, {
+    await fetch(`${DISPATCH_URL}/${currentDispatchId}/cancel`, {
         method: "PATCH",
-        headers: { "Authorization": `Bearer ${token}` }
+        headers: {
+            "Authorization": `Bearer ${token}`
+        }
     });
 
     alert("콜이 취소되었습니다.");

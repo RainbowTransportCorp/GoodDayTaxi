@@ -1,4 +1,4 @@
-package com.gooddaytaxi.payment.application.event;
+package com.gooddaytaxi.payment.application.event.payload;
 
 import com.gooddaytaxi.payment.domain.entity.Payment;
 import com.gooddaytaxi.payment.domain.entity.RefundRequest;

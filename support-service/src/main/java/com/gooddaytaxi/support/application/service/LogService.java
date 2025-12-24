@@ -89,7 +89,7 @@ public class LogService implements NotifyErrorDetectUsecase {
         savedNoti.assignMessageSendingTime(LocalDateTime.now());
 
         // 로그
-        log.info("\uD83D\uDCE2 [Log] Created! notificationId={}, logType={}, message={}", notification.getId(), savedLog.getLogType(), savedLog.getLogMessage());
+        log.info("\uD83D\uDCE2 [Log] Error Detected and Log Created! notificationId={}, logType={}, message={}", notification.getId(), savedLog.getLogType(), savedLog.getLogMessage());
 
     }
 }
