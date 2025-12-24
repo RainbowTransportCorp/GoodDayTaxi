@@ -4,7 +4,7 @@ server:
 spring:
   config:
     import:
-      - secrets.yaml
+      - secrets.yml
 
   datasource:
     url: jdbc:postgresql://localhost:5433/${postgres.db}
