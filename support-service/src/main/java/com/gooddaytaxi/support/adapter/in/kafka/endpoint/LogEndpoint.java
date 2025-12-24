@@ -23,9 +23,8 @@ public class LogEndpoint {
     /**
      * 각 도메인에서 발생하는, 시스템에서 발생하는 에러 알림 전송 이벤트 리스너
      */
-    @KafkaListener(topics = "dispatch.requested", groupId = "support-service", concurrency = "1")
+    @KafkaListener(topics = "error.detected", groupId = "support-service", concurrency = "1")
     public void onErrorDetected(EventRequest req) {
-        log.info("💗💗💗💗 Requested Request: {}", req.toString());
         // Metadata
         Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occurredAt());
         // Payload
