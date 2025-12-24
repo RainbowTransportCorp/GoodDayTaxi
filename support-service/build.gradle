@@ -15,7 +15,7 @@ java {
 }
 
 repositories {
-    mavenLocal()
+//    mavenLocal()
     mavenCentral()
     maven { url "https://repo.spring.io/release" }
 }
@@ -56,9 +56,13 @@ dependencies {
     // Open Feign
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 
-    // Common module
-    implementation 'com.gooddaytaxi:common-core:0.0.5-SNAPSHOT'
-    implementation 'com.gooddaytaxi:common-jpa:0.0.5-SNAPSHOT'
+    // Zipkin
+    implementation 'io.micrometer:micrometer-tracing-bridge-brave'
+    implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
+
+    // Common module (common jar 직접 의존)
+    implementation files('../common-core/build/libs/common-core-0.0.5-SNAPSHOT.jar')
+    implementation files('../common-jpa/build/libs/common-jpa-0.0.5-SNAPSHOT.jar')
 
     // Lombok
     compileOnly 'org.projectlombok:lombok'
@@ -81,4 +85,8 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
 }
