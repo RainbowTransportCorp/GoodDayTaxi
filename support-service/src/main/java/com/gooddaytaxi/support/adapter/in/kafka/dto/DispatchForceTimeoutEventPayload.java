@@ -8,11 +8,9 @@ import java.util.UUID;
  */
 public record DispatchForceTimeoutEventPayload(
     UUID notificationOriginId,
-//    UUID notifierId,
-    UUID forcedById,
+    UUID notifierId,
     UUID dispatchId,
     UUID driverId,
-    String forcedByRole,
     String previousStatus,
     LocalDateTime forceTimeoutAt,
     String reason,
