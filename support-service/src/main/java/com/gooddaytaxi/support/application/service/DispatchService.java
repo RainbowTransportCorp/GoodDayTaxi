@@ -323,7 +323,7 @@ public class DispatchService implements NotifyDispatchUsecase, NotifyCallAcceptU
 
         Notification savedNoti = notificationCommandPersistencePort.save(notification);
 //        Notification savedNoti = notificationQueryPersistencePort.findById(noti.getId());
-        log.debug("[Check] Notification Persistence 조회: dispatchId={}, driverId={}, force={}", savedNoti.getDispatchId(), savedNoti.getDriverId(), command.getForcedByRole());
+        log.debug("[Check] Notification Persistence 조회: dispatchId={}, driverId={}, forceTimeoutAt={}", savedNoti.getDispatchId(), savedNoti.getDriverId(), command.getForceTimeoutAt());
 
         // 수신자: [ 기사, 승객 ]
         List<UUID> receivers = new ArrayList<>();
@@ -335,7 +335,7 @@ public class DispatchService implements NotifyDispatchUsecase, NotifyCallAcceptU
         Metadata metadata = command.getMetadata();
         String messageBody = """
                 [ %s ]
-                배차 %s 상태에서 %s
+                배차 %s 상태에서 다음을 진행하던 중에 %s
                 (%s)
                 """.formatted(
                 command.getReason(),

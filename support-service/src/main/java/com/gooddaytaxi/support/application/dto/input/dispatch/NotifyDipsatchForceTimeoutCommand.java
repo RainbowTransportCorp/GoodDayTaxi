@@ -15,10 +15,8 @@ import java.util.UUID;
  */
 @Getter
 public class NotifyDipsatchForceTimeoutCommand extends Command {
-    private final UUID forcedById;
     private final UUID dispatchId;
     private final UUID driverId;
-    private final String forcedByRole;
     private final String previousStatus;
     private final LocalDateTime forceTimeoutAt;
     private final String reason;
@@ -26,9 +24,8 @@ public class NotifyDipsatchForceTimeoutCommand extends Command {
 
     private NotifyDipsatchForceTimeoutCommand(
             UUID notificationOriginId,
-            UUID forcedById,
+            UUID notifierId,
             UUID driverId,
-            String forcedByRole,
             String previousStatus,
             LocalDateTime forceTimeoutAt,
             String reason,
@@ -36,11 +33,9 @@ public class NotifyDipsatchForceTimeoutCommand extends Command {
             boolean tripRequestMayHaveBeenSent,
             Metadata metadata
     ) {
-        super(notificationOriginId, forcedById, message, metadata);
+        super(notificationOriginId, notifierId, message, metadata);
         this.dispatchId = notificationOriginId;
-        this.forcedById = forcedById;
         this.driverId = driverId;
-        this.forcedByRole = forcedByRole;
         this.previousStatus = previousStatus;
         this.forceTimeoutAt = forceTimeoutAt;
         this.reason = reason;
@@ -48,9 +43,8 @@ public class NotifyDipsatchForceTimeoutCommand extends Command {
     }
     public static NotifyDipsatchForceTimeoutCommand create(
             UUID notificationOriginId,
-            UUID forcedById,
+            UUID notifierId,
             UUID driverId,
-            String forcedByRole,
             String previousStatus,
             LocalDateTime forceTimeoutAt,
             String reason,
@@ -58,7 +52,7 @@ public class NotifyDipsatchForceTimeoutCommand extends Command {
             boolean tripRequestMayHaveBeenSent,
             Metadata metadata
     ) {
-        return new NotifyDipsatchForceTimeoutCommand(notificationOriginId, forcedById, driverId, forcedByRole, previousStatus, forceTimeoutAt, reason, message, tripRequestMayHaveBeenSent, metadata);
+        return new NotifyDipsatchForceTimeoutCommand(notificationOriginId, notifierId, driverId, previousStatus, forceTimeoutAt, reason, message, tripRequestMayHaveBeenSent, metadata);
     }
 
     public Notification toEntity(NotificationType notificationType) {

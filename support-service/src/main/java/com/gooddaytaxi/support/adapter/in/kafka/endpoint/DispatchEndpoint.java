@@ -177,9 +177,8 @@ public class DispatchEndpoint {
         // EventRequest DTO > Command 변환
         NotifyDipsatchForceTimeoutCommand command = NotifyDipsatchForceTimeoutCommand.create(
                 pl.notificationOriginId(),
-                pl.forcedById(),
+                pl.notifierId(),
                 pl.driverId(),
-                pl.forcedByRole(),
                 pl.previousStatus(),
                 pl.forceTimeoutAt(),
                 pl.reason(),
