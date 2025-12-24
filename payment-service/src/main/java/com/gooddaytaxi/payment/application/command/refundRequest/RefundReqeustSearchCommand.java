@@ -11,7 +11,6 @@ public record RefundReqeustSearchCommand(Integer page,
                                          String method,  //결제 수단
                                          UUID passengerId,
                                          UUID driverId,
-                                         String searchPeriod,
                                          LocalDateTime startDay,
                                          LocalDateTime endDay,
                                          String sortBy,

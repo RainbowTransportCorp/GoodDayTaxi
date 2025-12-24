@@ -79,5 +79,5 @@ function goToActiveTrip() {
 }
 
 function goToUnpaidPage() {
-    location.href = "/passenger/payments/index.html?filter=UNPAID";
+    location.href = "/passenger/payments/index.html?filter=PENDING";
 }
