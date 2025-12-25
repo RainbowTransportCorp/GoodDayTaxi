@@ -3,10 +3,10 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://${DB_HOSTNAME}:${DB_PORT:5433}/${DB_NAME}
+    url: jdbc:postgresql://localhost:${DB_PORT:5433}/${DB_NAME:goodday_account}
     driver-class-name: org.postgresql.Driver
-    username: ${DB_USER}
-    password: ${DB_PASSWORD}
+    username: ${DB_USER:account}
+    password: ${DB_PASSWORD:account1234}
 
   jpa:
     hibernate:
@@ -18,7 +18,7 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://${EUREKA_HOSTNAME}:${EUREKA_PORT:8761}/eureka/
+      defaultZone: http://${EUREKA_HOSTNAME:10.1.0.61}:${EUREKA_PORT:8761}/eureka/
 
 jwt:
   secret-key: ${JWT_SECRET_KEY}
@@ -28,7 +28,7 @@ jwt:
 management:
   zipkin:
     tracing:
-      endpoint: http://${ZIPKIN_HOSTNAME}:${ZIPKIN_PORT:9411}/api/v2/spans
+      endpoint: http://${ZIPKIN_HOSTNAME:10.1.0.61}:${ZIPKIN_PORT:9411}/api/v2/spans
 
 logging:
   level:
