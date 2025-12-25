@@ -7,7 +7,7 @@ spring:
       - secrets.yml
 
   datasource:
-    url: jdbc:postgresql://${DB_HOSTNAME:localhost}:${DB_PORT:5432}/${DB_NAME:goodday_dispatch}
+    url: jdbc:postgresql://${DB_HOSTNAME:localhost}:${DB_PORT:5434}/${DB_NAME:goodday_dispatch}
     driver-class-name: org.postgresql.Driver
     username: ${DB_USER:dispatch}
     password: ${DB_PASSWORD:dispatch1234}
