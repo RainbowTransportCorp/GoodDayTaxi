@@ -1,36 +1,22 @@
 server:
-  port: ${service.port}
   shutdown: graceful
 
 spring:
+  application:
+    name: support-service
+
   profiles:
-    active: ${profiles.active}
+    active: ${SPRING_PROFILES_ACTIVE:local}
 
   lifecycle:
     timeout-per-shutdown-phase: 30s
 
-  config:
-    import: secrets.yaml
-
-  application:
-    name: support-service
-
-  datasource:
-    url: jdbc:postgresql://${postgres.host.local:localhost}:5437/${postgres.db}
-    driver-class-name: org.postgresql.Driver
-    username: ${postgres.user}
-    password: ${postgres.password}
-
   jpa:
-    hibernate:
-      ddl-auto: update
     properties:
       hibernate:
         format_sql: true
-        show_sql: true
 
   kafka:
-    bootstrap-servers: ${kafka.external.host}:${kafka.external.port}
     # Consumer 설정
     consumer:
       auto-offset-reset: earliest
@@ -39,10 +25,12 @@ spring:
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       max-poll-records: 1000
       isolation-level: read_committed
+#      group-id: support-service
     listener:
       ack-mode: record
       concurrency: 1 # 동일한 Kafka topic에 대해 동시에 1개의 Consumer thread로 처리
       poll-timeout: 3000
+      auto-startup: true
     # Producer 설정
 #    producer:
 #      key-serializer: org.apache.kafka.common.serialization.StringSerializer
@@ -50,10 +38,6 @@ spring:
 
 
   rabbitmq:
-    host: ${rabbitmq.external.host}
-    port: ${rabbitmq.external.port}
-    username: ${rabbitmq.user}
-    password: ${rabbitmq.password}
     virtual-host: /
     publisher-confirm-type: correlated
     template:
@@ -68,20 +52,12 @@ spring:
       simple:
         acknowledge-mode: auto
         default-requeue-rejected: false
-        auto-startup: false
-
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:${eureka.port}/eureka/
+        auto-startup: true
 
 management:
   tracing:
     sampling:
       probability: 1.0
-  zipkin:
-    tracing:
-      endpoint: "http://localhost:${zipkin.port}/api/v2/spans"
 
   endpoints:
     web:
@@ -91,12 +67,3 @@ management:
   metrics:
     tags:
       application: support-service
-
-# Slack App 연동
-slack:
-  api-url: https://slack.com
-  bot-token: ${slack.bot-token}
-
-logging:
-  level:
-    com.gooddaytaxi.support: DEBUG # INFO, DEBUG, WARN, ERROR

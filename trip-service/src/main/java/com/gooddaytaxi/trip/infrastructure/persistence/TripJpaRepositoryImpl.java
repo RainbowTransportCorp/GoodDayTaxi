@@ -35,6 +35,58 @@ public class TripJpaRepositoryImpl implements TripJpaRepositoryCustom {
             .findFirst();
     }
 
+    @Override
+    public Optional<Trip> findByTripIdAndPassengerId(UUID tripId, UUID passengerId) {
+        return em.createQuery("""
+            select t
+            from Trip t
+            where t.tripId = :tripId
+              and t.passengerId = :passengerId
+        """, Trip.class)
+            .setParameter("tripId", tripId)
+            .setParameter("passengerId", passengerId)
+            .getResultStream()
+            .findFirst();
+    }
+
+    @Override
+    public Optional<Trip> findByTripIdAndDriverId(UUID tripId, UUID driverId) {
+        return em.createQuery("""
+            select t
+            from Trip t
+            where t.tripId = :tripId
+              and t.driverId = :driverId
+        """, Trip.class)
+            .setParameter("tripId", tripId)
+            .setParameter("driverId", driverId)
+            .getResultStream()
+            .findFirst();
+    }
+
+    @Override
+    public List<Trip> findAllByPassengerId(UUID passengerId) {
+        return em.createQuery("""
+            select t
+            from Trip t
+            where t.passengerId = :passengerId
+            order by t.createdAt desc
+        """, Trip.class)
+            .setParameter("passengerId", passengerId)
+            .getResultList();
+    }
+
+    @Override
+    public List<Trip> findAllByDriverId(UUID driverId) {
+        return em.createQuery("""
+            select t
+            from Trip t
+            where t.driverId = :driverId
+            order by t.createdAt desc
+        """, Trip.class)
+            .setParameter("driverId", driverId)
+            .getResultList();
+    }
+
 
     /**
      * 기사는 운행 대기와 운행중 상태 모두 조회 가능

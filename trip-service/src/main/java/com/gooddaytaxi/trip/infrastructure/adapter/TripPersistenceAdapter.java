@@ -8,6 +8,7 @@ import com.gooddaytaxi.trip.application.port.out.LoadTripsByPassengerPort;
 import com.gooddaytaxi.trip.application.port.out.UpdateTripPort;
 import com.gooddaytaxi.trip.domain.model.Trip;
 import com.gooddaytaxi.trip.infrastructure.persistence.TripJpaRepository;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -57,6 +58,11 @@ public class TripPersistenceAdapter implements
                 tripPage.getContent(),       // 현재 페이지 데이터
                 tripPage.getTotalElements()  // 전체 데이터 수
         );
+    }
+
+    @Override
+    public List<Trip> findAllByPassengerId(UUID passengerId) {
+        return tripJpaRepository.findAllByPassengerId(passengerId);
     }
 
 

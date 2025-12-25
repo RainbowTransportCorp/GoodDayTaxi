@@ -22,7 +22,7 @@ dependencyManagement {
 
 
 repositories {
-    mavenLocal()
+//    mavenLocal()
     mavenCentral()
     maven { url "https://repo.spring.io/release" }
 }
@@ -51,9 +51,8 @@ dependencies {
     // Redisson (분산 락)
     implementation 'org.redisson:redisson-spring-boot-starter:3.27.2'
 
-    // Common module
-    implementation 'com.gooddaytaxi:common-core:0.0.5-SNAPSHOT'
-    implementation 'com.gooddaytaxi:common-jpa:0.0.5-SNAPSHOT'
+    implementation files('../common-core/build/libs/common-core-0.0.5-SNAPSHOT.jar')
+    implementation files('../common-jpa/build/libs/common-jpa-0.0.5-SNAPSHOT.jar')
 
     // Lombok
     compileOnly 'org.projectlombok:lombok'
@@ -63,7 +62,7 @@ dependencies {
     implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
     annotationProcessor 'com.querydsl:querydsl-apt:5.0.0:jakarta'
     annotationProcessor 'jakarta.persistence:jakarta.persistence-api:3.1.0'
-    annotationProcessor 'org.hibernate.orm:hibernate-core:6.5.2.Final'
+//    annotationProcessor 'org.hibernate.orm:hibernate-core:6.5.2.Final'
 
     //예외처리용
     implementation 'org.springframework.boot:spring-boot-starter-validation'
@@ -81,4 +80,8 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
 }

@@ -34,7 +34,7 @@ public class Notification extends BaseEntity {
     @Comment("알림 생성 근원 도메인 ID")
     private UUID notificationOriginId;
 
-    @Column(name = "notificiation_type", nullable = false)
+    @Column(name = "notification_type", nullable = false)
     @Enumerated(EnumType.STRING)
     private NotificationType notificationType;
 

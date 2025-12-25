@@ -1,11 +1,11 @@
 package com.gooddaytaxi.payment.infrastructure.outbox.adapter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gooddaytaxi.payment.application.event.PaymentCompletePayload;
-import com.gooddaytaxi.payment.application.event.RefundCompletedPayload;
-import com.gooddaytaxi.payment.application.event.RefundRequestCreatePayload;
-import com.gooddaytaxi.payment.application.event.RefundRequestRejectedPayload;
-import com.gooddaytaxi.payment.application.event.RefundSettlementPayload;
+import com.gooddaytaxi.payment.application.event.payload.PaymentCompletePayload;
+import com.gooddaytaxi.payment.application.event.payload.RefundCompletedPayload;
+import com.gooddaytaxi.payment.application.event.payload.RefundRequestCreatePayload;
+import com.gooddaytaxi.payment.application.event.payload.RefundRequestRejectedPayload;
+import com.gooddaytaxi.payment.application.event.payload.RefundSettlementPayload;
 import com.gooddaytaxi.payment.application.port.out.event.PaymentEventOutboxPort;
 import com.gooddaytaxi.payment.application.port.out.event.PaymentEventCommandPort;
 import com.gooddaytaxi.payment.infrastructure.outbox.publisher.PaymentBaseOutboxPublisher;

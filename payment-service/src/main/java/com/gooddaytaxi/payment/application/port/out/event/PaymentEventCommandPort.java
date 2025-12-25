@@ -1,10 +1,10 @@
 package com.gooddaytaxi.payment.application.port.out.event;
 
-import com.gooddaytaxi.payment.application.event.PaymentCompletePayload;
-import com.gooddaytaxi.payment.application.event.RefundCompletedPayload;
-import com.gooddaytaxi.payment.application.event.RefundRequestCreatePayload;
-import com.gooddaytaxi.payment.application.event.RefundRequestRejectedPayload;
-import com.gooddaytaxi.payment.application.event.RefundSettlementPayload;
+import com.gooddaytaxi.payment.application.event.payload.PaymentCompletePayload;
+import com.gooddaytaxi.payment.application.event.payload.RefundCompletedPayload;
+import com.gooddaytaxi.payment.application.event.payload.RefundRequestCreatePayload;
+import com.gooddaytaxi.payment.application.event.payload.RefundRequestRejectedPayload;
+import com.gooddaytaxi.payment.application.event.payload.RefundSettlementPayload;
 
 public interface PaymentEventCommandPort {
     void publishPaymentCompleted(PaymentCompletePayload payload);

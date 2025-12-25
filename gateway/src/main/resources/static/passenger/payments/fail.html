@@ -5,6 +5,10 @@
     <title>결제 실패 | Good day Taxi</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
+    <!-- ✅ 공통 스타일/스크립트 -->
+    <link rel="stylesheet" href="/common/header.css" />
+    <script src="/common/header.js" defer></script>
+
     <style>
         :root {
             --primary: #8A5DF6;
@@ -17,10 +21,14 @@
             margin: 0;
             background: var(--bg);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        main {
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            height: calc(100vh - 80px); /* header 공간 고려 */
+            padding: 20px;
         }
 
         .card {
@@ -30,7 +38,7 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.08);
             text-align: center;
             max-width: 380px;
-            width: 90%;
+            width: 100%;
         }
 
         .icon {
@@ -86,26 +94,61 @@
 </head>
 <body>
 
-<div class="card">
-    <div class="icon">😢</div>
-    <h1>결제가 실패했습니다</h1>
-    <div class="reason">결제 처리 중 문제가 발생했어요.</div>
+<!-- ✅ 공통 헤더 -->
+<header></header>
 
-    <div class="error-box">
-        <div id="message"></div>
-    </div>
+<main>
+    <div class="card">
+        <div class="icon">😢</div>
+        <h1>결제가 실패했습니다</h1>
+        <div class="reason">결제 처리 중 문제가 발생했어요.</div>
 
-    <div class="actions">
-        <button class="btn btn-retry" onclick="retry()">다시 시도</button>
-        <button class="btn btn-cancel" onclick="goHome()">홈으로</button>
+        <div class="error-box">
+            <div id="message"></div>
+        </div>
+
+        <div class="actions">
+            <button class="btn btn-retry" onclick="retry()">다시 시도</button>
+            <button class="btn btn-cancel" onclick="goHome()">홈으로</button>
+        </div>
     </div>
-</div>
+</main>
 
 <script>
-    const params = new URLSearchParams(window.location.search);
-    const message = params.get("message") || "알 수 없는 오류가 발생했습니다.";
+    // ✅ 인증 가드
+    function guardPassenger() {
+        const token = localStorage.getItem("accessToken");
+        const role = localStorage.getItem("role");
+        if (!token || role !== "PASSENGER") {
+            alert("승객 전용 페이지입니다.");
+            location.href = "/index.html";
+            return false;
+        }
+        return true;
+    }
 
-    document.getElementById("message").textContent = message;
+    async function loadHeader() {
+        const header = document.querySelector("header");
+        try {
+            const res = await fetch("/common/header.html");
+            const html = await res.text();
+            header.innerHTML = html;
+        } catch (e) {
+            console.error("공통 헤더 불러오기 실패", e);
+        }
+    }
+
+    async function init() {
+        if (!guardPassenger()) return;
+        await loadHeader();
+
+        sessionStorage.removeItem("payment-confirm-idempotency-key");
+
+        const params = new URLSearchParams(window.location.search);
+        const message = params.get("message") || "알 수 없는 오류가 발생했습니다.";
+
+        document.getElementById("message").textContent = message;
+    }
 
     function retry() {
         history.back();
@@ -114,7 +157,8 @@
     function goHome() {
         window.location.href = "/passenger/index.html";
     }
-</script>
 
+    init();
+</script>
 </body>
 </html>

@@ -25,8 +25,8 @@ public class TossFeignConfig {
 
     @Bean
     public Request.Options requestOptions() {
-        return new Request.Options(2, TimeUnit.SECONDS, //TCP 연결에 최대 2초만 대기-> 안되면 실패 처리
-                30, TimeUnit.SECONDS,   //응답 대기 시간은 최대 30초-> 이내에 응답 없으면 실패 처리
+        return new Request.Options(3, TimeUnit.SECONDS, //TCP 연결에 최대 3초만 대기-> 안되면 실패 처리
+                5, TimeUnit.SECONDS,   //응답 대기 시간은 최대 5초-> 이내에 응답 없으면 실패 처리
                 true);  //Http 301/302 응답시 클라이언트가 자동으로 리다이렉트를 따라가도록 설정
     }
 }

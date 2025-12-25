@@ -1,221 +1,113 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <title>기사 운행 상태 | Good day Taxi</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <style>
-    body {
-      margin: 0;
-      background: #f7f7fb;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
-    }
-
-    .container {
-      max-width: 420px;
-      margin: 40px auto;
-      padding: 0 20px;
-    }
-
-    .card {
-      background: white;
-      border-radius: 20px;
-      padding: 28px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-    }
-
-    .title {
-      font-size: 20px;
-      font-weight: 700;
-      margin-bottom: 20px;
-    }
-
-    .row {
-      margin-bottom: 12px;
-      font-size: 14px;
-    }
-
-    .label {
-      color: #777;
-    }
-
-    .value {
-      font-weight: 600;
-      margin-top: 4px;
-    }
-
-    .status {
-      margin-top: 24px;
-      padding: 14px;
-      border-radius: 12px;
-      text-align: center;
-      font-weight: 700;
-      background: #8A5DF6;
-      color: white;
-    }
-
-    .btn {
-      width: 100%;
-      padding: 14px;
-      margin-top: 16px;
-      border-radius: 999px;
-      border: none;
-      font-size: 15px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .btn-start {
-      background: #2e7d32;
-      color: white;
-    }
-
-    .btn-end {
-      background: #f44336;
-      color: white;
-    }
-  </style>
-</head>
-
-<body>
-<div class="container">
-  <div class="card">
-    <div class="title">🚕 기사 운행 상태</div>
-
-    <div class="row">
-      <div class="label">출발지</div>
-      <div class="value" id="pickup">-</div>
-    </div>
-
-    <div class="row">
-      <div class="label">도착지</div>
-      <div class="value" id="destination">-</div>
-    </div>
-
-    <div class="status" id="status">상태 확인 중...</div>
-
-    <button
-        id="startBtn"
-        class="btn btn-start"
-        onclick="startTrip()"
-        style="display:none"
-    >
-      운행 시작
-    </button>
-
-    <button
-        id="endBtn"
-        class="btn btn-end"
-        onclick="endTrip()"
-        style="display:none"
-    >
-      운행 완료
-    </button>
-  </div>
-</div>
-
 <script>
   const token = localStorage.getItem("accessToken");
-  const driverUuid = localStorage.getItem("userUuid");
+  const uuid = localStorage.getItem("userUuid");
 
-  if (!token || !driverUuid) {
+  if (!token || !uuid) {
+    alert("로그인이 필요합니다.");
     location.href = "/index.html";
   }
 
-  let currentTripId = null;
+  const headers = {
+    "Authorization": `Bearer ${token}`,
+    "X-User-UUID": uuid,
+    "X-User-Role": "DRIVER"
+  };
 
-  async function loadActiveTrip() {
+  let pollingId = null;
+  let previousStatus = null;
+
+  function renderTrip(trip) {
+    document.getElementById("pickup").textContent =
+        trip.pickupAddress ?? "-";
+    document.getElementById("destination").textContent =
+        trip.destinationAddress ?? "-";
+
+    // 공통 인디케이터용
+    localStorage.setItem("tripId", trip.id);
+    localStorage.setItem("tripStatus", trip.status);
+  }
+
+  async function pollTripStatus() {
     try {
-      const res = await fetch("/api/v1/trips/drivers/active", {
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "X-User-UUID": driverUuid,
-          "X-User-Role": "DRIVER"
-        }
-      });
+      const res = await fetch("/api/v1/trips/drivers/active", { headers });
+
+      // ✅ ACTIVE 아님 = 운행 종료 or 없음 → 콜 대기
+      if (res.status === 204 || res.status === 404) {
+        clearInterval(pollingId);
+        location.href = "/driver/dashboard/index.html";
+        return;
+      }
+
+      if (res.status === 401 || res.status === 403) {
+        alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+        location.href = "/index.html";
+        return;
+      }
 
       if (!res.ok) {
-        throw new Error("Trip fetch failed");
+        console.warn("운행 상태 조회 실패:", res.status);
+        return;
       }
 
       const { data: trip } = await res.json();
-      currentTripId = trip.id;
+      if (!trip || !trip.status) return;
 
-      // 주소 표시
-      document.getElementById("pickup").textContent = trip.pickupAddress ?? "-";
-      document.getElementById("destination").textContent = trip.destinationAddress ?? "-";
+      renderTrip(trip);
 
-      const statusEl = document.getElementById("status");
-      const startBtn = document.getElementById("startBtn");
-      const endBtn = document.getElementById("endBtn");
+      // ✅ 상태 변화 감지
+      if (trip.status !== previousStatus) {
+        previousStatus = trip.status;
 
-      // 버튼 숨기기 초기화
-      startBtn.style.display = "none";
-      endBtn.style.display = "none";
+        switch (trip.status) {
+          case "STARTED":
+            // stay
+            break;
 
-      switch (trip.status) {
-        case "READY":
-          statusEl.textContent = "배차 완료 · 출발 대기";
-          startBtn.style.display = "block";
-          break;
+          case "ENDED":
+            clearInterval(pollingId);
 
-        case "STARTED":
-          statusEl.textContent = "운행 중";
-          endBtn.style.display = "block";
-          break;
+            localStorage.removeItem("tripId");
+            localStorage.removeItem("tripStatus");
 
-        case "ENDED":
-        case "COMPLETED":
-          location.href = `/driver/trips/completed.html?tripId=${trip.id}`;
-          return;
+            location.href = "ended.html";
+            break;
 
-        case "CANCELED":
-          alert("운행이 취소되었습니다.");
-          location.href = "/driver/dashboard/index.html";
-          return;
-
-        default:
-          location.href = "/driver/dashboard/index.html";
+          case "READY":
+            // 이론상 active에 READY가 오면 안 되지만
+            // 안전장치
+            location.href = "ready.html";
+            break;
+        }
       }
 
     } catch (e) {
-      console.error("로드 실패:", e);
-      location.href = "/common/error.html";
+      console.error("운행 상태 polling 실패", e);
     }
   }
 
-  async function startTrip() {
-    if (!currentTripId) return;
-
-    await fetch(`/api/v1/trips/${currentTripId}/start`, {
-      method: "PUT",
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "X-User-UUID": driverUuid
+  // ✅ 운행 완료 버튼
+  function completeTrip() {
+    fetch("/api/v1/trips/complete", {
+      method: "PATCH",
+      headers
+    })
+    .then(res => {
+      if (!res.ok) {
+        return res.json().then(j => {
+          throw new Error(j.message || "운행 완료 실패");
+        });
       }
+      // ❗ 여기서는 redirect 안 함
+      // → 상태 변경은 polling이 감지
+    })
+    .catch(e => {
+      console.error("운행 완료 실패", e);
+      alert(e.message);
     });
-
-    await loadActiveTrip();
   }
 
-  async function endTrip() {
-    if (!currentTripId) return;
-
-    await fetch(`/api/v1/trips/${currentTripId}/end`, {
-      method: "PUT",
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "X-User-UUID": driverUuid
-      }
-    });
-
-    await loadActiveTrip();
-  }
-
-  loadActiveTrip();
-  setInterval(loadActiveTrip, 5000);
+  window.addEventListener("DOMContentLoaded", () => {
+    pollTripStatus();
+    pollingId = setInterval(pollTripStatus, 3000);
+  });
 </script>
-
-</body>
-</html>

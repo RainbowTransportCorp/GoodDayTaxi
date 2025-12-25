@@ -1,6 +1,6 @@
 package com.gooddaytaxi.payment.infrastructure.config;
 
-import com.gooddaytaxi.payment.application.event.EventEnvelope;
+import com.gooddaytaxi.payment.application.event.payload.EventEnvelope;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.TopicPartition;

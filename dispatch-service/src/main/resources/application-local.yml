@@ -3,16 +3,16 @@ server:
 
 spring:
   profiles:
-   active: local
+    active: local
   config:
     import:
-      - secrets.yaml
+      - secrets.yml
   application:
     name: dispatch-service
 
   datasource:
     url: jdbc:postgresql://localhost:5434/${postgres.db} #local
-#    url: jdbc:postgresql://gd_dispatch_db:5432/${postgres.db} #docker - 서비스 자체를 띄울 때 사용
+    #    url: jdbc:postgresql://gd_dispatch_db:5432/${postgres.db} #docker - 서비스 자체를 띄울 때 사용
     driver-class-name: org.postgresql.Driver
     username: ${postgres.user}
     password: ${postgres.password}
@@ -33,7 +33,7 @@ spring:
 
   kafka:
     bootstrap-servers: localhost:${kafka.port} #local
-#    bootstrap-servers: kafka:${kafka.port} # docker - 서비스 자체를 띄울 때 사용
+    #    bootstrap-servers: kafka:${kafka.port} # docker - 서비스 자체를 띄울 때 사용
     consumer:
       group-id: dispatch-group
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer

@@ -1,4 +1,4 @@
-package com.gooddaytaxi.payment.application.event;
+package com.gooddaytaxi.payment.application.event.payload;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
