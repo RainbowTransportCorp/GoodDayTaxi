@@ -19,6 +19,11 @@ dependencies {
     // Spring Data JPA (Auditing용)
     implementation 'org.springframework.data:spring-data-jpa:3.3.4'
 
+    // 🔥 QueryDSL (QBaseEntity 생성용)
+    implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
+    annotationProcessor 'com.querydsl:querydsl-apt:5.0.0:jakarta'
+    annotationProcessor 'jakarta.persistence:jakarta.persistence-api:3.1.0'
+
     // Spring Context
     implementation 'org.springframework:spring-context:6.1.4'
 
