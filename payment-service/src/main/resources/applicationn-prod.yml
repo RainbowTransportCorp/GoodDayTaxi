@@ -1,0 +1,35 @@
+spring:
+  config:
+    activate:
+      on-profile: local
+
+server:
+  port: ${SERVICE_PORT:8xxx}
+
+datasource:
+  url: jdbc:postgresql://${DB_HOSTNAME}:${DB_PORT:5432}/${DB_NAME}
+  username: ${POSTGRES_USER}
+  password: ${POSTGRES_PASSWORD}
+
+data:
+  redis:
+    host: ${REDIS_HOSTNAME} # 이미지의 컨테이너 이름
+    port: ${REDIS_PORT:6379}
+
+  kafka:
+    bootstrap-servers: ${KAFKA_HOSTNAME}:${KAFKA_PORT:9092} # 이미지의 컨테이너 이름
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_HOSTNAME}:${EUREKA_PORT:8761}/eureka/ # 이미지의 컨테이너 이름
+
+management:
+  zipkin:
+    tracing:
+      endpoint: "http://${ZIPKIN_HOSTNAME}:${ZIPKIN_PORT:9411}/api/v2/spans"
+
+
+jpa:
+  hibernate:
+    ddl-auto: validate   # 운영은 validate 권장

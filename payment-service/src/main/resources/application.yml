@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: payment-service
+  config:
+    import: secrets.yaml
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  metrics:
+    tags:
+      application: payment-service
+
+payment:
+  event:
+    payload-version: 1

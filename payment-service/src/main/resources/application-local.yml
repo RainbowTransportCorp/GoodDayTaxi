@@ -1,0 +1,37 @@
+spring:
+  config:
+    activate:
+      on-profile: local
+
+  datasource:
+    url: jdbc:postgresql://localhost:5436/${postgres.db}
+    driver-class-name: org.postgresql.Driver
+    username: ${postgres.user}
+    password: ${postgres.password}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
+
+  kafka:
+    bootstrap-servers: localhost:${kafka.port}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      group-id: payment-service
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+
+server:
+  port: ${service.port:8204}
+
+
+toss:
+  secret-key: ${toss.test-secret-key}
