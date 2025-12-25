@@ -1,0 +1,109 @@
+server:
+  port: ${GATEWAY_PORT:8080}
+
+spring:
+  config:
+    import:
+      - secrets.yml
+  cloud:
+    gateway:
+      routes:
+
+        # ============================
+        # Account Service
+        # ============================
+        - id: account-service
+          uri: lb://account-service
+          predicates:
+            - Path=/api/v*/auth/**,/api/v*/users/**,/api/v*/drivers/**,/api/v*/admin/users/**,/internal/v*/account/**
+
+        # ============================
+        # Dispatch Service
+        # ============================
+        - id: dispatch-service
+          uri: lb://dispatch-service
+          predicates:
+            - Path=/api/v*/dispatches/**,/api/v*/admin/dispatches/**,/internal/v*/dispatches/**
+
+        # ============================
+        # Trip Service
+        # ============================
+        - id: trip-service
+          uri: lb://trip-service
+          predicates:
+            - Path=/api/v*/trips/**,/api/v*/policies/**,/api/v*/admin/trips/**,/internal/v*/trips/**
+
+        # ============================
+        # Payment Service
+        # ============================
+        - id: payment-service
+          uri: lb://payment-service
+          predicates:
+            - Path=/api/v*/payments/**,/api/v*/refunds/**,/api/v*/refund/requests/**,/api/v*/admin/payments/**,/api/v*/admin/refunds/**,/api/v*/admin/refund/requests/**,/internal/v*/payments/**
+
+        # ============================
+        # Support Service
+        # ============================
+        - id: support-service
+          uri: lb://support-service
+          predicates:
+            - Path=/api/v*/supports/**,/api/v*/admin/supports/**,/internal/v*/supports/**
+
+        # ✨ 정적 파일 처리 예외 - 반드시 개별 파일로 명시
+        - id: static-content
+          uri: forward:/
+          predicates:
+            - Path=/index.html,
+              /common/header.css,
+              /passenger/payments/checkout.html,
+              /passenger/payments/processing.html,
+              /passenger/payments/success.html,
+              /passenger/payments/fail.html,
+              /driver/trips/active.html,
+              /driver/trips/ready.html,
+              /driver/trips/ended.html,
+              /driver/dashboard/index.html,
+
+
+# ============================
+# Swagger (Gateway 통합)
+# ============================
+springdoc:
+  swagger-ui:
+    path: /docs
+    display-request-duration: true
+    urls:
+
+      - name: account-service
+        url: /api/v1/accounts/api-docs
+
+      - name: dispatch-service
+        url: /api/v1/dispatches/api-docs
+
+      - name: trip-service
+        url: /api/v1/trips/api-docs
+
+      - name: payment-service
+        url: /api/v1/payments/api-docs
+
+      - name: support-service
+        url: /api/v1/supports/api-docs
+
+
+eureka:
+  instance:
+    prefer-ip-address: ${EUREKA_INSTANCE_PREFERIPADDRESS:true}
+
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://${EUREKA_HOSTNAME:10.1.0.61}:${EUREKA_PORT:8761}/eureka/
+
+management:
+  zipkin:
+    tracing:
+      endpoint: http://${ZIPKIN_HOSTNAME:10.1.0.61}:${ZIPKIN_PORT:9411}/api/v2/spans
+
+jwt:
+  secret-key: ${JWT_SECRET_KEY}

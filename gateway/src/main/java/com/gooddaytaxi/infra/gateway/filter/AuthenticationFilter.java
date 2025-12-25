@@ -24,8 +24,24 @@ import java.util.List;
 @Component
 public class AuthenticationFilter implements GlobalFilter, Ordered {
 
-    private static final List<String> PUBLIC_API_PREFIXES =
-            List.of("/internal/", "/v3/api-docs", "/swagger-ui", "/api/v1/auth/","/api/v1/payments/tosspay");
+    /* =========================
+     * Path 그룹 정의
+     * ========================= */
+
+    // 🔥 인증 완전 패스 (회원가입 / 로그인)
+    private static final List<String> AUTH_API_PREFIXES = List.of(
+        "/api/v1/auth/"
+    );
+
+    // SYSTEM 권한 주입 대상
+    private static final List<String> SYSTEM_API_PREFIXES = List.of(
+        "/internal/",
+        "/v3/api-docs",
+        "/swagger-ui",
+        "/api/v1/payments/tosspay/ready"
+    );
+
+    /* ========================= */
 
     private static final String SYSTEM_UUID = "99999999-9999-9999-9999-999999999999";
     private static final String BEARER = "Bearer ";
@@ -41,41 +57,46 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
 
         String path = exchange.getRequest().getURI().getPath();
 
-        // ---------------------------
-        // 1. 공개 API → SYSTEM UUID 주입
-        // ---------------------------
-        if (isPublicPath(path)) {
+        /* --------------------------------------------------
+         * 1. 회원가입 / 로그인 → 🔥완전 패스
+         * -------------------------------------------------- */
+        if (isAuthPath(path)) {
+            return chain.filter(exchange);
+        }
+
+        /* --------------------------------------------------
+         * 2. SYSTEM API → SYSTEM 헤더 주입
+         * -------------------------------------------------- */
+        if (isSystemPath(path)) {
             ServerHttpRequest mutated = exchange.getRequest().mutate()
                 .header(USER_UUID_HEADER, SYSTEM_UUID)
+                .header(ROLE_HEADER, "SYSTEM")
                 .build();
 
             return chain.filter(exchange.mutate().request(mutated).build());
         }
 
-        // ---------------------------
-        // 2. Authorization 헤더 추출
-        // ---------------------------
-        String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+        /* --------------------------------------------------
+         * 3. 일반 보호 API → JWT 인증
+         * -------------------------------------------------- */
+        String authHeader = exchange.getRequest()
+            .getHeaders()
+            .getFirst(HttpHeaders.AUTHORIZATION);
 
         if (authHeader == null || !authHeader.startsWith(BEARER)) {
             log.warn("[Gateway] Authorization 헤더 누락 또는 Bearer 포맷 불일치 (path={})", path);
             return writeError(exchange, HttpStatus.UNAUTHORIZED, TokenErrorCode.TOKEN_MISSING);
         }
 
-        // ---------------------------
-        // 3. JWT 파싱
-        // ---------------------------
-        String token = authHeader.substring(BEARER.length());
         Claims claims;
-
         try {
             SecretKey key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey));
 
             claims = Jwts.parser()
-                    .verifyWith(key)
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload();
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(authHeader.substring(BEARER.length()))
+                .getPayload();
 
         } catch (ExpiredJwtException e) {
             log.warn("[Gateway] JWT 만료");
@@ -98,57 +119,52 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
             return writeError(exchange, HttpStatus.BAD_REQUEST, TokenErrorCode.INVALID_CLAIMS);
         }
 
-        // ---------------------------
-        // 4. Claims 값 검증
-        // ---------------------------
         String userUUID = claims.get("userId", String.class);
+        String role = claims.get("role", String.class);
 
         if (userUUID == null || userUUID.isBlank()) {
             return writeError(exchange, HttpStatus.BAD_REQUEST, TokenErrorCode.INVALID_CLAIMS);
         }
 
-        String role = claims.get("role", String.class);
-
         log.info("[Gateway] 인증 성공 → userUUID={}, role={}, path={}", userUUID, role, path);
 
-        // ---------------------------
-        // 5. 헤더로 사용자 정보 주입 후 체인 진행
-        // ---------------------------
-        ServerHttpRequest.Builder mutatedRequest = exchange.getRequest().mutate()
-                .header(USER_UUID_HEADER, userUUID);
+        ServerHttpRequest mutated = exchange.getRequest().mutate()
+            .header(USER_UUID_HEADER, userUUID)
+            .header(ROLE_HEADER, role)
+            .build();
 
-        if (role != null && !role.isBlank()) {
-            mutatedRequest.header(ROLE_HEADER, role);
-        }
-
-        return chain.filter(exchange.mutate().request(mutatedRequest.build()).build());
+        return chain.filter(exchange.mutate().request(mutated).build());
     }
 
+    /* =========================
+     * Utils
+     * ========================= */
+
+    private boolean isAuthPath(String path) {
+        return AUTH_API_PREFIXES.stream().anyMatch(path::startsWith);
+    }
+
+    private boolean isSystemPath(String path) {
+        return SYSTEM_API_PREFIXES.stream().anyMatch(path::startsWith);
+    }
 
 
     // ---------------------------
     // 에러 응답을 JSON 으로 내려주는 함수
     // ---------------------------
     private Mono<Void> writeError(ServerWebExchange exchange, HttpStatus status, TokenErrorCode errorCode) {
-
         exchange.getResponse().setStatusCode(status);
         exchange.getResponse().getHeaders().add("Content-Type", "application/json");
 
         String body = String.format(
-                "{\"error\":\"%s\",\"message\":\"%s\"}",
-                errorCode.name(), errorCode.getMessage()
+            "{\"error\":\"%s\",\"message\":\"%s\"}",
+            errorCode.name(), errorCode.getMessage()
         );
 
         byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
 
         return exchange.getResponse()
-                .writeWith(Mono.just(exchange.getResponse().bufferFactory().wrap(bytes)));
-    }
-
-
-
-    private boolean isPublicPath(String path) {
-        return PUBLIC_API_PREFIXES.stream().anyMatch(path::startsWith);
+            .writeWith(Mono.just(exchange.getResponse().bufferFactory().wrap(bytes)));
     }
 
     @Override

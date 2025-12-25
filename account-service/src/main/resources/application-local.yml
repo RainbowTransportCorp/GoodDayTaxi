@@ -1,0 +1,35 @@
+server:
+  port: ${service.port}
+
+spring:
+  config:
+    import:
+      - secrets.yml
+
+  datasource:
+    url: jdbc:postgresql://localhost:5433/${postgres.db}
+    driver-class-name: org.postgresql.Driver
+    username: ${postgres.user}
+    password: ${postgres.password}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        show_sql: true
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:${eureka.port:8761}/eureka/
+
+jwt:
+  secret-key: ${jwt.secret-key}
+  access-token-validity-in-seconds: 3600
+  refresh-token-validity-in-seconds: 604800
+
+management:
+  zipkin:
+    tracing:
+      endpoint: http://localhost:${zipkin.port:9411}/api/v2/spans

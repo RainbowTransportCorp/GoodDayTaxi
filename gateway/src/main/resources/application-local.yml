@@ -4,14 +4,7 @@ server:
 spring:
   config:
     import:
-      - secrets.yaml
-
-  application:
-    name: gateway
-
-  main:
-    web-application-type: reactive
-
+      - secrets.yml
   cloud:
     gateway:
       routes:
@@ -99,17 +92,11 @@ springdoc:
 
 eureka:
   client:
-    register-with-eureka: true
-    fetch-registry: true
     service-url:
-      defaultZone: http://server:${eureka.port}/eureka/
+      defaultZone: http://server:${eureka.port}/eureka/   # Docker 컨테이너 명|서비스 명 / localhost
 
 
 management:
-  tracing:
-    sampling:
-      probability: 1.0
-
   zipkin:
     tracing:
       endpoint: http://zipkin:${zipkin.port}/api/v2/spans
