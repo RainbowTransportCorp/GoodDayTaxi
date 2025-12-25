@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.compile.JavaCompile
+
 plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.7'
@@ -20,9 +22,7 @@ dependencyManagement {
     }
 }
 
-
 repositories {
-    mavenLocal()
     mavenCentral()
     maven { url "https://repo.spring.io/release" }
 }
@@ -31,49 +31,52 @@ dependencies {
     // Web
     implementation 'org.springframework.boot:spring-boot-starter-web'
 
-    // JPA (User, Driver)
+    // JPA
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     runtimeOnly 'org.postgresql:postgresql'
 
-    // Validation (@Valid, @NotNull 등)
+    // Validation
     implementation 'org.springframework.boot:spring-boot-starter-validation'
 
-    // Eureka Client (Spring Cloud Starter)
+    // Eureka
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 
-    // Security + JWT (게이트웨이 & 유저서비스만 사용)
+    // Security + JWT
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
 
-    // Common module
-    implementation 'com.gooddaytaxi:common-core:0.0.5-SNAPSHOT'
-    implementation 'com.gooddaytaxi:common-jpa:0.0.5-SNAPSHOT'
+    // 🔥 Common JAR 직접 의존
+    implementation files('../common-core/build/libs/common-core-0.0.5-SNAPSHOT.jar')
+    implementation files('../common-jpa/build/libs/common-jpa-0.0.5-SNAPSHOT.jar')
 
     // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
-    //Zipkin
+    // Zipkin
     implementation 'io.micrometer:micrometer-tracing-bridge-brave'
     implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
 
-    //Kafka
+    // Kafka
     implementation 'org.springframework.kafka:spring-kafka'
 
-    //prometheus
+    // Prometheus
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'io.micrometer:micrometer-registry-prometheus'
 
-    // Swagger/OpenAPI
+    // Swagger
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9'
 
-    // 테스트
+    // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
 }
