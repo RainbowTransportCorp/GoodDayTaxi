@@ -1,0 +1,55 @@
+server:
+  port: ${DISPATCH_SERVICE_PORT:8202}
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5434/${DB_NAME:goodday_dispatch} #local
+#    url: jdbc:postgresql://gd_dispatch_db:5432/${postgres.db} #docker - 서비스 자체를 띄울 때 사용
+    driver-class-name: org.postgresql.Driver
+    username: ${DB_USER:dispatch}
+    password: ${DB_PASSWORD:dispatch1234}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        show_sql: false #타임아웃 스케줄러 쿼리문이 너무 많이 나와서 임시로 false
+
+  data:
+    redis:
+      host: ${REDIS_HOSTNAME}
+      port: ${REDIS_PORT:6379}
+
+  kafka:
+    bootstrap-servers: ${KAFKA_HOSTNAME}:${KAFKA_PORT:9092} #local
+#    bootstrap-servers: kafka:${kafka.port} # docker - 서비스 자체를 띄울 때 사용
+
+
+kafka:
+  topic:
+    dispatch: dispatch-topic
+
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_HOSTNAME:10.1.0.61}:${EUREKA_PORT:8761}/eureka/ #local
+#      defaultZone: http://server:${eureka.port}/eureka/ # docker - 서비스 자체를 띄울 때 사용
+
+
+management:
+  zipkin:
+    tracing:
+      endpoint: "http://${ZIPKIN_HOSTNAME:10.1.0.61}:${ZIPKIN_PORT:9411}/api/v2/spans"
+
+logging:
+  level:
+    root: INFO
+    com.gooddaytaxi: INFO
+    # 프레임워크 소음 줄이기
+    org.springframework: WARN
+    org.hibernate: WARN
+    # :white_check_mark: "쿼리문 내려오는" 거 끄기 (Hibernate SQL 로그)
+    org.hibernate.SQL: OFF
+    org.hibernate.orm.jdbc.bind: OFF   # 바인딩 값 로그(부트3/hibernate6)
