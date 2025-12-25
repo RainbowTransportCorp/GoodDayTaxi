@@ -36,4 +36,6 @@ out/
 ### VS Code ###
 .vscode/
 secrets.yaml
+secrets.yaml
 application-secrets.yaml
+application-secrets.yml
