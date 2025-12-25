@@ -33,22 +33,22 @@ management:
     tracing:
       endpoint: http://${ZIPKIN_HOSTNAME:10.1.0.61}:${ZIPKIN_PORT:9411}/api/v2/spans
 
-#logging:
-#  level:
-#    root: INFO
-#    com.gooddaytaxi: INFO
-#    # 프레임워크 소음 줄이기
-#    org.springframework: WARN
-#    org.hibernate: WARN
-#    # :white_check_mark: "쿼리문 내려오는" 거 끄기 (Hibernate SQL 로그)
-#    org.hibernate.SQL: OFF
-#    org.hibernate.orm.jdbc.bind: OFF   # 바인딩 값 로그(부트3/hibernate6)
-
-## 에러 상황시
 logging:
   level:
     root: INFO
-    org.springframework.web: DEBUG
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-    com.gooddaytaxi: DEBUG
+    com.gooddaytaxi: INFO
+    # 프레임워크 소음 줄이기
+    org.springframework: WARN
+    org.hibernate: WARN
+    # :white_check_mark: "쿼리문 내려오는" 거 끄기 (Hibernate SQL 로그)
+    org.hibernate.SQL: OFF
+    org.hibernate.orm.jdbc.bind: OFF   # 바인딩 값 로그(부트3/hibernate6)
+
+### 에러 상황시
+#logging:
+#  level:
+#    root: INFO
+#    org.springframework.web: DEBUG
+#    org.hibernate.SQL: DEBUG
+#    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+#    com.gooddaytaxi: DEBUG
