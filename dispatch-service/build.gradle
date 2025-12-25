@@ -22,7 +22,7 @@ dependencyManagement {
 
 
 repositories {
-    mavenLocal()
+//    mavenLocal()
     mavenCentral()
     maven { url "https://repo.spring.io/release" }
 }
@@ -51,9 +51,8 @@ dependencies {
     // Redisson (분산 락)
     implementation 'org.redisson:redisson-spring-boot-starter:3.27.2'
 
-    // Common module
-    implementation 'com.gooddaytaxi:common-core:0.0.5-SNAPSHOT'
-    implementation 'com.gooddaytaxi:common-jpa:0.0.5-SNAPSHOT'
+    implementation files('../common-core/build/libs/common-core-0.0.5-SNAPSHOT.jar')
+    implementation files('../common-jpa/build/libs/common-jpa-0.0.5-SNAPSHOT.jar')
 
     // Lombok
     compileOnly 'org.projectlombok:lombok'
@@ -81,4 +80,8 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
 }

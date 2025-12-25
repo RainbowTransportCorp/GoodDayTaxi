@@ -2,44 +2,85 @@ server:
   port: ${service.port}
 
 spring:
+  profiles:
+    active: local
   config:
     import:
       - secrets.yml
+  application:
+    name: dispatch-service
 
   datasource:
-    url: jdbc:postgresql://localhost:5434/${postgres.db:goodday_dispatch} #local
-#    url: jdbc:postgresql://gd_dispatch_db:5432/${postgres.db} #docker - 서비스 자체를 띄울 때 사용
+    url: jdbc:postgresql://localhost:5434/${postgres.db} #local
+    #    url: jdbc:postgresql://gd_dispatch_db:5432/${postgres.db} #docker - 서비스 자체를 띄울 때 사용
     driver-class-name: org.postgresql.Driver
-    username: ${postgres.user:dispatch}
-    password: ${postgres.password:dispatch1234}
+    username: ${postgres.user}
+    password: ${postgres.password}
 
   jpa:
     hibernate:
       ddl-auto: update
     properties:
       hibernate:
+        format_sql: true
         show_sql: false #타임아웃 스케줄러 쿼리문이 너무 많이 나와서 임시로 false
 
   data:
     redis:
       host: localhost
-      port: ${redis.port:6379}
+      port: 6379
+      database: 0
 
   kafka:
     bootstrap-servers: localhost:${kafka.port} #local
-#    bootstrap-servers: kafka:${kafka.port} # docker - 서비스 자체를 띄울 때 사용
+    #    bootstrap-servers: kafka:${kafka.port} # docker - 서비스 자체를 띄울 때 사용
+    consumer:
+      group-id: dispatch-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      properties:
+        enable.idempotence: true
+
+kafka:
+  topic:
+    dispatch: dispatch-topic
+
 
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:${eureka.port:8761}/eureka/ #local
+      defaultZone: http://localhost:${eureka.port}/eureka/ #local
 #      defaultZone: http://server:${eureka.port}/eureka/ # docker - 서비스 자체를 띄울 때 사용
 
 
 management:
+  tracing:
+    sampling:
+      probability: 1.0
   zipkin:
     tracing:
-      endpoint: "http://localhost:${zipkin.port:9411}/api/v2/spans"
+      endpoint: "http://localhost:${zipkin.port}/api/v2/spans"
+
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+
+  metrics:
+    tags:
+      application: dispatch-service
+
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui
+
 
 logging:
   level:

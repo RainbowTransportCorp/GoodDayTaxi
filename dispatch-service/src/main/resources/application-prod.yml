@@ -2,9 +2,12 @@ server:
   port: ${DISPATCH_SERVICE_PORT:8202}
 
 spring:
+  config:
+    import:
+      - secrets.yml
+
   datasource:
-    url: jdbc:postgresql://localhost:5434/${DB_NAME:goodday_dispatch} #local
-#    url: jdbc:postgresql://gd_dispatch_db:5432/${postgres.db} #docker - 서비스 자체를 띄울 때 사용
+    url: jdbc:postgresql://${DB_HOSTNAME:localhost}:${DB_PORT:5432}/${DB_NAME:goodday_dispatch}
     driver-class-name: org.postgresql.Driver
     username: ${DB_USER:dispatch}
     password: ${DB_PASSWORD:dispatch1234}
@@ -14,42 +17,48 @@ spring:
       ddl-auto: validate
     properties:
       hibernate:
-        show_sql: false #타임아웃 스케줄러 쿼리문이 너무 많이 나와서 임시로 false
+        show_sql: false
 
   data:
     redis:
-      host: ${REDIS_HOSTNAME}
+      host: ${REDIS_HOSTNAME:10.2.0.28}
       port: ${REDIS_PORT:6379}
+      database: 0
 
   kafka:
-    bootstrap-servers: ${KAFKA_HOSTNAME}:${KAFKA_PORT:9092} #local
-#    bootstrap-servers: kafka:${kafka.port} # docker - 서비스 자체를 띄울 때 사용
-
+    bootstrap-servers: ${KAFKA_HOSTNAME:10.2.0.226}:${KAFKA_PORT:9092}
+    consumer:
+      group-id: dispatch-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      properties:
+        enable.idempotence: true
 
 kafka:
   topic:
     dispatch: dispatch-topic
 
-
 eureka:
   client:
     service-url:
-      defaultZone: http://${EUREKA_HOSTNAME:10.1.0.61}:${EUREKA_PORT:8761}/eureka/ #local
-#      defaultZone: http://server:${eureka.port}/eureka/ # docker - 서비스 자체를 띄울 때 사용
-
+      defaultZone: http://${EUREKA_HOSTNAME:10.1.0.61}:${EUREKA_PORT:8761}/eureka/
 
 management:
   zipkin:
     tracing:
-      endpoint: "http://${ZIPKIN_HOSTNAME:10.1.0.61}:${ZIPKIN_PORT:9411}/api/v2/spans"
+      endpoint: http://${ZIPKIN_HOSTNAME:10.1.0.61}:${ZIPKIN_PORT:9411}/api/v2/spans
 
 logging:
   level:
     root: INFO
-    com.gooddaytaxi: INFO
+    com.gooddaytaxi.dispatch: INFO
     # 프레임워크 소음 줄이기
     org.springframework: WARN
     org.hibernate: WARN
-    # :white_check_mark: "쿼리문 내려오는" 거 끄기 (Hibernate SQL 로그)
+    # 쿼리 로그 비활성화
     org.hibernate.SQL: OFF
-    org.hibernate.orm.jdbc.bind: OFF   # 바인딩 값 로그(부트3/hibernate6)
+    org.hibernate.orm.jdbc.bind: OFF
