@@ -2,15 +2,11 @@ server:
   port: ${service.port}
 
 spring:
-  profiles:
-    active: ${profiles.active}
   config:
-    import: secrets.yaml
-  application:
-    name: trip-service
+    import: secrets.yml
 
   datasource:
-    url: jdbc:postgresql://localhost:5435/${postgres.db}
+    url: jdbc:postgresql://localhost:5435/${postgres.db:goodday_trip}
     driver-class-name: org.postgresql.Driver
     username: ${postgres.user}
     password: ${postgres.password}
@@ -20,15 +16,10 @@ spring:
       ddl-auto: update
     properties:
       hibernate:
-        format_sql: true
         show_sql: true
 
   kafka:
     bootstrap-servers: localhost:9092
-    consumer:
-      group-id: trip-service
-      auto-offset-reset: earliest
-      enable-auto-commit: false
 
 
 eureka:
@@ -38,21 +29,8 @@ eureka:
 
 
 management:
-  tracing:
-    sampling:
-      probability: 1.0
   zipkin:
     tracing:
       endpoint: "http://localhost:${zipkin.port}/api/v2/spans"
-
-  endpoints:
-    web:
-      exposure:
-        include: health,info,prometheus
-
-  metrics:
-    tags:
-      application: trip-service
-
 
 

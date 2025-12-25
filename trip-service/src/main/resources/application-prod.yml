@@ -1,42 +1,33 @@
 server:
-  port: ${SUPPORT_SERVICE_PORT:8205}
+  port: ${TRIP_SERVICE_PORT:8203}
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5437/${DB_NAME:goodday_support}
+    url: jdbc:postgresql://localhost:5435/${DB_NAME:goodday_trip}
     driver-class-name: org.postgresql.Driver
-    username: ${DB_USER:support}
-    password: ${DB_PASSWORD:support1234}
+    username: ${DB_USER:trip}
+    password: ${DB_PASSWORD:trip1234}
 
   jpa:
     hibernate:
       ddl-auto: validate
     properties:
-        show_sql: false
+      hibernate:
+        show_sql: true
 
   kafka:
     bootstrap-servers: ${KAFKA_HOSTNAME}:${KAFKA_PORT:9092}
-
-  rabbitmq:
-    host: ${RABBITMQ_HOSTNAME}
-    port: ${RABBITMQ_PORT:5672}
-    username: ${RABBITMQ_USER:gd_rabbitmq_user}
-    password: ${RABBITMQ_PASSWORD:gd_rabbitmq_password}
 
 eureka:
   client:
     service-url:
       defaultZone: http://${EUREKA_HOSTNAME:10.1.0.61}:${EUREKA_PORT:8761}/eureka/
 
+
 management:
   zipkin:
     tracing:
       endpoint: "http://${ZIPKIN_HOSTNAME:10.1.0.61}:${ZIPKIN_PORT:9411}/api/v2/spans"
-
-# Slack App 연동
-slack:
-  api-url: https://slack.com
-  bot-token: ${SLACK_BOT_TOKEN}
 
 logging:
   level:

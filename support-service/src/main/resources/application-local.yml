@@ -5,9 +5,6 @@ spring:
   config:
     import: secrets.yml
 
-  application:
-    name: support-service
-
   datasource:
     url: jdbc:postgresql://${postgres.host.local:localhost}:5437/${postgres.db:goodday_support}
     driver-class-name: org.postgresql.Driver
@@ -18,6 +15,7 @@ spring:
     hibernate:
       ddl-auto: update
     properties:
+      hibernate:
         show_sql: true
 
   kafka:
