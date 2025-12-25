@@ -149,17 +149,10 @@ public class PaymentService {
 
             //실패시 실패 기록 및 예외 던지기
             if (!result.success()) {
-                // 실패 기록은 별도 트랜잭션으로 먼저 확정
+                // 실패 기록은 이벤트로 발행하여 롤백 후 저장
                 applicationEventPublisher.publishEvent(
                         new TossPayConfirmFailedAfterRollbackEvent(
-                                payment.getId(),
-                                command.paymentKey(),
-                                idempotencyKey,
-                                attemptNo,
-                                result.error(),
-                                command
-                        )
-                );
+                                payment.getId(), command.paymentKey(),idempotencyKey,attemptNo,result.error(),command));
 
                 //최종적으로 비즈니스 예외 던지기
                 throw new PaymentException(PaymentErrorCode.TOSSPAY_CONFIRM_FAILED);
