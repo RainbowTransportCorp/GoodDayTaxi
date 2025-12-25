@@ -53,9 +53,16 @@ async function syncPassengerTripStatus() {
             return;
         }
 
-        const json = await res.json();
-        const trip = json?.data;
+        let json;
+        try {
+            json = await res.json();
+        } catch (e) {
+            console.warn("❌ JSON 파싱 실패: 응답 body 없음", e);
+            removeTripState();
+            return;
+        }
 
+        const trip = json?.data;
         if (!trip || trip.status === "ENDED" || trip.status === "CANCELLED") {
             removeTripState();
             return;
@@ -89,9 +96,16 @@ async function syncDriverTripStatus() {
             return;
         }
 
-        const json = await res.json();
-        const trip = json?.data;
+        let json;
+        try {
+            json = await res.json();
+        } catch (e) {
+            console.warn("❌ JSON 파싱 실패: 응답 body 없음", e);
+            removeTripState();
+            return;
+        }
 
+        const trip = json?.data;
         if (!trip || trip.status === "ENDED" || trip.status === "CANCELLED") {
             removeTripState();
             return;
@@ -106,7 +120,7 @@ async function syncDriverTripStatus() {
     }
 }
 
-/* ===== 서버 기준 미결제 상태 동기화 ===== */
+/* ===== 미결제 상태 동기화 ===== */
 
 async function syncUnpaidPayment() {
     const token = getToken();
@@ -114,11 +128,10 @@ async function syncUnpaidPayment() {
     if (!token || !uuid) return;
 
     const searchParams = new URLSearchParams({
-        page: "1", // ✅ 수정됨: 백엔드 기준 1부터 시작
+        page: "1",
         size: "1",
         status: "PENDING",
         searchPeriod: "ALL",
-        sortBy: "createdAt",
         sortAscending: "false"
     });
 
@@ -136,7 +149,15 @@ async function syncUnpaidPayment() {
             return;
         }
 
-        const json = await res.json();
+        let json;
+        try {
+            json = await res.json();
+        } catch (e) {
+            console.warn("❌ JSON 파싱 실패 (미결제)", e);
+            localStorage.removeItem("unpaidTrip");
+            return;
+        }
+
         const list = json?.data?.content ?? [];
 
         if (list.length === 0) {
@@ -175,13 +196,27 @@ function renderPassengerIndicators() {
 
     const unpaid = localStorage.getItem("unpaidTrip");
     if (unpaid) {
-        const payBtn = document.createElement("button");
-        payBtn.className = "btn-indicator warning";
-        payBtn.innerHTML = "💳 미결제";
-        payBtn.onclick = () => {
-            location.href = "/passenger/payments/index.html?filter=PENDING";
-        };
-        indicatorBox.appendChild(payBtn);
+        try {
+            const parsed = JSON.parse(unpaid);
+            const unpaidTripId = parsed.tripId;
+            const method = parsed.method;
+
+            if (unpaidTripId) {
+                const payBtn = document.createElement("button");
+                payBtn.className = "btn-indicator warning";
+                payBtn.innerHTML = "💳 미결제";
+                payBtn.onclick = () => {
+                    if (method === "TOSS_PAY") {
+                        location.href = `/passenger/payments/checkout.html?tripId=${unpaidTripId}`;
+                    } else {
+                        location.href = `/passenger/payments/ended.html?tripId=${unpaidTripId}`;
+                    }
+                };
+                indicatorBox.appendChild(payBtn);
+            }
+        } catch (e) {
+            console.warn("🚨 미결제 표시 오류", e);
+        }
     }
 }
 
@@ -215,7 +250,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const res = await fetch("/common/header.html");
         headerContainer.innerHTML = await res.text();
     } catch (e) {
-        console.error("header.html 로드 실패", e);
+        console.error("❌ header.html 로드 실패", e);
         return;
     }
 

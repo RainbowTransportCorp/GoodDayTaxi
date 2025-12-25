@@ -25,7 +25,7 @@
       background: white;
       border-radius: 20px;
       padding: 28px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
     }
 
     .title {
@@ -107,15 +107,13 @@
       <div class="fare" id="fare">₩ 0</div>
     </div>
 
-    <div class="status">결제를 진행해주세요</div>
+    <div class="status" id="statusText">결제를 진행해주세요</div>
 
-    <button class="btn-pay" id="payBtn" onclick="goToPayment()">결제하기</button>
+    <button class="btn-pay" id="payBtn">결제 진행</button>
   </div>
 </div>
 
 <script>
-  /* ================= 인증 가드 ================= */
-
   const tripId = new URLSearchParams(location.search).get("tripId");
   const token = localStorage.getItem("accessToken");
   const userUuid = localStorage.getItem("userUuid");
@@ -132,52 +130,67 @@
     "X-User-Role": "PASSENGER"
   };
 
-  function goToPayment() {
-    location.href = `/api/v1/payments/tosspay/ready?tripId=${tripId}`;
-  }
-
-  /* ================= 핵심 로직 ================= */
-
   async function loadTripAndPayment() {
     try {
-      const res = await fetch(`/api/v1/payments?tripId=${tripId}`, { headers });
+      const res = await fetch(`/api/v1/payments/trip/${tripId}/payment`, { headers });
 
-      // ✅ 핵심: 결제 레코드 아직 없음 → 바로 결제 준비로 이동
       if (res.status === 204) {
-        location.href = `/api/v1/payments/tosspay/ready?tripId=${tripId}`;
+        location.href = `/passenger/payments/checkout.html?tripId=${tripId}`;
         return;
       }
 
-      // 진짜 이상한 경우
       if (res.status === 404) {
         alert("결제 정보를 찾을 수 없습니다.");
         location.href = "/passenger/dashboard/index.html";
         return;
       }
 
-      if (!res.ok) {
-        throw new Error("PAYMENT_FETCH_FAIL");
-      }
+      if (!res.ok) throw new Error("PAYMENT_FETCH_FAIL");
 
       const { data } = await res.json();
 
-      // 화면 렌더링
       document.getElementById("pickup").textContent = data.pickupAddress ?? "-";
       document.getElementById("destination").textContent = data.destinationAddress ?? "-";
-      document.getElementById("fare").textContent =
-          `₩ ${Number(data.amount).toLocaleString()}`;
+      document.getElementById("fare").textContent = `₩ ${Number(data.amount).toLocaleString()}`;
 
-      // 상태 분기
-      if (data.status === "PENDING") {
+      if (data.status === "COMPLETED") {
         localStorage.removeItem("tripId");
         localStorage.removeItem("tripStatus");
-        location.href = `/passenger/payments/success.html`;
+        location.href = "/passenger/payments/success.html";
         return;
       }
 
-      // 미결제 상태면 버튼 활성 유지
       localStorage.setItem("tripId", tripId);
       localStorage.setItem("tripStatus", "ENDED");
+
+      // ✅ 결제 수단 분기 처리
+      const method = data.method ?? "UNKNOWN";
+      const btn = document.getElementById("payBtn");
+      const statusText = document.getElementById("statusText");
+
+      switch (method) {
+        case "TOSS_PAY":
+          btn.textContent = "💳 토스페이 결제";
+          btn.onclick = () => {
+            location.href = `/passenger/payments/checkout.html?tripId=${tripId}`;
+          };
+          statusText.textContent = "토스페이 결제를 진행해주세요";
+          break;
+
+        case "CARD":
+        case "CASH":
+          btn.textContent = "대시보드로 이동";
+          btn.onclick = () => {
+            location.href = "/passenger/dashboard/index.html";
+          };
+          statusText.textContent = "기사님에게 결제를 완료해주세요";
+          break;
+
+        default:
+          btn.disabled = true;
+          btn.textContent = "지원되지 않는 결제 수단";
+          statusText.textContent = "결제 수단 오류";
+      }
 
     } catch (e) {
       console.error(e);

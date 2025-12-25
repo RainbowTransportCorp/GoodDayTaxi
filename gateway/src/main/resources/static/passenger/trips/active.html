@@ -100,26 +100,54 @@
   let previousTripStatus = null;
 
   function renderTrip(trip) {
-    document.getElementById("pickup").textContent = trip.pickupAddress ?? "-";
-    document.getElementById("destination").textContent = trip.destinationAddress ?? "-";
+    document.getElementById("pickup").textContent =
+        trip.pickupAddress ?? "-";
+    document.getElementById("destination").textContent =
+        trip.destinationAddress ?? "-";
     document.getElementById("statusBox").textContent = "운행 중";
 
-    // ✅ 로컬스토리지 업데이트 (공통 인디케이터에서 사용)
+    // ✅ 공통 헤더 / 인디케이터용
     localStorage.setItem("tripId", trip.id);
     localStorage.setItem("tripStatus", trip.status);
   }
 
+  async function handleTripEnded() {
+    clearInterval(pollingId);
+
+    localStorage.removeItem("tripId");
+    localStorage.removeItem("tripStatus");
+
+    location.href = "ended.html";
+  }
+
   async function pollTripStatus() {
     try {
-      const res = await fetch("/api/v1/trips/passengers/active", { headers });
+      const res = await fetch(
+          "/api/v1/trips/passengers/active",
+          { headers }
+      );
 
+      // 🔐 인증 만료
       if (res.status === 401 || res.status === 403) {
         alert("세션이 만료되었습니다. 다시 로그인해주세요.");
         location.href = "/index.html";
         return;
       }
 
-      if (res.status === 404 || res.status === 204) {
+      /**
+       * ✅ 핵심 변경 포인트
+       * 204 = 방금 운행 종료
+       */
+      if (res.status === 204) {
+        await handleTripEnded();
+        return;
+      }
+
+      /**
+       * 🚫 애초에 active trip 없음
+       */
+      if (res.status === 404) {
+        clearInterval(pollingId);
         location.href = "/passenger/dashboard/index.html";
         return;
       }
@@ -129,22 +157,19 @@
         return;
       }
 
-      const { data: trip } = await res.json();
+      const json = await res.json();
+      const trip = json?.data;
+
       if (!trip || !trip.status) return;
 
       renderTrip(trip);
 
+      // 상태 변경 감지
       if (trip.status !== previousTripStatus) {
         previousTripStatus = trip.status;
 
         if (trip.status === "ENDED") {
-          clearInterval(pollingId);
-
-          // ✅ 상태 제거
-          localStorage.removeItem("tripId");
-          localStorage.removeItem("tripStatus");
-
-          location.href = "ended.html";
+          await handleTripEnded();
         }
       }
 
@@ -158,5 +183,6 @@
     pollingId = setInterval(pollTripStatus, 3000);
   });
 </script>
+
 </body>
 </html>

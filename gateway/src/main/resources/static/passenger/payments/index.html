@@ -5,7 +5,7 @@
   <title>결제 / 환불 내역 | Good day Taxi</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <link rel="stylesheet" href="/common/header.css">
+  <link rel="stylesheet" href="/common/header-static.css">
   <script src="/common/header.js" defer></script>
 
   <style>
@@ -120,7 +120,7 @@
     try {
       // 전체 결제 리스트 가져오기
       const res = await fetch(API_BASE, {
-        method: "POST",
+        method: "GET",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,

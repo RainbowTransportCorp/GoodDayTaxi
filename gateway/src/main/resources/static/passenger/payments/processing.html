@@ -3,11 +3,11 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>결제 처리 중 | Good day Taxi</title>
+    <title>결제 처리 중 | Good Day Taxi</title>
+    <!-- ✅ 정적 처리 대상이라면 이렇게 -->
+    <link rel="stylesheet" href="/common/header-static.css">
+    <script src="/common/header-static.js" defer></script>
 
-    <!-- ✅ 공통 헤더 -->
-    <link rel="stylesheet" href="/common/header.css" />
-    <script src="/common/header.js" defer></script>
 
     <style>
         body {
@@ -34,11 +34,6 @@
             width: 100%;
         }
 
-        h2 {
-            margin-top: 0;
-            margin-bottom: 12px;
-        }
-
         .desc {
             font-size: 14px;
             color: #666;
@@ -55,11 +50,16 @@
         }
     </style>
 </head>
+
 <body>
 
-<!-- ✅ 공통 헤더 -->
 <header></header>
-
+<script>
+    document.addEventListener("DOMContentLoaded", async () => {
+        const res = await fetch("/common/header-static.html");
+        document.querySelector("header").innerHTML = await res.text();
+    });
+</script>
 <main>
     <div class="card">
         <h2>💳 결제 처리 중입니다</h2>
@@ -71,13 +71,11 @@
 </main>
 
 <script>
-    /* ================= 인증 가드 ================= */
-
+    /* ===== 인증 가드 ===== */
     function guardPassenger() {
         const token = localStorage.getItem("accessToken");
         const role = localStorage.getItem("role");
         if (!token || role !== "PASSENGER") {
-            alert("승객 전용 페이지입니다.");
             location.href = "/index.html";
             return false;
         }
@@ -86,64 +84,53 @@
 
     async function loadHeader() {
         const header = document.querySelector("header");
-        try {
-            const res = await fetch("/common/header.html");
-            header.innerHTML = await res.text();
-        } catch (e) {
-            console.error("공통 헤더 로딩 실패", e);
-        }
+        const res = await fetch("/common/header.html");
+        header.innerHTML = await res.text();
     }
 
-    /* ================= Idempotency Key ================= */
-
-    function generateIdempotencyKey({ orderId, amount, passengerId }) {
-        return [orderId, amount, passengerId].join(":");
+    /* ===== 멱등키 (orderId 기준) ===== */
+    function getIdempotencyKey(orderId) {
+        const KEY = `payment-confirm:${orderId}`;
+        if (sessionStorage.getItem(KEY)) return KEY;
+        sessionStorage.setItem(KEY, KEY);
+        return KEY;
     }
 
-    function getOrCreateIdempotencyKey({ orderId, amount, passengerId }) {
-        const STORAGE_KEY = "payment-confirm-idempotency-key";
+    let confirming = false;
 
-        const stored = sessionStorage.getItem(STORAGE_KEY);
-        if (stored) return stored;
-
-        const newKey = generateIdempotencyKey({ orderId, amount, passengerId });
-        sessionStorage.setItem(STORAGE_KEY, newKey);
-        return newKey;
-    }
-
-    /* ================= 결제 승인 ================= */
-
+    /* ===== 결제 승인 ===== */
     async function confirmPayment() {
+        if (confirming) return;
+        confirming = true;
+
         if (!guardPassenger()) return;
         await loadHeader();
 
         const params = new URLSearchParams(location.search);
-        const customerKey = params.get("customerKey");
         const paymentKey = params.get("paymentKey");
         const orderId = params.get("orderId");
         const amount = params.get("amount");
 
-        if (!customerKey || !paymentKey || !orderId || !amount) {
-            alert("잘못된 접근입니다.");
+        if (!paymentKey || !orderId || !amount) {
             location.href = "/passenger/dashboard/index.html";
             return;
         }
 
-        const passengerId = customerKey.replace(/^customer-/, "");
-        const idempotencyKey = getOrCreateIdempotencyKey({
-            orderId,
-            amount,
-            passengerId
-        });
+        const passengerId = localStorage.getItem("userUuid");
+        const token = localStorage.getItem("accessToken");
 
         document.getElementById("orderId").textContent = `주문번호: ${orderId}`;
-        document.getElementById("amount").textContent = `결제 금액: ${Number(amount).toLocaleString()}원`;
+        document.getElementById("amount").textContent =
+            `결제 금액: ${Number(amount).toLocaleString()}원`;
+
+        const idempotencyKey = getIdempotencyKey(orderId);
 
         try {
-            const response = await fetch("/api/v1/payments/tosspay/confirm", {
+            const res = await fetch("/api/v1/payments/tosspay/confirm", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`,
                     "X-User-UUID": passengerId,
                     "X-User-Role": "PASSENGER",
                     "Idempotency-Key": idempotencyKey
@@ -155,27 +142,28 @@
                 })
             });
 
-            const json = await response.json();
+            let json = null;
+            try {
+                json = await res.json();
+            } catch (e) {}
 
-            if (!response.ok) {
-                window.location.href =
-                    `/passenger/payments/fail.html` +
-                    `?message=${encodeURIComponent(json.message)}` +
-                    `&orderId=${orderId}` +
-                    `&amount=${amount}` +
-                    `&customerKey=${customerKey}`;
+            if (!res.ok) {
+                const msg = json?.message ?? "결제 승인에 실패했습니다.";
+                location.href =
+                    `/passenger/payments/fail.html?message=${encodeURIComponent(msg)}`;
                 return;
             }
 
-            /* ✅ 결제 성공 처리 */
-            sessionStorage.removeItem("payment-confirm-idempotency-key");
+            /* ✅ 결제 성공 */
+            sessionStorage.removeItem(idempotencyKey);
             localStorage.removeItem("unpaidTrip");
 
-            window.location.href = "/passenger/payments/success.html";
+            location.href = "/passenger/payments/success.html";
 
         } catch (e) {
             console.error(e);
-            window.location.href = "/passenger/payments/fail.html?message=결제 승인 중 오류가 발생했습니다.";
+            location.href =
+                "/passenger/payments/fail.html?message=결제 승인 중 오류가 발생했습니다.";
         }
     }
 

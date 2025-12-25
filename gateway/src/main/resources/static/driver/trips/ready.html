@@ -4,8 +4,11 @@
   <meta charset="UTF-8" />
   <title>운행 대기 중 | Good day Taxi</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="/common/header.css" />
-  <script src="/common/header.js" defer></script>
+
+  <!-- ✅ 정적 처리 대상이라면 이렇게 -->
+  <link rel="stylesheet" href="/common/header-static.css">
+  <script src="/common/header-static.js" defer></script>
+
   <style>
     body {
       margin: 0;
@@ -58,7 +61,14 @@
   </style>
 </head>
 <body>
-<header class="header"></header>
+
+<header></header>
+<script>
+  document.addEventListener("DOMContentLoaded", async () => {
+    const res = await fetch("/common/header-static.html");
+    document.querySelector("header").innerHTML = await res.text();
+  });
+</script>
 
 <main class="container">
   <div class="card">
