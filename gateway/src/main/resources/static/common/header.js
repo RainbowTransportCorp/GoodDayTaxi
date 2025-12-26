@@ -32,55 +32,39 @@ function removeTripState() {
     localStorage.removeItem("tripStatus");
 }
 
-/* ===== 서버 기준 운행 상태 동기화 ===== */
+/* ================= 공통: 디스패치 유효성 검사 ================= */
 
-async function syncPassengerTripStatus() {
-    const token = getToken();
-    const uuid = getUserUuid();
-    if (!token || !uuid) return;
-
+async function isValidDriverDispatch(dispatchId) {
     try {
-        const res = await fetch("/api/v1/trips/passengers/active", {
+        const res = await fetch(`/api/v1/dispatches/${dispatchId}`, {
             headers: {
-                "Authorization": `Bearer ${token}`,
-                "X-User-UUID": uuid,
-                "X-User-Role": "PASSENGER"
+                "Authorization": `Bearer ${getToken()}`,
+                "X-User-UUID": getUserUuid(),
+                "X-User-Role": "DRIVER"
             }
         });
 
-        if (!res.ok) {
-            removeTripState();
-            return;
-        }
+        if (!res.ok) return false;
 
-        let json;
-        try {
-            json = await res.json();
-        } catch (e) {
-            console.warn("❌ JSON 파싱 실패: 응답 body 없음", e);
-            removeTripState();
-            return;
-        }
+        const { data } = await res.json();
+        if (!data || !data.status) return false;
 
-        const trip = json?.data;
-        if (!trip || trip.status === "ENDED" || trip.status === "CANCELLED") {
-            removeTripState();
-            return;
-        }
-
-        localStorage.setItem("tripId", trip.tripId);
-        localStorage.setItem("tripStatus", trip.status);
-
+        return ["TRIP_REQUEST", "TRIP_READY"].includes(data.status);
     } catch (e) {
-        console.warn("🚨 승객 운행 상태 동기화 실패", e);
-        removeTripState();
+        console.warn("🚨 디스패치 상태 확인 실패", e);
+        return false;
     }
 }
+
+/* ================= 서버 기준 운행 상태 동기화 (기사) ================= */
 
 async function syncDriverTripStatus() {
     const token = getToken();
     const uuid = getUserUuid();
-    if (!token || !uuid) return;
+    if (!token || !uuid) {
+        removeTripState();
+        return;
+    }
 
     try {
         const res = await fetch("/api/v1/trips/drivers/active", {
@@ -96,23 +80,27 @@ async function syncDriverTripStatus() {
             return;
         }
 
-        let json;
-        try {
-            json = await res.json();
-        } catch (e) {
-            console.warn("❌ JSON 파싱 실패: 응답 body 없음", e);
-            removeTripState();
-            return;
-        }
-
+        const json = await res.json();
         const trip = json?.data;
-        if (!trip || trip.status === "ENDED" || trip.status === "CANCELLED") {
+
+        if (!trip || !trip.tripId || !trip.dispatchId) {
             removeTripState();
             return;
         }
 
-        localStorage.setItem("tripId", trip.tripId);
-        localStorage.setItem("tripStatus", trip.status);
+        // ⭐ 핵심: 디스패치 상태 검증
+        const valid = await isValidDriverDispatch(trip.dispatchId);
+        if (!valid) {
+            removeTripState();
+            return;
+        }
+
+        if (["READY", "STARTED"].includes(trip.status)) {
+            localStorage.setItem("tripId", trip.tripId);
+            localStorage.setItem("tripStatus", trip.status);
+        } else {
+            removeTripState();
+        }
 
     } catch (e) {
         console.warn("🚨 기사 운행 상태 동기화 실패", e);
@@ -120,108 +108,13 @@ async function syncDriverTripStatus() {
     }
 }
 
-/* ===== 미결제 상태 동기화 ===== */
-
-async function syncUnpaidPayment() {
-    const token = getToken();
-    const uuid = getUserUuid();
-    if (!token || !uuid) return;
-
-    const searchParams = new URLSearchParams({
-        page: "1",
-        size: "1",
-        status: "PENDING",
-        searchPeriod: "ALL",
-        sortAscending: "false"
-    });
-
-    try {
-        const res = await fetch(`/api/v1/payments/search?${searchParams.toString()}`, {
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "X-User-UUID": uuid,
-                "X-User-Role": "PASSENGER"
-            }
-        });
-
-        if (!res.ok) {
-            localStorage.removeItem("unpaidTrip");
-            return;
-        }
-
-        let json;
-        try {
-            json = await res.json();
-        } catch (e) {
-            console.warn("❌ JSON 파싱 실패 (미결제)", e);
-            localStorage.removeItem("unpaidTrip");
-            return;
-        }
-
-        const list = json?.data?.content ?? [];
-
-        if (list.length === 0) {
-            localStorage.removeItem("unpaidTrip");
-            return;
-        }
-
-        localStorage.setItem("unpaidTrip", JSON.stringify(list[0]));
-
-    } catch (e) {
-        console.warn("🚨 미결제 상태 동기화 실패", e);
-        localStorage.removeItem("unpaidTrip");
-    }
-}
-
-/* ===== Indicator Rendering ===== */
-
-function renderPassengerIndicators() {
-    const indicatorBox = document.getElementById("top-indicators") || document.getElementById("header-indicators");
-    if (!indicatorBox) return;
-
-    indicatorBox.innerHTML = "";
-
-    const tripId = localStorage.getItem("tripId");
-    const tripStatus = localStorage.getItem("tripStatus");
-
-    if (tripId && (tripStatus === "READY" || tripStatus === "STARTED")) {
-        const tripBtn = document.createElement("button");
-        tripBtn.className = "btn-indicator";
-        tripBtn.innerHTML = "🚕 운행중";
-        tripBtn.onclick = () => {
-            location.href = `/passenger/trips/${tripStatus.toLowerCase()}.html?tripId=${tripId}`;
-        };
-        indicatorBox.appendChild(tripBtn);
-    }
-
-    const unpaid = localStorage.getItem("unpaidTrip");
-    if (unpaid) {
-        try {
-            const parsed = JSON.parse(unpaid);
-            const unpaidTripId = parsed.tripId;
-            const method = parsed.method;
-
-            if (unpaidTripId) {
-                const payBtn = document.createElement("button");
-                payBtn.className = "btn-indicator warning";
-                payBtn.innerHTML = "💳 미결제";
-                payBtn.onclick = () => {
-                    if (method === "TOSS_PAY") {
-                        location.href = `/passenger/payments/checkout.html?tripId=${unpaidTripId}`;
-                    } else {
-                        location.href = `/passenger/payments/ended.html?tripId=${unpaidTripId}`;
-                    }
-                };
-                indicatorBox.appendChild(payBtn);
-            }
-        } catch (e) {
-            console.warn("🚨 미결제 표시 오류", e);
-        }
-    }
-}
+/* ================= Indicator Rendering ================= */
 
 function renderDriverIndicators() {
-    const indicatorBox = document.getElementById("top-indicators") || document.getElementById("header-indicators");
+    const indicatorBox =
+        document.getElementById("top-indicators") ||
+        document.getElementById("header-indicators");
+
     if (!indicatorBox) return;
 
     indicatorBox.innerHTML = "";
@@ -229,18 +122,19 @@ function renderDriverIndicators() {
     const tripId = localStorage.getItem("tripId");
     const tripStatus = localStorage.getItem("tripStatus");
 
-    if (tripId && (tripStatus === "READY" || tripStatus === "STARTED")) {
-        const tripBtn = document.createElement("button");
-        tripBtn.className = "btn-indicator";
-        tripBtn.innerHTML = "🚕 운행중";
-        tripBtn.onclick = () => {
-            location.href = `/driver/trips/${tripStatus.toLowerCase()}.html?tripId=${tripId}`;
-        };
-        indicatorBox.appendChild(tripBtn);
-    }
+    if (!tripId || !["READY", "STARTED"].includes(tripStatus)) return;
+
+    const btn = document.createElement("button");
+    btn.className = "btn-indicator";
+    btn.innerHTML = "🚕 운행중";
+    btn.onclick = () => {
+        location.href = `/driver/trips/${tripStatus.toLowerCase()}.html?tripId=${tripId}`;
+    };
+
+    indicatorBox.appendChild(btn);
 }
 
-/* ===== Init ===== */
+/* ================= Init ================= */
 
 document.addEventListener("DOMContentLoaded", async () => {
     const headerContainer = document.querySelector("header");
@@ -267,15 +161,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                         role === "MASTER_ADMIN" ? "최고 관리자" : "서비스";
     }
 
-    const role = getRole();
-
-    if (role === "PASSENGER") {
-        await syncPassengerTripStatus();
-        await syncUnpaidPayment();
-        renderPassengerIndicators();
-    }
-
-    if (role === "DRIVER") {
+    if (getRole() === "DRIVER") {
         await syncDriverTripStatus();
         renderDriverIndicators();
     }

@@ -32,19 +32,41 @@ async function checkActiveTrip() {
       return;
     }
 
-    // 운행 없음
-    if (res.status === 404 || res.status === 204) {
-      await loadPending(); // 대기 콜 로딩
-      return;
-    }
-
-    if (!res.ok) {
-      console.error("운행 상태 조회 실패:", res.status);
-      alert("운행 상태 확인 중 문제가 발생했습니다.");
+    if (res.status === 204 || res.status === 404) {
+      await loadPending();
       return;
     }
 
     const { data: trip } = await res.json();
+    if (!trip) {
+      await loadPending();
+      return;
+    }
+
+    // ⭐️ 디스패치 상태 확인
+    const dispatchRes = await fetch(`${DISPATCH_BASE}/${trip.dispatchId}`, {
+      headers: {
+        "Authorization": `Bearer ${TOKEN}`,
+        "X-User-UUID": UUID,
+        "X-User-Role": "DRIVER"
+      }
+    });
+
+    if (!dispatchRes.ok) {
+      console.warn("디스패치 상태 확인 실패");
+      await loadPending();
+      return;
+    }
+
+    const { data: dispatch } = await dispatchRes.json();
+    const validDispatchStatuses = ["TRIP_READY", "TRIP_REQUEST"];
+
+    if (!validDispatchStatuses.includes(dispatch.status)) {
+      console.warn("디스패치 상태 무효, 대기 콜로 이동");
+      await loadPending();
+      return;
+    }
+
     const pathname = location.pathname;
 
     if (trip.status === "READY") {
@@ -56,14 +78,15 @@ async function checkActiveTrip() {
         location.href = `/driver/trips/active.html?tripId=${trip.tripId}`;
       }
     } else {
-      await loadPending(); // ENDED, CANCELED 등 → 대기 콜 로딩
+      await loadPending();
     }
 
   } catch (e) {
-    console.error("네트워크 예외:", e);
-    alert("서버 연결 중 문제가 발생했습니다.");
+    console.error("운행 상태 확인 예외:", e);
+    alert("운행 상태 확인 중 문제가 발생했습니다.");
   }
 }
+
 
 /* ================= 대기 콜 목록 ================= */
 async function loadPending() {
