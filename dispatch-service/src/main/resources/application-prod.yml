@@ -2,9 +2,9 @@ server:
   port: 8202
 
 spring:
-#  config:
-#    import:
-#      - secrets.yml
+  config:
+    import:
+      - secrets.yml
 
   datasource:
     url: jdbc:postgresql://localhost:5434/goodday_dispatch

@@ -9,27 +9,27 @@ spring:
     gateway:
       routes:
         - id: account-service
-          uri: http://host.docker.internal:8201
+          uri: http://localhost:8201
           predicates:
             - Path=/api/v*/auth/**,/api/v*/users/**,/api/v*/drivers/**,/api/v*/admin/users/** ,/internal/v*/account/**,
 
         - id: dispatch-service
-          uri: http://host.docker.internal:8202
+          uri: http://localhost:8202
           predicates:
             - Path=/api/v*/dispatches/**,/api/v*/admin/dispatches/**,/internal/v*/dispatches/**
 
         - id: trip-service
-          uri: http://host.docker.internal:8203
+          uri: http://localhost:8203
           predicates:
             - Path=/api/v*/trips/**,/api/v*/policies/**,/api/v*/admin/trips/**,/internal/v*/trips/**
 
         - id: payment-service
-          uri: http://host.docker.internal:8204
+          uri: http://localhost:8204
           predicates:
             - Path=/api/v*/payments/**,/api/v*/admin/payments/**,/internal/v*/payments/**,/api/v*/refunds/**,/api/v*/refund/requests/**,/api/v*/admin/refunds/**,/api/v*/admin/refund/requests/**
 
         - id: support-service
-          uri: http://host.docker.internal:8205
+          uri: http://localhost:8205
           predicates:
             - Path=/api/v*/supports/**,/api/v*/admin/supports/**,/internal/v*/supports/**
 
@@ -93,10 +93,10 @@ springdoc:
 eureka:
   client:
     service-url:
-      defaultZone: http://server:${eureka.port}/eureka/   # Docker 컨테이너 명|서비스 명 / localhost
+      defaultZone: http://localhost:${eureka.port}/eureka/   # Docker 컨테이너 명|서비스 명 / localhost
 
 
 management:
   zipkin:
     tracing:
-      endpoint: http://zipkin:${zipkin.port}/api/v2/spans
+      endpoint: http://localhost:${zipkin.port}/api/v2/spans

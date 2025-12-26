@@ -50,7 +50,7 @@ async function loadTrips() {
         const res = await fetch(
             `${API.TRIPS_BY_DRIVER(driverId)}?page=${page}&size=${size}`,
             { headers: defaultHeaders }
-        );
+        )
 
         if (!res.ok) throw new Error(res.status);
 
@@ -83,12 +83,12 @@ async function loadTrips() {
                 </div>
 
                 <div class="trip-info"><b>출발</b> ${t.pickupAddress}</div>
-                <div class="trip-info"><b>도착</b> ${t.dropoffAddress}</div>
-                <div class="trip-info"><b>요금</b> ${t.fare}원</div>
+                <div class="trip-info"><b>도착</b> ${t.destinationAddress}</div>
+                <div class="trip-info"><b>요금</b> ${t.finalFare}원</div>
 
                 <div class="trip-meta">
                     운행 ID: ${t.tripId}<br>
-                    종료 시각: ${t.endedAt ?? "-"}
+                    종료 시각: ${t.endTime ?? "-"}
                 </div>
             </div>
         `).join("");
