@@ -1,6 +1,7 @@
 package com.gooddaytaxi.payment.presentation.external.controller;
 
 import com.gooddaytaxi.common.core.dto.ApiResponse;
+import com.gooddaytaxi.common.core.dto.PageResponse;
 import com.gooddaytaxi.payment.application.command.payment.*;
 import com.gooddaytaxi.payment.application.result.payment.*;
 import com.gooddaytaxi.payment.application.service.PaymentService;
@@ -180,7 +181,7 @@ public class PaymentController {
     // 결제 검색
     // ===============================
     @GetMapping("/search")
-    public ResponseEntity<ApiResponse<Page<PaymentReadResponseDto>>> searchPayment(
+    public ResponseEntity<ApiResponse<PageResponse<PaymentReadResponseDto>>> searchPayment(
         @RequestParam(required = false) Integer page,
         @RequestParam(required = false) Integer size,
         @RequestParam(required = false) String method,
@@ -199,19 +200,28 @@ public class PaymentController {
                 sortBy, sortAscending
             );
 
-        Page<PaymentReadResult> result =
+        Page<PaymentReadResult> pageResult =
             paymentService.searchPayment(
                 command,
                 user.userId(),
                 user.role().name()
             );
 
-        return ResponseEntity.ok(
-            ApiResponse.success(
-                PaymentReadResponseMapper.toPageResponse(result)
-            )
-        );
+        PageResponse<PaymentReadResponseDto> response =
+            new PageResponse<>(
+                pageResult.getContent().stream()
+                    .map(PaymentReadResponseMapper::toResponse)
+                    .toList(),
+                pageResult.getNumber(),
+                pageResult.getSize(),
+                pageResult.getTotalElements(),
+                pageResult.getTotalPages(),
+                pageResult.isLast()
+            );
+
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
+
 
     // ===============================
     // 결제 전 금액 변경
