@@ -17,22 +17,6 @@ function guardPassenger() {
 }
 
 /**
- * 운행 상태 정리 (운행 종료 시 인디케이터 제거용)
- */
-function clearTripStatusIfEnded() {
-    const tripStatus = localStorage.getItem("tripStatus");
-    const hasUnpaid = localStorage.getItem("hasUnpaid");
-
-    // ❗ 미결제가 있으면 절대 지우지 마
-    if (tripStatus === "ENDED" && hasUnpaid !== "true") {
-        ["tripId", "tripStatus", "activeTrip"].forEach((key) =>
-            localStorage.removeItem(key)
-        );
-    }
-}
-
-
-/**
  * 대시보드 요약 정보 로딩
  */
 async function loadPassengerSummary() {
