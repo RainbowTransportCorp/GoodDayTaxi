@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>결제 취소됨 | Good Day Taxi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="stylesheet" href="/common/header-static.css">
+  <script src="/common/header-static.js" defer></script>
+
+  <style>
+    :root {
+      --warning: #f3a83b;
+      --bg: #f7f7fb;
+      --radius: 20px;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    main {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: calc(100vh - 80px);
+      padding: 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 40px 32px;
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      text-align: center;
+      max-width: 360px;
+      width: 100%;
+    }
+
+    .icon {
+      font-size: 44px;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      font-size: 20px;
+      margin-bottom: 8px;
+      color: var(--warning);
+    }
+
+    p {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border-radius: 999px;
+      border: none;
+      background: #eee;
+      color: #333;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+<header></header>
+<script>
+  document.addEventListener("DOMContentLoaded", async () => {
+    const res = await fetch("/common/header-static.html");
+    document.querySelector("header").innerHTML = await res.text();
+  });
+</script>
+
+<main>
+  <div class="card">
+    <div class="icon">⚠️</div>
+    <h1>결제가 취소되었어요</h1>
+    <p>승객이 결제를 취소했습니다.<br>확인이 필요합니다.</p>
+    <button class="btn" onclick="goHome()">홈으로</button>
+  </div>
+</main>
+
+<script>
+  function goHome() {
+    location.href = "/driver/dashboard/index.html";
+  }
+</script>
+
+</body>
+</html>

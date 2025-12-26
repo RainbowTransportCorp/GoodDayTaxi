@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>결제 내역 | Good Day Taxi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- 공통 헤더 -->
+  <link rel="stylesheet" href="/common/header-static.css">
+  <script src="/common/header-static.js" defer></script>
+
+  <style>
+    body {
+      margin: 0;
+      background: #f7f7fb;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    .container {
+      max-width: 520px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .payment-card {
+      background: white;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      margin-bottom: 16px;
+    }
+
+    .payment-status {
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    .payment-status.COMPLETED {
+      color: #4CAF50;
+    }
+
+    .payment-status.PENDING {
+      color: #FF9800;
+    }
+
+    .payment-status.FAILED {
+      color: #f44336;
+    }
+
+    .payment-status.REFUNDED {
+      color: #9c27b0;
+    }
+
+    .info {
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .meta {
+      font-size: 12px;
+      color: #888;
+    }
+  </style>
+</head>
+
+<body>
+<header></header>
+<script>
+  document.addEventListener("DOMContentLoaded", async () => {
+    const res = await fetch("/common/header-static.html");
+    document.querySelector("header").innerHTML = await res.text();
+  });
+</script>
+
+<div class="container">
+  <h1>💳 결제 내역</h1>
+  <div id="payment-list">로딩 중...</div>
+</div>
+
+<script>
+  const token = localStorage.getItem("accessToken");
+  const uuid = localStorage.getItem("userUuid");
+  const role = localStorage.getItem("role");
+
+  if (!token || !uuid || role !== "DRIVER") {
+    alert("잘못된 접근입니다.");
+    location.href = "/index.html";
+  }
+
+  const headers = {
+    "Authorization": `Bearer ${token}`,
+    "X-User-UUID": uuid,
+    "X-User-Role": "DRIVER"
+  };
+
+  async function loadPayments() {
+    const listEl = document.getElementById("payment-list");
+    try {
+      const res = await fetch(`/api/v1/payments/search?role=DRIVER&page=1&size=20`, {
+        headers
+      });
+
+      if (!res.ok) throw new Error("결제 내역 조회 실패");
+
+      const json = await res.json();
+      const items = json?.data?.content ?? [];
+
+      if (items.length === 0) {
+        listEl.textContent = "결제 내역이 없습니다.";
+        return;
+      }
+
+      listEl.innerHTML = items.map(p => `
+        <div class="payment-card">
+          <div class="payment-status ${p.status}">상태: ${getStatusLabel(p.status)}</div>
+          <div class="info">금액: ${Number(p.amount).toLocaleString()}원</div>
+          <div class="info">운행 출발지: ${p.trip?.pickupAddress ?? "-"}</div>
+          <div class="info">운행 도착지: ${p.trip?.destinationAddress ?? "-"}</div>
+          <div class="meta">결제 ID: ${p.paymentId}</div>
+          <div class="meta">운행 ID: ${p.trip?.tripId ?? "-"}</div>
+        </div>
+      `).join("");
+
+    } catch (e) {
+      console.error(e);
+      listEl.textContent = "결제 내역을 불러오는 데 실패했습니다.";
+    }
+  }
+
+  function getStatusLabel(status) {
+    switch (status) {
+      case "COMPLETED": return "결제 완료";
+      case "PENDING": return "결제 대기";
+      case "FAILED": return "결제 실패";
+      case "REFUNDED": return "환불 처리";
+      case "CANCELED": return "결제 취소";
+      default: return status;
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", loadPayments);
+</script>
+
+</body>
+</html>
