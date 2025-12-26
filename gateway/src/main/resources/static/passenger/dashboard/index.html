@@ -6,21 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- 공통 헤더 스타일 및 로직 -->
-    <link rel="stylesheet" href="/common/header-static.css">
-    <script src="/common/header-static.js" defer></script>
+    <link rel="stylesheet" href="/common/header.css">
+    <script src="/common/header.js" defer></script>
 
     <!-- 페이지 전용 스타일 -->
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-<header></header>
-<script>
-    document.addEventListener("DOMContentLoaded", async () => {
-        const res = await fetch("/common/header-static.html");
-        document.querySelector("header").innerHTML = await res.text();
-    });
-</script>
+<header class="header"></header>
 <main class="dashboard">
     <h1 class="dashboard-title">🚕 승객 대시보드</h1>
 
