@@ -59,10 +59,6 @@ spring:
               /passenger/payments/processing.html,
               /passenger/payments/success.html,
               /passenger/payments/fail.html,
-              /driver/trips/active.html,
-              /driver/trips/ready.html,
-              /driver/trips/ended.html,
-              /driver/dashboard/index.html,
 
 
 # ============================
