@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>운행중 - 드라이버</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="/common/header-static.css">
+    <link rel="stylesheet" href="/common/header.css">
     <script src="/common/header-static.js" defer></script>
     <style>
         body {
@@ -84,7 +84,7 @@
     document.getElementById("destination").textContent =
         trip.destinationAddress ?? "-";
 
-    localStorage.setItem("tripId", trip.id);
+    localStorage.setItem("tripId", trip.tripId);
     localStorage.setItem("tripStatus", trip.status);
   }
 

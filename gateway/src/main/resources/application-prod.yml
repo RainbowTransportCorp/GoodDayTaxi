@@ -54,7 +54,6 @@ spring:
           uri: forward:/
           predicates:
             - Path=/index.html,
-              /common/header-static.css,
               /passenger/payments/checkout.html,
               /passenger/payments/processing.html,
               /passenger/payments/success.html,

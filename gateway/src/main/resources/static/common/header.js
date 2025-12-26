@@ -1,5 +1,6 @@
-/* ===== Common Header Logic ===== */
-
+/* ==================================================
+ * 공통 유틸
+ * ================================================== */
 function getToken() {
     return localStorage.getItem("accessToken");
 }
@@ -20,63 +21,75 @@ function logout() {
     localStorage.clear();
     location.href = "/index.html";
 }
-function removeTripState() {
+
+/* ==================================================
+ * Trip State 관리
+ * ================================================== */
+function clearDriverTripState() {
     localStorage.removeItem("tripId");
     localStorage.removeItem("tripStatus");
 }
 
-/* ================= 공통: 디스패치 유효성 검사 ================= */
+function clearPassengerTripState() {
+    localStorage.removeItem("tripId");
+    localStorage.removeItem("tripStatus");
+    localStorage.removeItem("dispatchId");
+    localStorage.removeItem("hasUnpaid");
+}
+
+/* ==================================================
+ * Driver 전용
+ * ================================================== */
 async function isValidDriverDispatch(dispatchId) {
     try {
         const res = await fetch(`/api/v1/dispatches/${dispatchId}`, {
             headers: {
-                "Authorization": `Bearer ${getToken()}`,
+                Authorization: `Bearer ${getToken()}`,
                 "X-User-UUID": getUserUuid(),
-                "X-User-Role": "DRIVER"
-            }
+                "X-User-Role": "DRIVER",
+            },
         });
-
         if (!res.ok) return false;
         const { data } = await res.json();
-        return data && ["TRIP_REQUEST", "TRIP_READY"].includes(data.status);
-    } catch (e) {
-        console.warn("🚨 디스패치 상태 확인 실패", e);
+        return ["TRIP_REQUEST", "TRIP_READY"].includes(data?.status);
+    } catch {
         return false;
     }
 }
 
-/* ================= 서버 기준 운행 상태 동기화 (기사) ================= */
 async function syncDriverTripStatus() {
+    if (getRole() !== "DRIVER") return;
+
     const token = getToken();
     const uuid = getUserUuid();
     if (!token || !uuid) {
-        removeTripState();
+        clearDriverTripState();
         return;
     }
 
     try {
         const res = await fetch("/api/v1/trips/drivers/active", {
             headers: {
-                "Authorization": `Bearer ${token}`,
+                Authorization: `Bearer ${token}`,
                 "X-User-UUID": uuid,
-                "X-User-Role": "DRIVER"
-            }
+                "X-User-Role": "DRIVER",
+            },
         });
 
         if (!res.ok) {
-            removeTripState();
+            clearDriverTripState();
             return;
         }
 
         const { data: trip } = await res.json();
         if (!trip?.tripId || !trip?.dispatchId) {
-            removeTripState();
+            clearDriverTripState();
             return;
         }
 
         const valid = await isValidDriverDispatch(trip.dispatchId);
         if (!valid) {
-            removeTripState();
+            clearDriverTripState();
             return;
         }
 
@@ -84,121 +97,121 @@ async function syncDriverTripStatus() {
             localStorage.setItem("tripId", trip.tripId);
             localStorage.setItem("tripStatus", trip.status);
         } else {
-            removeTripState();
+            clearDriverTripState();
         }
-
-    } catch (e) {
-        console.warn("🚨 기사 운행 상태 동기화 실패", e);
-        removeTripState();
+    } catch {
+        clearDriverTripState();
     }
 }
 
-/* ================= 미결제 건 확인 (승객) ================= */
-/* ================= 미결제 건 확인 (승객) ================= */
+function renderDriverIndicators() {
+    if (getRole() !== "DRIVER") return;
+
+    const indicatorBox = document.getElementById("top-indicators");
+    if (!indicatorBox) return;
+
+    indicatorBox.innerHTML = "";
+
+    const tripId = localStorage.getItem("tripId");
+    const tripStatus = localStorage.getItem("tripStatus");
+    if (!tripId || !["READY", "STARTED"].includes(tripStatus)) return;
+
+    const btn = document.createElement("button");
+    btn.className = "btn-indicator";
+    btn.innerHTML = "🚕 운행중";
+    btn.onclick = goToActiveTrip; // ✅ FIX
+
+    indicatorBox.appendChild(btn);
+}
+
+/* ==================================================
+ * Passenger 전용: 미결제 체크
+ * ================================================== */
 async function checkUnpaidTripForPassenger() {
+    if (getRole() !== "PASSENGER") return;
+
     const token = getToken();
     const uuid = getUserUuid();
-    if (!token || !uuid || getRole() !== "PASSENGER") return;
+    if (!token || !uuid) return;
 
     try {
         const res = await fetch(
             `/api/v1/payments/search?status=PENDING&searchPeriod=ALL&page=0&size=1&sortBy=createdAt&sortAscending=false`,
             {
                 headers: {
-                    "Authorization": `Bearer ${token}`,
+                    Authorization: `Bearer ${token}`,
                     "X-User-UUID": uuid,
-                    "X-User-Role": "PASSENGER"
-                }
+                    "X-User-Role": "PASSENGER",
+                },
             }
         );
-
         if (!res.ok) return;
 
         const json = await res.json();
-        const content = json?.data?.content;
-        if (!content || content.length === 0) return;
+        const payment = json?.data?.content?.[0];
+        if (!payment?.tripId) return;
 
-        const payment = content[0];
-        const tripId = payment.tripId;
-        const method = payment.method;
+        const tripRes = await fetch(`/api/v1/trips/${payment.tripId}`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                "X-User-UUID": uuid,
+                "X-User-Role": "PASSENGER",
+            },
+        });
+        if (!tripRes.ok) return;
 
-        // ✅ TOSS_PAY만 인디케이터 표시
-        if (!tripId || method !== "TOSS_PAY") return;
+        const { data: trip } = await tripRes.json();
+        if (trip.status !== "ENDED") return;
 
-        localStorage.setItem("tripId", tripId);
+        localStorage.setItem("tripId", payment.tripId);
         localStorage.setItem("tripStatus", "ENDED");
+        localStorage.setItem("hasUnpaid", "true");
 
-        const indicatorBox = document.getElementById("top-indicators") || document.getElementById("header-indicators");
+        if (payment.method !== "TOSS_PAY") return;
+
+        const indicatorBox = document.getElementById("top-indicators");
         if (!indicatorBox) return;
+        if (indicatorBox.querySelector(".btn-unpaid")) return;
 
         const btn = document.createElement("button");
-        btn.className = "btn-indicator";
+        btn.className = "btn-indicator btn-unpaid";
         btn.innerHTML = "💳 미결제";
-        btn.onclick = () => {
-            location.href = `/passenger/trips/ended.html?tripId=${tripId}`;
-        };
-        indicatorBox.appendChild(btn);
+        btn.onclick = goToUnpaidPage; // ✅ FIX
 
+        indicatorBox.appendChild(btn);
     } catch (e) {
-        console.warn("🚨 승객 미결제 확인 실패", e);
+        console.warn("🚨 미결제 체크 실패", e);
     }
 }
 
-
-/* ================= Indicator Rendering ================= */
-function renderDriverIndicators() {
-    const indicatorBox =
-        document.getElementById("top-indicators") ||
-        document.getElementById("header-indicators");
-
-    if (!indicatorBox) return;
-    indicatorBox.innerHTML = "";
-
-    const tripId = localStorage.getItem("tripId");
-    const tripStatus = localStorage.getItem("tripStatus");
-
-    if (!tripId || !["READY", "STARTED"].includes(tripStatus)) return;
-
-    const btn = document.createElement("button");
-    btn.className = "btn-indicator";
-    btn.innerHTML = "🚕 운행중";
-    btn.onclick = () => {
-        location.href = `/driver/trips/${tripStatus.toLowerCase()}.html?tripId=${tripId}`;
-    };
-
-    indicatorBox.appendChild(btn);
-}
-
-/* ================= Init ================= */
+/* ==================================================
+ * Header Init
+ * ================================================== */
 document.addEventListener("DOMContentLoaded", async () => {
     const headerContainer = document.querySelector("header");
     if (!headerContainer) return;
 
-    try {
-        const res = await fetch("/common/header.html");
-        headerContainer.innerHTML = await res.text();
-    } catch (e) {
-        console.error("❌ header.html 로드 실패", e);
-        return;
-    }
+    const res = await fetch("/common/header.html");
+    headerContainer.innerHTML = await res.text();
 
-    const nameEl = document.getElementById("user-name");
-    if (nameEl) nameEl.textContent = `${getDisplayName()}님`;
+    document.getElementById("user-name").textContent =
+        `${getDisplayName()}님`;
 
     const subEl = document.getElementById("brand-sub");
     if (subEl) {
-        const role = getRole();
         subEl.textContent =
-            role === "PASSENGER" ? "승객" :
-                role === "DRIVER" ? "기사" :
-                    role === "ADMIN" ? "관리자" :
-                        role === "MASTER_ADMIN" ? "최고 관리자" : "서비스";
+            getRole() === "PASSENGER" ? "승객" :
+                getRole() === "DRIVER" ? "기사" :
+                    getRole() === "ADMIN" ? "관리자" :
+                        getRole() === "MASTER_ADMIN" ? "최고 관리자" : "서비스";
     }
 
     if (getRole() === "DRIVER") {
         await syncDriverTripStatus();
         renderDriverIndicators();
-    } else if (getRole() === "PASSENGER") {
+    }
+
+    if (getRole() === "PASSENGER") {
         await checkUnpaidTripForPassenger();
     }
 });

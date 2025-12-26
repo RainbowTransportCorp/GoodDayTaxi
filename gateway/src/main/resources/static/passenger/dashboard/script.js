@@ -21,12 +21,16 @@ function guardPassenger() {
  */
 function clearTripStatusIfEnded() {
     const tripStatus = localStorage.getItem("tripStatus");
-    if (tripStatus === "ENDED") {
+    const hasUnpaid = localStorage.getItem("hasUnpaid");
+
+    // ❗ 미결제가 있으면 절대 지우지 마
+    if (tripStatus === "ENDED" && hasUnpaid !== "true") {
         ["tripId", "tripStatus", "activeTrip"].forEach((key) =>
             localStorage.removeItem(key)
         );
     }
 }
+
 
 /**
  * 대시보드 요약 정보 로딩
