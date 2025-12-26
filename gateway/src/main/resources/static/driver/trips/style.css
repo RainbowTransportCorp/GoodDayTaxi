@@ -112,3 +112,14 @@ body {
     border-radius: 999px;
     cursor: pointer;
 }
+
+.paid-label.warning {
+    color: #f44336;
+    font-weight: bold;
+}
+
+.paid-label.success { color: #2e7d32; font-weight: bold; }
+.paid-label.info    { color: #0277bd; }
+.paid-label.error   { color: #d32f2f; font-weight: bold; }
+.paid-label.cancel  { color: #616161; }
+.paid-label.refund  { color: #6a1b9a; }
