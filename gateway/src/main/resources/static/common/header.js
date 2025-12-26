@@ -3,37 +3,29 @@
 function getToken() {
     return localStorage.getItem("accessToken");
 }
-
 function getRole() {
     return localStorage.getItem("role");
 }
-
 function getEmail() {
     return localStorage.getItem("email");
 }
-
 function getUserUuid() {
     return localStorage.getItem("userUuid");
 }
-
 function getDisplayName() {
     const email = getEmail();
-    if (!email) return "사용자";
-    return email.split("@")[0];
+    return email ? email.split("@")[0] : "사용자";
 }
-
 function logout() {
     localStorage.clear();
     location.href = "/index.html";
 }
-
 function removeTripState() {
     localStorage.removeItem("tripId");
     localStorage.removeItem("tripStatus");
 }
 
 /* ================= 공통: 디스패치 유효성 검사 ================= */
-
 async function isValidDriverDispatch(dispatchId) {
     try {
         const res = await fetch(`/api/v1/dispatches/${dispatchId}`, {
@@ -45,11 +37,8 @@ async function isValidDriverDispatch(dispatchId) {
         });
 
         if (!res.ok) return false;
-
         const { data } = await res.json();
-        if (!data || !data.status) return false;
-
-        return ["TRIP_REQUEST", "TRIP_READY"].includes(data.status);
+        return data && ["TRIP_REQUEST", "TRIP_READY"].includes(data.status);
     } catch (e) {
         console.warn("🚨 디스패치 상태 확인 실패", e);
         return false;
@@ -57,7 +46,6 @@ async function isValidDriverDispatch(dispatchId) {
 }
 
 /* ================= 서버 기준 운행 상태 동기화 (기사) ================= */
-
 async function syncDriverTripStatus() {
     const token = getToken();
     const uuid = getUserUuid();
@@ -80,15 +68,12 @@ async function syncDriverTripStatus() {
             return;
         }
 
-        const json = await res.json();
-        const trip = json?.data;
-
-        if (!trip || !trip.tripId || !trip.dispatchId) {
+        const { data: trip } = await res.json();
+        if (!trip?.tripId || !trip?.dispatchId) {
             removeTripState();
             return;
         }
 
-        // ⭐ 핵심: 디스패치 상태 검증
         const valid = await isValidDriverDispatch(trip.dispatchId);
         if (!valid) {
             removeTripState();
@@ -108,15 +93,65 @@ async function syncDriverTripStatus() {
     }
 }
 
-/* ================= Indicator Rendering ================= */
+/* ================= 미결제 건 확인 (승객) ================= */
+/* ================= 미결제 건 확인 (승객) ================= */
+async function checkUnpaidTripForPassenger() {
+    const token = getToken();
+    const uuid = getUserUuid();
+    if (!token || !uuid || getRole() !== "PASSENGER") return;
 
+    try {
+        const res = await fetch(
+            `/api/v1/payments/search?status=PENDING&searchPeriod=ALL&page=0&size=1&sortBy=createdAt&sortAscending=false`,
+            {
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "X-User-UUID": uuid,
+                    "X-User-Role": "PASSENGER"
+                }
+            }
+        );
+
+        if (!res.ok) return;
+
+        const json = await res.json();
+        const content = json?.data?.content;
+        if (!content || content.length === 0) return;
+
+        const payment = content[0];
+        const tripId = payment.tripId;
+        const method = payment.method;
+
+        // ✅ TOSS_PAY만 인디케이터 표시
+        if (!tripId || method !== "TOSS_PAY") return;
+
+        localStorage.setItem("tripId", tripId);
+        localStorage.setItem("tripStatus", "ENDED");
+
+        const indicatorBox = document.getElementById("top-indicators") || document.getElementById("header-indicators");
+        if (!indicatorBox) return;
+
+        const btn = document.createElement("button");
+        btn.className = "btn-indicator";
+        btn.innerHTML = "💳 미결제";
+        btn.onclick = () => {
+            location.href = `/passenger/trips/ended.html?tripId=${tripId}`;
+        };
+        indicatorBox.appendChild(btn);
+
+    } catch (e) {
+        console.warn("🚨 승객 미결제 확인 실패", e);
+    }
+}
+
+
+/* ================= Indicator Rendering ================= */
 function renderDriverIndicators() {
     const indicatorBox =
         document.getElementById("top-indicators") ||
         document.getElementById("header-indicators");
 
     if (!indicatorBox) return;
-
     indicatorBox.innerHTML = "";
 
     const tripId = localStorage.getItem("tripId");
@@ -135,7 +170,6 @@ function renderDriverIndicators() {
 }
 
 /* ================= Init ================= */
-
 document.addEventListener("DOMContentLoaded", async () => {
     const headerContainer = document.querySelector("header");
     if (!headerContainer) return;
@@ -164,5 +198,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (getRole() === "DRIVER") {
         await syncDriverTripStatus();
         renderDriverIndicators();
+    } else if (getRole() === "PASSENGER") {
+        await checkUnpaidTripForPassenger();
     }
 });

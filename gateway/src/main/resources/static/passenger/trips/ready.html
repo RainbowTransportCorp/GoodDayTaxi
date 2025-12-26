@@ -5,7 +5,7 @@
   <title>운행 대기 중 | Good day Taxi</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <!-- ✅ 공통 헤더 포함 -->
+  <!-- ✅ 공통 헤더 -->
   <link rel="stylesheet" href="/common/header.css">
   <script src="/common/header.js" defer></script>
 
@@ -62,7 +62,6 @@
 </head>
 <body>
 
-<!-- ✅ 공통 헤더 -->
 <header class="header"></header>
 
 <div class="container">
@@ -86,70 +85,69 @@
 </div>
 
 <script>
-  const userUuid = localStorage.getItem("userUuid");
   const token = localStorage.getItem("accessToken");
+  const uuid = localStorage.getItem("userUuid");
+  const role = localStorage.getItem("role");
 
-  if (!userUuid || !token) {
+  if (!token || !uuid || role !== "PASSENGER") {
     alert("잘못된 접근입니다.");
     location.href = "/index.html";
   }
 
-  const defaultHeaders = {
+  const headers = {
     "Authorization": `Bearer ${token}`,
-    "X-User-UUID": userUuid,
+    "X-User-UUID": uuid,
     "X-User-Role": "PASSENGER"
   };
 
   async function fetchTripInfo() {
     try {
-      const res = await fetch("/api/v1/trips/passengers/active", {
-        headers: defaultHeaders
-      });
+      const res = await fetch("/api/v1/trips/passengers/active", { headers });
 
-      if (!res.ok) {
-        if (res.status === 404 || res.status === 204) {
-          location.href = "/passenger/dashboard/index.html";
-          return;
-        }
-
-        if (res.status === 401 || res.status === 403) {
-          alert("세션이 만료되었습니다. 다시 로그인해주세요.");
-          location.href = "/index.html";
-          return;
-        }
-
-        throw new Error("Trip fetch failed");
+      if (res.status === 401 || res.status === 403) {
+        alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+        location.href = "/index.html";
+        return;
       }
 
-      const { data: trip } = await res.json();
-
-      if (!trip || !trip.status) {
+      if (res.status === 404 || res.status === 204) {
         location.href = "/passenger/dashboard/index.html";
         return;
       }
 
-      // ✅ 상태 렌더링
-      document.getElementById("pickup").textContent = trip.pickupAddress ?? "-";
-      document.getElementById("destination").textContent = trip.destinationAddress ?? "-";
+      const { data: trip } = await res.json();
 
-      // ✅ 인디케이터 노출을 위한 상태 저장
+      if (!trip || !trip.status || !trip.id) {
+        location.href = "/passenger/dashboard/index.html";
+        return;
+      }
+
+      // 상태 저장
       localStorage.setItem("tripId", trip.id);
       localStorage.setItem("tripStatus", trip.status);
 
-      // ✅ 상태 변화에 따른 페이지 이동
+      // 화면 출력
+      document.getElementById("pickup").textContent = trip.pickupAddress ?? "-";
+      document.getElementById("destination").textContent = trip.destinationAddress ?? "-";
+
+      // 상태 변화 감지 및 분기
       switch (trip.status) {
         case "READY":
-          // stay on this page
+          // Stay here
           break;
+
         case "STARTED":
           location.href = `/passenger/trips/active.html?tripId=${trip.id}`;
           break;
+
         case "ENDED":
-          location.href = `/passenger/trips/ended.html`;
+          // 결제 상태 확인 후 분기
+          await handleEndedTrip(trip.id);
+          break;
+
+        default:
           localStorage.removeItem("tripId");
           localStorage.removeItem("tripStatus");
-          break;
-        default:
           location.href = "/passenger/dashboard/index.html";
       }
 
@@ -159,6 +157,33 @@
     }
   }
 
+  async function handleEndedTrip(tripId) {
+    try {
+      const res = await fetch(`/api/v1/payments?tripId=${tripId}`, { headers });
+
+      if (!res.ok) {
+        location.href = `/passenger/payments/index.html?tripId=${tripId}`;
+        return;
+      }
+
+      const { data: payment } = await res.json();
+
+      if (payment?.status === "COMPLETED") {
+        location.href = "/passenger/payments/success.html";
+      } else {
+        location.href = `/passenger/payments/index.html?tripId=${tripId}`;
+      }
+
+    } catch (e) {
+      console.error("결제 상태 확인 실패", e);
+      location.href = `/passenger/payments/index.html?tripId=${tripId}`;
+    } finally {
+      localStorage.removeItem("tripId");
+      localStorage.removeItem("tripStatus");
+    }
+  }
+
+  // 초기 실행 + polling
   fetchTripInfo();
   setInterval(fetchTripInfo, 5000);
 </script>

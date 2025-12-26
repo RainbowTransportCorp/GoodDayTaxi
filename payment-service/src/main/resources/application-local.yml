@@ -5,7 +5,7 @@ spring:
 #  profiles:
 #    active: ${SPRING_PROFILES.ACTIVE:docker}
   config:
-    import: secrets.yaml
+    import: secrets.yml
   application:
     name: payment-service
 
