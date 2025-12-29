@@ -2,7 +2,7 @@ spring:
   application:
     name: dispatch-service
   profiles:
-    active: ${active.profiles};
+    active: ${active.profiles:prod};
 
   main:
     web-application-type: servlet
