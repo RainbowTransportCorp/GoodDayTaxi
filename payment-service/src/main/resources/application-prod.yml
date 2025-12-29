@@ -1,3 +1,4 @@
+
 server:
   port: ${SERVICE_PORT:8204}
 
@@ -69,3 +70,4 @@ payment:
 
 toss:
   secret-key: ${toss.test-secret-key}
+

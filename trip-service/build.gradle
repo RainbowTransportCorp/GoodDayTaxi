@@ -22,7 +22,7 @@ dependencyManagement {
 
 
 repositories {
-    mavenLocal()
+//    mavenLocal()
     mavenCentral()
     maven { url "https://repo.spring.io/release" }
 }
@@ -42,9 +42,9 @@ dependencies {
     // Eureka Client
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 
-    // Common module
-    implementation 'com.gooddaytaxi:common-core:0.0.5-SNAPSHOT'
-    implementation 'com.gooddaytaxi:common-jpa:0.0.5-SNAPSHOT'
+    // 🔥 Common JAR 직접 의존
+    implementation files('../common-core/build/libs/common-core-0.0.5-SNAPSHOT.jar')
+    implementation files('../common-jpa/build/libs/common-jpa-0.0.5-SNAPSHOT.jar')
 
     // Lombok
     compileOnly 'org.projectlombok:lombok'
@@ -76,4 +76,8 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
 }

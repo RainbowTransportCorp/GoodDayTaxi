@@ -12,20 +12,20 @@ COPY build.gradle settings.gradle ./
 COPY src src
 
 RUN chmod +x gradlew
-RUN --mount=type=cache,target=/home/gradle/.gradle \
-    ./gradlew clean bootJar -x test
+RUN ./gradlew bootJar -x test --no-daemon
 
 # ============================
 # 2) Run Stage
 # ============================
-FROM eclipse-temurin:17-jre
+FROM eclipse-temurin:17-jre AS runtime
 WORKDIR /app
 
 COPY --from=builder /workspace/build/libs/*.jar app.jar
 
-# Eureka 기본 포트
-EXPOSE 8761
+# 스프링 기본 8080
+EXPOSE 8080
 
+# 필요하면 compose에서 JAVA_OPTS로 넣기
 ENV JAVA_OPTS=""
 
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]

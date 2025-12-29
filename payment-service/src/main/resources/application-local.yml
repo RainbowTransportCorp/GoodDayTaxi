@@ -1,3 +1,4 @@
+
 server:
   port: ${service.port}
 
@@ -38,6 +39,7 @@ spring:
 #        max.block.ms: 1000    #브로커가 막혀도 1초이상 막히지 않음
 #        request.timeout.ms: 1000   #브로커의 응답을 기다리는 시간
 #        delivery.timeout.ms: 2000   #전달 완료되기까지 허용하는 전체 시간의 최대치, 못하면 실패 처리
+
     consumer:
       group-id: payment-service
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer

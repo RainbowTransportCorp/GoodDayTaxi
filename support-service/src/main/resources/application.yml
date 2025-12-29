@@ -31,6 +31,7 @@ spring:
 
   kafka:
     bootstrap-servers: ${kafka.external.host}:${kafka.external.port}
+
     # Consumer 설정
     consumer:
       auto-offset-reset: earliest
@@ -39,10 +40,12 @@ spring:
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       max-poll-records: 1000
       isolation-level: read_committed
+
     listener:
       ack-mode: record
       concurrency: 1 # 동일한 Kafka topic에 대해 동시에 1개의 Consumer thread로 처리
       poll-timeout: 3000
+      
     # Producer 설정
 #    producer:
 #      key-serializer: org.apache.kafka.common.serialization.StringSerializer
@@ -79,6 +82,7 @@ management:
   tracing:
     sampling:
       probability: 1.0
+
   zipkin:
     tracing:
       endpoint: "http://localhost:${zipkin.port}/api/v2/spans"
@@ -100,3 +104,4 @@ slack:
 logging:
   level:
     com.gooddaytaxi.support: DEBUG # INFO, DEBUG, WARN, ERROR
+

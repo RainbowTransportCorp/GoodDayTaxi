@@ -95,10 +95,12 @@ eureka:
     service-url:
       defaultZone: http://${EUREKA_HOSTNAME:10.1.0.61}:${EUREKA_PORT:8761}/eureka/
 
+
 management:
   zipkin:
     tracing:
       endpoint: http://${ZIPKIN_HOSTNAME:10.1.0.61}:${ZIPKIN_PORT:9411}/api/v2/spans
+
 
 jwt:
   secret-key: ${JWT_SECRET_KEY}

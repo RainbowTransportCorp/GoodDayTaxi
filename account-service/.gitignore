@@ -38,3 +38,5 @@ out/
 secrets.yaml
 secrets.yml
 application-secrets.yaml
+application-secrets.yml
+
