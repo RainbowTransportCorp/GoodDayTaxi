@@ -1,21 +1,21 @@
 spring:
   config:
     activate:
-      on-profile: local
+      on-profile: prod
 
   datasource:
-    url: jdbc:postgresql://${postgres.host.local:localhost}:5436/${postgres.db:goodday_payment}
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5436}/${DB_NAME:goodday_payment}
     driver-class-name: org.postgresql.Driver
-    username: ${postgres.user:payment}
-    password: ${postgres.password:payment1234}
+    username: ${DB_USER:payment}
+    password: ${DB_PASSWORD:payment1234}
     hikari:
       connection-init-sql: "SET lock_timeout TO '3s'"
 
   data:
     redis:
-      host: localhost
-      port: 6379
-      database: 0
+      host: ${REDIS_HOSTNAME:localhost}
+      port: ${REDIS_PORT:6379}
+      database: ${REDIS_DB:0}
 
   jpa:
     hibernate:
@@ -26,7 +26,7 @@ spring:
         show_sql: false
 
   kafka:
-    bootstrap-servers: localhost:${kafka.port:9092}
+    bootstrap-servers: ${KAFKA_HOSTNAME:localhost}:${KAFKA_PORT:9092}
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
@@ -37,17 +37,27 @@ spring:
       auto-offset-reset: earliest
       enable-auto-commit: false
 
-
+server:
+  port: ${PAYMENT_SERVICE_PORT:8204}
 
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:${eureka.port:8761}/eureka/
+      defaultZone: http://${EUREKA_HOSTNAME:localhost}:${EUREKA_PORT:8761}/eureka/
 
 management:
   zipkin:
     tracing:
-      endpoint: http://localhost:${zipkin.port:9411}/api/v2/spans
+      endpoint: http://${ZIPKIN_HOSTNAME:localhost}:${ZIPKIN_PORT:9411}/api/v2/spans
+
+logging:
+  level:
+    root: INFO
+    com.gooddaytaxi: INFO
+    org.springframework: WARN
+    org.hibernate: WARN
+    org.hibernate.SQL: OFF
+    org.hibernate.orm.jdbc.bind: OFF
 
 toss:
-  secret-key: ${toss.test-secret-key:}
+  secret-key: ${TOSS_SECRET_KEY:}
