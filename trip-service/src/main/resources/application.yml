@@ -3,9 +3,7 @@ server:
 
 spring:
   profiles:
-    active: ${profiles.active}
-  config:
-    import: secrets.yaml
+    active: ${SPRING_PROFILES_ACTIVE:prod}
   application:
     name: trip-service
 

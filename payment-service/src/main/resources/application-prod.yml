@@ -1,5 +1,5 @@
 server:
-  port: 8202
+  port: ${SERVICE_PORT:8204}
 
 spring:
   config:
@@ -7,16 +7,17 @@ spring:
       - secrets.yml
 
   datasource:
-    url: jdbc:postgresql://localhost:5434/goodday_dispatch
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5436}/${DB_NAME:goodday_payment}
     driver-class-name: org.postgresql.Driver
-    username: dispatch
-    password: dispatch1234
+    username: ${DB_USER:payment}
+    password: ${DB_PASSWORD:payment1234}
 
   jpa:
     hibernate:
       ddl-auto: validate
     properties:
       hibernate:
+        format_sql: false
         show_sql: false
 
   data:
@@ -40,7 +41,8 @@ spring:
 
 kafka:
   topic:
-    dispatch: dispatch-topic
+    payment: payment-topic
+
 
 eureka:
   client:
@@ -55,10 +57,15 @@ management:
 logging:
   level:
     root: INFO
-    com.gooddaytaxi.dispatch: INFO
-    # 프레임워크 소음 줄이기
+    com.gooddaytaxi: INFO
     org.springframework: WARN
     org.hibernate: WARN
-    # 쿼리 로그 비활성화
     org.hibernate.SQL: OFF
     org.hibernate.orm.jdbc.bind: OFF
+
+payment:
+  event:
+    payload-version: 1
+
+toss:
+  secret-key: ${toss.test-secret-key}

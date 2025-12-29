@@ -2,12 +2,8 @@ server:
   port: ${service.port}
 
 spring:
-#  profiles:
-#    active: ${SPRING_PROFILES.ACTIVE:docker}
   config:
     import: secrets.yml
-  application:
-    name: payment-service
 
   datasource:
     url: jdbc:postgresql://localhost:5436/${postgres.db}

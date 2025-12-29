@@ -39,5 +39,10 @@
       "name": "zipkin.port",
       "type": "java.lang.String",
       "description": "Description for zipkin.port."
+    },
+    {
+      "name": "kafka.topic.payment",
+      "type": "java.lang.String",
+      "description": "Description for kafka.topic.payment."
     }
   ] }

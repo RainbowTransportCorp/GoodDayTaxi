@@ -2,7 +2,7 @@ spring:
   application:
     name: dispatch-service
   profiles:
-    active: prod
+    active: ${SPRING_PROFILES_ACTIVE:prod}
 
   main:
     web-application-type: servlet
@@ -31,11 +31,11 @@ management:
     tags:
       application: dispatch-service
 
-#springdoc:
-#  api-docs:
-#    path: /v3/api-docs
-#  swagger-ui:
-#    path: /swagger-ui.html
-#    tags-sorter: alpha
-#    operations-sorter: alpha
-#  packages-to-scan: com.gooddaytaxi.dispatch.presentation.external.controller
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  packages-to-scan: com.gooddaytaxi.dispatch.presentation.external.controller

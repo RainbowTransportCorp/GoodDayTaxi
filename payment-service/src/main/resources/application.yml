@@ -2,7 +2,7 @@ spring:
   application:
     name: payment-service
   profiles:
-    active: local
+    active: ${SPRING_PROFILES_ACTIVE:prod}
 
   main:
     web-application-type: servlet
@@ -38,4 +38,4 @@ management:
 #    path: /swagger-ui.html
 #    tags-sorter: alpha
 #    operations-sorter: alpha
-#  packages-to-scan: com.gooddaytaxi.dispatch.presentation.external.controller
+#  packages-to-scan: com.gooddaytaxi.payment.presentation.external.controller
