@@ -1,6 +1,7 @@
 package com.gooddaytaxi.dispatch.application.service.driver;
 
 import com.gooddaytaxi.dispatch.application.event.payload.DispatchAcceptedPayload;
+import com.gooddaytaxi.dispatch.application.exception.auth.DispatchNotAssignedDriverException;
 import com.gooddaytaxi.dispatch.application.port.out.command.DispatchAcceptedCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.command.DispatchCommandPort;
 import com.gooddaytaxi.dispatch.application.port.out.query.DispatchQueryPort;
@@ -10,7 +11,7 @@ import com.gooddaytaxi.dispatch.application.service.dispatch.DispatchTripRequest
 import com.gooddaytaxi.dispatch.application.usecase.accept.DispatchAcceptCommand;
 import com.gooddaytaxi.dispatch.application.usecase.accept.DispatchAcceptPermissionValidator;
 import com.gooddaytaxi.dispatch.application.usecase.accept.DispatchAcceptResult;
-import com.gooddaytaxi.dispatch.application.exception.auth.DispatchNotAssignedDriverException;
+import com.gooddaytaxi.dispatch.domain.exception.dispatch.DispatchAlreadyAssignedByOthersException;
 import com.gooddaytaxi.dispatch.domain.model.entity.Dispatch;
 import com.gooddaytaxi.dispatch.domain.model.entity.DispatchAssignmentLog;
 import com.gooddaytaxi.dispatch.domain.model.enums.ChangedBy;
@@ -18,7 +19,9 @@ import com.gooddaytaxi.dispatch.domain.model.enums.DispatchStatus;
 import com.gooddaytaxi.dispatch.domain.model.enums.HistoryEventType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
+
 
 @Slf4j
 @Service
@@ -36,9 +39,23 @@ public class DispatchAcceptService {
     private final DispatchAcceptPermissionValidator dispatchAcceptPermissionValidator;
 
     /**
-     * 배차 요청 수락 서비스 (락 미적용 – Baseline 테스트용)
+     * 배차 요청 수락 서비스 (낙관락 + 1회 리트라이)
      */
     public DispatchAcceptResult accept(DispatchAcceptCommand command) {
+
+        try {
+            return doAccept(command);
+        } catch (ObjectOptimisticLockingFailureException e) {
+            log.warn(
+                "[Accept][OPTIMISTIC-LOCK] 충돌 발생 - retry 시도 dispatchId={} driverId={}",
+                command.getDispatchId(),
+                command.getDriverId()
+            );
+            return retryAccept(command);
+        }
+    }
+
+    private DispatchAcceptResult doAccept(DispatchAcceptCommand command) {
 
         log.info("[Accept] 요청 수신 - driverId={} dispatchId={}",
             command.getDriverId(), command.getDispatchId());
@@ -63,7 +80,7 @@ public class DispatchAcceptService {
 
         DispatchStatus before = dispatch.getDispatchStatus();
 
-        // 🚨 동시성 보호 없음
+        // 낙관락 적용 구간
         dispatch.assignedTo(command.getDriverId());
         dispatch.accept();
         logEntry.accept();
@@ -72,7 +89,7 @@ public class DispatchAcceptService {
             dispatch.getDispatchId(), command.getDriverId());
 
         assignmentLogService.save(logEntry);
-        commandPort.save(dispatch);
+        commandPort.save(dispatch); // 🔥 여기서 낙관락 충돌 가능
 
         acceptedEventPort.publishAccepted(
             DispatchAcceptedPayload.from(dispatch, command.getDriverId())
@@ -103,5 +120,29 @@ public class DispatchAcceptService {
             .dispatchStatus(dispatch.getDispatchStatus())
             .acceptedAt(dispatch.getAcceptedAt())
             .build();
+    }
+
+    /**
+     * 낙관락 충돌 시 단 1회 재시도
+     */
+    private DispatchAcceptResult retryAccept(DispatchAcceptCommand command) {
+
+        Dispatch latest = queryPort.findById(command.getDispatchId());
+
+        log.debug(
+            "[Accept][RETRY] 최신 상태 확인 - dispatchId={} status={}",
+            latest.getDispatchId(),
+            latest.getDispatchStatus()
+        );
+
+        if (latest.getDispatchStatus() == DispatchStatus.ACCEPTED) {
+            log.warn(
+                "[Accept][RETRY] 이미 다른 기사에게 배정 완료 - dispatchId={}",
+                latest.getDispatchId()
+            );
+            throw new DispatchAlreadyAssignedByOthersException();
+        }
+
+        return doAccept(command);
     }
 }

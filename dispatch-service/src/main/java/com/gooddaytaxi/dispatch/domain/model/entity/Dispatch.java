@@ -25,6 +25,12 @@ public class Dispatch extends BaseEntity {
     @Column(name = "dispatch_id", nullable = false)
     private UUID dispatchId;
 
+    //낙관적 락을 위한 버전필드
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
+
+
     @Column(name = "passenger_id", nullable = false)
     private UUID passengerId;
 
