@@ -1,7 +1,6 @@
 spring:
-  config:
-    import:
-      - secrets.yaml
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:prod}
   application:
     name: server
 
