@@ -1,6 +1,21 @@
 spring:
+  application:
+    name: payment-service
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:prod}
+
+  main:
+    web-application-type: servlet
+
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
 
 management:
   tracing:
@@ -10,18 +25,16 @@ management:
     web:
       exposure:
         include: health,info,prometheus
+
   metrics:
     tags:
-      application: ${spring.application.name}
+      application: payment-service
 
-payment:
-  event:
-    payload-version: 1
-
-logging:
-  level:
-    feign: DEBUG
-
-
-
-
+#springdoc:
+#  api-docs:
+#    path: /v3/api-docs
+#  swagger-ui:
+#    path: /swagger-ui.html
+#    tags-sorter: alpha
+#    operations-sorter: alpha
+#  packages-to-scan: com.gooddaytaxi.payment.presentation.external.controller

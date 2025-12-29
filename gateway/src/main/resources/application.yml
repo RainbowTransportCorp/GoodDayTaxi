@@ -2,7 +2,8 @@ spring:
   application:
     name: gateway
   profiles:
-    active: ${SPRING_PROFILES_ACTIVE}
+    active: ${SPRING_PROFILES_ACTIVE:prod}
+
 
   main:
     web-application-type: reactive

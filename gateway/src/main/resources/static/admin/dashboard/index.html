@@ -6,22 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link rel="stylesheet" href="/common/header.css">
-    <script src="/common/header.js" defer></script>
+    <script src="/common/header-static.js" defer></script>
 
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-<header class="header">
-    <div class="brand">
-        <div class="brand-main">Good day Taxi</div>
-        <div class="brand-sub" id="brand-sub"></div>
-    </div>
-    <div class="user-box">
-        <span id="user-name"></span>
-        <button class="btn-logout" onclick="logout()">로그아웃</button>
-    </div>
-</header>
+<header id="header-container"></header>
 
 <main class="dashboard">
     <h1 class="dashboard-title">📊 관리자 대시보드</h1>

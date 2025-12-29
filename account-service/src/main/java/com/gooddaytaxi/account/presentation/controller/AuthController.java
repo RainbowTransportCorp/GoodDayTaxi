@@ -41,27 +41,40 @@ public class AuthController {
     private final LoginUserUseCase loginUserUseCase;
     private final RefreshTokenUseCase refreshTokenUseCase;
 
-    @Operation(summary = "회원가입", description = "새 사용자(승객/기사/관리자)를 등록합니다. 기사: 차량정보+슬랙ID 필수, 승객: 슬랙ID 필수, 일반관리자(ADMIN): 슬랙ID 불필요, 최고관리자(MASTER_ADMIN): 슬랙ID 필수")
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<SignupResponse>> signup(@Valid @RequestBody SignupRequest request) {
-        UserSignupCommand command = UserSignupCommand.builder()
+        log.info("[회원가입 진입] email={}, role={}, name={}", request.getEmail(), request.getRole(), request.getName());
+
+        try {
+            UserSignupCommand command = UserSignupCommand.builder()
                 .email(request.getEmail())
                 .password(request.getPassword())
                 .name(request.getName())
                 .phoneNumber(request.getPhoneNumber())
                 .slackId(request.getSlackId())
-                .role(request.getRole())
+                .role(request.toUserRoleOrThrow())
                 .vehicleNumber(request.getVehicleNumber())
                 .vehicleType(request.getVehicleType())
                 .vehicleColor(request.getVehicleColor())
                 .build();
 
-        String userId = registerUserUseCase.execute(command);
-        SignupResponse response = SignupResponse.of(userId);
+            log.info("[회원가입 커맨드 생성 완료] email={}, role={}", command.getEmail(), command.getRole());
 
-        return ResponseEntity.status(HttpStatus.CREATED)
+            String userId = registerUserUseCase.execute(command);
+
+            log.info("[회원가입 완료] userId={}", userId);
+
+            SignupResponse response = SignupResponse.of(userId);
+
+            return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(response, "회원가입이 완료되었습니다."));
+
+        } catch (Exception e) {
+            log.error("[회원가입 실패] 이유: {}", e.getMessage(), e);  // 전체 스택트레이스 출력
+            throw e;  // 전역 예외 핸들러 있으면 이걸로 처리
+        }
     }
+
 
     @Operation(summary = "로그인", description = "모든 사용자(승객/기사/관리자)가 이메일과 비밀번호로 로그인하여 JWT 토큰(액세스+리프레시)을 발급받습니다.")
     @PostMapping("/login")

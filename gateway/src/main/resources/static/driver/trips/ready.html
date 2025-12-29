@@ -4,8 +4,11 @@
   <meta charset="UTF-8" />
   <title>운행 대기 중 | Good day Taxi</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="/common/header.css" />
-  <script src="/common/header.js" defer></script>
+
+  <!-- ✅ 정적 처리 대상 -->
+  <link rel="stylesheet" href="/common/header.css">
+  <script src="/common/header-static.js" defer></script>
+
   <style>
     body {
       margin: 0;
@@ -55,10 +58,32 @@
       background: #8A5DF6;
       color: white;
     }
+
+    .start-button {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .start-button button {
+      padding: 12px 20px;
+      font-size: 16px;
+      background: #8A5DF6;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
-<header class="header"></header>
+
+<header></header>
+<script>
+  document.addEventListener("DOMContentLoaded", async () => {
+    const res = await fetch("/common/header-static.html");
+    document.querySelector("header").innerHTML = await res.text();
+  });
+</script>
 
 <main class="container">
   <div class="card">
@@ -75,6 +100,11 @@
     </div>
 
     <div class="status-box">운행 시작 대기 중입니다</div>
+
+    <!-- ✅ 운행 시작 버튼 추가 -->
+    <div class="start-button">
+      <button id="start-trip-btn">🚗 운행 시작</button>
+    </div>
   </div>
 </main>
 
@@ -97,7 +127,6 @@
     try {
       const res = await fetch("/api/v1/trips/drivers/active", { headers });
 
-      // ✅ ACTIVE 아님 = 운행 종료 or 없음 → 콜 대기
       if (res.status === 204 || res.status === 404) {
         location.href = "/driver/dashboard/index.html";
         return;
@@ -119,28 +148,19 @@
         return;
       }
 
-      // ✅ 화면 렌더링
-      document.getElementById("pickup").textContent =
-          trip.pickupAddress ?? "-";
-      document.getElementById("destination").textContent =
-          trip.destinationAddress ?? "-";
+      document.getElementById("pickup").textContent = trip.pickupAddress ?? "-";
+      document.getElementById("destination").textContent = trip.destinationAddress ?? "-";
 
-      // ✅ 상태 저장 (선택)
-      localStorage.setItem("tripId", trip.id);
+      localStorage.setItem("tripId", trip.tripId);
       localStorage.setItem("tripStatus", trip.status);
 
-      // ✅ 상태별 자동 전환
       switch (trip.status) {
         case "READY":
-          // stay
-          break;
-
+          break; // stay
         case "STARTED":
-          location.href = `/driver/trips/active.html?tripId=${trip.id}`;
+          location.href = `/driver/trips/active.html?tripId=${trip.tripId}`;
           break;
-
         default:
-          // ENDED는 active API에서 안 내려오는 게 정상
           location.href = "/driver/dashboard/index.html";
       }
 
@@ -149,6 +169,34 @@
       location.href = "/driver/dashboard/index.html";
     }
   }
+
+  // ✅ 운행 시작 버튼 기능
+  document.getElementById("start-trip-btn").addEventListener("click", async () => {
+    const tripId = localStorage.getItem("tripId");
+    if (!tripId) {
+      alert("유효한 운행 정보가 없습니다.");
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/v1/trips/${tripId}/start`, {
+        method: "PATCH",
+        headers
+      });
+
+      if (!res.ok) {
+        const err = await res.text();
+        alert("운행 시작 실패: " + err);
+        return;
+      }
+
+      location.href = `/driver/trips/active.html?tripId=${tripId}`;
+
+    } catch (e) {
+      console.error("운행 시작 실패", e);
+      alert("운행 시작 중 문제가 발생했습니다.");
+    }
+  });
 
   fetchTripInfo();
   setInterval(fetchTripInfo, 5000);

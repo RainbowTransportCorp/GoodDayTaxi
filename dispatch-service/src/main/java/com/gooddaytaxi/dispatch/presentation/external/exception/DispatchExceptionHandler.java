@@ -21,19 +21,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 })
 public class DispatchExceptionHandler {
 
-    @ExceptionHandler(DispatchNotFoundException.class)
-    public ResponseEntity<ApiResponse<ErrorResponse>> handleDispatchNotFound(DispatchNotFoundException e) {
-
-        ErrorResponse response = new ErrorResponse(
-                e.getCode(),
-                e.getMessage()
-        );
-
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.error(response));
-    }
-
     // 도메인 예외는 싹 여기서 처리
     @ExceptionHandler(DispatchDomainException.class)
     public ResponseEntity<ApiResponse<ErrorResponse>> handleDomainException(DispatchDomainException e) {

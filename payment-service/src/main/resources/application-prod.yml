@@ -1,54 +1,59 @@
+
+server:
+  port: ${SERVICE_PORT:8204}
+
 spring:
   config:
-    activate:
-      on-profile: prod
+    import:
+      - secrets.yml
 
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5436}/${DB_NAME:goodday_payment}
     driver-class-name: org.postgresql.Driver
     username: ${DB_USER:payment}
     password: ${DB_PASSWORD:payment1234}
-    hikari:
-      connection-init-sql: "SET lock_timeout TO '3s'"
-
-  data:
-    redis:
-      host: ${REDIS_HOSTNAME:localhost}
-      port: ${REDIS_PORT:6379}
-      database: ${REDIS_DB:0}
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     properties:
       hibernate:
-        format_sql: true
+        format_sql: false
         show_sql: false
 
+  data:
+    redis:
+      host: 10.2.0.28
+      port: 6379
+      database: 0
+
   kafka:
-    bootstrap-servers: ${KAFKA_HOSTNAME:localhost}:${KAFKA_PORT:9092}
+    bootstrap-servers: 10.2.0.226:9092
+    consumer:
+      group-id: dispatch-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
-    consumer:
-      group-id: payment-service
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      auto-offset-reset: earliest
-      enable-auto-commit: false
+      properties:
+        enable.idempotence: true
 
-server:
-  port: ${PAYMENT_SERVICE_PORT:8204}
+kafka:
+  topic:
+    payment: payment-topic
+
 
 eureka:
   client:
     service-url:
-      defaultZone: http://${EUREKA_HOSTNAME:localhost}:${EUREKA_PORT:8761}/eureka/
+      defaultZone: http://10.1.0.61:8761/eureka/
 
 management:
   zipkin:
     tracing:
-      endpoint: http://${ZIPKIN_HOSTNAME:localhost}:${ZIPKIN_PORT:9411}/api/v2/spans
+      endpoint: http://:10.1.0.61:9411/api/v2/spans
 
 logging:
   level:
@@ -59,5 +64,10 @@ logging:
     org.hibernate.SQL: OFF
     org.hibernate.orm.jdbc.bind: OFF
 
+payment:
+  event:
+    payload-version: 1
+
 toss:
-  secret-key: ${TOSS_SECRET_KEY:}
+  secret-key: ${toss.test-secret-key}
+

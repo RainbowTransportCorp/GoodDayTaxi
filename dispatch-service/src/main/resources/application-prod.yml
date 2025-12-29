@@ -1,6 +1,7 @@
 server:
   port: ${DISPATCH_SERVICE_PORT:8202}
 
+
 spring:
   config:
     import:
@@ -27,6 +28,7 @@ spring:
 
   kafka:
     bootstrap-servers: ${KAFKA_HOSTNAME:10.2.0.226}:${KAFKA_PORT:9092}
+
     consumer:
       group-id: dispatch-group
       auto-offset-reset: earliest
@@ -47,10 +49,12 @@ eureka:
     service-url:
       defaultZone: http://${EUREKA_HOSTNAME:10.1.0.61}:${EUREKA_PORT:8761}/eureka/
 
+
 management:
   zipkin:
     tracing:
       endpoint: http://${ZIPKIN_HOSTNAME:10.1.0.61}:${ZIPKIN_PORT:9411}/api/v2/spans
+
 
 logging:
   level:
@@ -62,3 +66,4 @@ logging:
     # 쿼리 로그 비활성화
     org.hibernate.SQL: OFF
     org.hibernate.orm.jdbc.bind: OFF
+

@@ -1,6 +1,8 @@
 package com.gooddaytaxi.account.presentation.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.gooddaytaxi.account.domain.exception.AccountBusinessException;
+import com.gooddaytaxi.account.domain.exception.AccountErrorCode;
 import com.gooddaytaxi.account.domain.model.UserRole;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
@@ -56,7 +58,7 @@ public class SignupRequest {
 
     @NotNull(message = "역할은 필수입니다.")
     @Schema(description = "사용자 역할 (PASSENGER/DRIVER/ADMIN/MASTER_ADMIN)", example = "DRIVER")
-    private UserRole role;
+    private String role;
 
     @JsonProperty("vehicle_number")
     @Schema(description = "차량번호 (기사 전용)", example = "12가3456")
@@ -69,4 +71,13 @@ public class SignupRequest {
     @JsonProperty("vehicle_color")
     @Schema(description = "차량 색상 (기사 전용)", example = "흰색")
     private String vehicleColor;
+
+    public UserRole toUserRoleOrThrow() {
+        try {
+            return UserRole.valueOf(this.role.toUpperCase());
+        } catch (Exception e) {
+            throw new AccountBusinessException(AccountErrorCode.INVALID_INPUT_VALUE);
+        }
+    }
+
 }
