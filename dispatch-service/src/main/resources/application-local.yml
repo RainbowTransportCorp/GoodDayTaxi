@@ -2,11 +2,9 @@ server:
   port: ${service.port}
 
 spring:
-  profiles:
-   active: local
   config:
     import:
-      - secrets.yaml
+      - secrets.yml
   application:
     name: dispatch-service
 
@@ -54,7 +52,6 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:${eureka.port}/eureka/ #local
-#      defaultZone: http://server:${eureka.port}/eureka/ # docker - 서비스 자체를 띄울 때 사용
 
 
 management:

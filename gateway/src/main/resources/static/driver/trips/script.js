@@ -65,33 +65,64 @@ async function loadTrips() {
             return;
         }
 
-        listEl.innerHTML = trips.map(t => `
-            <div class="trip-card">
-                <div class="trip-header">
-                    <span class="trip-status ${t.status}">
-                        ${t.status}
-                    </span>
+        listEl.innerHTML = trips.map(t => {
+            let paymentEl = "";
 
-                    ${t.paymentStatus === "PENDING" ? `
-                        <button class="btn-pay"
-                                onclick="goToPayment('${t.tripId}')">
-                            💰 미결제
-                        </button>
-                    ` : `
-                        <span class="paid-label">결제완료</span>
-                    `}
+            if (t.status === "ENDED") {
+                switch (t.paymentStatus) {
+                    case "PENDING":
+                        paymentEl = `
+                            <button class="btn-pay"
+                                    onclick="goToPayment('${t.tripId}')">
+                                💰 미결제
+                            </button>`;
+                        break;
+
+                    case "IN_PROCESS":
+                        paymentEl = `<span class="paid-label info">결제 진행중</span>`;
+                        break;
+
+                    case "COMPLETED":
+                        paymentEl = `<span class="paid-label success">결제 완료</span>`;
+                        break;
+
+                    case "FAILED":
+                        paymentEl = `<span class="paid-label error">결제 실패</span>`;
+                        break;
+
+                    case "CANCELED":
+                        paymentEl = `<span class="paid-label cancel">결제 취소</span>`;
+                        break;
+
+                    case "REFUNDED":
+                        paymentEl = `<span class="paid-label refund">환불 완료</span>`;
+                        break;
+
+                    default:
+                        paymentEl = "";
+                }
+            }
+
+            return `
+                <div class="trip-card">
+                    <div class="trip-header">
+                        <span class="trip-status ${t.status}">
+                            ${t.status}
+                        </span>
+                        ${paymentEl}
+                    </div>
+
+                    <div class="trip-info"><b>출발</b> ${t.pickupAddress}</div>
+                    <div class="trip-info"><b>도착</b> ${t.destinationAddress}</div>
+                    <div class="trip-info"><b>요금</b> ${t.finalFare}원</div>
+
+                    <div class="trip-meta">
+                        운행 ID: ${t.tripId}<br>
+                        종료 시각: ${t.endTime ?? "-"}
+                    </div>
                 </div>
-
-                <div class="trip-info"><b>출발</b> ${t.pickupAddress}</div>
-                <div class="trip-info"><b>도착</b> ${t.dropoffAddress}</div>
-                <div class="trip-info"><b>요금</b> ${t.fare}원</div>
-
-                <div class="trip-meta">
-                    운행 ID: ${t.tripId}<br>
-                    종료 시각: ${t.endedAt ?? "-"}
-                </div>
-            </div>
-        `).join("");
+            `;
+        }).join("");
 
         document.getElementById("page-info").textContent =
             `${page + 1} / ${totalPages}`;

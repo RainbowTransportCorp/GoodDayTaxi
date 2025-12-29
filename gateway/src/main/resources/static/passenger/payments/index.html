@@ -75,7 +75,7 @@
 </head>
 
 <body>
-<header class="header">
+<header id="header-container">
   <div class="brand">
     <div class="brand-main">Good day Taxi</div>
     <div class="brand-sub">결제 / 환불</div>
@@ -120,7 +120,7 @@
     try {
       // 전체 결제 리스트 가져오기
       const res = await fetch(API_BASE, {
-        method: "POST",
+        method: "GET",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,

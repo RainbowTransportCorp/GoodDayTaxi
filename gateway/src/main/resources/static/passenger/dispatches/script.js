@@ -2,11 +2,13 @@
 const DISPATCH_URL = "/api/v1/dispatches";
 const TRIP_ACTIVE_URL = "/api/v1/trips/passengers/active";
 
+/* ================= 인증 정보 ================= */
 const token = localStorage.getItem("accessToken");
-const role = localStorage.getItem("role");
+const role = (localStorage.getItem("role") ?? "").trim().toUpperCase();
 const userUuid = localStorage.getItem("userUuid");
 
-let currentDispatchId = null;
+/* ================= 상태 ================= */
+let currentDispatchId = localStorage.getItem("dispatchId") ?? null;
 let pollingTimer = null;
 
 /* ================= 화면 전환 ================= */
@@ -15,7 +17,7 @@ function show(sectionId) {
     document.getElementById(sectionId)?.classList.remove("hidden");
 }
 
-/* ================= 공통 fetch ================= */
+/* ================= ACTIVE 조회 ================= */
 async function fetchTripActive() {
     const res = await fetch(TRIP_ACTIVE_URL, {
         headers: {
@@ -26,17 +28,17 @@ async function fetchTripActive() {
     });
 
     if (res.status === 401 || res.status === 403) {
-        alert("로그인이 만료되었습니다. 다시 로그인해주세요.");
+        alert("로그인이 만료되었습니다.");
         location.href = "/index.html";
         return null;
     }
 
-    if (res.status === 204 || res.status === 404) return null;
+    if (res.status === 204 || res.status === 404) {
+        return null;
+    }
 
     if (!res.ok) {
-        console.error("ACTIVE TRIP ERROR", res.status, await res.text());
-        alert("운행 상태를 확인할 수 없습니다.");
-        location.href = "/passenger/dashboard/index.html";
+        console.error("ACTIVE API ERROR", res.status);
         return null;
     }
 
@@ -46,7 +48,7 @@ async function fetchTripActive() {
 
 /* ================= 초기 진입 ================= */
 async function initPassengerPage() {
-    if (role !== "PASSENGER") {
+    if (!token || !userUuid || role !== "PASSENGER") {
         alert("승객 전용 페이지입니다.");
         location.href = "/index.html";
         return;
@@ -55,24 +57,55 @@ async function initPassengerPage() {
     try {
         const trip = await fetchTripActive();
 
+        // 🔥 active 없음 → 무조건 대기 or 생성
         if (!trip) {
-            show("create-section");
+            if (currentDispatchId) {
+                show("waiting-section");
+                startTripPolling();
+            } else {
+                show("create-section");
+            }
             return;
         }
 
+        // 상태 저장
+        localStorage.setItem("tripStatus", trip.status);
+
+        if (trip.tripId) {
+            localStorage.setItem("tripId", trip.tripId);
+        }
+
+        // 🔥 상태 분기
         switch (trip.status) {
             case "READY":
-                location.href = "/passenger/trips/ready.html";
+                show("waiting-section");
+                startTripPolling();
                 return;
+
             case "STARTED":
+                if (!trip.tripId) {
+                    console.log("STARTED but tripId not ready → waiting");
+                    show("waiting-section");
+                    startTripPolling();
+                    return;
+                }
                 location.href = "/passenger/trips/active.html";
                 return;
+
             case "ENDED":
-                location.href = "/passenger/trips/ended.html";
+                if (!trip.tripId) {
+                    console.error("ENDED but tripId missing → blocked");
+                    show("waiting-section");
+                    return;
+                }
+                location.href = `/passenger/trips/ended.html?tripId=${trip.tripId}`;
                 return;
+
             default:
-                show("create-section");
+                show("waiting-section");
+                startTripPolling();
         }
+
     } catch (e) {
         console.error("initPassengerPage error", e);
         show("create-section");
@@ -95,41 +128,50 @@ async function createDispatch() {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify({
-            pickupAddress: pickup,
-            destinationAddress: destination
-        })
+        body: JSON.stringify({ pickupAddress: pickup, destinationAddress: destination })
     });
 
     const json = await res.json();
+
     if (!json.success) {
         alert(json.message || "콜 요청 실패");
         return;
     }
 
     currentDispatchId = json.data.dispatchId;
-    document.getElementById("waiting-text").textContent = "기사님을 찾고 있습니다…";
+    localStorage.setItem("dispatchId", currentDispatchId);
 
+    document.getElementById("waiting-text").textContent = "기사님을 찾고 있습니다…";
     show("waiting-section");
     startTripPolling();
 }
 
-/* ================= 운행 폴링 ================= */
+/* ================= 폴링 ================= */
 function startTripPolling() {
     clearInterval(pollingTimer);
 
     pollingTimer = setInterval(async () => {
-        try {
-            const trip = await fetchTripActive();
-            if (!trip) return;
+        const trip = await fetchTripActive();
 
-            if (trip.status === "READY") {
-                clearInterval(pollingTimer);
-                location.href = "/passenger/trips/ready.html";
-            }
-        } catch (e) {
-            console.error("polling error", e);
+        if (!trip) return;
+
+        localStorage.setItem("tripStatus", trip.status);
+
+        if (trip.tripId) {
+            localStorage.setItem("tripId", trip.tripId);
         }
+
+        if (trip.status === "STARTED" && trip.tripId) {
+            clearInterval(pollingTimer);
+            location.href = "/passenger/trips/active.html";
+            return;
+        }
+
+        if (trip.status === "ENDED" && trip.tripId) {
+            clearInterval(pollingTimer);
+            location.href = `/passenger/trips/ended.html?tripId=${trip.tripId}`;
+        }
+
     }, 3000);
 }
 
@@ -145,15 +187,19 @@ async function cancelCurrentDispatch() {
         }
     });
 
-    alert("콜이 취소되었습니다.");
-    backToHome();
+    resetState();
 }
 
-/* ================= 홈 ================= */
-function backToHome() {
+/* ================= 상태 초기화 ================= */
+function resetState() {
     clearInterval(pollingTimer);
     pollingTimer = null;
     currentDispatchId = null;
+
+    localStorage.removeItem("dispatchId");
+    localStorage.removeItem("tripId");
+    localStorage.removeItem("tripStatus");
+
     show("create-section");
 }
 

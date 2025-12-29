@@ -1,0 +1,64 @@
+server:
+  port: 8202
+
+spring:
+  config:
+    import:
+      - secrets.yml
+
+  datasource:
+    url: jdbc:postgresql://localhost:5434/goodday_dispatch
+    driver-class-name: org.postgresql.Driver
+    username: dispatch
+    password: dispatch1234
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        show_sql: false
+
+  data:
+    redis:
+      host: 10.2.0.28
+      port: 6379
+      database: 0
+
+  kafka:
+    bootstrap-servers: 10.2.0.226:9092
+    consumer:
+      group-id: dispatch-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      properties:
+        enable.idempotence: true
+
+kafka:
+  topic:
+    dispatch: dispatch-topic
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://10.1.0.61:8761/eureka/
+
+management:
+  zipkin:
+    tracing:
+      endpoint: http://:10.1.0.61:9411/api/v2/spans
+
+logging:
+  level:
+    root: INFO
+    com.gooddaytaxi.dispatch: INFO
+    # 프레임워크 소음 줄이기
+    org.springframework: WARN
+    org.hibernate: WARN
+    # 쿼리 로그 비활성화
+    org.hibernate.SQL: OFF
+    org.hibernate.orm.jdbc.bind: OFF

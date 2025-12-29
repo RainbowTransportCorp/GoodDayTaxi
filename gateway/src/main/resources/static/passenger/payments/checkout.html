@@ -5,17 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>결제하기 | Good Day Taxi</title>
 
-    <!-- ✅ TossPayments SDK -->
+    <!-- TossPayments SDK -->
     <script src="https://js.tosspayments.com/v2/standard"></script>
 
-    <!-- ✅ 공통 헤더 스타일 & JS -->
-    <link rel="stylesheet" href="/common/header.css" />
-    <script src="/common/header.js" defer></script>
+    <!-- ✅ 정적 처리 대상이라면 이렇게 -->
+    <link rel="stylesheet" href="/common/header.css">
+    <script src="/common/header-static.js" defer></script>
 
     <style>
         body {
             margin: 0;
-            padding: 0;
             background: #f7f7fb;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
         }
@@ -35,6 +34,7 @@
 
         .coupon {
             margin-bottom: 16px;
+            opacity: 0.5;
         }
 
         .btn-pay {
@@ -49,29 +49,31 @@
             font-weight: 700;
             cursor: pointer;
         }
-
-        .btn-pay:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
     </style>
 </head>
+
 <body>
-<!-- ✅ 공통 헤더 삽입 -->
+
 <header></header>
+<script>
+    document.addEventListener("DOMContentLoaded", async () => {
+        const res = await fetch("/common/header-static.html");
+        document.querySelector("header").innerHTML = await res.text();
+    });
+</script>
 
 <main>
     <div class="card">
-        <!-- 할인 쿠폰 -->
+        <!-- 쿠폰 (MVP 단계 비활성) -->
         <div class="coupon">
-            <input type="checkbox" id="coupon-box" />
-            <label for="coupon-box">5,000원 쿠폰 적용</label>
+            <input type="checkbox" disabled />
+            <label>5,000원 쿠폰 적용 (준비 중)</label>
         </div>
 
-        <!-- 결제 UI -->
+        <!-- 결제 수단 -->
         <div id="payment-method"></div>
 
-        <!-- 이용약관 UI -->
+        <!-- 약관 -->
         <div id="agreement"></div>
 
         <!-- 결제 버튼 -->
@@ -80,10 +82,31 @@
 </main>
 
 <script>
-    // ✅ 인증 가드
+    /* ===== 공통 유틸 ===== */
+    function getToken() {
+        return localStorage.getItem("accessToken");
+    }
+
+    function getUserUuid() {
+        return localStorage.getItem("userUuid");
+    }
+
+    function getRole() {
+        return localStorage.getItem("role");
+    }
+
+    function buildHeaders(role) {
+        return {
+            "Authorization": `Bearer ${getToken()}`,
+            "X-User-UUID": getUserUuid(),
+            "X-User-Role": role,
+            "Content-Type": "application/json"
+        };
+    }
+
     function guardPassenger() {
-        const token = localStorage.getItem("accessToken");
-        const role = localStorage.getItem("role");
+        const token = getToken();
+        const role = getRole();
         if (!token || role !== "PASSENGER") {
             alert("승객 전용 페이지입니다.");
             location.href = "/index.html";
@@ -92,44 +115,44 @@
         return true;
     }
 
-    // ✅ 공통 헤더 로딩
     async function loadHeader() {
         const header = document.querySelector("header");
-        try {
-            const res = await fetch("/common/header.html");
-            const html = await res.text();
-            header.innerHTML = html;
-        } catch (e) {
-            console.error("공통 헤더 불러오기 실패", e);
-        }
+        const res = await fetch("/common/header.html");
+        header.innerHTML = await res.text();
     }
 
-    // ✅ Toss 결제 로직
+    /* ===== 결제 메인 로직 ===== */
     async function main() {
         if (!guardPassenger()) return;
         await loadHeader();
 
-        const button = document.getElementById("payment-button");
-        const coupon = document.getElementById("coupon-box");
-
-        const params = new URLSearchParams(window.location.search);
-        const orderId = params.get("orderId");
-        const customerKey = params.get("customerKey");
-        const baseAmount = Number(params.get("amount") || 0);
-
-        if (!orderId || !customerKey || !baseAmount) {
-            alert("잘못된 접근입니다.");
+        const params = new URLSearchParams(location.search);
+        const tripId = params.get("tripId");
+        if (!tripId) {
+            alert("운행 정보가 없습니다.");
             location.href = "/passenger/dashboard/index.html";
             return;
         }
+
+        const res = await fetch(`/api/v1/payments/tosspay/ready?tripId=${tripId}`, {
+            method: "GET",
+            headers: buildHeaders("PASSENGER")
+        });
+
+        if (!res.ok) {
+            alert("결제 준비 중 오류가 발생했습니다.");
+            location.href = "/passenger/dashboard/index.html";
+            return;
+        }
+
+        const json = await res.json();
+        const { orderId, customerKey, amount } = json.data;
 
         const clientKey = "test_gck_docs_Ovk5rk1EwkEbP0W43n07xlzm";
         const tossPayments = TossPayments(clientKey);
         const widgets = tossPayments.widgets({ customerKey });
 
-        let currentAmount = baseAmount;
-
-        await widgets.setAmount({ currency: "KRW", value: currentAmount });
+        await widgets.setAmount({ currency: "KRW", value: amount });
 
         await Promise.all([
             widgets.renderPaymentMethods({
@@ -142,19 +165,13 @@
             })
         ]);
 
-        coupon.addEventListener("change", async () => {
-            currentAmount = coupon.checked ? baseAmount - 1000 : baseAmount;
-            await widgets.setAmount({ currency: "KRW", value: currentAmount });
-        });
-
+        const button = document.getElementById("payment-button");
         button.addEventListener("click", async () => {
-            localStorage.removeItem("unpaidTrip"); // ✅ 결제 전 unpaidTrip 제거
-
             await widgets.requestPayment({
-                orderId: orderId,
+                orderId,
                 orderName: "운수좋은 날 운행",
-                successUrl: `${window.location.origin}/passenger/payments/processing.html?customerKey=${customerKey}`,
-                failUrl: `${window.location.origin}/passenger/payments/fail.html`
+                successUrl: `${location.origin}/passenger/payments/processing.html`,
+                failUrl: `${location.origin}/passenger/payments/fail.html`
             });
         });
     }

@@ -15,6 +15,7 @@ import com.gooddaytaxi.payment.application.result.refundRequest.RefundRequestRea
 import com.gooddaytaxi.payment.application.service.PaymentService;
 import com.gooddaytaxi.payment.application.service.RefundRequestService;
 import com.gooddaytaxi.payment.application.service.RefundService;
+import com.gooddaytaxi.payment.infrastructure.security.UserPrincipal;
 import com.gooddaytaxi.payment.presentation.external.dto.request.refund.RefundCreateRequestDto;
 import com.gooddaytaxi.payment.presentation.external.dto.request.requestRefund.RefundRequestResponseRequestDto;
 import com.gooddaytaxi.payment.presentation.external.dto.response.payment.PaymentAdminReadResponseDto;
@@ -37,172 +38,329 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
-/*
-* 결제, 환불 요청, 환불 관리자용 controller
-* 환불요청 단건조회는
-* */
-
+/**
+ * 결제 / 환불 / 환불요청 관리자용 Controller
+ */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/admin")
 public class PaymentAdminController {
+
     private final PaymentService paymentService;
     private final RefundRequestService requestService;
     private final RefundService refundService;
 
-    //결제 단건조회
+    // =========================
+    // 결제 단건 조회
+    // =========================
     @GetMapping("/payments/{paymentId}")
-    public ResponseEntity<ApiResponse<PaymentAdminReadResponseDto>> getPayment(@PathVariable UUID paymentId,
-                                                                               @RequestHeader(value = "X-User-Role") String role) {
-        PaymentAdminReadResult result = paymentService.getAdminPayment(paymentId, role);
-        PaymentAdminReadResponseDto responseDto = PaymentReadResponseMapper.toAdminResponse(result);
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
+    public ResponseEntity<ApiResponse<PaymentAdminReadResponseDto>> getPayment(
+        @PathVariable UUID paymentId,
+        @AuthenticationPrincipal UserPrincipal user
+    ) {
+        PaymentAdminReadResult result =
+            paymentService.getAdminPayment(
+                paymentId,
+                user.role().name()
+            );
+
+        return ResponseEntity.ok(
+            ApiResponse.success(
+                PaymentReadResponseMapper.toAdminResponse(result)
+            )
+        );
     }
 
-    //결제 검색 기능
+    // =========================
+    // 결제 검색
+    // =========================
     @GetMapping("/payments/search")
-    public ResponseEntity<ApiResponse<Page<PaymentAdminReadResponseDto>>> searchPayment(@RequestParam(required = false) Integer page,
-                                                                                        @RequestParam(required = false) Integer size,
-                                                                                        @RequestParam(required = false) String method,
-                                                                                        @RequestParam(required = false) String status,
-                                                                                        @RequestParam(required = false) UUID passengerId,
-                                                                                        @RequestParam(required = false) UUID driverId,
-                                                                                        @RequestParam(required = false) UUID tripId,
-                                                                                        @RequestParam @NotBlank String searchPeriod,
-                                                                                        @RequestParam(required = false) String startDay,
-                                                                                        @RequestParam(required = false) String endDay,
-                                                                                        @RequestParam(required = false) String sortBy,
-                                                                                        @RequestParam(name = "sortAscending", required = false) Boolean sortAscending,
-                                                                                        @RequestHeader(value = "X-User-Role") String role) {
-        PaymentSearchCommand command = PaymentSearchMapper.toAdminCommand(page,size,method,status,passengerId,driverId,tripId,searchPeriod,startDay,endDay,sortBy,sortAscending);
-        Page<PaymentAdminReadResult> result = paymentService.searchAdminPayment(command, role);
-        Page<PaymentAdminReadResponseDto> responseDto = PaymentReadResponseMapper.toPageAdminResponse(result);
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
+    public ResponseEntity<ApiResponse<Page<PaymentAdminReadResponseDto>>> searchPayment(
+        @RequestParam(required = false) Integer page,
+        @RequestParam(required = false) Integer size,
+        @RequestParam(required = false) String method,
+        @RequestParam(required = false) String status,
+        @RequestParam(required = false) UUID passengerId,
+        @RequestParam(required = false) UUID driverId,
+        @RequestParam(required = false) UUID tripId,
+        @RequestParam @NotBlank String searchPeriod,
+        @RequestParam(required = false) String startDay,
+        @RequestParam(required = false) String endDay,
+        @RequestParam(required = false) String sortBy,
+        @RequestParam(name = "sortAscending", required = false) Boolean sortAscending,
+        @AuthenticationPrincipal UserPrincipal user
+    ) {
+        PaymentSearchCommand command =
+            PaymentSearchMapper.toAdminCommand(
+                page, size, method, status,
+                passengerId, driverId, tripId,
+                searchPeriod, startDay, endDay,
+                sortBy, sortAscending
+            );
+
+        Page<PaymentAdminReadResult> result =
+            paymentService.searchAdminPayment(
+                command,
+                user.role().name()
+            );
+
+        return ResponseEntity.ok(
+            ApiResponse.success(
+                PaymentReadResponseMapper.toPageAdminResponse(result)
+            )
+        );
     }
 
-    //환불 요청 단건 조회
+    // =========================
+    // 환불 요청 단건 조회
+    // =========================
     @GetMapping("/refund/requests/{requestId}")
-    public ResponseEntity<ApiResponse<RefundRequestAdminReadResponseDto>> getRefundRequest(@PathVariable UUID requestId,
+    public ResponseEntity<ApiResponse<RefundRequestAdminReadResponseDto>> getRefundRequest(
+        @PathVariable UUID requestId,
+        @AuthenticationPrincipal UserPrincipal user
+    ) {
+        RefundRequestAdminReadResult result =
+            requestService.getAdminRefundRequest(
+                requestId,
+                user.role().name()
+            );
 
-                                                                                      @RequestHeader(value = "X-User-Role") String role) {
-        RefundRequestAdminReadResult result = requestService.getAdminRefundRequest(requestId, role);
-        RefundRequestAdminReadResponseDto responseDto = RefundRequestReadResponseMapper.toAdminResponse(result);
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
+        return ResponseEntity.ok(
+            ApiResponse.success(
+                RefundRequestReadResponseMapper.toAdminResponse(result)
+            )
+        );
     }
 
-    //환불 요청 검색
+    // =========================
+    // 환불 요청 검색
+    // =========================
     @GetMapping("/refund/requests/search")
-    public ResponseEntity<ApiResponse<Page<RefundRequestReadResponseDto>>> searchRefundRequests(@RequestParam(required = false) Integer page,
-                                                                                                @RequestParam(required = false) Integer size,
-                                                                                                @RequestParam(required = false) UUID paymentId,
-                                                                                                @RequestParam(required = false) String status,
-                                                                                                @RequestParam(required = false) String reasonKeyword,
-                                                                                                @RequestParam(required = false) String method,
-                                                                                                @RequestParam(required = false) UUID passengerId,
-                                                                                                @RequestParam(required = false) UUID driverId,
-                                                                                                @RequestParam @NotBlank String searchPeriod,
-                                                                                                @RequestParam(required = false) String startDay,
-                                                                                                @RequestParam(required = false) String endDay,
-                                                                                                @RequestParam(required = false) String sortBy,
-                                                                                                @RequestParam(name = "sortAscending", required = false) Boolean sortAscending,
-                                                                                                @RequestHeader(value = "X-User-Role") String role) {
-        RefundReqeustSearchCommand command = RefundRequestSearchMapper.toAdminCommand(page, size, paymentId, status, reasonKeyword, method, passengerId, driverId, searchPeriod, startDay, endDay, sortBy, sortAscending);
-        Page<RefundRequestReadResult> results = requestService.searchAdminRefundRequests(command, role);
-        Page<RefundRequestReadResponseDto> responseDtos = RefundRequestReadResponseMapper.toPageResponse(results);
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDtos));
+    public ResponseEntity<ApiResponse<Page<RefundRequestReadResponseDto>>> searchRefundRequests(
+        @RequestParam(required = false) Integer page,
+        @RequestParam(required = false) Integer size,
+        @RequestParam(required = false) UUID paymentId,
+        @RequestParam(required = false) String status,
+        @RequestParam(required = false) String reasonKeyword,
+        @RequestParam(required = false) String method,
+        @RequestParam(required = false) UUID passengerId,
+        @RequestParam(required = false) UUID driverId,
+        @RequestParam @NotBlank String searchPeriod,
+        @RequestParam(required = false) String startDay,
+        @RequestParam(required = false) String endDay,
+        @RequestParam(required = false) String sortBy,
+        @RequestParam(name = "sortAscending", required = false) Boolean sortAscending,
+        @AuthenticationPrincipal UserPrincipal user
+    ) {
+        RefundReqeustSearchCommand command =
+            RefundRequestSearchMapper.toAdminCommand(
+                page, size, paymentId, status, reasonKeyword,
+                method, passengerId, driverId,
+                searchPeriod, startDay, endDay,
+                sortBy, sortAscending
+            );
+
+        Page<RefundRequestReadResult> results =
+            requestService.searchAdminRefundRequests(
+                command,
+                user.role().name()
+            );
+
+        return ResponseEntity.ok(
+            ApiResponse.success(
+                RefundRequestReadResponseMapper.toPageResponse(results)
+            )
+        );
     }
-    //환불 요청 응답
+
+    // =========================
+    // 환불 요청 응답
+    // =========================
     @PostMapping("/refund/requests/response")
-    public ResponseEntity<ApiResponse<RefundReqeustCreateResponseDto>> respondToRefundRequest(@RequestBody @Valid RefundRequestResponseRequestDto requestDto,
-                                                                                              @RequestHeader(value = "X-User-UUID") UUID userId,
-                                                                                              @RequestHeader(value = "X-User-Role") String role) {
-        RefundRequestResponseCreateCommand command = RefundRequestCreateMapper.toResponseCommand(requestDto);
-        RefundRequestCreateResult result = requestService.respondToRefundRequest(command, userId, role);
-        RefundReqeustCreateResponseDto responseDto = RefundRequestCreateResponseMapper.toResponse(result);
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto));
+    public ResponseEntity<ApiResponse<RefundReqeustCreateResponseDto>> respondToRefundRequest(
+        @RequestBody @Valid RefundRequestResponseRequestDto requestDto,
+        @AuthenticationPrincipal UserPrincipal user
+    ) {
+        RefundRequestResponseCreateCommand command =
+            RefundRequestCreateMapper.toResponseCommand(requestDto);
+
+        RefundRequestCreateResult result =
+            requestService.respondToRefundRequest(
+                command,
+                user.userId(),
+                user.role().name()
+            );
+
+        return ResponseEntity.ok(
+            ApiResponse.success(
+                RefundRequestCreateResponseMapper.toResponse(result)
+            )
+        );
     }
 
-    //결제수단이 토스페이인 경우 환불 요청
+    // =========================
+    // 토스페이 환불 승인
+    // =========================
     @PostMapping("/refunds/tosspay/{paymentId}")
-    public ResponseEntity<ApiResponse<RefundCreateResponseDto>> ConfirmTosspayRefund(@PathVariable UUID paymentId,
-                                                                                     @RequestBody @Valid RefundCreateRequestDto requestDto,
-                                                                                     @RequestHeader(value = "X-User-UUID") UUID userId,
-                                                                                     @RequestHeader(value = "X-User-Role") String role,
-                                                                                     @RequestHeader(value = "Idempotency-Key") String idempotencyKey) {
-        RefundCreateCommand command = RefundCreateMapper.toTosspayCommand(requestDto);
-        RefundCreateResult result = refundService.confirmTosspayRefund(paymentId, command, userId, role, idempotencyKey);
-        RefundCreateResponseDto responseDto = RefundCreateResponseMapper.toResponse(result);
-        return ResponseEntity.status(201).body(ApiResponse.success(responseDto));
+    public ResponseEntity<ApiResponse<RefundCreateResponseDto>> confirmTosspayRefund(
+        @PathVariable UUID paymentId,
+        @RequestBody @Valid RefundCreateRequestDto requestDto,
+        @RequestHeader("Idempotency-Key") String idempotencyKey,
+        @AuthenticationPrincipal UserPrincipal user
+    ) {
+        RefundCreateCommand command =
+            RefundCreateMapper.toTosspayCommand(requestDto);
+
+        RefundCreateResult result =
+            refundService.confirmTosspayRefund(
+                paymentId,
+                command,
+                user.userId(),
+                user.role().name(),
+                idempotencyKey
+            );
+
+        return ResponseEntity.ok(
+            ApiResponse.success(
+                RefundCreateResponseMapper.toResponse(result)
+            )
+        );
     }
-    //결제수단이 실물결제인경우 기사에게 환불 수행 필요 요청
+
+    // =========================
+    // 기사 환불 지원 요청
+    // =========================
     @PostMapping("/refunds/driver/support/{paymentId}/{reason}")
-    public ResponseEntity<ApiResponse<RefundCreateResponseDto>> DriverSupportRefund(@PathVariable UUID paymentId,
-                                                                                    @PathVariable String reason,
-                                                                                    @RequestHeader(value = "X-User-UUID") UUID userId,
-                                                                                    @RequestHeader(value = "X-User-Role") String role) {
-        RefundCreateResult result = refundService.requestDriverSupportRefund(paymentId,reason, userId, role);
-        RefundCreateResponseDto responseDto = RefundCreateResponseMapper.toResponse(result);
-        return ResponseEntity.status(201).body(ApiResponse.success(responseDto));
+    public ResponseEntity<ApiResponse<RefundCreateResponseDto>> requestDriverSupportRefund(
+        @PathVariable UUID paymentId,
+        @PathVariable String reason,
+        @AuthenticationPrincipal UserPrincipal user
+    ) {
+        RefundCreateResult result =
+            refundService.requestDriverSupportRefund(
+                paymentId,
+                reason,
+                user.userId(),
+                user.role().name()
+            );
+
+        return ResponseEntity.ok(
+            ApiResponse.success(
+                RefundCreateResponseMapper.toResponse(result)
+            )
+        );
     }
 
-    //결제수단이 현금/카드인 경우 환불 내용 등록 - 이미 기사가 환불을 집행하고 관리자가 확인 후 등록
+    // =========================
+    // 현금/카드 환불 등록
+    // =========================
     @PostMapping("/refunds/{paymentId}")
-    public ResponseEntity<ApiResponse<RefundCreateResponseDto>> registerCashCardRefund(@PathVariable UUID paymentId,
-                                                                                       @RequestBody @Valid RefundCreateRequestDto requestDto,
-                                                                                       @RequestHeader(value = "X-User-UUID") UUID userId,
-                                                                                       @RequestHeader(value = "X-User-Role") String role) {
-        RefundCreateCommand command = RefundCreateMapper.toPhysicalCommand(requestDto);
-        RefundCreateResult result = refundService.registerPhysicalRefund(paymentId, command, userId, role);
-        RefundCreateResponseDto responseDto = RefundCreateResponseMapper.toResponse(result);
-        return ResponseEntity.status(201).body(ApiResponse.success(responseDto));
+    public ResponseEntity<ApiResponse<RefundCreateResponseDto>> registerCashCardRefund(
+        @PathVariable UUID paymentId,
+        @RequestBody @Valid RefundCreateRequestDto requestDto,
+        @AuthenticationPrincipal UserPrincipal user
+    ) {
+        RefundCreateCommand command =
+            RefundCreateMapper.toPhysicalCommand(requestDto);
+
+        RefundCreateResult result =
+            refundService.registerPhysicalRefund(
+                paymentId,
+                command,
+                user.userId(),
+                user.role().name()
+            );
+
+        return ResponseEntity.ok(
+            ApiResponse.success(
+                RefundCreateResponseMapper.toResponse(result)
+            )
+        );
     }
 
-    //환불 상태 조회
+    // =========================
+    // 환불 단건 조회
+    // =========================
     @GetMapping("/refunds/{paymentId}")
-    public ResponseEntity<ApiResponse<RefundAdminReadResponseDto>> getRefundStatus(@PathVariable UUID paymentId,
-                                                                                   @RequestHeader(value = "X-User-Role") String role) {
-        RefundAdminReadResult result = refundService.getAdminRefund(paymentId, role);
-        RefundAdminReadResponseDto responseDto = RefundReadResponseMapper.toAdminResponse(result);
-        return ResponseEntity.status(200).body(ApiResponse.success(responseDto));
+    public ResponseEntity<ApiResponse<RefundAdminReadResponseDto>> getRefundStatus(
+        @PathVariable UUID paymentId,
+        @AuthenticationPrincipal UserPrincipal user
+    ) {
+        RefundAdminReadResult result =
+            refundService.getAdminRefund(
+                paymentId,
+                user.role().name()
+            );
 
+        return ResponseEntity.ok(
+            ApiResponse.success(
+                RefundReadResponseMapper.toAdminResponse(result)
+            )
+        );
     }
 
-    //환불 검색
+    // =========================
+    // 환불 검색
+    // =========================
     @GetMapping("/refunds/search")
-    public ResponseEntity<ApiResponse<Page<RefundAdminReadResponseDto>>> searchRefund(@RequestParam(required = false) Integer page,
-                                                                                      @RequestParam(required = false) Integer size,
-                                                                                      @RequestParam(required = false) String status,
-                                                                                      @RequestParam(required = false) String reason,
-                                                                                      @RequestParam(name = "existRequest", required = false) Boolean existRequest,
-                                                                                      @RequestParam(required = false) UUID passengerId,
-                                                                                      @RequestParam(required = false) UUID driverId,
-                                                                                      @RequestParam(required = false) UUID tripId,
-                                                                                      @RequestParam(required = false) String method,
-                                                                                      @RequestParam(required = false) Long minAmount,
-                                                                                      @RequestParam(required = false) Long maxAmount,
-                                                                                      @RequestParam @NotBlank String searchPeriod,
-                                                                                      @RequestParam(required = false) String startDay,
-                                                                                      @RequestParam(required = false) String endDay,
-                                                                                      @RequestParam(required = false) String sortBy,
-                                                                                      @RequestParam(name = "sortAscending", required = false) Boolean sortAscending,
-                                                                                      @RequestHeader(value = "X-User-Role") String role) {
-        RefundSearchCommand command = RefundSearchMapper.toAdminCommand(page, size, status, reason, existRequest, passengerId, driverId, tripId, method, minAmount, maxAmount, searchPeriod, startDay, endDay, sortBy, sortAscending);
-        Page<RefundAdminReadResult> result = refundService.searchAdminRefund(command, role);
-        Page<RefundAdminReadResponseDto> responseDto = RefundReadResponseMapper.toPageAdminResponse(result);
-        return ResponseEntity.status(200).body(ApiResponse.success(responseDto));
+    public ResponseEntity<ApiResponse<Page<RefundAdminReadResponseDto>>> searchRefund(
+        @RequestParam(required = false) Integer page,
+        @RequestParam(required = false) Integer size,
+        @RequestParam(required = false) String status,
+        @RequestParam(required = false) String reason,
+        @RequestParam(name = "existRequest", required = false) Boolean existRequest,
+        @RequestParam(required = false) UUID passengerId,
+        @RequestParam(required = false) UUID driverId,
+        @RequestParam(required = false) UUID tripId,
+        @RequestParam(required = false) String method,
+        @RequestParam(required = false) Long minAmount,
+        @RequestParam(required = false) Long maxAmount,
+        @RequestParam @NotBlank String searchPeriod,
+        @RequestParam(required = false) String startDay,
+        @RequestParam(required = false) String endDay,
+        @RequestParam(required = false) String sortBy,
+        @RequestParam(name = "sortAscending", required = false) Boolean sortAscending,
+        @AuthenticationPrincipal UserPrincipal user
+    ) {
+        RefundSearchCommand command =
+            RefundSearchMapper.toAdminCommand(
+                page, size, status, reason, existRequest,
+                passengerId, driverId, tripId,
+                method, minAmount, maxAmount,
+                searchPeriod, startDay, endDay,
+                sortBy, sortAscending
+            );
+
+        Page<RefundAdminReadResult> result =
+            refundService.searchAdminRefund(
+                command,
+                user.role().name()
+            );
+
+        return ResponseEntity.ok(
+            ApiResponse.success(
+                RefundReadResponseMapper.toPageAdminResponse(result)
+            )
+        );
     }
 
-    //디버그용 - 토스페이 외부결제 정보 조회
+    // =========================
+    // 디버그용 토스페이 외부 조회
+    // =========================
     @GetMapping("/tosspay/{paymentId}")
-    public ResponseEntity<ApiResponse<String>> getRefundInfo(@PathVariable UUID paymentId) {
-        String dto = refundService.getExternalTossPay(paymentId);
-        return ResponseEntity.status(201).body(ApiResponse.success(dto));
+    public ResponseEntity<ApiResponse<String>> getRefundInfo(
+        @PathVariable UUID paymentId
+    ) {
+        return ResponseEntity.ok(
+            ApiResponse.success(
+                refundService.getExternalTossPay(paymentId)
+            )
+        );
     }
-
 }
