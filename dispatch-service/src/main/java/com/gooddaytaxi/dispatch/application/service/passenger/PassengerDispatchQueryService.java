@@ -34,13 +34,13 @@ public class PassengerDispatchQueryService {
      */
     public List<DispatchSummaryResult> getDispatchList(UUID passengerId, UserRole role) {
 
-        log.info("[PassengerDispatchList] 조회 요청 - passengerId={}", passengerId);
+        log.info("[PassengerDispatchList] 조회 요청");
 
         passengerQueryPermissionValidator.validate(role);
 
         List<Dispatch> dispatches = queryPort.findAllByPassengerId(passengerId);
 
-        log.info("[PassengerDispatchList] 조회 완료 - count={}", dispatches.size());
+        log.info("[PassengerDispatchList] 조회 완료");
 
         return dispatches.stream()
                 .filter(d -> d.getDispatchStatus() != DispatchStatus.TIMEOUT) //Service testCode를 위해 필터 추가
