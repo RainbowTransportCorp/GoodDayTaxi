@@ -29,7 +29,9 @@ spring:
 
   kafka:
     bootstrap-servers: ${KAFKA_HOSTNAME:10.2.0.226}:${KAFKA_PORT:9092}
-
+    listener:
+      auto-startup: false
+      missing-topics-fatal: false
     consumer:
       group-id: dispatch-group
       auto-offset-reset: earliest
@@ -40,6 +42,8 @@ spring:
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
       properties:
         enable.idempotence: true
+        request.timeout.ms: 30000
+        retry.backoff.ms: 1000
 
 kafka:
   topic:
