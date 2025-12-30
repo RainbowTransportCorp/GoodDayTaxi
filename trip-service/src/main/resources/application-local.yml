@@ -20,7 +20,10 @@ spring:
 
   kafka:
     bootstrap-servers: localhost:9092
-
+    consumer:
+      group-id: trip-service
+      auto-offset-reset: earliest
+      enable-auto-commit: false
 
 eureka:
   client:
