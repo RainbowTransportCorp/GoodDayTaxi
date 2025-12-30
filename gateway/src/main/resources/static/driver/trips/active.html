@@ -149,7 +149,7 @@
   }
 
   document.addEventListener("DOMContentLoaded", async () => {
-    const res = await fetch("/common/header-static.html");
+    const res = await fetch("/common/header.html");
     document.querySelector("header").innerHTML = await res.text();
     pollTripStatus();
     pollingId = setInterval(pollTripStatus, 3000);
