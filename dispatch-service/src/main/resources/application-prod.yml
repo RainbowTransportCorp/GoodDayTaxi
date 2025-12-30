@@ -1,5 +1,6 @@
 server:
   port: ${DISPATCH_SERVICE_PORT:8202}
+  address: 0.0.0.0
 
 
 spring:
