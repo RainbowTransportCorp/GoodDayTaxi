@@ -1,10 +1,10 @@
 {
-  "title": "GoodDayTaxi Monitoring (Local)",
-  "uid": "goodday-local",
+  "title": "GoodDayTaxi Monitoring (Unified)",
+  "uid": "goodday-unified",
   "timezone": "browser",
   "refresh": "5s",
   "schemaVersion": 36,
-  "version": 2,
+  "version": 3,
   "panels": [
     {
       "type": "stat",
@@ -12,7 +12,7 @@
       "datasource": "Prometheus",
       "targets": [
         {
-          "expr": "sum(rate(http_server_requests_seconds_count{application!=\"\"}[1m])) - sum(rate(http_server_requests_seconds_count{status!~\"2..\",application!=\"\"}[1m])) / sum(rate(http_server_requests_seconds_count{application!=\"\"}[1m])) * 100",
+          "expr": "(\n  sum(rate(http_server_requests_seconds_count{job!=\"\"}[1m]))\n  - sum(rate(http_server_requests_seconds_count{status!~\"2..\",job!=\"\"}[1m]))\n)\n/ sum(rate(http_server_requests_seconds_count{job!=\"\"}[1m])) * 100",
           "legendFormat": "Success Rate"
         }
       ],
@@ -24,7 +24,7 @@
       "datasource": "Prometheus",
       "targets": [
         {
-          "expr": "sum(rate(http_server_requests_seconds_count{status!~\"2..\",application!=\"\"}[1m])) / sum(rate(http_server_requests_seconds_count{application!=\"\"}[1m])) * 100",
+          "expr": "sum(rate(http_server_requests_seconds_count{status!~\"2..\",job!=\"\"}[1m]))\n/ sum(rate(http_server_requests_seconds_count{job!=\"\"}[1m])) * 100",
           "legendFormat": "Error Rate"
         }
       ],
@@ -36,7 +36,7 @@
       "datasource": "Prometheus",
       "targets": [
         {
-          "expr": "sum(rate(http_server_requests_seconds_count{application!=\"\"}[1m]))",
+          "expr": "sum(rate(http_server_requests_seconds_count{job!=\"\"}[1m]))",
           "legendFormat": "RPS"
         }
       ],
@@ -48,20 +48,21 @@
       "datasource": "Prometheus",
       "targets": [
         {
-          "expr": "sum(rate(http_server_requests_seconds_sum{application!=\"\"}[1m])) / sum(rate(http_server_requests_seconds_count{application!=\"\"}[1m])) * 1000",
+          "expr": "sum(rate(http_server_requests_seconds_sum{job!=\"\"}[1m]))\n/ sum(rate(http_server_requests_seconds_count{job!=\"\"}[1m])) * 1000",
           "legendFormat": "Avg Latency"
         }
       ],
       "gridPos": { "x": 12, "y": 0, "w": 4, "h": 4 }
     },
+
     {
       "type": "timeseries",
       "title": "HTTP 요청 수 (상세)",
       "datasource": "Prometheus",
       "targets": [
         {
-          "expr": "rate(http_server_requests_seconds_count{application!=\"\"}[1m])",
-          "legendFormat": "{{method}} {{uri}} {{status}}"
+          "expr": "rate(http_server_requests_seconds_count{job!=\"\"}[1m])",
+          "legendFormat": "{{job}} {{method}} {{uri}} {{status}}"
         }
       ],
       "gridPos": { "x": 0, "y": 4, "w": 12, "h": 7 }
@@ -72,20 +73,21 @@
       "datasource": "Prometheus",
       "targets": [
         {
-          "expr": "(rate(http_server_requests_seconds_sum{application!=\"\"}[1m]) / rate(http_server_requests_seconds_count{application!=\"\"}[1m])) * 1000",
-          "legendFormat": "{{method}} {{uri}}"
+          "expr": "(rate(http_server_requests_seconds_sum{job!=\"\"}[1m])\n/ rate(http_server_requests_seconds_count{job!=\"\"}[1m])) * 1000",
+          "legendFormat": "{{job}} {{method}} {{uri}}"
         }
       ],
       "gridPos": { "x": 12, "y": 4, "w": 12, "h": 7 }
     },
+
     {
       "type": "timeseries",
       "title": "JVM Heap 사용량",
       "datasource": "Prometheus",
       "targets": [
         {
-          "expr": "jvm_memory_used_bytes{area=\"heap\",application!=\"\"}",
-          "legendFormat": "{{application}} heap"
+          "expr": "jvm_memory_used_bytes{area=\"heap\",job!=\"\"}",
+          "legendFormat": "{{job}} heap"
         }
       ],
       "gridPos": { "x": 0, "y": 11, "w": 12, "h": 7 }
@@ -96,136 +98,62 @@
       "datasource": "Prometheus",
       "targets": [
         {
-          "expr": "jvm_memory_used_bytes{area=\"nonheap\",application!=\"\"}",
-          "legendFormat": "{{application}} nonheap"
+          "expr": "jvm_memory_used_bytes{area=\"nonheap\",job!=\"\"}",
+          "legendFormat": "{{job}} nonheap"
         }
       ],
       "gridPos": { "x": 12, "y": 11, "w": 12, "h": 7 }
     },
+
     {
       "type": "timeseries",
       "title": "GC 시간 / GC 횟수",
       "datasource": "Prometheus",
       "targets": [
-        { "expr": "rate(jvm_gc_pause_seconds_sum[1m])", "legendFormat": "GC Pause" },
-        { "expr": "rate(jvm_gc_pause_seconds_count[1m])", "legendFormat": "GC Count" }
+        { "expr": "rate(jvm_gc_pause_seconds_sum{job!=\"\"}[1m])", "legendFormat": "{{job}} GC Pause" },
+        { "expr": "rate(jvm_gc_pause_seconds_count{job!=\"\"}[1m])", "legendFormat": "{{job}} GC Count" }
       ],
       "gridPos": { "x": 0, "y": 18, "w": 12, "h": 7 }
     },
+
     {
       "type": "timeseries",
       "title": "CPU 사용량 (%)",
       "datasource": "Prometheus",
       "targets": [
-        { "expr": "system_cpu_usage", "legendFormat": "System" },
-        { "expr": "process_cpu_usage", "legendFormat": "Process" }
+        { "expr": "system_cpu_usage{job!=\"\"}", "legendFormat": "{{job}} System" },
+        { "expr": "process_cpu_usage{job!=\"\"}", "legendFormat": "{{job}} Process" }
       ],
       "gridPos": { "x": 12, "y": 18, "w": 12, "h": 7 }
     },
+
     {
       "type": "timeseries",
       "title": "스레드 수 (JVM Threads)",
       "datasource": "Prometheus",
       "targets": [
-        { "expr": "jvm_threads_live_threads", "legendFormat": "live" },
-        { "expr": "jvm_threads_daemon_threads", "legendFormat": "daemon" },
-        { "expr": "jvm_threads_peak_threads", "legendFormat": "peak" }
+        { "expr": "jvm_threads_live_threads{job!=\"\"}", "legendFormat": "{{job}} live" },
+        { "expr": "jvm_threads_daemon_threads{job!=\"\"}", "legendFormat": "{{job}} daemon" },
+        { "expr": "jvm_threads_peak_threads{job!=\"\"}", "legendFormat": "{{job}} peak" }
       ],
       "gridPos": { "x": 0, "y": 25, "w": 12, "h": 7 }
     },
+
     {
       "type": "timeseries",
       "title": "HikariCP 커넥션 풀",
       "datasource": "Prometheus",
       "targets": [
-        { "expr": "hikaricp_connections_active", "legendFormat": "Active" },
-        { "expr": "hikaricp_connections_idle", "legendFormat": "Idle" },
-        { "expr": "hikaricp_connections_pending", "legendFormat": "Pending" }
+        { "expr": "hikaricp_connections_active{job!=\"\"}", "legendFormat": "{{job}} Active" },
+        { "expr": "hikaricp_connections_idle{job!=\"\"}", "legendFormat": "{{job}} Idle" },
+        { "expr": "hikaricp_connections_pending{job!=\"\"}", "legendFormat": "{{job}} Pending" }
       ],
       "gridPos": { "x": 12, "y": 25, "w": 12, "h": 7 }
     },
 
-
-    {
-      "type": "stat",
-      "title": "Redis 상태 (UP)",
-      "datasource": "Prometheus",
-      "targets": [
-        {
-          "expr": "redis_up{job=\"redis\"}",
-          "legendFormat": "redis_up"
-        }
-      ],
-      "gridPos": { "x": 0, "y": 32, "w": 4, "h": 4 }
-    },
-    {
-      "type": "stat",
-      "title": "Redis 메모리 사용량 (MB)",
-      "datasource": "Prometheus",
-      "targets": [
-        {
-          "expr": "redis_memory_used_bytes{job=\"redis\"} / 1024 / 1024",
-          "legendFormat": "used MB"
-        }
-      ],
-      "gridPos": { "x": 4, "y": 32, "w": 4, "h": 4 }
-    },
-    {
-      "type": "stat",
-      "title": "Redis 연결 클라이언트 수",
-      "datasource": "Prometheus",
-      "targets": [
-        {
-          "expr": "redis_connected_clients{job=\"redis\"}",
-          "legendFormat": "clients"
-        }
-      ],
-      "gridPos": { "x": 8, "y": 32, "w": 4, "h": 4 }
-    },
-    {
-      "type": "stat",
-      "title": "Redis 명령 처리 속도 (ops/s)",
-      "datasource": "Prometheus",
-      "targets": [
-        {
-          "expr": "rate(redis_commands_processed_total{job=\"redis\"}[1m])",
-          "legendFormat": "ops/s"
-        }
-      ],
-      "gridPos": { "x": 12, "y": 32, "w": 4, "h": 4 }
-    },
     {
       "type": "timeseries",
-      "title": "Redis 메모리 사용량 (시간 추이)",
-      "datasource": "Prometheus",
-      "targets": [
-        {
-          "expr": "redis_memory_used_bytes{job=\"redis\"} / 1024 / 1024",
-          "legendFormat": "used MB"
-        }
-      ],
-      "gridPos": { "x": 0, "y": 36, "w": 12, "h": 7 }
-    },
-    {
-      "type": "timeseries",
-      "title": "Redis 연결 수 & OPS",
-      "datasource": "Prometheus",
-      "targets": [
-        {
-          "expr": "redis_connected_clients{job=\"redis\"}",
-          "legendFormat": "clients"
-        },
-        {
-          "expr": "rate(redis_commands_processed_total{job=\"redis\"}[1m])",
-          "legendFormat": "ops/s"
-        }
-      ],
-      "gridPos": { "x": 12, "y": 36, "w": 12, "h": 7 }
-    },
-    {
-      "type": "timeseries",
-      "title": "Redis 키 수 (락/캐시 포함, db0)",
-      "description": "db0 전체 키 수. dispatch:lock:monitor:* 키도 포함되므로 피크를 보면 동시 락 사용량을 간접적으로 볼 수 있음.",
+      "title": "Redis 키 수 (db0)",
       "datasource": "Prometheus",
       "targets": [
         {
@@ -233,7 +161,7 @@
           "legendFormat": "db0 keys"
         }
       ],
-      "gridPos": { "x": 0, "y": 43, "w": 24, "h": 7 }
+      "gridPos": { "x": 0, "y": 32, "w": 24, "h": 7 }
     }
   ]
 }

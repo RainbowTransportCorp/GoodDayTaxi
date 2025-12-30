@@ -1,0 +1,68 @@
+global:
+  scrape_interval: 5s
+  scrape_timeout: 4s
+  evaluation_interval: 5s
+
+scrape_configs:
+
+  # ========================
+  # GATEWAY
+  # ========================
+  - job_name: 'gateway'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['10.1.0.196:8080']
+
+
+  # ========================
+  # ACCOUNT SERVICE
+  # ========================
+  - job_name: 'account-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['10.1.0.195:8201']
+
+
+  # ========================
+  # DISPATCH SERVICE
+  # ========================
+  - job_name: 'dispatch-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['10.2.0.160:8202']
+
+
+  # ========================
+  # TRIP SERVICE
+  # ========================
+  - job_name: 'trip-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['10.2.0.26:8203']
+
+
+  # ========================
+  # PAYMENT SERVICE
+  # ========================
+  - job_name: 'payment-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['10.2.0.69:8204']
+
+
+  # ========================
+  # SUPPORT SERVICE
+  # ========================
+  - job_name: 'support-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['10.1.0.70:8205']
+
+
+  # ========================
+  # Redis Monitoring
+  # ========================
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['10.2.0.28:9121']
+
