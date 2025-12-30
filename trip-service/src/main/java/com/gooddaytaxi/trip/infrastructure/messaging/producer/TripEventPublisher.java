@@ -42,6 +42,7 @@ public class TripEventPublisher {
     private String resolveTopic(TripEventType eventType) {
         return switch (eventType) {
             case TRIP_CREATED -> "trip.created";
+            case TRIP_READY -> "trip.ready";
             case TRIP_STARTED -> "trip.started";
             case TRIP_ENDED -> "trip.ended";
             case TRIP_CANCELED -> "trip.canceled";

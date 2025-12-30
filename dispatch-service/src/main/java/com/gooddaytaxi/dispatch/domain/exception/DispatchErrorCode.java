@@ -19,6 +19,12 @@ public enum DispatchErrorCode {
             400
     ),
 
+    DISPATCH_NOT_FOUND(
+        "DISPATCH_NOT_FOUND",
+        "배차 정보를 찾을 수 없습니다.",
+        404
+    ),
+
     NOT_ASSIGNED_DRIVER(
             "DISPATCH_NOT_ASSIGNED_DRIVER",
             "해당 기사에게 배정된 콜이 아닙니다.",

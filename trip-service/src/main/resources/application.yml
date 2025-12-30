@@ -3,9 +3,7 @@ server:
 
 spring:
   profiles:
-    active: ${profiles.active}
-  config:
-    import: secrets.yaml
+    active: ${SPRING_PROFILES_ACTIVE:prod}
   application:
     name: trip-service
 
@@ -30,17 +28,16 @@ spring:
       auto-offset-reset: earliest
       enable-auto-commit: false
 
-
 eureka:
   client:
     service-url:
       defaultZone: http://localhost:${eureka.port}/eureka/
 
-
 management:
   tracing:
     sampling:
       probability: 1.0
+      
   zipkin:
     tracing:
       endpoint: "http://localhost:${zipkin.port}/api/v2/spans"

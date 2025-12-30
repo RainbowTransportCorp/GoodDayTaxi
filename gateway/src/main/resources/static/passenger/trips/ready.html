@@ -5,7 +5,7 @@
   <title>운행 대기 중 | Good day Taxi</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <!-- ✅ 공통 헤더 포함 -->
+  <!-- ✅ 공통 헤더 -->
   <link rel="stylesheet" href="/common/header.css">
   <script src="/common/header.js" defer></script>
 
@@ -62,8 +62,7 @@
 </head>
 <body>
 
-<!-- ✅ 공통 헤더 -->
-<header class="header"></header>
+<header id="header-container"></header>
 
 <div class="container">
   <div class="card">
@@ -86,82 +85,103 @@
 </div>
 
 <script>
-  const userUuid = localStorage.getItem("userUuid");
+  /* ================= 인증 ================= */
   const token = localStorage.getItem("accessToken");
+  const uuid = localStorage.getItem("userUuid");
+  const role = localStorage.getItem("role");
 
-  if (!userUuid || !token) {
+  if (!token || !uuid || role !== "PASSENGER") {
     alert("잘못된 접근입니다.");
     location.href = "/index.html";
   }
 
-  const defaultHeaders = {
+  const headers = {
     "Authorization": `Bearer ${token}`,
-    "X-User-UUID": userUuid,
+    "X-User-UUID": uuid,
     "X-User-Role": "PASSENGER"
   };
 
+  /* ================= 상태 ================= */
+  let pollingTimer = null;
+
+  /* ================= 운행 정보 조회 ================= */
   async function fetchTripInfo() {
     try {
-      const res = await fetch("/api/v1/trips/passengers/active", {
-        headers: defaultHeaders
-      });
+      const res = await fetch("/api/v1/trips/passengers/active", {headers});
 
-      if (!res.ok) {
-        if (res.status === 404 || res.status === 204) {
-          location.href = "/passenger/dashboard/index.html";
-          return;
-        }
-
-        if (res.status === 401 || res.status === 403) {
-          alert("세션이 만료되었습니다. 다시 로그인해주세요.");
-          location.href = "/index.html";
-          return;
-        }
-
-        throw new Error("Trip fetch failed");
-      }
-
-      const { data: trip } = await res.json();
-
-      if (!trip || !trip.status) {
-        location.href = "/passenger/dashboard/index.html";
+      // 🔒 인증 만료
+      if (res.status === 401 || res.status === 403) {
+        alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+        location.href = "/index.html";
         return;
       }
 
-      // ✅ 상태 렌더링
-      document.getElementById("pickup").textContent = trip.pickupAddress ?? "-";
-      document.getElementById("destination").textContent = trip.destinationAddress ?? "-";
+      /**
+       * 🔥 READY 핵심 규칙
+       * active API에서 204 / 404는
+       * "아직 운행 시작 전"으로 해석
+       */
+      if (res.status === 204 || res.status === 404) {
+        console.log("[READY] active 없음 → 대기 유지");
+        return;
+      }
 
-      // ✅ 인디케이터 노출을 위한 상태 저장
-      localStorage.setItem("tripId", trip.id);
+      if (!res.ok) {
+        console.warn("[READY] active 조회 실패", res.status);
+        return;
+      }
+
+      const {data: trip} = await res.json();
+      if (!trip || !trip.status) {
+        console.log("[READY] trip 정보 없음 → 대기 유지");
+        return;
+      }
+
+      // 상태 저장 (tripId는 있을 때만)
+      if (trip.tripId) {
+        localStorage.setItem("tripId", trip.tripId);
+      }
       localStorage.setItem("tripStatus", trip.status);
 
-      // ✅ 상태 변화에 따른 페이지 이동
+      // 주소 출력 (있을 때만)
+      if (trip.pickupAddress) {
+        document.getElementById("pickup").textContent = trip.pickupAddress;
+      }
+      if (trip.destinationAddress) {
+        document.getElementById("destination").textContent = trip.destinationAddress;
+      }
+
+      // 상태 전이
       switch (trip.status) {
         case "READY":
-          // stay on this page
-          break;
+          // 그대로 대기
+          return;
+
         case "STARTED":
-          location.href = `/passenger/trips/active.html?tripId=${trip.id}`;
-          break;
+          clearInterval(pollingTimer);
+          location.href = `/passenger/trips/active.html${trip.tripId ? `?tripId=${trip.tripId}` : ""}`;
+          return;
+
         case "ENDED":
-          location.href = `/passenger/trips/ended.html`;
-          localStorage.removeItem("tripId");
-          localStorage.removeItem("tripStatus");
-          break;
+          clearInterval(pollingTimer);
+          location.href = `/passenger/trips/ended.html${trip.tripId ? `?tripId=${trip.tripId}` : ""}`;
+          return;
+
         default:
-          location.href = "/passenger/dashboard/index.html";
+          console.warn("[READY] 예상 외 상태:", trip.status);
+          return;
       }
 
     } catch (e) {
-      console.error("운행 정보 조회 실패", e);
-      location.href = "/passenger/dashboard/index.html";
+      console.error("[READY] 운행 정보 조회 실패", e);
     }
   }
 
+  /* ================= 시작 ================= */
   fetchTripInfo();
-  setInterval(fetchTripInfo, 5000);
+  pollingTimer = setInterval(fetchTripInfo, 5000);
 </script>
+
 
 </body>
 </html>

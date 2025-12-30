@@ -58,4 +58,13 @@ public interface AppendTripEventPort {
             LocalDateTime locationTime
     );
 
+
+    UUID appendTripReady(
+            UUID tripId,
+            UUID notifierId,
+            UUID dispatchId,
+            LocalDateTime startTime
+    );
+
+
 }

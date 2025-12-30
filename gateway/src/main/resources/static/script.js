@@ -93,17 +93,17 @@ async function redirectPassengerAfterLogin() {
       const json = await safeReadJson(res);
       const trip = json?.data ?? null;
 
-      if (trip?.id) {
-        localStorage.setItem("tripId", trip.id);
+      if (trip?.tripId) {
+        localStorage.setItem("tripId", trip.tripId);
         localStorage.setItem("tripStatus", trip.status);
 
         if (trip.status === "READY") {
-          location.href = `/passenger/trips/ready.html?tripId=${trip.id}`;
+          location.href = `/passenger/trips/ready.html?tripId=${trip.tripId}`;
           return;
         }
 
         if (trip.status === "STARTED") {
-          location.href = `/passenger/trips/active.html?tripId=${trip.id}`;
+          location.href = `/passenger/trips/active.html?tripId=${trip.tripId}`;
           return;
         }
       }
@@ -133,17 +133,17 @@ async function redirectDriverAfterLogin() {
       const json = await safeReadJson(res);
       const trip = json?.data ?? null;
 
-      if (trip?.id) {
-        localStorage.setItem("tripId", trip.id);
+      if (trip?.tripId) {
+        localStorage.setItem("tripId", trip.tripId);
         localStorage.setItem("tripStatus", trip.status);
 
         if (trip.status === "READY") {
-          location.href = `/driver/trips/ready.html?tripId=${trip.id}`;
+          location.href = `/driver/trips/ready.html?tripId=${trip.tripId}`;
           return;
         }
 
         if (trip.status === "STARTED") {
-          location.href = `/driver/trips/active.html?tripId=${trip.id}`;
+          location.href = `/driver/trips/active.html?tripId=${trip.tripId}`;
           return;
         }
       }

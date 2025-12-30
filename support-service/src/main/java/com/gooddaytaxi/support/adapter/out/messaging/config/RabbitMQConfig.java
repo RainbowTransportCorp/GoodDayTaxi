@@ -67,7 +67,7 @@ public class RabbitMQConfig {
     // TODO: err 관련 binding, queue 작성
 
     /* RabbitTemplate - Producer가 메시지를 보낼 때
-     * based on application.yaml
+     * based on application.yml
      */
     @Bean
     public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory,

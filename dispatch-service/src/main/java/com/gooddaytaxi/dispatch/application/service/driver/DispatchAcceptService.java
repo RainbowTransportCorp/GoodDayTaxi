@@ -48,7 +48,7 @@ public class DispatchAcceptService {
     public DispatchAcceptResult accept(DispatchAcceptCommand command) {
 
         log.info("[Accept] 요청 수신 - driverId={} dispatchId={}",
-                command.getDriverId(), command.getDispatchId());
+            command.getDriverId(), command.getDispatchId());
 
         String lockKey = command.getDispatchId().toString();
 
@@ -65,19 +65,19 @@ public class DispatchAcceptService {
             log.debug("[Accept] 역할 검증 통과 - role={}", command.getRole());
 
             DispatchAssignmentLog logEntry =
-                    assignmentLogService.findLatest(
-                            command.getDispatchId(),
-                            command.getDriverId()
-                    );
+                assignmentLogService.findLatest(
+                    command.getDispatchId(),
+                    command.getDriverId()
+                );
 
             if (logEntry == null) {
                 log.warn("[Accept] 후보 기사 아님 - driverId={} dispatchId={}",
-                        command.getDriverId(), command.getDispatchId());
+                    command.getDriverId(), command.getDispatchId());
                 throw new DispatchNotAssignedDriverException();
             }
 
             log.debug("[Accept] 후보 기사 확인 완료 - driverId={} dispatchId={}",
-                    command.getDriverId(), command.getDispatchId());
+                command.getDriverId(), command.getDispatchId());
 
             DispatchStatus before = dispatch.getDispatchStatus();
 
@@ -86,13 +86,13 @@ public class DispatchAcceptService {
             logEntry.accept();
 
             log.info("[Accept] 상태 전이 완료 - dispatchId={} driverId={}",
-                    dispatch.getDispatchId(), command.getDriverId());
+                dispatch.getDispatchId(), command.getDriverId());
 
             assignmentLogService.save(logEntry);
             commandPort.save(dispatch);
 
             acceptedEventPort.publishAccepted(
-                    DispatchAcceptedPayload.from(dispatch, command.getDriverId())
+                DispatchAcceptedPayload.from(dispatch, command.getDriverId())
             );
 
             // Trip 생성 요청 (후속 단계)
@@ -102,27 +102,27 @@ public class DispatchAcceptService {
 
             try {
                 historyService.saveStatusChange(
-                        dispatch.getDispatchId(),
-                        HistoryEventType.STATUS_CHANGED,
-                        before,
-                        dispatch.getDispatchStatus(),
-                        ChangedBy.DRIVER,
-                        "기사로부터 배차 수락"
+                    dispatch.getDispatchId(),
+                    HistoryEventType.STATUS_CHANGED,
+                    before,
+                    dispatch.getDispatchStatus(),
+                    ChangedBy.DRIVER,
+                    "기사로부터 배차 수락"
                 );
             } catch (Exception e) {
                 log.error("[Accept] 히스토리 기록 실패 - dispatchId={} err={}",
-                        dispatch.getDispatchId(), e.getMessage());
+                    dispatch.getDispatchId(), e.getMessage());
             }
 
             log.info("[Accept] 완료 - dispatchId={} status={}",
-                    dispatch.getDispatchId(), dispatch.getDispatchStatus());
+                dispatch.getDispatchId(), dispatch.getDispatchStatus());
 
             return DispatchAcceptResult.builder()
-                    .dispatchId(dispatch.getDispatchId())
-                    .driverId(command.getDriverId())
-                    .dispatchStatus(dispatch.getDispatchStatus())
-                    .acceptedAt(dispatch.getAcceptedAt())
-                    .build();
+                .dispatchId(dispatch.getDispatchId())
+                .driverId(command.getDriverId())
+                .dispatchStatus(dispatch.getDispatchStatus())
+                .acceptedAt(dispatch.getAcceptedAt())
+                .build();
 
         } finally {
             lockManager.unlock(lockKey);

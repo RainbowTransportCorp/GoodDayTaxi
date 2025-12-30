@@ -1,0 +1,11 @@
+server:
+  port: ${EUREKA_PORT:8761}
+
+eureka:
+  instance:
+    hostname: ${EUREKA_HOSTNAME:server}                   # 도커 컨테이너명 또는 서비스명과 일치시킴
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+  service-url:
+    defaultZone: http:///${EUREKA_HOSTNAME:server}:${EUREKA_PORT:8761}/eureka/
