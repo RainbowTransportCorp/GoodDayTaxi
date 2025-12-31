@@ -4,7 +4,6 @@ spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:prod}
 
-
   main:
     web-application-type: reactive
 
@@ -26,3 +25,4 @@ management:
   metrics:
     tags:
       application: gateway
+

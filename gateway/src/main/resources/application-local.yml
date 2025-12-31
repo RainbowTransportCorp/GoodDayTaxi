@@ -40,7 +40,7 @@ spring:
             - Path=/passenger/payments/checkout.html,
               /passenger/payments/processing.html,
               /passenger/payments/success.html,
-              /passenger/payments/fail.html,
+              /passenger/payments/fail.html
 
 springdoc:
   swagger-ui:
@@ -101,7 +101,7 @@ springdoc:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:${eureka.port}/eureka/   # Docker 컨테이너 명|서비스 명 / localhost
+      defaultZone: http://localhost:${eureka.port}/eureka/
 
 
 management:

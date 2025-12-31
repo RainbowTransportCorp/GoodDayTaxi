@@ -71,6 +71,7 @@ dependencies {
     implementation files('../common-core/build/libs/common-core-0.0.5-SNAPSHOT.jar')
     implementation files('../common-jpa/build/libs/common-jpa-0.0.5-SNAPSHOT.jar')
 
+
     /* =========================
        QueryDSL
      ========================= */

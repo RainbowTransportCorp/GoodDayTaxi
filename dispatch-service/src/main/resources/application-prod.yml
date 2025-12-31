@@ -1,5 +1,6 @@
 server:
   port: ${DISPATCH_SERVICE_PORT:8202}
+
   address: 0.0.0.0
   tomcat:
     threads:
@@ -18,12 +19,14 @@ spring:
     driver-class-name: org.postgresql.Driver
     username: ${DB_USER:dispatch}
     password: ${DB_PASSWORD:dispatch1234}
+
     hikari:
       maximum-pool-size: 5
       minimum-idle: 2
       connection-timeout: 3000
       idle-timeout: 30000
       max-lifetime: 1800000
+
 
   jpa:
     hibernate:
@@ -46,14 +49,17 @@ spring:
     listener:
       auto-startup: false
       missing-topics-fatal: false
+
     consumer:
       group-id: dispatch-group
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
       properties:
         max.poll.interval.ms: 300000
         session.timeout.ms: 10000
+        
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
@@ -105,3 +111,4 @@ logging:
     # 쿼리 로그 비활성화
     org.hibernate.SQL: OFF
     org.hibernate.orm.jdbc.bind: OFF
+
