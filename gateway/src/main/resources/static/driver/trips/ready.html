@@ -5,7 +5,6 @@
   <title>운행 대기 중 | Good day Taxi</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- ✅ 정적 처리 대상 -->
   <link rel="stylesheet" href="/common/header.css">
   <script src="/common/header-static.js" defer></script>
 
@@ -77,13 +76,7 @@
 </head>
 <body>
 
-<header></header>
-<script>
-  document.addEventListener("DOMContentLoaded", async () => {
-    const res = await fetch("/common/header-static.html");
-    document.querySelector("header").innerHTML = await res.text();
-  });
-</script>
+<header id="header-container"></header>
 
 <main class="container">
   <div class="card">

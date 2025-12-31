@@ -1,6 +1,12 @@
 server:
   port: ${DISPATCH_SERVICE_PORT:8202}
-
+  address: 0.0.0.0
+  tomcat:
+    threads:
+      max: 50
+      min-spare: 10
+    accept-count: 50
+    connection-timeout: 5000
 
 spring:
   config:
@@ -8,37 +14,53 @@ spring:
       - secrets.yml
 
   datasource:
-    url: jdbc:postgresql://${DB_HOSTNAME:localhost}:${DB_PORT:5432}/${DB_NAME:goodday_dispatch}
+    url: jdbc:postgresql://${DB_HOSTNAME:localhost}:${DB_PORT:5434}/${DB_NAME:goodday_dispatch}
     driver-class-name: org.postgresql.Driver
     username: ${DB_USER:dispatch}
     password: ${DB_PASSWORD:dispatch1234}
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      connection-timeout: 3000
+      idle-timeout: 30000
+      max-lifetime: 1800000
 
   jpa:
     hibernate:
       ddl-auto: validate
+    open-in-view: false
     properties:
       hibernate:
         show_sql: false
+        format_sql: false
 
   data:
     redis:
       host: ${REDIS_HOSTNAME:10.2.0.28}
       port: ${REDIS_PORT:6379}
       database: 0
+      timeout: 2000
 
   kafka:
     bootstrap-servers: ${KAFKA_HOSTNAME:10.2.0.226}:${KAFKA_PORT:9092}
-
+    listener:
+      auto-startup: false
+      missing-topics-fatal: false
     consumer:
       group-id: dispatch-group
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      properties:
+        max.poll.interval.ms: 300000
+        session.timeout.ms: 10000
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
       properties:
         enable.idempotence: true
+        request.timeout.ms: 30000
+        retry.backoff.ms: 1000
 
 kafka:
   topic:
@@ -46,15 +68,32 @@ kafka:
 
 eureka:
   client:
+    register-with-eureka: true
+    fetch-registry: true
     service-url:
       defaultZone: http://${EUREKA_HOSTNAME:10.1.0.61}:${EUREKA_PORT:8761}/eureka/
+    registry-fetch-interval-seconds: 10
 
+feign:
+  client:
+    config:
+      default:
+        retryer: feign.Retryer$NeverRetry
 
 management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  endpoint:
+    health:
+      show-details: never
+  tracing:
+    sampling:
+      probability: 0.1
   zipkin:
     tracing:
       endpoint: http://${ZIPKIN_HOSTNAME:10.1.0.61}:${ZIPKIN_PORT:9411}/api/v2/spans
-
 
 logging:
   level:
@@ -66,4 +105,3 @@ logging:
     # 쿼리 로그 비활성화
     org.hibernate.SQL: OFF
     org.hibernate.orm.jdbc.bind: OFF
-

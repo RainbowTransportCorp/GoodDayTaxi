@@ -1,7 +1,7 @@
 global:
-  scrape_interval: 5s
-  scrape_timeout: 4s
-  evaluation_interval: 5s
+  scrape_interval: 30s
+  scrape_timeout: 10s
+  evaluation_interval: 30s
 
 scrape_configs:
 
@@ -10,11 +10,10 @@ scrape_configs:
   # ========================
   - job_name: 'gateway'
     metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    scrape_timeout: 5s
     static_configs:
-      # Docker 컨테이너
-      - targets: ['gd_gateway:8080']
-      # 로컬 개발
-      - targets: ['host.docker.internal:8080']
+      - targets: ['10.1.0.196:8080']
 
 
   # ========================
@@ -23,22 +22,19 @@ scrape_configs:
   - job_name: 'account-service'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      # Docker 컨테이너
-      - targets: ['gd_account_service:8080']
-      # 로컬 개발
-      - targets: ['host.docker.internal:8201']
+      - targets: ['10.1.0.195:8201']
 
 
   # ========================
   # DISPATCH SERVICE
   # ========================
   - job_name: 'dispatch-service'
+    scrape_interval: 30s
+    scrape_timeout: 10s
     metrics_path: '/actuator/prometheus'
     static_configs:
-      # Docker 컨테이너
-      - targets: ['gd_dispatch_service:8080']
-      # 로컬 개발
-      - targets: ['host.docker.internal:8202']
+      - targets: ['10.2.0.160:8202']
+
 
 
   # ========================
@@ -47,10 +43,7 @@ scrape_configs:
   - job_name: 'trip-service'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      # Docker 컨테이너
-      - targets: ['gd_trip_service:8080']
-      # 로컬 개발
-      - targets: ['host.docker.internal:8203']
+      - targets: ['10.2.0.26:8203']
 
 
   # ========================
@@ -59,10 +52,7 @@ scrape_configs:
   - job_name: 'payment-service'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      # Docker 컨테이너
-      - targets: ['gd_payment_service:8080']
-      # 로컬 개발
-      - targets: ['host.docker.internal:8204']
+      - targets: ['10.2.0.69:8204']
 
 
   # ========================
@@ -71,10 +61,7 @@ scrape_configs:
   - job_name: 'support-service'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      # Docker 컨테이너
-      - targets: ['gd_support_service:8080']
-      # 로컬 개발
-      - targets: ['host.docker.internal:8205']
+      - targets: ['10.1.0.70:8205']
 
 
   # ========================
@@ -82,5 +69,5 @@ scrape_configs:
   # ========================
   - job_name: 'redis'
     static_configs:
-      - targets: ['redis-exporter:9121']
+      - targets: ['10.2.0.28:9121']
 

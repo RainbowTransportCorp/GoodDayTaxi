@@ -118,14 +118,14 @@ function renderDriverIndicators() {
 
     const btn = document.createElement("button");
     btn.className = "btn-indicator";
-    btn.innerHTML = "🚕 운행중";
-    btn.onclick = goToActiveTrip; // ✅ FIX
+    btn.textContent = "🚕 운행중";
+    btn.onclick = goToActiveTrip;
 
     indicatorBox.appendChild(btn);
 }
 
 /* ==================================================
- * Passenger 전용: 미결제 체크
+ * Passenger 전용
  * ================================================== */
 async function checkUnpaidTripForPassenger() {
     if (getRole() !== "PASSENGER") return;
@@ -167,16 +167,13 @@ async function checkUnpaidTripForPassenger() {
         localStorage.setItem("tripStatus", "ENDED");
         localStorage.setItem("hasUnpaid", "true");
 
-        if (payment.method !== "TOSS_PAY") return;
-
         const indicatorBox = document.getElementById("top-indicators");
         if (!indicatorBox) return;
-        if (indicatorBox.querySelector(".btn-unpaid")) return;
 
         const btn = document.createElement("button");
         btn.className = "btn-indicator btn-unpaid";
-        btn.innerHTML = "💳 미결제";
-        btn.onclick = goToUnpaidPage; // ✅ FIX
+        btn.textContent = "💳 미결제";
+        btn.onclick = goToUnpaidPage;
 
         indicatorBox.appendChild(btn);
     } catch (e) {
@@ -185,18 +182,23 @@ async function checkUnpaidTripForPassenger() {
 }
 
 /* ==================================================
- * Header Init
+ * Header Init (🔥 중요 수정 구간)
  * ================================================== */
 document.addEventListener("DOMContentLoaded", async () => {
-    const headerContainer = document.querySelector("header");
+    // ❗ header 태그 자체가 아니라 전용 컨테이너 사용
+    const headerContainer = document.getElementById("header-container");
     if (!headerContainer) return;
 
     const res = await fetch("/common/header.html");
     headerContainer.innerHTML = await res.text();
 
-    document.getElementById("user-name").textContent =
-        `${getDisplayName()}님`;
+    // 사용자명
+    const userNameEl = document.getElementById("user-name");
+    if (userNameEl) {
+        userNameEl.textContent = `${getDisplayName()}님`;
+    }
 
+    // 서브 타이틀
     const subEl = document.getElementById("brand-sub");
     if (subEl) {
         subEl.textContent =
@@ -206,6 +208,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                         getRole() === "MASTER_ADMIN" ? "최고 관리자" : "서비스";
     }
 
+    // 역할별 후처리
     if (getRole() === "DRIVER") {
         await syncDriverTripStatus();
         renderDriverIndicators();
