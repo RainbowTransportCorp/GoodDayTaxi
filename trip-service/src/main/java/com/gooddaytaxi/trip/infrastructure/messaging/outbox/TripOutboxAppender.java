@@ -1,15 +1,14 @@
 package com.gooddaytaxi.trip.infrastructure.messaging.outbox;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gooddaytaxi.trip.application.port.out.AppendTripEventPort;
+import com.gooddaytaxi.trip.domain.model.Trip;
 import com.gooddaytaxi.trip.domain.model.enums.TripEventType;
 import com.gooddaytaxi.trip.infrastructure.messaging.model.EventEnvelope;
 import com.gooddaytaxi.trip.infrastructure.messaging.outbox.entity.TripEventOutbox;
 import com.gooddaytaxi.trip.infrastructure.messaging.outbox.repository.TripEventOutboxJpaRepository;
-import com.gooddaytaxi.trip.infrastructure.messaging.payload.TripCanceledPayload;
-import com.gooddaytaxi.trip.infrastructure.messaging.payload.TripEndedPayload;
-import com.gooddaytaxi.trip.infrastructure.messaging.payload.TripLocationUpdatedPayload;
-import com.gooddaytaxi.trip.infrastructure.messaging.payload.TripStartedPayload;
+import com.gooddaytaxi.trip.infrastructure.messaging.payload.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -241,6 +240,49 @@ public class TripOutboxAppender implements AppendTripEventPort {
 
         } catch (Exception e) {
             throw new IllegalStateException("Failed to serialize TRIP_LOCATION_UPDATED event", e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public UUID appendTripReady(
+            UUID tripId,
+            UUID notifierId,
+            UUID dispatchId,
+            LocalDateTime startTime
+    ) {
+        TripReadyPayload payload = new TripReadyPayload(
+                tripId,
+                tripId,          // notificationOriginId = tripId (너희 관례)
+                notifierId,
+                dispatchId,
+                startTime
+        );
+
+        UUID eventId = UUID.randomUUID();
+
+        EventEnvelope<TripReadyPayload> envelope = new EventEnvelope<>(
+                eventId,
+                PAYLOAD_VERSION,
+                TripEventType.TRIP_READY.name(),
+                LocalDateTime.now(),
+                payload
+        );
+
+        try {
+            String payloadJson = objectMapper.writeValueAsString(envelope);
+
+            TripEventOutbox outbox = TripEventOutbox.createPendingEvent(
+                    tripId,
+                    TripEventType.TRIP_READY,
+                    payloadJson
+            );
+
+            outboxRepository.save(outbox);
+            return eventId;
+
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to serialize TRIP_READY event", e);
         }
     }
 

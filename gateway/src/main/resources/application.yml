@@ -2,7 +2,7 @@ spring:
   application:
     name: gateway
   profiles:
-    active: ${SPRING_PROFILES_ACTIVE}
+    active: ${SPRING_PROFILES_ACTIVE:prod}
 
   main:
     web-application-type: reactive
@@ -16,3 +16,13 @@ management:
   tracing:
     sampling:
       probability: 1.0
+
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+
+  metrics:
+    tags:
+      application: gateway
+

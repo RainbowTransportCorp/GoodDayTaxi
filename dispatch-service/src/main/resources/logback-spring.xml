@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %clr(%-5level){TRACE=faint,DEBUG=cyan,INFO=green,WARN=yellow,ERROR=red} --- [%thread] [%clr(%X{actor}){magenta}][%clr(%X{userId}){white,faint}] %clr(%logger{40}){cyan} : %msg%n</pattern>
+
+
+    </encoder>
+  </appender>
+
+  <root level="INFO">
+    <appender-ref ref="CONSOLE"/>
+  </root>
+</configuration>

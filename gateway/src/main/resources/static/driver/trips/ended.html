@@ -6,8 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <!-- 공통 헤더 -->
+  <!-- ✅ 정적 처리 대상이라면 이렇게 -->
   <link rel="stylesheet" href="/common/header.css">
-  <script src="/common/header.js" defer></script>
+  <script src="/common/header-static.js" defer></script>
 
   <style>
     body {
@@ -66,8 +67,7 @@
 </head>
 
 <body>
-<!-- 공통 헤더 -->
-<header class="header"></header>
+<header id="header-container"></header>
 
 <div class="container">
   <div class="card">

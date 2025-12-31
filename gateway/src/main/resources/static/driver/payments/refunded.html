@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>환불 처리됨 | Good Day Taxi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="stylesheet" href="/common/header.css">
+  <script src="/common/header.js" defer></script>
+
+  <style>
+    :root {
+      --info: #2196F3;
+      --bg: #f7f7fb;
+      --radius: 20px;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    main {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: calc(100vh - 80px);
+      padding: 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 40px 32px;
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      text-align: center;
+      max-width: 360px;
+      width: 100%;
+    }
+
+    .icon {
+      font-size: 44px;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      font-size: 20px;
+      margin-bottom: 8px;
+      color: var(--info);
+    }
+
+    p {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border-radius: 999px;
+      border: none;
+      background: #eee;
+      color: #333;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+<header id="header-container"></header>
+
+<main>
+  <div class="card">
+    <div class="icon">💸</div>
+    <h1>환불이 완료되었어요</h1>
+    <p>이 운행은 전액 환불 처리되었습니다.<br>승객에게 별도 고지가 필요할 수 있습니다.</p>
+    <button class="btn" onclick="goHome()">홈으로</button>
+  </div>
+</main>
+
+<script>
+  function goHome() {
+    location.href = "/driver/dashboard/index.html";
+  }
+</script>
+
+</body>
+</html>

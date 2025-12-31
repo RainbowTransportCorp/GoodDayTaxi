@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RedissonConfig {
 
-    @Value("${spring.data.redis.host}")// "${REDIS_HOST:10.2.0.28}")
+    @Value("${spring.data.redis.host}")
     private String redisHost;
 
     @Value("${spring.data.redis.port}")
@@ -22,7 +22,8 @@ public class RedissonConfig {
 
         // 환경 변수로 설정된 Redis host와 port 사용
         config.useSingleServer()
-                .setAddress("redis://" + redisHost + ":" + redisPort);
+            .setAddress("redis://" + redisHost + ":" + redisPort);
+
 
         return Redisson.create(config);
     }

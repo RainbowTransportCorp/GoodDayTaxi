@@ -45,6 +45,14 @@ async function checkActiveTrip() {
     const path = location.pathname;
 
     if (trip.status === "READY") {
+      // ✅ 디스패치 상태 확인
+      const valid = await isDispatchStillValid(trip.dispatchId);
+      if (!valid) {
+        console.warn("유효하지 않은 디스패치 상태입니다.");
+        location.href = "/driver/dashboard/index.html";
+        return;
+      }
+
       stopPolling();
       if (!path.endsWith("ready.html")) {
         location.href = "/driver/trips/ready.html";
@@ -65,7 +73,32 @@ async function checkActiveTrip() {
   }
 }
 
-/* ================= 폴링 시작 ================= */
+/* ================= 디스패치 유효성 확인 ================= */
+async function isDispatchStillValid(dispatchId) {
+  if (!dispatchId) return false;
+
+  try {
+    const res = await fetch(`${DISPATCH_BASE}/${dispatchId}`, {
+      headers: {
+        "Authorization": `Bearer ${TOKEN}`,
+        "X-User-UUID": UUID,
+        "X-User-Role": "DRIVER"
+      }
+    });
+
+    if (!res.ok) return false;
+
+    const { data: dispatch } = await res.json();
+
+    const validStatuses = ["TRIP_REQUEST", "TRIP_READY"];
+    return validStatuses.includes(dispatch.status);
+  } catch (e) {
+    console.error("디스패치 상태 확인 실패:", e);
+    return false;
+  }
+}
+
+/* ================= 폴링 ================= */
 function startPolling() {
   stopPolling();
   activePollingTimer = setInterval(checkActiveTrip, 3000);
@@ -148,7 +181,6 @@ async function acceptCall(id) {
       return;
     }
 
-    // ✅ 서버 상태 반영 기다림
     startPolling();
 
   } catch (e) {

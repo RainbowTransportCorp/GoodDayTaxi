@@ -11,40 +11,34 @@
 </head>
 
 <body>
-<header class="header">
-    <div id="header-indicators" class="header-indicators">
-        <button id="btn-trip-indicator" class="btn-indicator hidden" onclick="goToActiveTrip()">🚕 운행 중</button>
-        <button id="btn-unpaid-indicator" class="btn-indicator btn-danger hidden" onclick="goToUnpaidPage()">💳 미결제</button>
-    </div>
-    <div class="brand">
-        <div class="brand-main">Good day Taxi</div>
-        <div class="brand-sub" id="brand-sub"></div>
-
-    </div>
-    <div class="user-box">
-        <span id="user-name"></span>
-        <button class="btn-logout" onclick="logout()">로그아웃</button>
-    </div>
-</header>
+<header id="header-container"></header>
 
 <main class="dashboard" id="driver-dashboard">
     <h1 class="dashboard-title">🚖 기사님 오늘도 힘내세요</h1>
 
     <div class="card-grid">
-        <!-- 기존 카드들 -->
+        <!-- ✅ 대기 콜 -->
         <div class="card" onclick="location.href='/driver/dispatches/index.html'">
             <div class="card-title">대기 콜</div>
             <div class="card-desc">수락 가능한 배차 목록 확인</div>
         </div>
 
+        <!-- ✅ 운행 기록 -->
         <div class="card" onclick="location.href='/driver/trips/index.html'">
             <div class="card-title">운행 기록</div>
             <div class="card-desc">완료된 운행 내역</div>
         </div>
 
+        <!-- ✅ 내 프로필 -->
         <div class="card" onclick="location.href='/driver/profile/index.html'">
             <div class="card-title">내 프로필</div>
             <div class="card-desc">차량 / 근무 상태 관리</div>
+        </div>
+
+        <!-- ✅ 결제 내역 (추가됨) -->
+        <div class="card" onclick="location.href='/driver/payments/index.html'">
+            <div class="card-title">결제 내역</div>
+            <div class="card-desc">운행별 결제 상태 확인</div>
         </div>
     </div>
 </main>
