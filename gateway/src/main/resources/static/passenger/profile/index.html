@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <title>Good day Taxi – 내 프로필</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="/common/header.css">
+    <script src="/common/header.js" defer></script>
+    <!-- 같은 폴더의 CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<header id="header-container">
+    <div class="brand">
+        <div class="brand-main">Good day Taxi</div>
+        <div class="brand-sub" id="brand-sub">마이페이지</div>
+    </div>
+
+    <div class="user-box">
+        <span id="user-name"></span>
+        <button class="btn-logout" onclick="logout()">로그아웃</button>
+    </div>
+</header>
+
+
+<body>
+<main class="page-container">
+    <section class="card">
+        <h2 class="section-title">내 정보</h2>
+
+        <div class="form-group">
+            <label for="name">이름</label>
+            <input id="name" type="text" />
+        </div>
+
+        <div class="form-group">
+            <label for="phoneNumber">전화번호</label>
+            <input id="phoneNumber" type="text" placeholder="010-1234-5678" />
+        </div>
+
+        <div class="form-group">
+            <label for="email">이메일 (수정 불가)</label>
+            <input id="email" type="email" disabled />
+        </div>
+
+        <button class="btn-primary" type="button" onclick="updateProfile()">저장하기</button>
+    </section>
+</main>
+
+<!-- 같은 폴더의 JS -->
+<script src="script.js"></script>
+</body>
+</html>

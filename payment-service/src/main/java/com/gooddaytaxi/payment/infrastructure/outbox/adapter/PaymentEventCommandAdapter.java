@@ -1,0 +1,91 @@
+package com.gooddaytaxi.payment.infrastructure.outbox.adapter;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gooddaytaxi.payment.application.event.payload.PaymentCompletePayload;
+import com.gooddaytaxi.payment.application.event.payload.RefundCompletedPayload;
+import com.gooddaytaxi.payment.application.event.payload.RefundRequestCreatePayload;
+import com.gooddaytaxi.payment.application.event.payload.RefundRequestRejectedPayload;
+import com.gooddaytaxi.payment.application.event.payload.RefundSettlementPayload;
+import com.gooddaytaxi.payment.application.port.out.event.PaymentEventOutboxPort;
+import com.gooddaytaxi.payment.application.port.out.event.PaymentEventCommandPort;
+import com.gooddaytaxi.payment.infrastructure.outbox.publisher.PaymentBaseOutboxPublisher;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+@Component
+public class PaymentEventCommandAdapter extends PaymentBaseOutboxPublisher implements PaymentEventCommandPort {
+
+    private static final String AGGREGATE_TYPE = "Payment";
+
+    @Value("${payment.event.payload-version}")
+    private int VERSION;
+
+    public PaymentEventCommandAdapter(ObjectMapper objectMapper, PaymentEventOutboxPort outboxPort) {
+        super(objectMapper, outboxPort);
+    }
+
+    @Override
+    public void publishPaymentCompleted(PaymentCompletePayload payload) {
+        publish(
+                "PAYMENT_COMPLETED",
+                "payment.completed",
+                AGGREGATE_TYPE,
+                payload.notificationOriginId(),
+                payload.notificationOriginId().toString(),
+                VERSION,
+                payload
+        );
+    }
+
+    @Override
+    public void publishRefundRequestCreated(RefundRequestCreatePayload payload) {
+        publish(
+                "REFUND_REQUEST_CREATED",
+                "refund.request.created",
+                AGGREGATE_TYPE,
+                payload.notificationOriginId(),
+                payload.notificationOriginId().toString(),
+                VERSION,
+                payload
+        );
+    }
+
+    @Override
+    public void publishRefundRequestRejected(RefundRequestRejectedPayload payload) {
+        publish(
+                "REFUND_REQUEST_REJECTED",
+                "refund.request.rejected",
+                AGGREGATE_TYPE,
+                payload.notificationOriginId(),
+                payload.notificationOriginId().toString(),
+                VERSION,
+                payload
+        );
+    }
+
+    @Override
+    public void publishRefundSettlementCreated(RefundSettlementPayload payload) {
+        publish(
+                "REFUND_SETTLEMENT",
+                "refund.settlement",
+                AGGREGATE_TYPE,
+                payload.notificationOriginId(),
+                payload.notificationOriginId().toString(),
+                VERSION,
+                payload
+        );
+    }
+
+    @Override
+    public void publishRefundCompleted(RefundCompletedPayload payload) {
+        publish(
+                "REFUND_COMPLETED",
+                "refund.completed",
+                AGGREGATE_TYPE,
+                payload.notificationOriginId(),
+                payload.notificationOriginId().toString(),
+                VERSION,
+                payload
+        );
+    }
+}

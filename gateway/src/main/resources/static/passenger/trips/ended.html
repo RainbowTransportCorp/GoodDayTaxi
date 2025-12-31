@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>운행 완료 | Good day Taxi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet" href="/common/header.css">
+  <script src="/common/header.js" defer></script>
+
+  <style>
+    body {
+      margin: 0;
+      background: #f7f7fb;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+    }
+
+    .container {
+      max-width: 420px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    .title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .row {
+      margin-bottom: 14px;
+      font-size: 14px;
+    }
+
+    .label {
+      color: #777;
+      margin-bottom: 4px;
+    }
+
+    .value {
+      font-weight: 600;
+    }
+
+    .status {
+      margin-top: 24px;
+      padding: 14px;
+      border-radius: 12px;
+      text-align: center;
+      font-weight: 700;
+      background: #8A5DF6;
+      color: white;
+    }
+
+    .fare {
+      font-size: 28px;
+      font-weight: 800;
+      color: #8A5DF6;
+      margin: 16px 0;
+    }
+
+    .btn-pay {
+      width: 100%;
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 999px;
+      border: none;
+      background: #8A5DF6;
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-pay:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+
+<body>
+<header id="header-container"></header>
+
+<div class="container">
+  <div class="card">
+    <div class="title">🚕 운행이 완료되었습니다</div>
+
+    <div class="row">
+      <div class="label">출발지</div>
+      <div class="value" id="pickup">-</div>
+    </div>
+
+    <div class="row">
+      <div class="label">도착지</div>
+      <div class="value" id="destination">-</div>
+    </div>
+
+    <div class="row">
+      <div class="label">결제 금액</div>
+      <div class="fare" id="fare">₩ 0</div>
+    </div>
+
+    <div class="status" id="statusText">결제를 진행해주세요</div>
+
+    <button class="btn-pay" id="payBtn">결제 진행</button>
+  </div>
+</div>
+
+<script>
+  const tripId = new URLSearchParams(location.search).get("tripId");
+  const token = localStorage.getItem("accessToken");
+  const userUuid = localStorage.getItem("userUuid");
+  const role = localStorage.getItem("role");
+
+  if (!token || !userUuid || !tripId || role !== "PASSENGER") {
+    alert("잘못된 접근입니다.");
+    location.href = "/index.html";
+  }
+
+  const headers = {
+    "Authorization": `Bearer ${token}`,
+    "X-User-UUID": userUuid,
+    "X-User-Role": "PASSENGER"
+  };
+
+  async function loadTripAndPayment() {
+    try {
+      const res = await fetch(`/api/v1/payments/trip/${tripId}/payment`, { headers });
+
+      if (res.status === 204) {
+        location.href = `/passenger/payments/checkout.html?tripId=${tripId}`;
+        return;
+      }
+
+      if (res.status === 404) {
+        alert("결제 정보를 찾을 수 없습니다.");
+        location.href = "/passenger/dashboard/index.html";
+        return;
+      }
+
+      if (!res.ok) throw new Error("PAYMENT_FETCH_FAIL");
+
+      const { data } = await res.json();
+
+      document.getElementById("pickup").textContent = data.pickupAddress ?? "-";
+      document.getElementById("destination").textContent = data.destinationAddress ?? "-";
+      document.getElementById("fare").textContent = `₩ ${Number(data.amount).toLocaleString()}`;
+
+      if (data.status === "COMPLETED") {
+        localStorage.removeItem("tripId");
+        localStorage.removeItem("tripStatus");
+        location.href = "/passenger/payments/success.html";
+        return;
+      }
+
+      localStorage.setItem("tripId", tripId);
+      localStorage.setItem("tripStatus", "ENDED");
+
+      // ✅ 결제 수단 분기 처리
+      const method = data.method ?? "UNKNOWN";
+      const btn = document.getElementById("payBtn");
+      const statusText = document.getElementById("statusText");
+
+      switch (method) {
+        case "TOSS_PAY":
+          btn.textContent = "💳 토스페이 결제";
+          btn.onclick = () => {
+            location.href = `/passenger/payments/checkout.html?tripId=${tripId}`;
+          };
+          statusText.textContent = "토스페이 결제를 진행해주세요";
+          break;
+
+        case "CARD":
+        case "CASH":
+          btn.textContent = "대시보드로 이동";
+          btn.onclick = () => {
+            location.href = "/passenger/dashboard/index.html";
+          };
+          statusText.textContent = "기사님에게 결제를 완료해주세요";
+          break;
+
+        default:
+          btn.disabled = true;
+          btn.textContent = "지원되지 않는 결제 수단";
+          statusText.textContent = "결제 수단 오류";
+      }
+
+    } catch (e) {
+      console.error(e);
+      alert("결제 정보를 불러올 수 없습니다.");
+      location.href = "/passenger/dashboard/index.html";
+    }
+  }
+
+  window.addEventListener("DOMContentLoaded", loadTripAndPayment);
+</script>
+</body>
+</html>

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>운행 대기 중 | Good day Taxi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- ✅ 공통 헤더 -->
+  <link rel="stylesheet" href="/common/header.css">
+  <script src="/common/header.js" defer></script>
+
+  <style>
+    body {
+      margin: 0;
+      background: #f7f7fb;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+    }
+
+    .container {
+      max-width: 420px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    .title {
+      font-size: 20px;
+      font-weight: 800;
+      margin-bottom: 16px;
+    }
+
+    .row {
+      margin-bottom: 14px;
+      font-size: 14px;
+    }
+
+    .label {
+      color: #777;
+      margin-bottom: 4px;
+    }
+
+    .value {
+      font-weight: 600;
+    }
+
+    .status {
+      margin-top: 24px;
+      padding: 14px;
+      border-radius: 12px;
+      text-align: center;
+      font-weight: 700;
+      background: #8A5DF6;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+<header id="header-container"></header>
+
+<div class="container">
+  <div class="card">
+    <div class="title">🚕 운행 대기 중</div>
+
+    <div class="row">
+      <div class="label">출발지</div>
+      <div class="value" id="pickup">-</div>
+    </div>
+
+    <div class="row">
+      <div class="label">도착지</div>
+      <div class="value" id="destination">-</div>
+    </div>
+
+    <div class="status">
+      기사님 배차 완료! 운행 시작을 기다리는 중입니다.
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ================= 인증 ================= */
+  const token = localStorage.getItem("accessToken");
+  const uuid = localStorage.getItem("userUuid");
+  const role = localStorage.getItem("role");
+
+  if (!token || !uuid || role !== "PASSENGER") {
+    alert("잘못된 접근입니다.");
+    location.href = "/index.html";
+  }
+
+  const headers = {
+    "Authorization": `Bearer ${token}`,
+    "X-User-UUID": uuid,
+    "X-User-Role": "PASSENGER"
+  };
+
+  /* ================= 상태 ================= */
+  let pollingTimer = null;
+
+  /* ================= 운행 정보 조회 ================= */
+  async function fetchTripInfo() {
+    try {
+      const res = await fetch("/api/v1/trips/passengers/active", {headers});
+
+      // 🔒 인증 만료
+      if (res.status === 401 || res.status === 403) {
+        alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+        location.href = "/index.html";
+        return;
+      }
+
+      /**
+       * 🔥 READY 핵심 규칙
+       * active API에서 204 / 404는
+       * "아직 운행 시작 전"으로 해석
+       */
+      if (res.status === 204 || res.status === 404) {
+        console.log("[READY] active 없음 → 대기 유지");
+        return;
+      }
+
+      if (!res.ok) {
+        console.warn("[READY] active 조회 실패", res.status);
+        return;
+      }
+
+      const {data: trip} = await res.json();
+      if (!trip || !trip.status) {
+        console.log("[READY] trip 정보 없음 → 대기 유지");
+        return;
+      }
+
+      // 상태 저장 (tripId는 있을 때만)
+      if (trip.tripId) {
+        localStorage.setItem("tripId", trip.tripId);
+      }
+      localStorage.setItem("tripStatus", trip.status);
+
+      // 주소 출력 (있을 때만)
+      if (trip.pickupAddress) {
+        document.getElementById("pickup").textContent = trip.pickupAddress;
+      }
+      if (trip.destinationAddress) {
+        document.getElementById("destination").textContent = trip.destinationAddress;
+      }
+
+      // 상태 전이
+      switch (trip.status) {
+        case "READY":
+          // 그대로 대기
+          return;
+
+        case "STARTED":
+          clearInterval(pollingTimer);
+          location.href = `/passenger/trips/active.html${trip.tripId ? `?tripId=${trip.tripId}` : ""}`;
+          return;
+
+        case "ENDED":
+          clearInterval(pollingTimer);
+          location.href = `/passenger/trips/ended.html${trip.tripId ? `?tripId=${trip.tripId}` : ""}`;
+          return;
+
+        default:
+          console.warn("[READY] 예상 외 상태:", trip.status);
+          return;
+      }
+
+    } catch (e) {
+      console.error("[READY] 운행 정보 조회 실패", e);
+    }
+  }
+
+  /* ================= 시작 ================= */
+  fetchTripInfo();
+  pollingTimer = setInterval(fetchTripInfo, 5000);
+</script>
+
+
+</body>
+</html>

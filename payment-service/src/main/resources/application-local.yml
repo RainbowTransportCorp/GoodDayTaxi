@@ -1,0 +1,84 @@
+
+server:
+  port: ${service.port}
+
+spring:
+  config:
+    import: secrets.yml
+
+  datasource:
+    url: jdbc:postgresql://localhost:5436/${postgres.db}
+    driver-class-name: org.postgresql.Driver
+    username: ${postgres.user}
+    password: ${postgres.password}
+    hikari:
+      connection-init-sql: "SET lock_timeout TO '3s'"
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: false
+
+  kafka:
+    bootstrap-servers: localhost:${kafka.port}
+#    bootstrap-servers: host.docker.internal:${kafka.port}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      #최종 실패 테스트에만 사용
+#      properties:
+#        max.block.ms: 1000    #브로커가 막혀도 1초이상 막히지 않음
+#        request.timeout.ms: 1000   #브로커의 응답을 기다리는 시간
+#        delivery.timeout.ms: 2000   #전달 완료되기까지 허용하는 전체 시간의 최대치, 못하면 실패 처리
+
+    consumer:
+      group-id: payment-service
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest  # 컨슈머가 처음 시작할 때 오프셋을 처음부터 읽음
+      enable-auto-commit: false   # 수동 커밋: 메시지 처리/저장이 완료된 후에 오프셋 커밋
+      #최종 실패 테스트에만 사용
+#    admin:
+#      fail-fast: false   #카프카가 죽어도 스케줄러와 앱은 계속 돌아가게 만듬
+
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:${eureka.port}/eureka/
+
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: "http://localhost:${zipkin.port}/api/v2/spans"
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+
+  metrics:
+    tags:
+      application: payment-service
+toss:
+  secret-key: ${toss.test-secret-key}
+
+payment:
+  event:
+    payload-version: 1
+
+logging:
+  level:
+    feign: DEBUG

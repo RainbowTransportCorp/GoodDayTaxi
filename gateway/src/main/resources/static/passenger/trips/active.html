@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>운행 중 | Good day Taxi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- 공통 헤더 -->
+  <link rel="stylesheet" href="/common/header.css">
+  <script src="/common/header.js" defer></script>
+
+  <style>
+    body {
+      margin: 0;
+      background: #f7f7fb;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+    }
+
+    .container {
+      max-width: 420px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    .title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .row {
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+
+    .label {
+      color: #777;
+    }
+
+    .value {
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    .status {
+      margin-top: 24px;
+      padding: 14px;
+      border-radius: 12px;
+      text-align: center;
+      font-weight: 700;
+      background: #8A5DF6;
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+<header id="header-container"></header>
+
+<div class="container">
+  <div class="card">
+    <div class="title">🚕 운행 중입니다</div>
+
+    <div class="row">
+      <div class="label">출발지</div>
+      <div class="value" id="pickup">-</div>
+    </div>
+
+    <div class="row">
+      <div class="label">도착지</div>
+      <div class="value" id="destination">-</div>
+    </div>
+
+    <div class="status" id="statusBox">운행 중</div>
+  </div>
+</div>
+
+<script>
+  (() => {
+    /* =========================
+     * 인증 / 기본 체크
+     * ========================= */
+    const userUuid = localStorage.getItem("userUuid");
+    const token = localStorage.getItem("accessToken");
+    const role = (localStorage.getItem("role") ?? "").trim().toUpperCase();
+
+    if (!userUuid || !token || role !== "PASSENGER") {
+      alert("접근 권한이 없습니다.");
+      location.href = "/index.html";
+      return; // ✅ 이제 정상 (IIFE 내부)
+    }
+
+    const headers = {
+      "Authorization": `Bearer ${token}`,
+      "X-User-UUID": userUuid,
+      "X-User-Role": "PASSENGER"
+    };
+
+    let pollingId = null;
+    let previousTripStatus = null;
+
+    /* =========================
+     * 유틸: tripId 불변 저장
+     * ========================= */
+    function persistTrip(trip) {
+      const storedTripId = localStorage.getItem("tripId");
+      if (trip?.tripId && !storedTripId) {
+        localStorage.setItem("tripId", trip.tripId);
+      }
+      if (trip?.status) {
+        localStorage.setItem("tripStatus", trip.status);
+      }
+    }
+
+    /* =========================
+     * 렌더링
+     * ========================= */
+    function renderTrip(trip) {
+      document.getElementById("pickup").textContent =
+          trip.pickupAddress ?? "-";
+      document.getElementById("destination").textContent =
+          trip.destinationAddress ?? "-";
+      document.getElementById("statusBox").textContent = "운행 중";
+    }
+
+    /* =========================
+     * 종료 처리 (안전)
+     * ========================= */
+    function handleTripEndedSafe() {
+      clearInterval(pollingId);
+      const tripId = localStorage.getItem("tripId");
+
+      if (!tripId) {
+        console.warn("ENDED 판단됐지만 tripId 없음 → 대시보드");
+        location.href = "/passenger/dashboard/index.html";
+        return;
+      }
+
+      location.href = `/passenger/payments/ended.html?tripId=${tripId}`;
+    }
+
+    /* =========================
+     * 폴링
+     * ========================= */
+    async function pollTripStatus() {
+      try {
+        const res = await fetch("/api/v1/trips/passengers/active", { headers });
+
+        if (res.status === 401 || res.status === 403) {
+          alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+          location.href = "/index.html";
+          return;
+        }
+
+        if (res.status === 204) {
+          const tripId = localStorage.getItem("tripId");
+          if (tripId) {
+            handleTripEndedSafe();
+          } else {
+            console.warn("active=204 but tripId missing → 대기");
+          }
+          return;
+        }
+
+        if (res.status === 404) {
+          clearInterval(pollingId);
+          location.href = "/passenger/dashboard/index.html";
+          return;
+        }
+
+        if (!res.ok) {
+          console.warn("트립 상태 조회 실패", res.status);
+          return;
+        }
+
+        const json = await res.json();
+        const trip = json?.data;
+
+        if (!trip || !trip.status) {
+          console.warn("trip 데이터 불완전 → 대기");
+          return;
+        }
+
+        persistTrip(trip);
+        renderTrip(trip);
+
+        if (trip.status !== previousTripStatus) {
+          previousTripStatus = trip.status;
+          if (trip.status === "ENDED") {
+            handleTripEndedSafe();
+          }
+        }
+      } catch (e) {
+        console.error("운행 상태 polling 실패", e);
+      }
+    }
+
+    /* =========================
+     * 시작
+     * ========================= */
+    window.addEventListener("DOMContentLoaded", () => {
+      if (
+          localStorage.getItem("tripStatus") === "STARTED" &&
+          !localStorage.getItem("tripId")
+      ) {
+        console.warn("⚠️ STARTED 상태지만 tripId 없음 - API 동기화 대기");
+      }
+
+      pollTripStatus();
+      pollingId = setInterval(pollTripStatus, 3000);
+    });
+  })();
+</script>
+
+</body>
+</html>

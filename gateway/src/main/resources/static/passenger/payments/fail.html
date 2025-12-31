@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>결제 실패 | Good Day Taxi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- 공통 헤더 -->
+    <!-- ✅ 정적 처리 대상이라면 이렇게 -->
+    <link rel="stylesheet" href="/common/header.css">
+    <script src="/common/header-static.js" defer></script>
+
+    <style>
+        :root {
+            --primary: #8A5DF6;
+            --danger: #ff5a5a;
+            --bg: #f7f7fb;
+            --radius: 20px;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        main {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: calc(100vh - 80px);
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 40px 32px;
+            border-radius: var(--radius);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            text-align: center;
+            max-width: 380px;
+            width: 100%;
+        }
+
+        .icon {
+            font-size: 44px;
+            margin-bottom: 14px;
+        }
+
+        h1 {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .reason {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .error-box {
+            background: #fafafa;
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 13px;
+            color: #444;
+            margin-bottom: 24px;
+            word-break: keep-all;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 999px;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-retry {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-cancel {
+            background: #eee;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+
+<header></header>
+<script>
+    document.addEventListener("DOMContentLoaded", async () => {
+        const res = await fetch("/common/header-static.html");
+        document.querySelector("header").innerHTML = await res.text();
+    });
+</script>
+
+<main>
+    <div class="card">
+        <div class="icon">😢</div>
+        <h1>결제가 실패했습니다</h1>
+        <div class="reason">결제 처리 중 문제가 발생했습니다.</div>
+
+        <div class="error-box">
+            <div id="message"></div>
+        </div>
+
+        <div class="actions">
+            <button class="btn btn-retry" onclick="retry()">다시 시도</button>
+            <button class="btn btn-cancel" onclick="goHome()">홈으로</button>
+        </div>
+    </div>
+</main>
+
+<script>
+    /* ===== 인증 가드 ===== */
+    function guardPassenger() {
+        const token = localStorage.getItem("accessToken");
+        const role = localStorage.getItem("role");
+
+        if (!token || role !== "PASSENGER") {
+            location.href = "/index.html";
+            return false;
+        }
+        return true;
+    }
+
+    async function loadHeader() {
+        const header = document.querySelector("header");
+        const res = await fetch("/common/header.html");
+        header.innerHTML = await res.text();
+    }
+
+    async function init() {
+        if (!guardPassenger()) return;
+        await loadHeader();
+
+        /**
+         * ❌ 결제 실패 페이지에서
+         * 멱등키 / 상태를 건드리지 않는다
+         * (재시도 가능해야 함)
+         */
+
+        const params = new URLSearchParams(location.search);
+        const message =
+            params.get("message") ??
+            "결제가 정상적으로 처리되지 않았습니다.";
+
+        document.getElementById("message").textContent = message;
+    }
+
+    /**
+     * 다시 시도:
+     * Toss → checkout 페이지로 자연스럽게 복귀
+     */
+    function retry() {
+        history.back();
+    }
+
+    function goHome() {
+        location.href = "/passenger/dashboard/index.html";
+    }
+
+    init();
+</script>
+</body>
+</html>

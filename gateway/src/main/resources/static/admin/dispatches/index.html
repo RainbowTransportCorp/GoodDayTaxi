@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dispatches</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- 공통 헤더 -->
+    <link rel="stylesheet" href="/common/header.css">
+    <script src="/common/header.js" defer></script>
+
+    <!-- 페이지 스타일 -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+<header id="header-container"></header>
+
+<main class="page">
+    <h1 class="page-title">🚦 배차 관리</h1>
+
+    <div class="filter-bar">
+        <select id="statusFilter">
+            <option value="">전체 상태</option>
+            <option value="REQUESTED">요청됨</option>
+            <option value="ASSIGNING">배정중</option>
+            <option value="ASSIGNED">배정됨</option>
+            <option value="ACCEPTED">수락됨</option>
+            <option value="CANCELED">취소</option>
+            <option value="TIMEOUT">타임아웃</option>
+        </select>
+
+
+        <button onclick="loadDispatches()">조회</button>
+    </div>
+
+    <table class="dispatch-table">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>승객</th>
+            <th>기사</th>
+            <th>상태</th>
+            <th>요금</th>
+            <th>생성 시간</th>
+        </tr>
+        </thead>
+        <tbody id="dispatchBody"></tbody>
+    </table>
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>

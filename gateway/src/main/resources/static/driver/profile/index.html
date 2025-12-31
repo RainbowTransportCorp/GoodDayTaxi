@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Good day Taxi – Driver Profile</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/common/header.css">
+    <script src="/common/header.js" defer></script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header id="header-container">
+    <div class="brand">
+        <div class="brand-main">Good day Taxi</div>
+        <div class="brand-sub" id="brand-sub">마이 페이지</div>
+    </div>
+
+    <div class="user-box">
+        <span id="user-name"></span>
+        <button class="btn-logout" onclick="logout()">로그아웃</button>
+    </div>
+</header>
+
+<main class="container">
+
+    <section class="card">
+        <h2 class="section-title">내 프로필</h2>
+
+        <div class="form-group">
+            <label>이름</label>
+            <input id="name" />
+        </div>
+
+        <div class="form-group">
+            <label>차량 번호</label>
+            <input id="vehicleNumber" />
+        </div>
+
+        <div class="form-group">
+            <label>차량 색상</label>
+            <input id="vehicleColor" />
+        </div>
+
+        <div class="form-group">
+            <label>차량 타입</label>
+            <input id="vehicleType" placeholder="예: SEDAN, SUV, VAN" />
+        </div>
+
+        <button class="btn-primary" onclick="updateProfile()">프로필 저장</button>
+    </section>
+
+    <section class="card">
+        <h2 class="section-title">근무 상태</h2>
+
+        <div class="status-box">
+            <span id="status-text">LOADING...</span>
+        </div>
+
+        <div class="actions">
+            <button class="btn-online" onclick="changeStatus('ONLINE')">온라인</button>
+            <button class="btn-offline" onclick="changeStatus('OFFLINE')">오프라인</button>
+        </div>
+    </section>
+
+</main>
+
+<script src="/common/header.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

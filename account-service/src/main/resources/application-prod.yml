@@ -1,0 +1,54 @@
+server:
+  address: 0.0.0.0
+  port: ${ACCOUNT_SERVICE_PORT:8201}
+
+spring:
+  config:
+    import:
+      - secrets.yml
+  datasource:
+    url: jdbc:postgresql://${DB_HOSTNAME:localhost}:${DB_PORT:5433}/${DB_NAME:goodday_account}
+    driver-class-name: org.postgresql.Driver
+    username: ${DB_USER:account}
+    password: ${DB_PASSWORD:account1234}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        show_sql: false
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_HOSTNAME:10.1.0.61}:${EUREKA_PORT:8761}/eureka/
+
+jwt:
+  secret-key: ${jwt.secret-key}
+  access-token-validity-in-seconds: 3600
+  refresh-token-validity-in-seconds: 604800
+
+management:
+  zipkin:
+    tracing:
+      endpoint: http://${ZIPKIN_HOSTNAME:10.1.0.61}:${ZIPKIN_PORT:9411}/api/v2/spans
+
+logging:
+  level:
+    root: INFO
+    com.gooddaytaxi: INFO
+    # 프레임워크 소음 줄이기
+    org.springframework: WARN
+    org.hibernate: WARN
+    # :white_check_mark: "쿼리문 내려오는" 거 끄기 (Hibernate SQL 로그)
+    org.hibernate.SQL: OFF
+    org.hibernate.orm.jdbc.bind: OFF   # 바인딩 값 로그(부트3/hibernate6)
+
+#logging:
+#  level:
+#    root: INFO
+#    org.springframework.web: DEBUG
+#    org.hibernate.SQL: DEBUG
+#    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+#    com.gooddaytaxi: DEBUG

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>결제 / 환불 내역 | Good day Taxi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet" href="/common/header.css">
+  <script src="/common/header.js" defer></script>
+
+  <style>
+    body {
+      margin: 0;
+      background: #f7f7fb;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+    }
+
+    .page {
+      max-width: 900px;
+      margin: 32px auto;
+      padding: 0 20px;
+    }
+
+    .page-title {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+    }
+
+    th, td {
+      padding: 14px 16px;
+      font-size: 14px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+    }
+
+    th {
+      background: #fafafa;
+      font-weight: 600;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .amount {
+      font-weight: 700;
+      color: #8A5DF6;
+    }
+
+    .status {
+      font-weight: 700;
+    }
+
+    .PENDING { color: #2e7d32; }
+    .READY { color: #555; }
+    .CANCELLED { color: #c62828; }
+    .REFUNDED { color: #1565c0; }
+
+    .empty {
+      text-align: center;
+      padding: 40px;
+      color: #777;
+    }
+  </style>
+</head>
+
+<body>
+<header id="header-container">
+  <div class="brand">
+    <div class="brand-main">Good day Taxi</div>
+    <div class="brand-sub">결제 / 환불</div>
+  </div>
+
+  <div class="user-box">
+    <span id="user-name"></span>
+    <button class="btn-logout" onclick="logout()">로그아웃</button>
+  </div>
+</header>
+
+<main class="page">
+  <h1 class="page-title">💳 결제 / 환불 내역</h1>
+
+  <table>
+    <thead>
+    <tr>
+      <th>결제 ID</th>
+      <th>운행 ID</th>
+      <th>금액</th>
+      <th>결제 수단</th>
+      <th>상태</th>
+      <th>결제 시각</th>
+    </tr>
+    </thead>
+    <tbody id="paymentBody"></tbody>
+  </table>
+</main>
+
+
+<script>
+  const API_BASE = "/api/v1/payments/search";
+  const token = localStorage.getItem("accessToken");
+  const userUuid = localStorage.getItem("userUuid");
+  const role = "PASSENGER";
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const tripId = urlParams.get("tripId");
+  const body = document.getElementById("paymentBody");
+
+  async function loadAndFilterPayments() {
+    try {
+      // 전체 결제 리스트 가져오기
+      const res = await fetch(API_BASE, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+          "X-User-UUID": userUuid,
+          "X-User-Role": role
+        },
+        body: JSON.stringify({ page: 1, size: 50 })
+      });
+
+      if (!res.ok) throw new Error(`조회 실패: ${res.status}`);
+
+      const json = await res.json();
+      if (!json.success || !json.data || json.data.content.length === 0) {
+        body.innerHTML = `<tr><td colspan="6" class="empty">결제 내역이 없습니다.</td></tr>`;
+        return;
+      }
+
+      let payments = json.data.content;
+
+      // tripId가 있으면 필터링
+      if (tripId) {
+        payments = payments.filter(p => p.tripId === tripId);
+      }
+
+      if (payments.length === 0) {
+        body.innerHTML = `<tr><td colspan="6" class="empty">해당 운행의 결제 정보가 없습니다.</td></tr>`;
+        return;
+      }
+
+      // 렌더링
+      body.innerHTML = "";
+      payments.forEach(p => {
+        body.insertAdjacentHTML("beforeend", `
+          <tr>
+            <td>${p.id}</td>
+            <td>${p.tripId}</td>
+            <td class="amount">₩ ${p.amount.toLocaleString()}</td>
+            <td>${p.method}</td>
+            <td class="status ${p.status}">${p.status}</td>
+            <td>${p.createdAt}</td>
+          </tr>
+        `);
+      });
+    } catch (e) {
+      console.error(e);
+      body.innerHTML = `<tr><td colspan="6" class="empty">결제 정보를 불러올 수 없습니다.</td></tr>`;
+    }
+  }
+
+  loadAndFilterPayments();
+</script>
+
+
+
+</body>
+</html>

@@ -1,0 +1,140 @@
+package com.gooddaytaxi.support.adapter.in.kafka.endpoint;
+
+import com.gooddaytaxi.support.adapter.in.kafka.dto.*;
+import com.gooddaytaxi.support.application.dto.Metadata;
+import com.gooddaytaxi.support.application.dto.input.trip.TripCanceledCommand;
+import com.gooddaytaxi.support.application.dto.input.trip.TripEndedCommand;
+import com.gooddaytaxi.support.application.dto.input.trip.TripLocationUpdatedCommand;
+import com.gooddaytaxi.support.application.dto.input.trip.TripStartedCommand;
+import com.gooddaytaxi.support.application.port.in.trip.NotifyTripCancelUsecase;
+import com.gooddaytaxi.support.application.port.in.trip.NotifyTripEndUsecase;
+import com.gooddaytaxi.support.application.port.in.trip.NotifyTripStartUsecase;
+import com.gooddaytaxi.support.application.port.in.trip.NotifyTripLocationUpdateUsecase;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.stereotype.Component;
+
+/**
+ * Trip 엔드포인트 - Trip으로부터 발생하는 이벤트에 대한 리스너
+ */
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class TripEndpoint {
+
+    private final NotifyTripStartUsecase notifyTripStartUsecase;
+    private final NotifyTripEndUsecase notifyTripEndUsecase;
+    private final NotifyTripCancelUsecase notifyTripCancelUsecase;
+    private final NotifyTripLocationUpdateUsecase notifyTripLocationUpdateUsecase;
+
+    /**
+     * 운행이 시작될 때 기사, 손님에게 알림을 전송하는 이벤트 리스너
+     */
+    @KafkaListener(topics = "trip.started", groupId = "support-service")
+    public void onTripStarted(EventRequest req) {
+        // Metadata
+        Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occurredAt());
+        // Payload
+        TripStartedEventPayload pl = req.convertPayload(TripStartedEventPayload.class);
+        log.debug("[Check] Trip Started EventRequest 데이터: tripId={}, notifierId={}, occurredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occurredAt());
+
+        // EventRequest DTO > Command 변환
+        TripStartedCommand command = TripStartedCommand.create(
+                pl.notificationOriginId(), pl.notifierId(),
+                pl.dispatchId(),
+                pl.driverId(), pl.passengerId(),
+                pl.pickupAddress(), pl.destinationAddress(),
+                pl.startTime(),
+                metadata
+        );
+        log.debug("[Transform] EventRequest >>> Command ➡️ {}", command);
+
+        // 운행 시작 알림 전송 서비스 호출
+        notifyTripStartUsecase.execute(command);
+    }
+
+    /**
+     * 운행이 종료될 때 기사, 손님에게 알림을 전송하는 이벤트 리스너
+     */
+    @KafkaListener(topics = "trip.ended", groupId = "support-service")
+    public void onTripEnded(EventRequest req) {
+        // Metadata
+        Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occurredAt());
+        // Payload
+        TripEndedEventPayload pl = req.convertPayload(TripEndedEventPayload.class);
+        log.debug("[Check] Trip Ended EventRequest 데이터: tripId={}, notifierId={}, occurredAt={}", pl.notificationOriginId(), pl.notifierId(), metadata.occurredAt());
+
+        // EventRequest DTO > Command 변환
+        TripEndedCommand command = TripEndedCommand.create(
+                pl.notificationOriginId(), pl.notifierId(),
+                pl.dispatchId(),
+                pl.driverId(), pl.passengerId(),
+                pl.pickupAddress(), pl.destinationAddress(),
+                pl.startTime(), pl.endTime(),
+                pl.totalDuration(), pl.totalDistance(),
+                pl.finalFare(),
+                metadata
+        );
+        log.debug("[Transform] EventRequest >>> Command ➡️ {}", command);
+
+        // 운행 종료 알림 전송 서비스 호출
+        notifyTripEndUsecase.execute(command);
+    }
+
+    /**
+     * 운행이 종료될 때 기사, 손님에게 알림을 전송하는 이벤트 리스너
+     */
+    @KafkaListener(topics = "trip.canceled", groupId = "support-service")
+    public void onTripCanceled(EventRequest req) {
+        // Metadata
+        Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occurredAt());
+        // Payload
+        TripCanceledEventPayload pl = req.convertPayload(TripCanceledEventPayload.class);
+        log.debug("[Check] Trip Canceled EventRequest 데이터: tripId={}, driverId={}, cancelReason={}, canceledAt={}", pl.notificationOriginId(), pl.driverId(), pl.cancelReason(), pl.canceledAt());
+
+        // EventRequest DTO > Command 변환
+        TripCanceledCommand command = TripCanceledCommand.create(
+                pl.notificationOriginId(), pl.notifierId(),
+                pl.dispatchId(),
+                pl.driverId(), pl.passengerId(),
+                pl.cancelReason(),
+                pl.canceledAt(),
+                metadata
+        );
+        log.debug("[Transform] EventRequest >>> Command ➡️ {}", command);
+
+        // 운행 취소 알림 전송 서비스 호출
+        notifyTripCancelUsecase.execute(command);
+    }
+
+
+    /**
+     * 운행 중, 손님이 처음 정한 목적지와 다른 곳에서 도착했을 때(=운행 중 기사 위치가 주소 기반 단위로 변경되었을 때) 알림을 전송하는 이벤트 리스너
+     */
+    @KafkaListener(topics = "trip.location.updated", groupId = "support-service")
+    public void onTripLocationUpdated(EventRequest req) {
+        // Metadata
+        Metadata metadata = new Metadata(req.eventId(), req.eventType(), req.occurredAt());
+        // Payload
+        TripLocationUpdatedEventPayload pl = req.convertPayload(TripLocationUpdatedEventPayload.class);
+        log.debug("[Check] Trip Location Updated EventRequest 데이터: tripId={}, driverId={}, currentAddress={}, previousRegion={}", pl.notificationOriginId(), pl.driverId(), pl.currentAddress(), pl.previousRegion());
+
+        // EventRequest DTO > Command 변환
+        TripLocationUpdatedCommand command = TripLocationUpdatedCommand.create(
+                pl.notificationOriginId(), pl.notifierId(),
+                pl.dispatchId(),
+                pl.driverId(),
+                pl.currentAddress(), pl.region(),
+                pl.previousRegion(),
+                pl.sequence(),
+                pl.locationTime(),
+                metadata
+        );
+        log.debug("[Transform] EventRequest >>> Command ➡️ {}", command);
+
+        // 운행 취소 알림 전송 서비스 호출
+        notifyTripLocationUpdateUsecase.execute(command);
+    }
+
+}

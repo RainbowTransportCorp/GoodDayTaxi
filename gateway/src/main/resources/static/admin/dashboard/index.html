@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Passenger Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="/common/header.css">
+    <script src="/common/header.js" defer></script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+<header id="header-container"></header>
+
+<main class="dashboard">
+    <h1 class="dashboard-title">📊 관리자 대시보드</h1>
+
+    <div class="card-grid">
+        <div class="card" onclick="location.href='/admin/users/index.html'">
+            <div class="card-title">사용자 관리</div>
+            <div class="card-desc">전체 사용자 조회</div>
+        </div>
+
+        <div class="card" onclick="location.href='/admin/dispatches/index.html'">
+            <div class="card-title">배차 관리</div>
+            <div class="card-desc">전체 배차 현황</div>
+        </div>
+
+        <div class="card" onclick="location.href='/admin/trips/index.html'">
+            <div class="card-title">운행 기록</div>
+            <div class="card-desc">완료된 운행 조회</div>
+        </div>
+
+        <div class="card" onclick="location.href='/admin/payments/index.html'">
+            <div class="card-title">결제 관리</div>
+            <div class="card-desc">결제 내역 검색</div>
+        </div>
+
+        <div class="card" onclick="location.href='/admin/refunds/index.html'">
+            <div class="card-title">환불 관리</div>
+            <div class="card-desc">환불 요청 처리</div>
+        </div>
+
+        <div class="card master-only" onclick="location.href='/admin/policies/index.html'">
+            <div class="card-title">요금 정책</div>
+            <div class="card-desc">MASTER 전용</div>
+        </div>
+    </div>
+
+    <script>
+        if (localStorage.getItem("role") !== "MASTER_ADMIN") {
+            document.querySelector(".master-only")?.remove();
+        }
+    </script>
+
+
+</main>
+</body>
+</html>

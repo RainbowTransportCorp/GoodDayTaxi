@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <title>Good day Taxi – Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="page-container">
+
+    <!-- ✅ 관리자 등록 링크 -->
+  <div class="admin-link">
+    <a href="#" onclick="goAdminRegister()">관리자 등록하기</a>
+  </div>
+
+    <h1 class="page-title">Good day Taxi</h1>
+    <p class="page-subtitle">로그인</p>
+
+    <div class="card">
+
+        <div class="form-group">
+            <label>이메일</label>
+            <input id="email" placeholder="example@goodday.com" />
+        </div>
+
+        <div class="form-group">
+            <label>비밀번호</label>
+            <input id="password" type="password" placeholder="비밀번호 입력" />
+        </div>
+
+        <button class="btn-primary" onclick="login()">로그인</button>
+
+        <div class="text-center link-area">
+            <a href="/signup/index.html">회원가입 하기</a>
+        </div>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

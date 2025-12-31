@@ -1,0 +1,176 @@
+name: Smart Service Build
+
+# =========================================================
+# Trigger
+# =========================================================
+on:
+  pull_request:
+    branches: [dev, main]
+  push:
+    branches: [dev, main]
+
+# =========================================================
+# Jobs
+# =========================================================
+jobs:
+  # =====================================================
+  # 1. 변경된 서비스 감지
+  # =====================================================
+  detect-changes:
+    name: Detect Changed Services
+    runs-on: ubuntu-latest
+
+    outputs:
+      services: ${{ steps.detect.outputs.services }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Determine Base Branch
+        id: base
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "base_branch=${{ github.base_ref }}" >> $GITHUB_OUTPUT
+          else
+            echo "base_branch=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Get Changed Files
+        id: changes
+        run: |
+          BASE=${{ steps.base.outputs.base_branch }}
+          git fetch origin $BASE || true
+
+          if git merge-base origin/$BASE HEAD >/dev/null 2>&1; then
+            CHANGED=$(git diff --name-only origin/$BASE...HEAD)
+          else
+            CHANGED="ALL"
+          fi
+
+          FILTERED=""
+          for FILE in $CHANGED; do
+            case $FILE in
+              *.md|README.md|.github/*|docs/*) continue ;;
+            esac
+            FILTERED="$FILTERED $FILE"
+          done
+
+          if [ -z "$FILTERED" ]; then
+            echo "changed_files=NONE" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "changed_files=$FILTERED" >> $GITHUB_OUTPUT
+
+      - name: Detect Changed Services
+        id: detect
+        run: |
+          FILES="${{ steps.changes.outputs.changed_files }}"
+
+          if [ "$FILES" = "ALL" ]; then
+            echo "services=ALL" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          SERVICES=""
+          for FILE in $FILES; do
+            case $FILE in
+              account-service/*)   SERVICES="$SERVICES account-service" ;;
+              dispatch-service/*)  SERVICES="$SERVICES dispatch-service" ;;
+              trip-service/*)      SERVICES="$SERVICES trip-service" ;;
+              payment-service/*)   SERVICES="$SERVICES payment-service" ;;
+              support-service/*)   SERVICES="$SERVICES support-service" ;;
+              gateway/*)           SERVICES="$SERVICES gateway" ;;
+              server/*)            SERVICES="$SERVICES server" ;;
+              common-core/*|common-jpa/*)
+                echo "services=ALL" >> $GITHUB_OUTPUT
+                exit 0
+                ;;
+            esac
+          done
+
+          SERVICES=$(echo "$SERVICES" | xargs -n1 | sort -u | xargs)
+
+          if [ -z "$SERVICES" ]; then
+            SERVICES="NONE"
+          fi
+
+          echo "services=$SERVICES" >> $GITHUB_OUTPUT
+
+  # =====================================================
+  # 2. 빌드
+  # =====================================================
+  build:
+    name: Build Services
+    runs-on: ubuntu-latest
+    needs: detect-changes
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Gradle Cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+
+      # ------------------------------
+      # 공통 모듈 빌드 (빌드만!)
+      # ------------------------------
+      - name: Build common-core
+        run: |
+          if [ -d "common-core" ]; then
+            chmod +x common-core/gradlew || true
+            (cd common-core && ./gradlew clean build --no-daemon)
+          fi
+
+      - name: Build common-jpa
+        run: |
+          if [ -d "common-jpa" ]; then
+            chmod +x common-jpa/gradlew || true
+            (cd common-jpa && ./gradlew clean build --no-daemon)
+          fi
+
+      # ------------------------------
+      # 변경된 서비스만 빌드
+      # ------------------------------
+      - name: Build Changed Services
+        if: needs.detect-changes.outputs.services != 'ALL' && needs.detect-changes.outputs.services != 'NONE'
+        run: |
+          for SERVICE in ${{ needs.detect-changes.outputs.services }}; do
+            echo "🔨 Building $SERVICE"
+            chmod +x $SERVICE/gradlew || true
+            (cd $SERVICE && ./gradlew clean build --no-daemon)
+          done
+
+      # ------------------------------
+      # 전체 빌드
+      # ------------------------------
+      - name: Build ALL Services
+        if: needs.detect-changes.outputs.services == 'ALL'
+        run: |
+          SERVICES="account-service dispatch-service trip-service payment-service support-service gateway server"
+          for SERVICE in $SERVICES; do
+            if [ -d "$SERVICE" ]; then
+              echo "🔨 Building $SERVICE"
+              chmod +x $SERVICE/gradlew || true
+              (cd $SERVICE && ./gradlew clean build --no-daemon)
+            fi
+          done
+
+      # ------------------------------
+      # 변경 없음
+      # ------------------------------
+      - name: No Backend Changes
+        if: needs.detect-changes.outputs.services == 'NONE'
+        run: echo "🟡 No backend service changes detected — Build skipped."

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <title>Tosspay Confirm Fail</title>
+</head>
+
+<body>
+<h2> 결제 실패 </h2>
+<p id="code"></p>
+<p id="message"></p>
+
+<button id="retryBtn" style="margin-top: 20px; padding: 10px 16px; font-size: 16px;">
+    결제 다시 시도하기
+</button>
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+
+    const codeElement = document.getElementById("code");
+    const messageElement = document.getElementById("message");
+    const retryBtn = document.getElementById("retryBtn");
+
+
+    codeElement.textContent = "에러코드: " + urlParams.get("code");
+    messageElement.textContent = "실패 사유: " + urlParams.get("message");
+
+    const userId = urlParams.get("customerKey").substring(9);
+    const tripId = urlParams.get("orderId").substring(6);
+    // const amount = urlParams.get("amount");
+
+    // 🔁 결제 재시도 → ready 페이지 이동
+    retryBtn.addEventListener("click", () => {
+        // 결제 준비 페이지 주소로 이동 (예: /ready.html)
+        window.location.href = "/api/v1/payments/tosspay/ready?userId="+userId+"&role=PASSENGER&tripId="+tripId;
+
+        // 만약 orderId가 필요하면 URL에 붙여서 보낼 수도 있음
+        // window.location.href = `/ready.html?orderId=${urlParams.get("orderId")}`;
+    });
+</script>
+</body>
+</html>

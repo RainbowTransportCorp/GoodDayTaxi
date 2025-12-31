@@ -1,0 +1,80 @@
+:root {
+    --primary: #8A5DF6;
+    --bg: #f7f7fb;
+    --radius: 14px;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.page {
+    max-width: 1200px;
+    margin: 32px auto;
+    padding: 0 20px;
+}
+
+.page-title {
+    font-size: 26px;
+    font-weight: 800;
+    margin-bottom: 20px;
+}
+
+.filter-bar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.filter-bar select,
+.filter-bar button {
+    padding: 10px 14px;
+    border-radius: 999px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+}
+
+.filter-bar button {
+    background: var(--primary);
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.dispatch-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+}
+
+.dispatch-table th,
+.dispatch-table td {
+    padding: 14px 16px;
+    font-size: 14px;
+    border-bottom: 1px solid #eee;
+}
+
+.dispatch-table th {
+    background: #fafafa;
+    font-weight: 600;
+}
+
+.dispatch-table tbody tr:hover {
+    background: #f3f4ff;
+    cursor: pointer;
+}
+
+.status {
+    font-weight: 700;
+}
+
+.status.REQUESTED { color: #555; }
+.status.ASSIGNED { color: #1e88e5; }
+.status.COMPLETED { color: #2e7d32; }
+.status.CANCELLED { color: #c62828; }
+.status.TIMEOUT { color: #ef6c00; }

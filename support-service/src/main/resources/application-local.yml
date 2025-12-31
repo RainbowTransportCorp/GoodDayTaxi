@@ -1,0 +1,48 @@
+server:
+  port: ${service.port}
+
+spring:
+  config:
+    import: secrets.yml
+
+  datasource:
+    url: jdbc:postgresql://${postgres.host.local:localhost}:5437/${postgres.db:goodday_support}
+    driver-class-name: org.postgresql.Driver
+    username: ${postgres.user:support}
+    password: ${postgres.password:support1234}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        show_sql: true
+
+  kafka:
+    bootstrap-servers: ${kafka.external.host:localhost}:${kafka.external.port:9092}
+
+
+  rabbitmq:
+    host: ${rabbitmq.external.host:localhost}
+    port: ${rabbitmq.external.port:5672}
+    username: ${rabbitmq.user:gd_rabbitmq_user}
+    password: ${rabbitmq.password:gd_rabbitmq_password}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:${eureka.port:8761}/eureka/
+
+management:
+  zipkin:
+    tracing:
+      endpoint: "http://localhost:${zipkin.port:9411}/api/v2/spans"
+
+# Slack App 연동
+slack:
+  api-url: https://slack.com
+  bot-token: ${slack.bot-token}
+
+logging:
+  level:
+    com.gooddaytaxi.support: DEBUG # INFO, DEBUG, WARN, ERROR

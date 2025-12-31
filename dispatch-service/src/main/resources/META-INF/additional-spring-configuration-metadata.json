@@ -1,0 +1,54 @@
+{
+  "properties": [
+    {
+      "name": "service.port",
+      "type": "java.lang.String",
+      "description": "Description for service.port."
+    },
+    {
+      "name": "postgres.db",
+      "type": "java.lang.String",
+      "description": "Description for postgres.db."
+    },
+    {
+      "name": "postgres.password",
+      "type": "java.lang.String",
+      "description": "Description for postgres.password."
+    },
+    {
+      "name": "postgres.user",
+      "type": "java.lang.String",
+      "description": "Description for postgres.user."
+    },
+    {
+      "name": "redis.port",
+      "type": "java.lang.String",
+      "description": "Description for redis.port."
+    },
+    {
+      "name": "kafka.port",
+      "type": "java.lang.String",
+      "description": "Description for kafka.port."
+    },
+    {
+      "name": "eureka.port",
+      "type": "java.lang.String",
+      "description": "Description for eureka.port."
+    },
+    {
+      "name": "zipkin.port",
+      "type": "java.lang.String",
+      "description": "Description for zipkin.port."
+    },
+    {
+      "name": "kafka.topic.dispatch",
+      "type": "java.lang.String",
+      "description": "Description for kafka.topic.dispatch."
+    },
+    ,
+    {
+      "name": "service.account.url",
+      "type": "java.lang.String",
+      "description": "Description for service.account.url."
+    }
+  ] }

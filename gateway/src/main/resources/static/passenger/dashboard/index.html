@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Passenger Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- 공통 헤더 스타일 및 로직 -->
+    <link rel="stylesheet" href="/common/header.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="/common/header.js" defer></script>
+    <script src="script.js" defer></script>
+</head>
+
+<body>
+<header id="header-container"></header>
+<main class="dashboard">
+    <h1 class="dashboard-title">🚕 승객 대시보드</h1>
+
+    <div class="card-grid">
+        <div class="card" onclick="location.href='/passenger/dispatches/index.html'">
+            <div class="card-title">콜 요청하기</div>
+            <div class="card-desc">새로운 배차를 요청합니다</div>
+        </div>
+
+        <div class="card" onclick="location.href='/passenger/trips/index.html'">
+            <div class="card-title">내 운행 기록</div>
+            <div class="card-desc">이전 운행 내역을 확인합니다</div>
+        </div>
+
+        <div class="card" onclick="location.href='/passenger/payments/index.html'">
+            <div class="card-title">결제 / 환불</div>
+            <div class="card-desc">결제 내역 및 환불 상태</div>
+        </div>
+
+        <div class="card" onclick="location.href='/passenger/profile/index.html'">
+            <div class="card-title">내 프로필</div>
+            <div class="card-desc">개인 정보 수정</div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

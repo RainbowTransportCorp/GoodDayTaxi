@@ -1,0 +1,221 @@
+{
+  "title": "GoodDayTaxi Monitoring (Production)",
+  "uid": "goodday-production",
+  "timezone": "browser",
+  "refresh": "5s",
+  "schemaVersion": 36,
+  "version": 2,
+  "templating": {
+    "list": [
+      {
+        "name": "job",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(http_server_requests_seconds_count, job)",
+        "multi": false,
+        "includeAll": true,
+        "allValue": ".*",
+        "refresh": 1
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "stat",
+      "title": "서비스 성공률 (%)",
+      "targets": [
+        {
+          "expr": "100 - ( sum(rate(http_server_requests_seconds_count{job=~\"$job\",outcome!=\"SUCCESS\"}[1m])) / sum(rate(http_server_requests_seconds_count{job=~\"$job\"}[1m])) * 100 )"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 0, "w": 4, "h": 4 }
+    },
+    {
+      "type": "stat",
+      "title": "오류율 (%)",
+      "targets": [
+        {
+          "expr": "sum(rate(http_server_requests_seconds_count{job=~\"$job\",outcome!=\"SUCCESS\"}[1m])) / sum(rate(http_server_requests_seconds_count{job=~\"$job\"}[1m])) * 100"
+        }
+      ],
+      "gridPos": { "x": 4, "y": 0, "w": 4, "h": 4 }
+    },
+    {
+      "type": "stat",
+      "title": "RPS",
+      "targets": [
+        {
+          "expr": "sum(rate(http_server_requests_seconds_count{job=~\"$job\"}[1m]))"
+        }
+      ],
+      "gridPos": { "x": 8, "y": 0, "w": 4, "h": 4 }
+    },
+    {
+      "type": "stat",
+      "title": "평균 응답시간 (ms)",
+      "targets": [
+        {
+          "expr": "( sum(rate(http_server_requests_seconds_sum{job=~\"$job\"}[1m])) / sum(rate(http_server_requests_seconds_count{job=~\"$job\"}[1m])) ) * 1000"
+        }
+      ],
+      "gridPos": { "x": 12, "y": 0, "w": 4, "h": 4 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "HTTP 요청 수 (상세)",
+      "targets": [
+        {
+          "expr": "rate(http_server_requests_seconds_count{job=~\"$job\"}[1m])",
+          "legendFormat": "{{job}} {{method}} {{uri}} {{status}}"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 7 }
+    },
+    {
+      "type": "timeseries",
+      "title": "HTTP 응답 시간 (Latency)",
+      "targets": [
+        {
+          "expr": "( rate(http_server_requests_seconds_sum{job=~\"$job\"}[1m]) / rate(http_server_requests_seconds_count{job=~\"$job\"}[1m]) ) * 1000",
+          "legendFormat": "{{job}} {{method}} {{uri}}"
+        }
+      ],
+      "gridPos": { "x": 12, "y": 4, "w": 12, "h": 7 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "JVM Heap 사용량",
+      "targets": [
+        {
+          "expr": "jvm_memory_used_bytes{area=\"heap\",job=~\"$job\"}",
+          "legendFormat": "{{job}} {{instance}}"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 11, "w": 12, "h": 7 }
+    },
+    {
+      "type": "timeseries",
+      "title": "JVM Non-Heap 사용량",
+      "targets": [
+        {
+          "expr": "jvm_memory_used_bytes{area=\"nonheap\",job=~\"$job\"}",
+          "legendFormat": "{{job}} {{instance}}"
+        }
+      ],
+      "gridPos": { "x": 12, "y": 11, "w": 12, "h": 7 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "GC Pause / Count",
+      "targets": [
+        {
+          "expr": "rate(jvm_gc_pause_seconds_sum{job=~\"$job\"}[1m])",
+          "legendFormat": "GC Pause {{job}}"
+        },
+        {
+          "expr": "rate(jvm_gc_pause_seconds_count{job=~\"$job\"}[1m])",
+          "legendFormat": "GC Count {{job}}"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 18, "w": 12, "h": 7 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "CPU 사용량",
+      "targets": [
+        {
+          "expr": "process_cpu_usage{job=~\"$job\"}",
+          "legendFormat": "Process {{job}}"
+        },
+        {
+          "expr": "system_cpu_usage{job=~\"$job\"}",
+          "legendFormat": "System {{job}}"
+        }
+      ],
+      "gridPos": { "x": 12, "y": 18, "w": 12, "h": 7 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "HikariCP Connection Pool",
+      "targets": [
+        { "expr": "hikaricp_connections_active{job=~\"$job\"}", "legendFormat": "Active {{job}}" },
+        { "expr": "hikaricp_connections_idle{job=~\"$job\"}", "legendFormat": "Idle {{job}}" },
+        { "expr": "hikaricp_connections_pending{job=~\"$job\"}", "legendFormat": "Pending {{job}}" }
+      ],
+      "gridPos": { "x": 0, "y": 25, "w": 24, "h": 7 }
+    },
+
+    {
+      "type": "stat",
+      "title": "Redis UP",
+      "targets": [
+        {
+          "expr": "redis_up{job=~\"payment-service|dispatch-service\"}"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 32, "w": 4, "h": 4 }
+    },
+    {
+      "type": "stat",
+      "title": "Redis 메모리 (MB)",
+      "targets": [
+        {
+          "expr": "redis_memory_used_bytes{job=~\"payment-service|dispatch-service\"} / 1024 / 1024"
+        }
+      ],
+      "gridPos": { "x": 4, "y": 32, "w": 4, "h": 4 }
+    },
+    {
+      "type": "stat",
+      "title": "Redis Clients",
+      "targets": [
+        {
+          "expr": "redis_connected_clients{job=~\"payment-service|dispatch-service\"}"
+        }
+      ],
+      "gridPos": { "x": 8, "y": 32, "w": 4, "h": 4 }
+    },
+    {
+      "type": "stat",
+      "title": "Redis OPS/s",
+      "targets": [
+        {
+          "expr": "rate(redis_commands_processed_total{job=~\"payment-service|dispatch-service\"}[1m])"
+        }
+      ],
+      "gridPos": { "x": 12, "y": 32, "w": 4, "h": 4 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Redis 메모리 추이",
+      "targets": [
+        {
+          "expr": "redis_memory_used_bytes{job=~\"payment-service|dispatch-service\"} / 1024 / 1024",
+          "legendFormat": "{{job}}"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 36, "w": 12, "h": 7 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Redis OPS / Clients",
+      "targets": [
+        {
+          "expr": "redis_connected_clients{job=~\"payment-service|dispatch-service\"}",
+          "legendFormat": "clients {{job}}"
+        },
+        {
+          "expr": "rate(redis_commands_processed_total{job=~\"payment-service|dispatch-service\"}[1m])",
+          "legendFormat": "ops {{job}}"
+        }
+      ],
+      "gridPos": { "x": 12, "y": 36, "w": 12, "h": 7 }
+    }
+  ]
+}

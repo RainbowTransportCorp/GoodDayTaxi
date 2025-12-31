@@ -1,0 +1,39 @@
+server:
+  port: ${service.port}
+
+spring:
+  config:
+    import: secrets.yml
+
+  datasource:
+    url: jdbc:postgresql://localhost:5435/${postgres.db:goodday_trip}
+    driver-class-name: org.postgresql.Driver
+    username: ${postgres.user}
+    password: ${postgres.password}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        show_sql: false
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: trip-service
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:${eureka.port}/eureka/
+
+
+management:
+  zipkin:
+    tracing:
+      endpoint: "http://localhost:${zipkin.port}/api/v2/spans"
+
+

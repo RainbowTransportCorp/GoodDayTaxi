@@ -1,0 +1,88 @@
+{
+  "properties": [
+    {
+      "name": "service.port",
+      "type": "java.lang.String",
+      "description": "Description for service.port."
+    },
+    {
+      "name": "postgres.db",
+      "type": "java.lang.String",
+      "description": "Description for postgres.db."
+    },
+    {
+      "name": "postgres.password",
+      "type": "java.lang.String",
+      "description": "Description for postgres.password."
+    },
+    {
+      "name": "postgres.user",
+      "type": "java.lang.String",
+      "description": "Description for postgres.user."
+    },
+    {
+      "name": "redis.port",
+      "type": "java.lang.String",
+      "description": "Description for redis.port."
+    },
+    {
+      "name": "kafka.port",
+      "type": "java.lang.String",
+      "description": "Description for kafka.port."
+    },
+    {
+      "name": "eureka.port",
+      "type": "java.lang.String",
+      "description": "Description for eureka.port."
+    },
+    {
+      "name": "zipkin.port",
+      "type": "java.lang.String",
+      "description": "Description for zipkin.port."
+    },
+    {
+      "name": "rabbitmq.port",
+      "type": "java.lang.String",
+      "description": "Description for rabbitmq.port."
+    },
+    {
+      "name": "rabbitmq.user",
+      "type": "java.lang.String",
+      "description": "Description for rabbitmq.user."
+    },
+    {
+      "name": "rabbitmq.password",
+      "type": "java.lang.String",
+      "description": "Description for rabbitmq.password."
+    },
+    {
+      "name": "rabbitmq.externalhost",
+      "type": "java.lang.String",
+      "description": "Description for rabbitmq.externalhost."
+    },
+    {
+      "name": "rabbitmq.internalhost",
+      "type": "java.lang.String",
+      "description": "Description for rabbitmq.internalhost."
+    },
+    {
+      "name": "kafka.internal.port",
+      "type": "java.lang.String",
+      "description": "Description for kafka.internal.port."
+    },
+    {
+      "name": "kafka.internal.host",
+      "type": "java.lang.String",
+      "description": "Description for kafka.internal.host."
+    },
+    {
+      "name": "rabbitmq.internal.host",
+      "type": "java.lang.String",
+      "description": "Description for rabbitmq.internal.host."
+    },
+    {
+      "name": "rabbitmq.internal.port",
+      "type": "java.lang.String",
+      "description": "Description for rabbitmq.internal.port."
+    }
+  ] }

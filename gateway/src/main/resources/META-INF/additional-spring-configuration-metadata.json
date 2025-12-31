@@ -1,0 +1,68 @@
+{
+  "properties": [
+    {
+      "name": "service.port",
+      "type": "java.lang.String",
+      "description": "Description for service.port."
+    },
+    {
+      "name": "redis.port",
+      "type": "java.lang.String",
+      "description": "Description for redis.port."
+    },
+    {
+      "name": "kafka.port",
+      "type": "java.lang.String",
+      "description": "Description for kafka.port."
+    },
+    {
+      "name": "zipkin.port",
+      "type": "java.lang.String",
+      "description": "Description for zipkin.port."
+    },
+    {
+      "name": "routes.trip",
+      "type": "java.lang.String",
+      "description": "Description for routes.trip."
+    },
+    {
+      "name": "routes.dispatch",
+      "type": "java.lang.String",
+      "description": "Description for routes.dispatch."
+    },
+    {
+      "name": "routes.payment",
+      "type": "java.lang.String",
+      "description": "Description for routes.payment."
+    },
+    {
+      "name": "routes.account",
+      "type": "java.lang.String",
+      "description": "Description for routes.account."
+    },
+    {
+      "name": "routes.support",
+      "type": "java.lang.String",
+      "description": "Description for routes.support."
+    },
+    {
+      "name": "eureka.port",
+      "type": "java.lang.String",
+      "description": "Description for eureka.port."
+    },
+    {
+      "name": "redis.host",
+      "type": "java.lang.String",
+      "description": "Description for redis.host."
+    },
+    {
+      "name": "kafka.host",
+      "type": "java.lang.String",
+      "description": "Description for kafka.host."
+    },
+    {
+      "name": "jwt.secret-key",
+      "type": "java.lang.String",
+      "description": "Description for jwt.secret-key."
+    }
+  ] }

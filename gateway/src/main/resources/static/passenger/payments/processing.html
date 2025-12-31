@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>결제 처리 중 | Good Day Taxi</title>
+    <!-- ✅ 정적 처리 대상이라면 이렇게 -->
+    <link rel="stylesheet" href="/common/header.css">
+    <script src="/common/header-static.js" defer></script>
+
+
+    <style>
+        body {
+            margin: 0;
+            background: #f7f7fb;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+        }
+
+        main {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: calc(100vh - 80px);
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 36px 28px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            text-align: center;
+            max-width: 380px;
+            width: 100%;
+        }
+
+        .desc {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .info {
+            font-size: 13px;
+            color: #444;
+            background: #fafafa;
+            border-radius: 12px;
+            padding: 12px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<header></header>
+<script>
+    document.addEventListener("DOMContentLoaded", async () => {
+        const res = await fetch("/common/header-static.html");
+        document.querySelector("header").innerHTML = await res.text();
+    });
+</script>
+<main>
+    <div class="card">
+        <h2>💳 결제 처리 중입니다</h2>
+        <div class="desc">잠시만 기다려주세요.</div>
+
+        <div class="info" id="orderId"></div>
+        <div class="info" id="amount"></div>
+    </div>
+</main>
+
+<script>
+    /* ===== 인증 가드 ===== */
+    function guardPassenger() {
+        const token = localStorage.getItem("accessToken");
+        const role = localStorage.getItem("role");
+        if (!token || role !== "PASSENGER") {
+            location.href = "/index.html";
+            return false;
+        }
+        return true;
+    }
+
+    async function loadHeader() {
+        const header = document.querySelector("header");
+        const res = await fetch("/common/header.html");
+        header.innerHTML = await res.text();
+    }
+
+    /* ===== 멱등키 (orderId 기준) ===== */
+    function getIdempotencyKey(orderId) {
+        const KEY = `payment-confirm:${orderId}`;
+        if (sessionStorage.getItem(KEY)) return KEY;
+        sessionStorage.setItem(KEY, KEY);
+        return KEY;
+    }
+
+    let confirming = false;
+
+    /* ===== 결제 승인 ===== */
+    async function confirmPayment() {
+        if (confirming) return;
+        confirming = true;
+
+        if (!guardPassenger()) return;
+        await loadHeader();
+
+        const params = new URLSearchParams(location.search);
+        const paymentKey = params.get("paymentKey");
+        const orderId = params.get("orderId");
+        const amount = params.get("amount");
+
+        if (!paymentKey || !orderId || !amount) {
+            location.href = "/passenger/dashboard/index.html";
+            return;
+        }
+
+        const passengerId = localStorage.getItem("userUuid");
+        const token = localStorage.getItem("accessToken");
+
+        document.getElementById("orderId").textContent = `주문번호: ${orderId}`;
+        document.getElementById("amount").textContent =
+            `결제 금액: ${Number(amount).toLocaleString()}원`;
+
+        const idempotencyKey = getIdempotencyKey(orderId);
+
+        try {
+            const res = await fetch("/api/v1/payments/tosspay/confirm", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`,
+                    "X-User-UUID": passengerId,
+                    "X-User-Role": "PASSENGER",
+                    "Idempotency-Key": idempotencyKey
+                },
+                body: JSON.stringify({
+                    paymentKey,
+                    orderId,
+                    amount
+                })
+            });
+
+            let json = null;
+            try {
+                json = await res.json();
+            } catch (e) {}
+
+            if (!res.ok) {
+                const msg = json?.message ?? "결제 승인에 실패했습니다.";
+                location.href =
+                    `/passenger/payments/fail.html?message=${encodeURIComponent(msg)}`;
+                return;
+            }
+
+            /* ✅ 결제 성공 */
+            sessionStorage.removeItem(idempotencyKey);
+            localStorage.removeItem("unpaidTrip");
+
+            location.href = "/passenger/payments/success.html";
+
+        } catch (e) {
+            console.error(e);
+            location.href =
+                "/passenger/payments/fail.html?message=결제 승인 중 오류가 발생했습니다.";
+        }
+    }
+
+    confirmPayment();
+</script>
+</body>
+</html>
