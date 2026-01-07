@@ -67,13 +67,7 @@
 </head>
 
 <body>
-<header></header>
-<script>
-  document.addEventListener("DOMContentLoaded", async () => {
-    const res = await fetch("/common/header-static.html");
-    document.querySelector("header").innerHTML = await res.text();
-  });
-</script>
+<header id="header-container"></header>
 
 <div class="container">
   <div class="card">

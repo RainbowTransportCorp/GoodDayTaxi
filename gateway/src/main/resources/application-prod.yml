@@ -1,5 +1,6 @@
 server:
   port: ${GATEWAY_PORT:8080}
+  address: 0.0.0.0
 
 spring:
   config:
@@ -53,11 +54,10 @@ spring:
         - id: static-content
           uri: forward:/
           predicates:
-            - Path=/index.html,
-              /passenger/payments/checkout.html,
+            - Path=/passenger/payments/checkout.html,
               /passenger/payments/processing.html,
               /passenger/payments/success.html,
-              /passenger/payments/fail.html,
+              /passenger/payments/fail.html
 
 
 # ============================
@@ -101,6 +101,5 @@ management:
     tracing:
       endpoint: http://${ZIPKIN_HOSTNAME:10.1.0.61}:${ZIPKIN_PORT:9411}/api/v2/spans
 
-
 jwt:
-  secret-key: ${JWT_SECRET_KEY}
+  secret-key: ${jwt.secret-key}

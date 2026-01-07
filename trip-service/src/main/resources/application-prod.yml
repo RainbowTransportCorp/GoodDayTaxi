@@ -1,7 +1,10 @@
 server:
   port: ${TRIP_SERVICE_PORT:8203}
+  address: 0.0.0.0
 
 spring:
+  config:
+    import: secrets.yml
   datasource:
     url: jdbc:postgresql://localhost:5435/${DB_NAME:goodday_trip}
     driver-class-name: org.postgresql.Driver
@@ -17,6 +20,10 @@ spring:
 
   kafka:
     bootstrap-servers: ${KAFKA_HOSTNAME}:${KAFKA_PORT:9092}
+    consumer:
+      group-id: trip-service
+      auto-offset-reset: earliest
+      enable-auto-commit: false
 
 eureka:
   client:
@@ -27,7 +34,7 @@ eureka:
 management:
   zipkin:
     tracing:
-      endpoint: "http://${ZIPKIN_HOSTNAME:10.1.0.61}:${ZIPKIN_PORT:9411}/api/v2/spans"
+      endpoint: http://${ZIPKIN_HOSTNAME:10.1.0.61}:${ZIPKIN_PORT:9411}/api/v2/spans
 
 logging:
   level:
