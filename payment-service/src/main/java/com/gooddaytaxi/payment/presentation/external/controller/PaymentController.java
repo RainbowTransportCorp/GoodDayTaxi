@@ -19,8 +19,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriUtils;
 
-import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -53,7 +55,7 @@ public class PaymentController {
     // 토스페이 결제 준비 (redirect)
     // ===============================
     @GetMapping("/tosspay/ready")
-    public ResponseEntity<Void> readyPayment(
+    public ResponseEntity<Map<String, String>> readyPayment(
         @RequestParam UUID tripId,
         @AuthenticationPrincipal UserPrincipal user
     ) {
@@ -72,16 +74,12 @@ public class PaymentController {
         String orderId = "order-" + tripId;
         String customerKey = "customer-" + user.userId();
 
-        URI redirect = URI.create(
-            "/passenger/payments/checkout.html" +
-                "?orderId=" + orderId +
-                "&customerKey=" + customerKey +
-                "&amount=" + fare
-        );
+        String  checkoutUrl  = "/passenger/payments/checkout.html" +
+                "?orderId=" + UriUtils.encode(orderId, StandardCharsets.UTF_8) +
+                "&customerKey=" + UriUtils.encode(customerKey, StandardCharsets.UTF_8) +
+                "&amount=" + fare;
 
-        return ResponseEntity.status(HttpStatus.FOUND)
-            .location(redirect)
-            .build();
+        return ResponseEntity.ok(Map.of("checkoutUrl", checkoutUrl));
     }
 
     // ===============================

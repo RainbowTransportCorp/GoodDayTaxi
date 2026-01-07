@@ -32,7 +32,7 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> , Paymen
     WHERE p.tripId = :tripId
       AND p.status IN ('PENDING', 'IN_PROCESS', 'FAILED', 'COMPLETED')
     ORDER BY p.createdAt DESC""")
-    Payment findLastByTripIdAndStatusForCreate(@Param("tripId") UUID tripId);
+    Optional<Payment> findLastByTripIdAndStatusForCreate(@Param("tripId") UUID tripId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints(@QueryHint(name = "jakarta.persistence.lock.timeout", value = "3000"))

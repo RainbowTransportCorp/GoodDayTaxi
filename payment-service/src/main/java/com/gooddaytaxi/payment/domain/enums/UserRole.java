@@ -4,7 +4,7 @@ import com.gooddaytaxi.payment.application.exception.PaymentErrorCode;
 import com.gooddaytaxi.payment.application.exception.PaymentException;
 
 public enum UserRole {
-    PASSENGER, DRIVER, ADMIN, MASTER_ADMIN;
+    PASSENGER, DRIVER, ADMIN, MASTER_ADMIN, SYSTEM;
 
     public static UserRole of(String role) {
         for (UserRole userRole : values()) {

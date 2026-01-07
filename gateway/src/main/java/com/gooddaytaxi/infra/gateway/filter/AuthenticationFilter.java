@@ -37,8 +37,7 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
     private static final List<String> SYSTEM_API_PREFIXES = List.of(
         "/internal/",
         "/v3/api-docs",
-        "/swagger-ui",
-        "/api/v1/payments/tosspay/ready"
+        "/swagger-ui"
     );
 
     /* ========================= */

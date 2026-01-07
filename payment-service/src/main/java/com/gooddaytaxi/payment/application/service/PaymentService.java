@@ -63,7 +63,7 @@ public class PaymentService {
         // 대기, 진행중, 실패, 완료된 청구서는 다시 생성 불가
         //취소되었거나 환불된 청구서는 재생성 가능
         if(paymentQueryPort.existByTripIdAndNotStatusForCreate(tripId)) {
-            Payment payment = paymentQueryPort.findLastByTripIdAndStatusForCreate(tripId);
+            Payment payment = paymentQueryPort.findLastByTripIdAndStatusForCreate(tripId).orElseThrow(()-> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
             PaymentStatus status = payment.getStatus();
             if(status.equals(PaymentStatus.PENDING)
                     || status.equals(PaymentStatus.IN_PROCESS)
@@ -88,10 +88,9 @@ public class PaymentService {
     @Transactional
     public Long tosspayReady(UUID userId, String role, UUID tripId) {
         log.info("TossPay Ready called: userId={}, role={}, tripId={}", userId, role, tripId);
-        //유저의 역할이 승객인지 확인
-        validator.checkRolePassenger(UserRole.of(role));
+        //유저의 역할이 승객인지 확인은 백엔드가 아닌 프론트가 확인
         //운행 아이디로 결제 청구서 조회
-        Payment payment = paymentQueryPort.findLastByTripIdAndStatusForCreate(tripId);
+        Payment payment = paymentQueryPort.findLastByTripIdAndStatusForCreate(tripId).orElseThrow(()-> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
         log.debug("TossPay Payment found for tripId={}", tripId);
         //해당 승객이 맞는지 확인
@@ -225,7 +224,7 @@ public class PaymentService {
         validator.checkRolePassengerAndDriver(userRole);
 
         //tripId로 결제 찾기
-        Payment payment = paymentQueryPort.findLastByTripIdAndStatusForCreate(tripId);
+        Payment payment = paymentQueryPort.findLastByTripIdAndStatusForCreate(tripId).orElseThrow(()-> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
         //승객/기사 본인인지 확인
         validator.checkPassengerAndDriverPermission(userRole, userId, payment.getPassengerId(), payment.getDriverId());
 
