@@ -161,6 +161,13 @@ function startTripPolling() {
             localStorage.setItem("tripId", trip.tripId);
         }
 
+        if (trip.status === "READY" && trip.tripId) {
+            clearInterval(pollingTimer);
+            location.href = "/passenger/trips/ready.html";
+            return;
+        }
+
+
         if (trip.status === "STARTED" && trip.tripId) {
             clearInterval(pollingTimer);
             location.href = "/passenger/trips/active.html";
