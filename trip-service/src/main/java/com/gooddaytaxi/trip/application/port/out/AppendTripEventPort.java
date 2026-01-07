@@ -26,6 +26,7 @@ public interface AppendTripEventPort {
             UUID passengerId,
             String pickupAddress,
             String destinationAddress,
+            String paymentMethod,
             LocalDateTime startTime,
             LocalDateTime endTime,
             BigDecimal totalDistance,

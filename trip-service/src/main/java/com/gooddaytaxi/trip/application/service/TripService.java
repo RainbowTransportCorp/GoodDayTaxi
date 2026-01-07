@@ -164,6 +164,7 @@ public class TripService {
                     updated.getPassengerId(),
                     updated.getPickupAddress(),
                     updated.getDestinationAddress(),
+                    command.paymentMethod(),
                     updated.getStartTime(),
                     updated.getEndTime(),
                     updated.getTotalDistance(),
