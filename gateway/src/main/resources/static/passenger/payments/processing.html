@@ -6,7 +6,7 @@
     <title>결제 처리 중 | Good Day Taxi</title>
     <!-- ✅ 정적 처리 대상이라면 이렇게 -->
     <link rel="stylesheet" href="/common/header.css">
-    <script src="/common/header-static.js" defer></script>
+    <script src="/common/header.js" defer></script>
 
 
     <style>
@@ -54,12 +54,6 @@
 <body>
 
 <header></header>
-<script>
-    document.addEventListener("DOMContentLoaded", async () => {
-        const res = await fetch("/common/header-static.html");
-        document.querySelector("header").innerHTML = await res.text();
-    });
-</script>
 <main>
     <div class="card">
         <h2>💳 결제 처리 중입니다</h2>

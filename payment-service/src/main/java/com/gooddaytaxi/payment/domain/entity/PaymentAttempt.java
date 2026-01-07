@@ -20,15 +20,16 @@ public class PaymentAttempt extends BaseEntity {
     private UUID id;
 
     @Column(nullable = false)
-    private String IdempotencyKey;  //toss 결제에서 중복 방지를 위한 멱등성 키
+    private String idempotencyKey;  //toss 결제에서 중복 방지를 위한 멱등성 키
 
-    @Column(nullable = false)
+    @Column(nullable = false, length=100)
     private String paymentKey;  //toss 결제에서 결제 고유 키
 
     @Column(nullable = false)
     private int attemptNo;  //결제 시도 횟수
 
     @Enumerated(EnumType.STRING)
+    @Column(length=20)
     private PaymentAttemptStatus status;
 
     private LocalDateTime requestedAt; //toss 결제 요청 시간
@@ -41,8 +42,10 @@ public class PaymentAttempt extends BaseEntity {
     @Column(length = 50)
     private String pgProvider; //간편 결제시 결제 승인한 PG사  //토스페이, 카카오페이, 네이버페이 등
 
+    @Column(length = 200)
     private String pgFailReason; //결제 실패 사유
 
+    @Column(length = 200)
     private String failDetail; //서버에서 찾아낸 결제 실패 상세 사유
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -52,7 +55,7 @@ public class PaymentAttempt extends BaseEntity {
 
     public PaymentAttempt(String paymentKey, String idempotencyKey, int attemptNo) {
         this.paymentKey = paymentKey;
-        this.IdempotencyKey = idempotencyKey;
+        this.idempotencyKey = idempotencyKey;
         this.attemptNo = attemptNo;
     }
 

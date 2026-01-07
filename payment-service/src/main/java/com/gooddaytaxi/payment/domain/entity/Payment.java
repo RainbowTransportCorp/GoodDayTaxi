@@ -28,11 +28,11 @@ public class Payment extends BaseEntity {
     @Column(nullable = false)
     private Fare amount;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     @Enumerated(EnumType.STRING)
     private PaymentStatus status;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length=20)
     @Enumerated(EnumType.STRING)
     private PaymentMethod method;
 

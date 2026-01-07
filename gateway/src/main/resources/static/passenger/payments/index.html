@@ -42,6 +42,7 @@
       border-bottom: 1px solid #eee;
       text-align: left;
     }
+    td button { padding: 8px 10px; border-radius: 10px; border: 0; cursor: pointer; }
 
     th {
       background: #fafafa;
@@ -99,6 +100,7 @@
       <th>결제 수단</th>
       <th>상태</th>
       <th>결제 시각</th>
+      <th>액션</th>
     </tr>
     </thead>
     <tbody id="paymentBody"></tbody>
@@ -114,20 +116,31 @@
 
   const urlParams = new URLSearchParams(window.location.search);
   const tripId = urlParams.get("tripId");
+  const filter = urlParams.get("filter");
   const body = document.getElementById("paymentBody");
 
   async function loadAndFilterPayments() {
     try {
       // 전체 결제 리스트 가져오기
-      const res = await fetch(API_BASE, {
+      //검색 조건 넣기
+      const params = new URLSearchParams({
+        page: 1,
+        size: 50,
+        searchPeriod: "ALL"
+      });
+      //결제 상태 조건 추가
+      if (filter) {
+        params.append("status", filter);
+      }
+
+      const res = await fetch(`${API_BASE}?${params.toString()}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
           "X-User-UUID": userUuid,
           "X-User-Role": role
-        },
-        body: JSON.stringify({ page: 1, size: 50 })
+        }
       });
 
       if (!res.ok) throw new Error(`조회 실패: ${res.status}`);
@@ -153,14 +166,18 @@
       // 렌더링
       body.innerHTML = "";
       payments.forEach(p => {
+        const actionCell = (p.status === "PENDING"|| p.status === "IN_PROCESS")
+                ? `<button type="button" onclick="pay('${p.tripId}')">결제</button>`
+                : `-`;
         body.insertAdjacentHTML("beforeend", `
           <tr>
-            <td>${p.id}</td>
+            <td>${p.paymentId}</td>
             <td>${p.tripId}</td>
             <td class="amount">₩ ${p.amount.toLocaleString()}</td>
             <td>${p.method}</td>
             <td class="status ${p.status}">${p.status}</td>
-            <td>${p.createdAt}</td>
+            <td>${p.approvedAt}</td>
+            <td>${actionCell}</td>
           </tr>
         `);
       });
@@ -171,6 +188,37 @@
   }
 
   loadAndFilterPayments();
+
+  // 결제 버튼 클릭시 tosspay 결제 페이지로 이동
+  async function pay(tripId) {
+    console.log("결제 버튼 클릭:", tripId);
+    try {
+
+      if (!tripId) {
+        alert("tripId가 없습니다.");
+        return;
+      }
+
+      // 서버 컨트롤러로 진입 → 서버가 checkout.html로 redirect 해줌
+      const url = `/api/v1/payments/tosspay/ready?tripId=${encodeURIComponent(tripId)}`;
+      const res = await fetch(url, {
+        method: "GET",
+        redirect: "manual", // redirect를 우리가 직접 처리
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "X-User-UUID": userUuid,
+          "X-User-Role": role
+        }
+      });
+      if (!res.ok) throw new Error(`ready 실패: ${res.status}`);
+
+      const data = await res.json();
+      window.location.href = data.checkoutUrl;
+    } catch (e) {
+      console.error(e);
+      alert("결제 페이지로 이동할 수 없습니다. (로그인/토큰/서버 설정 확인)");
+    }
+  }
 </script>
 
 
