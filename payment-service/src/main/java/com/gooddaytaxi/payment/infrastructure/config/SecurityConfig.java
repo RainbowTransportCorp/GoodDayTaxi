@@ -23,7 +23,7 @@ public class SecurityConfig {
             .formLogin(form -> form.disable())
             .httpBasic(basic -> basic.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/**").authenticated()
+                .requestMatchers("/api/v1/payments/**").authenticated()
                 .anyRequest().permitAll()
             )
             // ✅ GatewayAuthFilter 등록

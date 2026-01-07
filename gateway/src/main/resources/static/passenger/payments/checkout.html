@@ -10,13 +10,12 @@
 
     <!-- ✅ 정적 처리 대상이라면 이렇게 -->
     <link rel="stylesheet" href="/common/header.css">
-    <script src="/common/header-static.js" defer></script>
+    <script src="/common/header.js" defer></script>
 
     <style>
         body {
             margin: 0;
             background: #f7f7fb;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
         }
 
         main {
@@ -54,13 +53,7 @@
 
 <body>
 
-<header class="header-static"></header>
-<script>
-    document.addEventListener("DOMContentLoaded", async () => {
-        const res = await fetch("/common/header-static.html");
-        document.querySelector("header").innerHTML = await res.text();
-    });
-</script>
+<header></header>
 
 <main>
     <div class="card">
@@ -95,15 +88,6 @@
         return localStorage.getItem("role");
     }
 
-    function buildHeaders(role) {
-        return {
-            "Authorization": `Bearer ${getToken()}`,
-            "X-User-UUID": getUserUuid(),
-            "X-User-Role": role,
-            "Content-Type": "application/json"
-        };
-    }
-
     function guardPassenger() {
         const token = getToken();
         const role = getRole();
@@ -126,27 +110,10 @@
         if (!guardPassenger()) return;
         await loadHeader();
 
-        const params = new URLSearchParams(location.search);
-        const tripId = params.get("tripId");
-        if (!tripId) {
-            alert("운행 정보가 없습니다.");
-            location.href = "/passenger/dashboard/index.html";
-            return;
-        }
-
-        const res = await fetch(`/api/v1/payments/tosspay/ready?tripId=${tripId}`, {
-            method: "GET",
-            headers: buildHeaders("PASSENGER")
-        });
-
-        if (!res.ok) {
-            alert("결제 준비 중 오류가 발생했습니다.");
-            location.href = "/passenger/dashboard/index.html";
-            return;
-        }
-
-        const json = await res.json();
-        const { orderId, customerKey, amount } = json.data;
+        const params = new URLSearchParams(window.location.search);
+        const orderId = params.get("orderId");
+        const customerKey = params.get("customerKey");
+        const amount = Number(params.get("amount"));
 
         const clientKey = "test_gck_docs_Ovk5rk1EwkEbP0W43n07xlzm";
         const tossPayments = TossPayments(clientKey);
@@ -168,10 +135,10 @@
         const button = document.getElementById("payment-button");
         button.addEventListener("click", async () => {
             await widgets.requestPayment({
-                orderId,
+                orderId:orderId,
                 orderName: "운수좋은 날 운행",
-                successUrl: `${location.origin}/passenger/payments/processing.html`,
-                failUrl: `${location.origin}/passenger/payments/fail.html`
+                successUrl: `${window.location.origin}/passenger/payments/processing.html`,
+                failUrl: `${window.location.origin}/passenger/payments/fail.html`
             });
         });
     }

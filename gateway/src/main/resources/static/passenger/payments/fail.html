@@ -8,7 +8,7 @@
     <!-- 공통 헤더 -->
     <!-- ✅ 정적 처리 대상이라면 이렇게 -->
     <link rel="stylesheet" href="/common/header.css">
-    <script src="/common/header-static.js" defer></script>
+    <script src="/common/header.js" defer></script>
 
     <style>
         :root {
@@ -97,12 +97,6 @@
 <body>
 
 <header></header>
-<script>
-    document.addEventListener("DOMContentLoaded", async () => {
-        const res = await fetch("/common/header-static.html");
-        document.querySelector("header").innerHTML = await res.text();
-    });
-</script>
 
 <main>
     <div class="card">
@@ -151,11 +145,8 @@
          */
 
         const params = new URLSearchParams(location.search);
-        const message =
-            params.get("message") ??
+        document.getElementById("message").textContent = params.get("message") ??
             "결제가 정상적으로 처리되지 않았습니다.";
-
-        document.getElementById("message").textContent = message;
     }
 
     /**

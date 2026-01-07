@@ -59,7 +59,7 @@ public class PaymentQueryAdapter implements PaymentQueryPort {
 
 
     @Override
-    public Payment findLastByTripIdAndStatusForCreate(UUID tripId) {
+    public Optional<Payment> findLastByTripIdAndStatusForCreate(UUID tripId) {
         return paymentRepository.findLastByTripIdAndStatusForCreate(tripId);
     }
 

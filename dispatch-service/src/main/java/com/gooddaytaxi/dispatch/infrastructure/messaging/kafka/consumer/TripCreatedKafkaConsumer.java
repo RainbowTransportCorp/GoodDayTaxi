@@ -1,10 +1,10 @@
 package com.gooddaytaxi.dispatch.infrastructure.messaging.kafka.consumer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gooddaytaxi.dispatch.application.port.in.command.TripReadyCommandPort;
 import com.gooddaytaxi.dispatch.application.service.dispatch.DispatchTripRequestMonitor;
 import com.gooddaytaxi.dispatch.application.service.dispatch.TripReadyDispatchService;
-import com.gooddaytaxi.dispatch.infrastructure.messaging.kafka.consumer.dto.TripReadyConsumedEvent;;
+import com.gooddaytaxi.dispatch.infrastructure.messaging.kafka.consumer.dto.TripReadyConsumedEvent;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,7 @@ public class TripCreatedKafkaConsumer implements TripReadyCommandPort {
     private final TripReadyDispatchService tripReadyDispatchService;
     private final DispatchTripRequestMonitor tripRequestMonitor;
 
-    @KafkaListener(topics = "trip.ready", groupId = "dispatch-group")
+    @KafkaListener(topics = "trip.created", groupId = "dispatch-group")
     public void consume(String message) {
         try {
             TripReadyConsumedEvent event =

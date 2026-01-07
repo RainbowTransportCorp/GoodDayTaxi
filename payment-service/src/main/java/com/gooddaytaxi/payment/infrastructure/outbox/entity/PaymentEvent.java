@@ -20,16 +20,16 @@ public class PaymentEvent extends BaseEntity {
     @Column(name="event_id")
     private UUID id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length=50)
     private String type;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length=50)
     private String topic;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length=50)
     private String messageKey;           // 예: passengerId
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 30)
     private String aggregateType;        // 예: Dispatch
 
     @Column(nullable = false)
@@ -43,12 +43,13 @@ public class PaymentEvent extends BaseEntity {
     private String payload;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length=20)
     private PaymentEventStatus status;
 
     @Column(nullable = false)
     private int retryCount;
 
+    @Column(length=200)
     private String errorMessage;
 
     private LocalDateTime publishedAt;
