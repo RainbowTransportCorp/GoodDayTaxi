@@ -15,7 +15,8 @@ public class EndTripRequestMapper {
             driverId,
             role,
             request.totalDistance(),
-            request.totalDuration()
+            request.totalDuration(),
+                request.paymentMethod()
         );
     }
 }

@@ -8,6 +8,8 @@ public record EndTripRequest(
         @NotNull
         BigDecimal totalDistance,
         @NotNull
-        Long totalDuration
+        Long totalDuration,
+        @NotNull
+        String paymentMethod
 ) {
 }
